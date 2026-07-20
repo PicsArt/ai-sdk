@@ -14,7 +14,7 @@
  *
  * Usage: node scripts/write-dist-package.mjs
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -60,3 +60,15 @@ pkg.publishConfig = { access: 'public' };
 
 writeFileSync(distPkgPath, JSON.stringify(pkg, null, 2) + '\n');
 console.log(`Wrote ${distPkgPath} (${pkg.name})`);
+
+// npm renders a README (and shows the license file) only when they live INSIDE
+// the published tarball. We publish from dist/, so copy them in from the
+// package root — otherwise the npm page reports "no README".
+const distDir = join(PKG_DIR, 'dist');
+for (const file of ['README.md', 'LICENSE']) {
+  const src = join(PKG_DIR, file);
+  if (existsSync(src)) {
+    copyFileSync(src, join(distDir, file));
+    console.log(`Copied ${file} → dist/`);
+  }
+}

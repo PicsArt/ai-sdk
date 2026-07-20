@@ -1,6 +1,6 @@
 {
   "name": "@picsart/ai-sdk",
-  "version": "3.17.3",
+  "version": "3.17.4",
   "type": "module",
   "description": "Type-safe SDK for 100+ AI models — image, video, audio, and text generation with Picsart",
   "license": "MIT",
@@ -31,13 +31,13 @@
   "dependencies": {
     "fflate": "^0.8.3"
   },
-  "homepage": "https://github.com/Picsart/ai-sdk#readme",
+  "homepage": "https://github.com/PicsArt/ai-sdk#readme",
   "bugs": {
-    "url": "https://github.com/Picsart/ai-sdk/issues"
+    "url": "https://github.com/PicsArt/ai-sdk/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Picsart/ai-sdk.git"
+    "url": "git+https://github.com/PicsArt/ai-sdk.git"
   },
   "publishConfig": {
     "access": "public"

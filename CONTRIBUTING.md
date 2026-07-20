@@ -16,7 +16,7 @@ contribution is still credited.
 
 ## Reporting bugs & requesting features
 
-Please [open an issue](https://github.com/Picsart/ai-sdk/issues) with:
+Please [open an issue](https://github.com/PicsArt/ai-sdk/issues) with:
 
 - the SDK version (`npm ls @picsart/ai-sdk`),
 - a minimal reproduction,

@@ -1,7 +1,7 @@
 # Publishes @picsart/ai-sdk to the public npm registry WITH provenance.
 #
 # This file lives at packages/ai-sdk/.github/workflows/ in the source monorepo
-# (GitLab) and lands at the ROOT of the public mirror repo (github.com/Picsart/
+# (GitLab) and lands at the ROOT of the public mirror repo (github.com/PicsArt/
 # ai-sdk) — GitHub only reads .github/workflows from the repo root.
 #
 # The mirror carries a PREBUILT dist/ (see scripts/mirror-to-github.mjs): the
@@ -12,7 +12,7 @@
 #
 # Auth: npm Trusted Publisher (OIDC) — NO token stored. Configure once at
 # npmjs.com > @picsart/ai-sdk > Settings > Trusted Publisher:
-#   Provider = GitHub Actions, Repository = Picsart/ai-sdk, Workflow = publish.yml
+#   Provider = GitHub Actions, Repository = PicsArt/ai-sdk, Workflow = publish.yml
 #
 # Trigger: a v<version> tag pushed by the mirror job. Idempotent — skips a
 # version already on npm, so re-runs are safe.

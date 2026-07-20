@@ -1,0 +1,57 @@
+# Publishes @picsart/ai-sdk to the public npm registry WITH provenance.
+#
+# This file lives at packages/ai-sdk/.github/workflows/ in the source monorepo
+# (GitLab) and lands at the ROOT of the public mirror repo (github.com/Picsart/
+# ai-sdk) — GitHub only reads .github/workflows from the repo root.
+#
+# The mirror carries a PREBUILT dist/ (see scripts/mirror-to-github.mjs): the
+# bundle inlines private @picsart/* deps that only exist on the GitLab registry,
+# so GitHub cannot build from source. This job therefore just publishes the
+# prebuilt dist/ — provenance still cryptographically attests that the package
+# was published by this repo + commit + workflow, which is the npm<->GitHub link.
+#
+# Auth: npm Trusted Publisher (OIDC) — NO token stored. Configure once at
+# npmjs.com > @picsart/ai-sdk > Settings > Trusted Publisher:
+#   Provider = GitHub Actions, Repository = Picsart/ai-sdk, Workflow = publish.yml
+#
+# Trigger: a v<version> tag pushed by the mirror job. Idempotent — skips a
+# version already on npm, so re-runs are safe.
+
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write # required for OIDC Trusted Publishing + provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted Publishing (OIDC) requires npm >= 11.5.1; pin latest to be safe.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      - name: Publish prebuilt dist to npm (idempotent, with provenance)
+        run: |
+          set -euo pipefail
+          NAME=$(node -p "require('./dist/package.json').name")
+          VERSION=$(node -p "require('./dist/package.json').version")
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION already on npm — skipping."
+            exit 0
+          fi
+          echo "Publishing $NAME@$VERSION with provenance…"
+          npm publish ./dist --provenance --access public

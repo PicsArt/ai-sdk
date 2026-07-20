@@ -1,0 +1,62 @@
+{
+  "name": "@picsart/ai-sdk",
+  "version": "3.17.2",
+  "type": "module",
+  "description": "Type-safe SDK for 100+ AI models — image, video, audio, and text generation with Picsart",
+  "license": "MIT",
+  "author": "Picsart",
+  "keywords": [
+    "ai",
+    "sdk",
+    "picsart",
+    "image-generation",
+    "video-generation",
+    "audio-generation",
+    "flux",
+    "kling",
+    "generative-ai"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist/",
+    "src/"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "node --import tsx --test \"__tests__/unit/*.test.ts\"",
+    "test:e2e": "node --env-file-if-exists=../../.env.local --import tsx --test \"__tests__/e2e/*.e2e.ts\"",
+    "build:sdk": "npm run build:model-constants && npx tsup && node scripts/inline-dist-types.mjs && node scripts/write-dist-package.mjs",
+    "build:model-constants": "node scripts/build-model-constants.mjs",
+    "build:model-input-types": "tsx scripts/build-model-input-types.ts",
+    "build:models-catalog": "tsx scripts/build-models-catalog.ts",
+    "bundle": "npm run build:sdk"
+  },
+  "dependencies": {
+    "@picsart/pa-model-pricing-sdk": "^1.0.2",
+    "@picsart/workflows-client": "^1.6.1",
+    "@picsart/workflows-types": "^1.1.51",
+    "fflate": "^0.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.3"
+  },
+  "homepage": "https://github.com/Picsart/ai-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/Picsart/ai-sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Picsart/ai-sdk.git"
+  }
+}

@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Picsart AI SDK — Getting Started Guide</title>
+<style>
+  /* ── Reset & Base ──────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --surface-alt: #f5f3f0;
+    --border: #e8e5e0;
+    --border-hover: #d1cdc6;
+    --text: #1c1917;
+    --text-secondary: #57534e;
+    --text-muted: #a8a29e;
+    --accent: #7c5cfc;
+    --accent-soft: #ede9fe;
+    --accent-hover: #6d4aed;
+    --green: #16a34a;
+    --green-soft: #dcfce7;
+    --blue: #2563eb;
+    --blue-soft: #dbeafe;
+    --orange: #ea580c;
+    --orange-soft: #fff7ed;
+    --pink: #db2777;
+    --pink-soft: #fce7f3;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ────────────────────────────────────────────── */
+  .page {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar Navigation ────────────────────────────────── */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 28px 0;
+    overflow-y: auto;
+    z-index: 10;
+  }
+
+  .sidebar-logo {
+    padding: 0 24px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .sidebar-logo h2 {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .sidebar-logo span {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .sidebar nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
+
+  .sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+  }
+
+  .sidebar nav a:hover { background: var(--surface-alt); color: var(--text); }
+  .sidebar nav a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+  .sidebar nav .nav-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    padding: 16px 12px 6px;
+  }
+
+  .nav-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ── Main Content ──────────────────────────────────────── */
+  .main {
+    flex: 1;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 48px 48px 120px;
+  }
+
+  /* ── Typography ────────────────────────────────────────── */
+  h1 {
+    font-size: 32px;
+    font-weight: 750;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 40px;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-top: 56px;
+    margin-bottom: 16px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  h2:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 650;
+    margin-top: 32px;
+    margin-bottom: 10px;
+  }
+
+  p { margin-bottom: 16px; color: var(--text-secondary); }
+  p strong { color: var(--text); font-weight: 600; }
+
+  /* ── Cards ─────────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .card:hover { border-color: var(--border-hover); box-shadow: var(--shadow); }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .mini-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+    transition: all 0.15s ease;
+  }
+
+  .mini-card:hover { border-color: var(--accent); box-shadow: var(--shadow); transform: translateY(-1px); }
+
+  .mini-card .icon { font-size: 28px; margin-bottom: 8px; display: block; }
+  .mini-card .label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .mini-card .desc { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ── Step Indicators ───────────────────────────────────── */
+  .steps { counter-reset: step; margin-bottom: 16px; }
+
+  .step {
+    counter-increment: step;
+    position: relative;
+    padding-left: 48px;
+    padding-bottom: 32px;
+    border-left: 2px solid var(--border);
+    margin-left: 15px;
+  }
+
+  .step:last-child { border-left-color: transparent; padding-bottom: 0; }
+
+  .step::before {
+    content: counter(step);
+    position: absolute;
+    left: -16px;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .step h3 { margin-top: 2px; }
+
+  /* ── Code Blocks ───────────────────────────────────────── */
+  .code-wrap {
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #292524;
+    padding: 10px 16px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    font-size: 12px;
+    color: #a8a29e;
+    font-family: var(--mono);
+  }
+
+  .copy-btn {
+    background: transparent;
+    border: 1px solid #44403c;
+    color: #a8a29e;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.15s ease;
+  }
+
+  .copy-btn:hover { background: #44403c; color: #e7e5e4; }
+  .copy-btn.copied { background: var(--green); border-color: var(--green); color: white; }
+
+  pre {
+    background: #1c1917;
+    padding: 20px;
+    border-radius: 0 0 var(--radius) var(--radius);
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #e7e5e4;
+    tab-size: 2;
+  }
+
+  .code-wrap:not(:has(.code-header)) pre {
+    border-radius: var(--radius);
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--surface-alt);
+    padding: 2px 7px;
+    border-radius: 5px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    color: inherit;
+    font-weight: normal;
+    font-size: inherit;
+  }
+
+  /* Syntax colors */
+  .kw { color: #c084fc; }       /* keyword */
+  .fn { color: #60a5fa; }       /* function */
+  .str { color: #86efac; }      /* string */
+  .cmt { color: #78716c; }      /* comment */
+  .typ { color: #fbbf24; }      /* type */
+  .num { color: #fb923c; }      /* number */
+  .prop { color: #e7e5e4; }     /* property */
+  .op { color: #a8a29e; }       /* operator */
+
+  /* ── Callout Boxes ─────────────────────────────────────── */
+  .callout {
+    display: flex;
+    gap: 14px;
+    padding: 16px 20px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+
+  .callout p { margin-bottom: 0; color: inherit; }
+  .callout-icon { font-size: 18px; flex-shrink: 0; padding-top: 1px; }
+
+  .callout.tip { background: var(--green-soft); color: #166534; border: 1px solid #bbf7d0; }
+  .callout.info { background: var(--blue-soft); color: #1e40af; border: 1px solid #bfdbfe; }
+  .callout.warn { background: var(--orange-soft); color: #9a3412; border: 1px solid #fed7aa; }
+  .callout.note { background: var(--accent-soft); color: #5b21b6; border: 1px solid #c4b5fd; }
+
+  /* ── Interactive Model Explorer ─────────────────────────── */
+  .model-filter {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 7px 16px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 550;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: var(--font);
+    color: var(--text-secondary);
+  }
+
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .model-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .model-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    transition: all 0.15s ease;
+    cursor: default;
+  }
+
+  .model-chip:hover { border-color: var(--border-hover); box-shadow: var(--shadow-sm); }
+
+  .model-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .model-chip .name { font-weight: 600; color: var(--text); }
+  .model-chip .mode {
+    margin-left: auto;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .mode-image { background: var(--blue-soft); color: var(--blue); }
+  .mode-video { background: var(--pink-soft); color: var(--pink); }
+  .mode-audio { background: var(--orange-soft); color: var(--orange); }
+
+  /* ── Result Preview Card ───────────────────────────────── */
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .result-header {
+    padding: 14px 20px;
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .result-header .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  .result-header span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .result-body { padding: 20px; }
+
+  .result-field {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .result-field:last-child { border-bottom: none; }
+
+  .result-field .key {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    min-width: 80px;
+  }
+
+  .result-field .val {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    word-break: break-all;
+  }
+
+  /* ── Accordion (collapsible sections) ──────────────────── */
+  .accordion {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .accordion summary {
+    padding: 16px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    transition: background 0.15s ease;
+    list-style: none;
+    user-select: none;
+  }
+
+  .accordion summary::-webkit-details-marker { display: none; }
+
+  .accordion summary::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(-45deg);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .accordion[open] summary::before { transform: rotate(45deg); }
+  .accordion summary:hover { background: var(--surface-alt); }
+
+  .accordion .accordion-body {
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  /* ── Table ─────────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface-alt); }
+
+  /* ── Responsive ────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 32px 20px 80px; }
+    h1 { font-size: 26px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Scrollbar ─────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h2>Picsart AI SDK</h2>
+      <span>@picsart/ai-sdk</span>
+    </div>
+    <nav>
+      <div class="nav-label">Getting Started</div>
+      <a href="#what-is-this" class="active"><span class="nav-icon">&#x1f4d6;</span> What is this?</a>
+      <a href="#install"><span class="nav-icon">&#x1f4e6;</span> Installation</a>
+      <a href="#quick-start"><span class="nav-icon">&#x26a1;</span> Quick Start</a>
+
+      <div class="nav-label">Using the SDK</div>
+      <a href="#models"><span class="nav-icon">&#x1f9e9;</span> Browsing Models</a>
+      <a href="#generate"><span class="nav-icon">&#x1f3a8;</span> Generating Content</a>
+      <a href="#result"><span class="nav-icon">&#x1f4cb;</span> Reading Results</a>
+      <a href="#params"><span class="nav-icon">&#x2699;</span> Model Parameters</a>
+
+      <div class="nav-label">Using the CLI</div>
+      <a href="#cli"><span class="nav-icon">&#x1f4bb;</span> CLI Tool</a>
+      <a href="#cli-commands"><span class="nav-icon">&#x1f4dd;</span> Commands</a>
+
+      <div class="nav-label">Sharing</div>
+      <a href="#deep-links"><span class="nav-icon">&#x1f517;</span> Deep Links</a>
+
+      <div class="nav-label">Reference</div>
+      <a href="#advanced"><span class="nav-icon">&#x1f527;</span> Advanced Usage</a>
+      <a href="#api-ref"><span class="nav-icon">&#x1f4da;</span> Full API Reference</a>
+    </nav>
+  </aside>
+
+  <!-- ── Main Content ────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- ── Intro ───────────────────────────────────────── -->
+    <section id="what-is-this">
+      <h1>Picsart AI SDK</h1>
+      <p class="subtitle">
+        One package to generate images, videos, and audio with 100+ AI models.
+        Use it as a <strong>code library</strong> in your app or as a <strong>command-line tool</strong> in your terminal.
+      </p>
+
+      <div class="card-grid">
+        <div class="mini-card">
+          <span class="icon">&#x1f5bc;</span>
+          <div class="label">Images</div>
+          <div class="desc">Flux, Recraft, GPT Image, Gemini, and more</div>
+        </div>
+        <div class="mini-card">
+          <span class="icon">&#x1f3ac;</span>
+          <div class="label">Videos</div>
+          <div class="desc">Kling, Sora, Luma, Hailuo, Veo, and more</div>
+        </div>
+        <div class="mini-card">
+          <span class="icon">&#x1f3b5;</span>
+          <div class="label">Audio</div>
+          <div class="desc">ElevenLabs, OpenAI TTS, Gemini TTS</div>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">&#x1f4a1;</span>
+        <p><strong>Who is this for?</strong> Anyone at Picsart who wants to use AI generation — whether you write code, build prototypes, or just want to try models from your terminal.</p>
+      </div>
+    </section>
+
+    <!-- ── Installation ────────────────────────────────── -->
+    <section id="install">
+      <h2>Installation</h2>
+      <p>You need <strong>Node.js 22+</strong> installed on your computer. Then pick how you want to use it:</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h3 style="margin-top:0">As a code library</h3>
+          <p>Add it to your project so you can <code>import</code> it in your code.</p>
+          <div class="code-wrap">
+            <div class="code-header"><span>terminal</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code>npm install @picsart/ai-sdk</code></pre>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">As a CLI tool</h3>
+          <p>Install globally so the <code>gen-ai</code> command works anywhere in your terminal.</p>
+          <div class="code-wrap">
+            <div class="code-header"><span>terminal</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code>npm install -g @picsart/ai-sdk</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">&#x2705;</span>
+        <p><strong>What's the difference?</strong> <code>npm install</code> (without <code>-g</code>) puts the package inside your project only. <code>npm install -g</code> installs it system-wide so the <code>gen-ai</code> terminal command works from any folder.</p>
+      </div>
+    </section>
+
+    <!-- ── Quick Start ─────────────────────────────────── -->
+    <section id="quick-start">
+      <h2>Quick Start</h2>
+      <p>Here's the simplest possible example &mdash; generate an image in 4 lines of code:</p>
+
+      <div class="steps">
+        <div class="step">
+          <h3>Import the SDK</h3>
+          <p>Pull in <code>createClient</code> (to connect) and <code>Models</code> (to pick a model).</p>
+          <div class="code-wrap">
+            <div class="code-header"><span>your-script.ts</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code><span class="kw">import</span> { <span class="fn">createClient</span>, <span class="typ">Models</span> } <span class="kw">from</span> <span class="str">'@picsart/ai-sdk'</span></code></pre>
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Create a client</h3>
+          <p>The client is your connection to the Picsart API. You give it your authenticated fetch function and the API URL.</p>
+          <div class="code-wrap">
+            <div class="code-header"><span>your-script.ts</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code><span class="kw">const</span> <span class="prop">ai</span> <span class="op">=</span> <span class="fn">createClient</span>({
+  <span class="prop">fetch</span>: <span class="prop">myAuthenticatedFetch</span>,
+  <span class="prop">apiUrl</span>: <span class="str">'https://api.picsart.com'</span>,
+})</code></pre>
+          </div>
+          <div class="callout note">
+            <span class="callout-icon">&#x1f511;</span>
+            <p><strong>What is <code>myAuthenticatedFetch</code>?</strong> It's a function that makes HTTP requests with your Picsart login credentials attached. If you're inside the Picsart web app, the platform provides this for you. If you're writing a standalone script, ask your team for the auth setup.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Generate something!</h3>
+          <p>Pick a model, write a prompt, and get back a URL to your generated image.</p>
+          <div class="code-wrap">
+            <div class="code-header"><span>your-script.ts</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code><span class="kw">const</span> <span class="prop">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">generate</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>, {
+  <span class="prop">prompt</span>: <span class="str">'a golden retriever surfing at sunset'</span>,
+})
+
+<span class="prop">console</span>.<span class="fn">log</span>(<span class="prop">result</span>.<span class="prop">url</span>)  <span class="cmt">// &rarr; https://...your-generated-image.png</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">&#x1f389;</span>
+        <p>That's it! The <code>generate</code> function sends your prompt, waits for the AI to finish, and gives you the result URL.</p>
+      </div>
+
+      <h3>Full working example</h3>
+      <div class="code-wrap">
+        <div class="code-header"><span>example.ts</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code><span class="kw">import</span> { <span class="fn">createClient</span>, <span class="typ">Models</span> } <span class="kw">from</span> <span class="str">'@picsart/ai-sdk'</span>
+
+<span class="kw">const</span> <span class="prop">ai</span> <span class="op">=</span> <span class="fn">createClient</span>({
+  <span class="prop">fetch</span>: <span class="prop">myAuthenticatedFetch</span>,
+  <span class="prop">apiUrl</span>: <span class="str">'https://api.picsart.com'</span>,
+})
+
+<span class="cmt">// Generate an image</span>
+<span class="kw">const</span> <span class="prop">image</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">generate</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>, {
+  <span class="prop">prompt</span>: <span class="str">'a cozy cabin in the mountains'</span>,
+  <span class="prop">aspectRatio</span>: <span class="str">'16:9'</span>,
+})
+
+<span class="cmt">// Generate a video</span>
+<span class="kw">const</span> <span class="prop">video</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">generate</span>(<span class="typ">Models</span>.<span class="prop">KlingV3Pro</span>, {
+  <span class="prop">prompt</span>: <span class="str">'a timelapse of flowers blooming'</span>,
+  <span class="prop">duration</span>: <span class="num">5</span>,
+})
+
+<span class="cmt">// Generate audio</span>
+<span class="kw">const</span> <span class="prop">audio</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">generate</span>(<span class="typ">Models</span>.<span class="prop">ElevenV3</span>, {
+  <span class="prop">prompt</span>: <span class="str">'Hello! Welcome to Picsart.'</span>,
+  <span class="prop">voiceId</span>: <span class="str">'aria'</span>,
+})
+
+<span class="prop">console</span>.<span class="fn">log</span>(<span class="prop">image</span>.<span class="prop">url</span>, <span class="prop">video</span>.<span class="prop">url</span>, <span class="prop">audio</span>.<span class="prop">url</span>)</code></pre>
+      </div>
+    </section>
+
+    <!-- ── Models ──────────────────────────────────────── -->
+    <section id="models">
+      <h2>Browsing Models</h2>
+      <p>
+        The SDK comes with <strong>100+ AI models</strong> built in.
+        The <code>Models</code> object lets you browse, search, and inspect them.
+      </p>
+
+      <h3>Interactive model catalog</h3>
+      <p>Click a filter to see models of that type:</p>
+
+      <div class="model-filter">
+        <button class="filter-btn active" onclick="filterModels('all')">All</button>
+        <button class="filter-btn" onclick="filterModels('image')">Images</button>
+        <button class="filter-btn" onclick="filterModels('video')">Videos</button>
+        <button class="filter-btn" onclick="filterModels('audio')">Audio</button>
+      </div>
+
+      <div class="model-grid" id="modelGrid">
+        <!-- Populated by JS -->
+      </div>
+      <p style="font-size:13px; color: var(--text-muted);" id="modelCount"></p>
+
+      <h3>In your code</h3>
+
+      <div class="code-wrap">
+        <div class="code-header"><span>browsing models</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code><span class="cmt">// List all models</span>
+<span class="typ">Models</span>.<span class="fn">list</span>()
+
+<span class="cmt">// Only video models</span>
+<span class="typ">Models</span>.<span class="fn">list</span>({ <span class="prop">mode</span>: <span class="str">'video'</span> })
+
+<span class="cmt">// Search by name (case-insensitive)</span>
+<span class="typ">Models</span>.<span class="fn">search</span>(<span class="str">'kling'</span>)
+<span class="typ">Models</span>.<span class="fn">search</span>(<span class="str">'flux'</span>)
+
+<span class="cmt">// Access a specific model directly</span>
+<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>            <span class="cmt">// Flux 2 Pro</span>
+<span class="typ">Models</span>.<span class="prop">KlingV3Pro</span>          <span class="cmt">// Kling 3.0 Pro</span>
+<span class="typ">Models</span>.<span class="prop">Sora2</span>               <span class="cmt">// Sora 2</span>
+<span class="typ">Models</span>.<span class="prop">ElevenV3</span>            <span class="cmt">// ElevenLabs v3</span>
+
+<span class="cmt">// Check model info</span>
+<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>.<span class="prop">name</span>       <span class="cmt">// &rarr; "Flux 2 Pro"</span>
+<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>.<span class="prop">mode</span>       <span class="cmt">// &rarr; "image"</span>
+<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>.<span class="prop">provider</span>   <span class="cmt">// &rarr; "flux"</span></code></pre>
+      </div>
+    </section>
+
+    <!-- ── Generate ────────────────────────────────────── -->
+    <section id="generate">
+      <h2>Generating Content</h2>
+      <p>The <code>generate</code> method is the main way to create content. It takes a <strong>model</strong> and a <strong>params object</strong>, waits for the AI to finish, and returns the result.</p>
+
+      <h3>Image generation</h3>
+      <div class="code-wrap">
+        <div class="code-header"><span>image</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code><span class="kw">const</span> <span class="prop">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">generate</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>, {
+  <span class="prop">prompt</span>: <span class="str">'a minimalist logo for a coffee shop'</span>,
+  <span class="prop">aspectRatio</span>: <span class="str">'1:1'</span>,
+})</code></pre>
+      </div>
+
+      <h3>Video generation</h3>
+      <div class="code-wrap">
+        <div class="code-header"><span>video</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code><span class="kw">const</span> <span class="prop">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">generate</span>(<span class="typ">Models</span>.<span class="prop">KlingV3Pro</span>, {
+  <span class="prop">prompt</span>: <span class="str">'drone shot flying over a tropical beach'</span>,
+  <span class="prop">duration</span>: <span class="num">5</span>,
+  <span class="prop">aspectRatio</span>: <span class="str">'16:9'</span>,
+})</code></pre>
+      </div>
+
+      <h3>Image-to-video (start from a picture)</h3>
+      <div class="code-wrap">
+        <div class="code-header"><span>image &rarr; video</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code><span class="kw">const</span> <span class="prop">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">generate</span>(<span class="typ">Models</span>.<span class="prop">KlingV3Pro</span>, {
+  <span class="prop">prompt</span>: <span class="str">'the person in the photo starts waving'</span>,
+  <span class="prop">imageUrls</span>: [<span class="str">'https://example.com/my-photo.jpg'</span>],
+})</code></pre>
+      </div>
+
+      <h3>Audio / text-to-speech</h3>
+      <div class="code-wrap">
+        <div class="code-header"><span>audio</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code><span class="kw">const</span> <span class="prop">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">generate</span>(<span class="typ">Models</span>.<span class="prop">ElevenV3</span>, {
+  <span class="prop">prompt</span>: <span class="str">'Welcome to Picsart! Lets create something amazing.'</span>,
+  <span class="prop">voiceId</span>: <span class="str">'aria'</span>,
+})</code></pre>
+      </div>
+
+      <h3>Estimate cost before generating</h3>
+      <div class="code-wrap">
+        <div class="code-header"><span>cost check</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code><span class="kw">const</span> <span class="prop">credits</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">estimate</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>, {
+  <span class="prop">prompt</span>: <span class="str">'anything'</span>,
+})
+<span class="prop">console</span>.<span class="fn">log</span>(<span class="str">`This will cost</span> <span class="op">${</span><span class="prop">credits</span><span class="op">}</span> <span class="str">credits`</span>)</code></pre>
+      </div>
+    </section>
+
+    <!-- ── Result ──────────────────────────────────────── -->
+    <section id="result">
+      <h2>Reading Results</h2>
+      <p>When <code>generate()</code> finishes, it returns a result object. Here's what you get:</p>
+
+      <div class="result-card">
+        <div class="result-header">
+          <span class="dot"></span>
+          <span>GenerateResult</span>
+        </div>
+        <div class="result-body">
+          <div class="result-field">
+            <span class="key">url</span>
+            <span class="val">https://cdn.picsart.com/...result.png</span>
+          </div>
+          <div class="result-field">
+            <span class="key">model</span>
+            <span class="val">"flux-2-pro"</span>
+          </div>
+          <div class="result-field">
+            <span class="key">results</span>
+            <span class="val">[{ url: "https://..." }, ...]</span>
+          </div>
+          <div class="result-field">
+            <span class="key">drive</span>
+            <span class="val">{ uid: "abc123", folder: { name: "AI Playground" } }</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header"><span>using the result</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code><span class="kw">const</span> <span class="prop">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">generate</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>, {
+  <span class="prop">prompt</span>: <span class="str">'a sunset over the ocean'</span>,
+})
+
+<span class="cmt">// The main URL (shortcut to the first result)</span>
+<span class="prop">result</span>.<span class="prop">url</span>
+
+<span class="cmt">// All results (some models return multiple)</span>
+<span class="prop">result</span>.<span class="prop">results</span>  <span class="cmt">// &rarr; [{ url: "..." }, { url: "..." }, ...]</span>
+
+<span class="cmt">// Which model made this</span>
+<span class="prop">result</span>.<span class="prop">model</span>   <span class="cmt">// &rarr; "flux-2-pro"</span>
+
+<span class="cmt">// Drive save info (if Drive is enabled)</span>
+<span class="prop">result</span>.<span class="prop">drive</span>   <span class="cmt">// &rarr; { uid: "...", folder: { name: "..." } }</span></code></pre>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">&#x1f4c1;</span>
+        <p><strong>Auto-save to Drive:</strong> If you set up Drive when creating the client, every generation is automatically saved to your Picsart Drive folder. The <code>result.drive</code> field will contain the saved file info.</p>
+      </div>
+    </section>
+
+    <!-- ── Parameters ──────────────────────────────────── -->
+    <section id="params">
+      <h2>Model Parameters</h2>
+      <p>Different models accept different parameters. The SDK helps you discover what each model supports:</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><span>discovering parameters</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code><span class="cmt">// Get the default values for a model</span>
+<span class="typ">Models</span>.<span class="fn">getDefaults</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>)
+<span class="cmt">// &rarr; { aspectRatio: "1:1" }</span>
+
+<span class="cmt">// Check if a model has a specific parameter</span>
+<span class="typ">Models</span>.<span class="fn">hasParam</span>(<span class="typ">Models</span>.<span class="prop">KlingV3Pro</span>, <span class="str">'duration'</span>)   <span class="cmt">// &rarr; true</span>
+<span class="typ">Models</span>.<span class="fn">hasParam</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>, <span class="str">'duration'</span>)      <span class="cmt">// &rarr; false</span>
+
+<span class="cmt">// Get the options for an enum parameter</span>
+<span class="typ">Models</span>.<span class="fn">getEnumOptions</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>, <span class="str">'aspectRatio'</span>)
+<span class="cmt">// &rarr; ["1:1", "16:9", "9:16", "4:3", "3:4", ...]</span>
+
+<span class="cmt">// Get range limits for a numeric parameter</span>
+<span class="typ">Models</span>.<span class="fn">getRange</span>(<span class="typ">Models</span>.<span class="prop">KlingV3Pro</span>, <span class="str">'duration'</span>)
+<span class="cmt">// &rarr; { min: 5, max: 10, step: 5, default: 5 }</span>
+
+<span class="cmt">// Check if a model accepts file inputs (images, video, audio)</span>
+<span class="typ">Models</span>.<span class="fn">hasFileInput</span>(<span class="typ">Models</span>.<span class="prop">KlingV3Pro</span>)  <span class="cmt">// &rarr; true (accepts images)</span>
+<span class="typ">Models</span>.<span class="fn">hasFileInput</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>)    <span class="cmt">// &rarr; false (text only)</span>
+
+<span class="cmt">// Validate inputs before sending</span>
+<span class="typ">Models</span>.<span class="fn">validate</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>, { <span class="prop">prompt</span>: <span class="str">'hello'</span> })
+<span class="cmt">// &rarr; { valid: true }</span></code></pre>
+      </div>
+
+      <h3>Common parameters</h3>
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>Parameter</th><th>Type</th><th>Used by</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>prompt</code></td><td>text</td><td>Almost all</td><td>What you want to generate</td></tr>
+            <tr><td><code>aspectRatio</code></td><td>choice</td><td>Image &amp; Video</td><td>Shape: "1:1", "16:9", "9:16", etc.</td></tr>
+            <tr><td><code>duration</code></td><td>number</td><td>Video</td><td>Length in seconds (usually 5 or 10)</td></tr>
+            <tr><td><code>imageUrls</code></td><td>file</td><td>Image &amp; Video</td><td>Source image(s) for image-to-video or editing</td></tr>
+            <tr><td><code>voiceId</code></td><td>choice</td><td>Audio</td><td>Which voice to use for speech</td></tr>
+            <tr><td><code>negativePrompt</code></td><td>text</td><td>Some image</td><td>What you do NOT want in the output</td></tr>
+            <tr><td><code>style</code></td><td>choice</td><td>Some image</td><td>Art style preset</td></tr>
+            <tr><td><code>seed</code></td><td>number</td><td>Some image</td><td>Fixed seed for reproducible results</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── CLI ─────────────────────────────────────────── -->
+    <section id="cli">
+      <h2>CLI Tool</h2>
+      <p>The <code>gen-ai</code> command lets you generate content directly from your terminal &mdash; no code needed.</p>
+
+      <h3>Getting started with the CLI</h3>
+      <div class="steps">
+        <div class="step">
+          <h3>Install globally</h3>
+          <div class="code-wrap">
+            <div class="code-header"><span>terminal</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code>npm install -g @picsart/ai-sdk</code></pre>
+          </div>
+        </div>
+        <div class="step">
+          <h3>Log in</h3>
+          <p>This opens your browser to authenticate with Picsart.</p>
+          <div class="code-wrap">
+            <div class="code-header"><span>terminal</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code>gen-ai login</code></pre>
+          </div>
+        </div>
+        <div class="step">
+          <h3>Generate!</h3>
+          <div class="code-wrap">
+            <div class="code-header"><span>terminal</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code>gen-ai generate -m flux-2-pro -p "a cat wearing sunglasses"</code></pre>
+          </div>
+          <p>Or run <code>gen-ai generate</code> without flags to get an interactive menu where you can browse and pick a model.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CLI Commands ────────────────────────────────── -->
+    <section id="cli-commands">
+      <h2>CLI Commands</h2>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>Command</th><th>What it does</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>gen-ai login</code></td><td>Log in to Picsart (opens browser)</td></tr>
+            <tr><td><code>gen-ai logout</code></td><td>Remove saved credentials</td></tr>
+            <tr><td><code>gen-ai whoami</code></td><td>Show who you're logged in as</td></tr>
+            <tr><td><code>gen-ai models</code></td><td>Browse and search all available models</td></tr>
+            <tr><td><code>gen-ai generate</code></td><td>Generate images, videos, or audio (interactive)</td></tr>
+            <tr><td><code>gen-ai generate -m MODEL -p "..."</code></td><td>Generate with a specific model and prompt</td></tr>
+            <tr><td><code>gen-ai redo</code></td><td>Re-run your last generation</td></tr>
+            <tr><td><code>gen-ai pricing</code></td><td>Check how many credits a model costs</td></tr>
+            <tr><td><code>gen-ai batch</code></td><td>Run multiple generations from a manifest file</td></tr>
+            <tr><td><code>gen-ai upload</code></td><td>Upload files to Picsart Drive</td></tr>
+            <tr><td><code>gen-ai download</code></td><td>Download files from Picsart Drive</td></tr>
+            <tr><td><code>gen-ai history</code></td><td>View your recent generations</td></tr>
+            <tr><td><code>gen-ai config</code></td><td>Manage your saved settings</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">&#x1f4a1;</span>
+        <p><strong>Pro tip:</strong> Add <code>-q</code> (quiet) to suppress progress output, or <code>--script</code> for machine-readable JSON output. Great for piping into other tools.</p>
+      </div>
+    </section>
+
+    <!-- ── Deep Links ──────────────────────────────────── -->
+    <section id="deep-links">
+      <h2>Deep Links</h2>
+      <p>Share pre-configured AI Playground sessions via URL. A deep link encodes the model, prompt, media inputs, and parameters into a compact query string.</p>
+
+      <div class="callout info">
+        <span class="callout-icon">&#x1f4a1;</span>
+        <p>Deep links use <strong>DEFLATE compression + base64url</strong> encoding &mdash; even long prompts with multiple image URLs typically fit under 2KB.</p>
+      </div>
+
+      <h3>Encode (create a payload)</h3>
+      <div class="code-wrap">
+        <pre><code><span class="kw">import</span> { <span class="prop">encodeDeepLinkPayload</span> } <span class="kw">from</span> <span class="str">'@picsart/ai-sdk'</span>
+
+<span class="kw">const</span> <span class="prop">payload</span> <span class="op">=</span> <span class="fn">encodeDeepLinkPayload</span>(<span class="str">'veo-3.1'</span>, {
+  <span class="prop">prompt</span>: <span class="str">'A cinematic sunset over the ocean'</span>,
+  <span class="prop">aspectRatio</span>: <span class="str">'9:16'</span>,
+})
+<span class="kw">const</span> <span class="prop">url</span> <span class="op">=</span> <span class="str">`https://picsart.com/ai-playground?aistate=</span>${<span class="prop">payload</span>}<span class="str">`</span></code></pre>
+      </div>
+
+      <h3>With media inputs</h3>
+      <div class="code-wrap">
+        <pre><code><span class="kw">const</span> <span class="prop">payload</span> <span class="op">=</span> <span class="fn">encodeDeepLinkPayload</span>(<span class="str">'kling-avatar'</span>, {
+  <span class="prop">prompt</span>: <span class="str">'Character speaking to camera'</span>,
+  <span class="prop">imageUrls</span>: [<span class="str">'https://cdn.picsart.com/portrait.png'</span>],
+  <span class="prop">audioUrl</span>: <span class="str">'https://cdn.picsart.com/voiceover.mp3'</span>,
+})</code></pre>
+      </div>
+
+      <h3>Decode (read a payload)</h3>
+      <div class="code-wrap">
+        <pre><code><span class="kw">import</span> { <span class="prop">decodeDeepLinkPayload</span> } <span class="kw">from</span> <span class="str">'@picsart/ai-sdk'</span>
+
+<span class="kw">const</span> <span class="prop">result</span> <span class="op">=</span> <span class="fn">decodeDeepLinkPayload</span>(<span class="prop">encodedString</span>)
+<span class="prop">result</span>.<span class="prop">modelId</span>     <span class="cmt">// 'veo-3.1'</span>
+<span class="prop">result</span>.<span class="prop">context</span>     <span class="cmt">// { prompt: '...', aspectRatio: '9:16' }</span>
+<span class="prop">result</span>.<span class="prop">modelKnown</span>  <span class="cmt">// true (model exists in catalog)</span>
+<span class="prop">result</span>.<span class="prop">warnings</span>   <span class="cmt">// [] (e.g. rejected URLs, unknown model)</span></code></pre>
+      </div>
+
+      <h3>API reference</h3>
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>Function</th><th>Returns</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>encodeDeepLinkPayload(modelId, context)</code></td><td>string</td><td>Compressed payload string</td></tr>
+            <tr><td><code>decodeDeepLinkPayload(encoded)</code></td><td>DeepLinkResult | null</td><td>Decode payload string</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">&#x1f512;</span>
+        <p><strong>Security:</strong> Prompts are sanitized (HTML/script tags stripped). Media URLs are validated against a CDN allowlist &mdash; <code>data:</code>, <code>blob:</code>, and external domains are rejected. Unknown models decode with a warning.</p>
+      </div>
+    </section>
+
+    <!-- ── Advanced ────────────────────────────────────── -->
+    <section id="advanced">
+      <h2>Advanced Usage</h2>
+
+      <details class="accordion">
+        <summary>Auto-save to Picsart Drive</summary>
+        <div class="accordion-body">
+          <p>Pass a <code>drive</code> config when creating the client. Every generation will automatically save to that folder.</p>
+          <div class="code-wrap">
+            <pre><code><span class="kw">const</span> <span class="prop">ai</span> <span class="op">=</span> <span class="fn">createClient</span>({
+  <span class="prop">fetch</span>: <span class="prop">myAuthenticatedFetch</span>,
+  <span class="prop">apiUrl</span>: <span class="str">'https://api.picsart.com'</span>,
+  <span class="prop">drive</span>: { <span class="prop">folder</span>: <span class="str">'My AI Creations'</span> },
+})
+
+<span class="kw">const</span> <span class="prop">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">generate</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>, {
+  <span class="prop">prompt</span>: <span class="str">'a painting of a sunset'</span>,
+})
+
+<span class="cmt">// File is now saved in your Drive!</span>
+<span class="prop">console</span>.<span class="fn">log</span>(<span class="prop">result</span>.<span class="prop">drive</span>.<span class="prop">uid</span>)  <span class="cmt">// the Drive file ID</span></code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>Track progress for long generations</summary>
+        <div class="accordion-body">
+          <p>Video generation can take time. Use <code>submit</code> + <code>subscribe</code> to track progress live:</p>
+          <div class="code-wrap">
+            <pre><code><span class="cmt">// Submit without waiting</span>
+<span class="kw">const</span> <span class="prop">handle</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">submit</span>(<span class="typ">Models</span>.<span class="prop">KlingV3Pro</span>, {
+  <span class="prop">prompt</span>: <span class="str">'a timelapse of a city skyline'</span>,
+})
+
+<span class="cmt">// Watch progress updates</span>
+<span class="kw">for await</span> (<span class="kw">const</span> <span class="prop">update</span> <span class="kw">of</span> <span class="prop">ai</span>.<span class="fn">subscribe</span>(<span class="prop">handle</span>)) {
+  <span class="prop">console</span>.<span class="fn">log</span>(<span class="prop">update</span>.<span class="prop">status</span>)  <span class="cmt">// "processing", "completed", etc.</span>
+}
+
+<span class="cmt">// Get the final result</span>
+<span class="kw">const</span> <span class="prop">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">result</span>(<span class="prop">handle</span>, <span class="typ">Models</span>.<span class="prop">KlingV3Pro</span>)</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>Cancel a running generation</summary>
+        <div class="accordion-body">
+          <div class="code-wrap">
+            <pre><code><span class="kw">const</span> <span class="prop">handle</span> <span class="op">=</span> <span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">submit</span>(<span class="typ">Models</span>.<span class="prop">Sora2</span>, {
+  <span class="prop">prompt</span>: <span class="str">'actually, never mind'</span>,
+})
+
+<span class="cmt">// Changed your mind? Cancel it.</span>
+<span class="kw">await</span> <span class="prop">ai</span>.<span class="fn">cancel</span>(<span class="prop">handle</span>)</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>Validate inputs before sending</summary>
+        <div class="accordion-body">
+          <p>Check if your parameters are valid for a model before making the API call:</p>
+          <div class="code-wrap">
+            <pre><code><span class="kw">const</span> <span class="prop">check</span> <span class="op">=</span> <span class="typ">Models</span>.<span class="fn">validate</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>, {
+  <span class="prop">prompt</span>: <span class="str">'hello'</span>,
+  <span class="prop">aspectRatio</span>: <span class="str">'99:1'</span>,  <span class="cmt">// invalid!</span>
+})
+
+<span class="kw">if</span> (!<span class="prop">check</span>.<span class="prop">valid</span>) {
+  <span class="prop">console</span>.<span class="fn">log</span>(<span class="prop">check</span>.<span class="prop">errors</span>)  <span class="cmt">// &rarr; ["aspectRatio: invalid option '99:1'"]</span>
+}</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="accordion">
+        <summary>Get the JSON schema for a model</summary>
+        <div class="accordion-body">
+          <p>Useful for building dynamic forms or integrating with other tools:</p>
+          <div class="code-wrap">
+            <pre><code><span class="kw">const</span> <span class="prop">schema</span> <span class="op">=</span> <span class="typ">Models</span>.<span class="fn">toSchema</span>(<span class="typ">Models</span>.<span class="prop">Flux2Pro</span>)
+<span class="prop">console</span>.<span class="fn">log</span>(<span class="prop">JSON</span>.<span class="fn">stringify</span>(<span class="prop">schema</span>, <span class="kw">null</span>, <span class="num">2</span>))</code></pre>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ── API Reference ───────────────────────────────── -->
+    <section id="api-ref">
+      <h2>Full API Reference</h2>
+
+      <h3><code>createClient(config)</code></h3>
+      <p>Creates the AI client. This is the starting point for everything.</p>
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>Config field</th><th>Required</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>fetch</code></td><td>Yes</td><td>Your authenticated fetch function</td></tr>
+            <tr><td><code>apiUrl</code></td><td>Yes</td><td>Picsart API base URL</td></tr>
+            <tr><td><code>drive</code></td><td>No</td><td>Enable auto-save: <code>{ folder: "name" }</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Client methods</h3>
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Returns</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>generate(model, params)</code></td><td>GenerateResult</td><td>Generate and wait for result</td></tr>
+            <tr><td><code>estimate(model, params)</code></td><td>number | null</td><td>Estimate credit cost</td></tr>
+            <tr><td><code>submit(model, params)</code></td><td>JobHandle</td><td>Start generation without waiting</td></tr>
+            <tr><td><code>status(handle)</code></td><td>StatusResult</td><td>Check job status</td></tr>
+            <tr><td><code>result(handle, model)</code></td><td>GenerateResult</td><td>Wait for submitted job to finish</td></tr>
+            <tr><td><code>subscribe(handle)</code></td><td>AsyncGenerator</td><td>Live progress stream</td></tr>
+            <tr><td><code>cancel(handle)</code></td><td>void</td><td>Cancel a running job</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3><code>Models</code> helpers</h3>
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Returns</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Models.list(filter?)</code></td><td>ModelDefinition[]</td><td>List all or filtered models</td></tr>
+            <tr><td><code>Models.search(query)</code></td><td>ModelDefinition[]</td><td>Search models by name or ID</td></tr>
+            <tr><td><code>Models.validate(model, input)</code></td><td>{ valid, errors? }</td><td>Check if inputs are valid</td></tr>
+            <tr><td><code>Models.toSchema(model)</code></td><td>JSON Schema</td><td>Get parameter schema</td></tr>
+            <tr><td><code>Models.getDefaults(model)</code></td><td>Record</td><td>Default parameter values</td></tr>
+            <tr><td><code>Models.hasParam(model, key)</code></td><td>boolean</td><td>Does this model have this param?</td></tr>
+            <tr><td><code>Models.hasFileInput(model)</code></td><td>boolean</td><td>Does it accept file uploads?</td></tr>
+            <tr><td><code>Models.getEnumOptions(model, key)</code></td><td>string[] | null</td><td>Allowed values for a choice param</td></tr>
+            <tr><td><code>Models.getRange(model, key)</code></td><td>{ min, max, step }</td><td>Numeric range for a param</td></tr>
+            <tr><td><code>Models.getVoiceById(id)</code></td><td>VoiceOption</td><td>Look up a voice by ID</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── Scripts ──────────────────────────────────────────── -->
+<script>
+// Copy button
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  const text = pre.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// Model catalog data (representative sample)
+const models = [
+  { name: 'Flux 2 Pro', const: 'Flux2Pro', mode: 'image', color: '#7c5cfc' },
+  { name: 'Flux 2 Dev', const: 'Flux2Dev', mode: 'image', color: '#7c5cfc' },
+  { name: 'Flux 1.1 Ultra', const: 'Flux11Ultra', mode: 'image', color: '#7c5cfc' },
+  { name: 'Recraft V4', const: 'RecraftV4Pro', mode: 'image', color: '#ea580c' },
+  { name: 'GPT Image 1.5', const: 'GptImage15', mode: 'image', color: '#16a34a' },
+  { name: 'Gemini Flash', const: 'Gemini25FlashImage', mode: 'image', color: '#2563eb' },
+  { name: 'Ideogram 3', const: 'Ideogram3', mode: 'image', color: '#db2777' },
+  { name: 'Kling 3.0 Pro', const: 'KlingV3Pro', mode: 'video', color: '#0ea5e9' },
+  { name: 'Kling 2.5 Master', const: 'Kling25Master', mode: 'video', color: '#0ea5e9' },
+  { name: 'Sora 2', const: 'Sora2', mode: 'video', color: '#16a34a' },
+  { name: 'Luma Ray 2', const: 'LumaRay2T2v', mode: 'video', color: '#8b5cf6' },
+  { name: 'Hailuo 2.3 Pro', const: 'Hailuo23Pro', mode: 'video', color: '#f59e0b' },
+  { name: 'Veo 3', const: 'Veo3', mode: 'video', color: '#2563eb' },
+  { name: 'Pika 2.2', const: 'Pika22', mode: 'video', color: '#ec4899' },
+  { name: 'Wan 2.1', const: 'Wan21', mode: 'video', color: '#14b8a6' },
+  { name: 'ElevenLabs v3', const: 'ElevenV3', mode: 'audio', color: '#f97316' },
+  { name: 'Eleven Multilingual', const: 'ElevenMultilingualV2', mode: 'audio', color: '#f97316' },
+  { name: 'OpenAI TTS', const: 'OpenaiTts', mode: 'audio', color: '#16a34a' },
+  { name: 'Gemini TTS', const: 'GeminiTts', mode: 'audio', color: '#2563eb' },
+];
+
+const grid = document.getElementById('modelGrid');
+const countEl = document.getElementById('modelCount');
+
+function renderModels(filter) {
+  const filtered = filter === 'all' ? models : models.filter(m => m.mode === filter);
+  grid.innerHTML = filtered.map(m => `
+    <div class="model-chip" title="Models.${m.const}">
+      <span class="model-dot" style="background:${m.color}"></span>
+      <span class="name">${m.name}</span>
+      <span class="mode mode-${m.mode}">${m.mode}</span>
+    </div>
+  `).join('');
+  countEl.textContent = `Showing ${filtered.length} of ${models.length} models (this is a sample — the full SDK includes 100+)`;
+}
+
+function filterModels(mode) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderModels(mode);
+}
+
+renderModels('all');
+
+// Sidebar active state on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.sidebar nav a');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 100) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+}, { passive: true });
+</script>
+
+</body>
+</html>

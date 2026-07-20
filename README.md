@@ -1,17 +1,19 @@
 # @picsart/ai-sdk
 
-Generate images, videos, and audio with 100+ AI models.
+Generate images, video, audio, and text with 100+ AI models.
 
 ## Documentation
 
-Interactive guides deployed via GitLab Pages:
+Full guides, the model catalog, and the API reference live on the Picsart API Platform:
 
-- [SDK Guide](https://picsart.gitlab.io/web/miniapp-projects/ai-toolkit/sdk_guide.html) -- Usage examples, client setup, model registry, Drive integration, and full API reference
-- [CLI Guide](https://picsart.gitlab.io/web/miniapp-projects/ai-toolkit/cli_guide.html) -- Commands, flags, interactive mode, scripting, batch processing, and troubleshooting
+- [Documentation](https://picsart.com/api-platform/docs) -- overview and guides
+- [Quickstart](https://picsart.com/api-platform/docs/quickstart) -- install, authenticate, first generation
+- [SDK guide](https://picsart.com/api-platform/docs/sdk) -- client setup, `generate`/`generateText`, Drive, lifecycle
+- [Authentication](https://picsart.com/api-platform/docs/authentication) -- create an API key
+- [Model catalog](https://picsart.com/api-platform/models) -- browse every supported model
+- [API reference](https://picsart.com/api-platform/docs/api-reference)
 
-Source: [`sdk_guide.html`](sdk_guide.html)
-
-Repository: [gitlab.com/picsart/backend/Editor/external-ai-integrations/pa-gen-ai-sdk](https://gitlab.com/picsart/backend/Editor/external-ai-integrations/pa-gen-ai-sdk)
+Repository: [github.com/PicsArt/ai-sdk](https://github.com/PicsArt/ai-sdk)
 
 ## Quick Start
 

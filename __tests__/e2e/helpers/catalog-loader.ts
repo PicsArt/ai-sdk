@@ -6,14 +6,14 @@
  * Ported from ai-toolkit; the playground-app filter (`playgroundFilteredModels`)
  * was dropped — it doesn't exist in this repo.
  */
-import { ALL_MODELS, getModelsByMode } from '../../../src';
+import { ALL_MODELS, getModelsByMode, isVisibleForReleases } from '../../../src';
 import type { ModelDefinition, GenerationMode } from '../../../src';
 
 export interface CatalogFilter {
   vendor?: string;
   mode?: GenerationMode;
   model?: string;
-  /** If true, include disabled and deprecated models. Default: false. */
+  /** If true, include disabled, deprecated, and preview models. Default: false. */
   includeDisabled?: boolean;
   /** If true, include models in DISABLED_TEST_MODELS. Default: false. */
   includeTestDisabled?: boolean;
@@ -62,7 +62,7 @@ export function loadCatalog(filter: CatalogFilter = {}): CatalogEntry[] {
 
   return models
     .filter((m) => {
-      if (!filter.includeDisabled && (m.disabled || m.deprecated)) return false;
+      if (!filter.includeDisabled && !isVisibleForReleases(m)) return false;
       if (!filter.includeTestDisabled && DISABLED_TEST_MODELS.has(m.id)) return false;
       if (filter.vendor && m.provider !== filter.vendor) return false;
       if (filter.model && m.id !== filter.model) return false;

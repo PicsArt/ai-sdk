@@ -31,6 +31,11 @@
  *   - `modelId`, `workflow`         — internal wire identifiers; auth-required
  *     to use, free recon for outsiders.
  *
+ * Every published model carries its `release` tier (`preview` | `production` |
+ * `general-availability`) so consumers can filter by environment themselves.
+ * `preview` models ARE published (tagged) — they must be discoverable on stage;
+ * prod/enterprise consumers filter them out via the tag.
+ *
  * Internal services that need the unfiltered catalog should consume the SDK
  * directly (`import { Models, Model } from '@picsart/ai-sdk'`).
  *
@@ -44,6 +49,7 @@ import { fileURLToPath } from 'node:url';
 import {
   Models,
   Model,
+  releaseOf,
   type ModelDefinition,
   type FlatParamEntry,
 } from '@picsart/ai-sdk';
@@ -65,6 +71,9 @@ function effectiveBadges(m: ModelDefinition): string[] {
 }
 
 function isPubliclyVisible(m: ModelDefinition): boolean {
+  // disabled/deprecated are retired-or-broken and never published; coming-soon
+  // is unannounced. `preview` models ARE published (tagged via `release`) so
+  // consumers can discover them on stage and filter by the tag themselves.
   if (m.disabled) return false;
   if (m.deprecated) return false;
   if (effectiveBadges(m).includes('coming-soon')) return false;
@@ -135,6 +144,7 @@ const snapshot = {
       name: m.name,
       mode: m.mode,
       inputType: m.inputType,
+      release: releaseOf(m),
       provider: {
         id: m.provider,
         name: m.providerName,
@@ -158,5 +168,5 @@ await writeFile(OUT_PATH, JSON.stringify(snapshot, null, 2) + '\n');
 const hidden = allModels.length - visibleModels.length;
 console.error(
   `Wrote ${OUT_PATH} — ${snapshot.total} models published, ` +
-    `${hidden} hidden (disabled / coming-soon), sdk ${sdkVersion ?? 'unknown'}`,
+    `${hidden} hidden (disabled / deprecated / coming-soon), sdk ${sdkVersion ?? 'unknown'}`,
 );

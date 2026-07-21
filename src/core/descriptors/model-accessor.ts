@@ -12,8 +12,9 @@
  *   m.meta().provider.name                 // 'Flux'
  */
 
-import type { ModelDefinition, GenerationContext } from '../types.ts';
+import type { ModelDefinition, GenerationContext, ReleaseTag } from '../types.ts';
 import { evaluateConstraints } from '../constraints.ts';
+import { isVisibleForReleases, DEFAULT_VISIBLE_RELEASES } from '../visibility.ts';
 import type { NormalizedRestriction } from '../constraints.ts';
 import type { TypedModelId } from '../../generated/model-input-types.ts';
 import type {
@@ -232,6 +233,7 @@ class ModelMetaImpl implements ModelMeta {
   readonly features;
   readonly badges;
   readonly provider: ProviderInfo;
+  readonly release: ReleaseTag;
 
   constructor(def: ModelDefinition) {
     this.mode = def.mode;
@@ -239,6 +241,7 @@ class ModelMetaImpl implements ModelMeta {
     this.description = def.description;
     this.features = def.features;
     this.badges = def.badge ?? [];
+    this.release = def.release ?? 'production';
     this.provider = {
       id: def.provider,
       name: def.providerName,
@@ -313,25 +316,28 @@ function _model(id: string): ModelDescriptor {
   return new ModelDescriptorImpl(resolveModel(id));
 }
 
-function _all(): ModelDescriptor[] {
+function _all(filter: { release?: readonly ReleaseTag[] } = {}): ModelDescriptor[] {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
   return ALL_MODELS
-    .filter(m => !m.disabled && !m.deprecated)
+    .filter(m => isVisibleForReleases(m, releases))
     .map(m => new ModelDescriptorImpl(m));
 }
 
 function _find(filter: ModelFilter): ModelDescriptor[] {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
   return ALL_MODELS.filter(m => {
-    if (m.disabled || m.deprecated) return false;
+    if (!isVisibleForReleases(m, releases)) return false;
     if (filter.output && m.mode !== filter.output) return false;
     if (filter.provider && m.provider !== filter.provider) return false;
     return true;
   }).map(m => new ModelDescriptorImpl(m));
 }
 
-function _search(query: string): ModelDescriptor[] {
+function _search(query: string, filter: { release?: readonly ReleaseTag[] } = {}): ModelDescriptor[] {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
   const q = query.toLowerCase();
   return ALL_MODELS.filter(m =>
-    !m.disabled && !m.deprecated && (
+    isVisibleForReleases(m, releases) && (
       m.id.toLowerCase().includes(q) ||
       m.name.toLowerCase().includes(q) ||
       m.provider.toLowerCase().includes(q)

@@ -1,4 +1,5 @@
 import type { ModelDefinition } from '../../core/types.ts';
+import { isVisibleForReleases } from '../../core/visibility.ts';
 
 import { MODELS as klingMODELS } from './kling/index.ts';
 import './kling/payloads.ts'; // registers payload builders after model definitions
@@ -84,5 +85,11 @@ export const ALL_MODELS: ModelDefinition[] = [
   ...llmMODELS,
 ];
 
+/**
+ * Models for a generation mode. By default returns only default-visible models
+ * (production / general-availability — preview, disabled and deprecated are
+ * hidden). `includeDisabled = true` returns every model of the mode, bypassing
+ * all gates. For release-tier filtering use `catalog.find({ output, release })`.
+ */
 export const getModelsByMode = (mode: ModelDefinition['mode'], includeDisabled = false): ModelDefinition[] =>
-  ALL_MODELS.filter((m) => m.mode === mode && (includeDisabled || (!m.disabled && !m.deprecated)));
+  ALL_MODELS.filter((m) => m.mode === mode && (includeDisabled || isVisibleForReleases(m)));

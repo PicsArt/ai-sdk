@@ -8,7 +8,7 @@
  */
 import type {
   GenerationMode, InputType, ModelDefinition, ModelFeature, BadgeType,
-  PayloadBuilder, Provider, RuntimeSchema, Constraint,
+  PayloadBuilder, Provider, RuntimeSchema, Constraint, ReleaseTag,
 } from '../core/types.ts';
 import { createModelContract } from '../core/contracts.ts';
 import { providers } from '../core/providers.ts';
@@ -47,6 +47,12 @@ interface AppModelFields {
   /** Declarative inter-parameter constraints. */
   constraints?: Constraint[];
   badge?: BadgeType[];
+  /**
+   * Release / availability tier (EAI-3). Absent ⇒ `'production'`. Set
+   * `'preview'` for stage-only models and `'general-availability'` for
+   * enterprise-ready ones. See `ModelDefinition.release`.
+   */
+  release?: ReleaseTag;
   /** ISO YYYY-MM-DD date the model was added. Drives the 'new' badge (3-week window). */
   addedAt?: string;
   modelId?: string;
@@ -129,6 +135,7 @@ export function defineModels(
     if (c.addedAt !== undefined) model.addedAt = c.addedAt;
     if (c.disabled !== undefined) model.disabled = c.disabled;
     if (c.deprecated !== undefined) model.deprecated = c.deprecated;
+    if (c.release !== undefined) model.release = c.release;
     if (c.modelId !== undefined) model.modelId = c.modelId;
     if (c.constraints !== undefined) model.constraints = c.constraints;
 

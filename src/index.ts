@@ -42,6 +42,7 @@ export type {
   ModelDefinition,
   GenerationContext,
   GenerationMode,
+  ReleaseTag,
   VoiceOption,
   AvatarOption,
   ParamOption,
@@ -90,5 +91,6 @@ export type { DeepLinkResult } from './core/deeplink/index.ts';
 export { encodeDeepLinkPayload, decodeDeepLinkPayload } from './core/deeplink/index.ts';
 
 export { ALL_MODELS, getModelsByMode } from './vendors/catalog/index.ts';
+export { isVisibleForReleases, releaseOf, DEFAULT_VISIBLE_RELEASES } from './core/visibility.ts';
 export { getModel, findModel } from './core/model-registry.ts';
 export { KLING_DUAL_IMAGE_EFFECTS } from './vendors/catalog/kling/index.ts';

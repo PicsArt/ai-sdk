@@ -639,6 +639,14 @@ function transferValues(newParams, prev) {
   return ctx;
 }
 
+// src/core/visibility.ts
+var DEFAULT_VISIBLE_RELEASES = ["production", "general-availability"];
+var releaseOf = (m) => m.release ?? "production";
+function isVisibleForReleases(m, releases = DEFAULT_VISIBLE_RELEASES) {
+  if (m.disabled || m.deprecated) return false;
+  return releases.includes(releaseOf(m));
+}
+
 // src/core/providers.ts
 var providers = {
   picsart: { color: "#FF3399", label: "PA", name: "Picsart" },
@@ -1028,6 +1036,7 @@ function defineModels(provider, configs) {
     if (c.addedAt !== void 0) model.addedAt = c.addedAt;
     if (c.disabled !== void 0) model.disabled = c.disabled;
     if (c.deprecated !== void 0) model.deprecated = c.deprecated;
+    if (c.release !== void 0) model.release = c.release;
     if (c.modelId !== void 0) model.modelId = c.modelId;
     if (c.constraints !== void 0) model.constraints = c.constraints;
     const contract = createModelContract(model);
@@ -7826,7 +7835,7 @@ var ALL_MODELS = [
   ...MODELS35,
   ...MODELS36
 ];
-var getModelsByMode = (mode, includeDisabled = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeDisabled || !m.disabled && !m.deprecated));
+var getModelsByMode = (mode, includeDisabled = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeDisabled || isVisibleForReleases(m)));
 
 // src/core/contracts.ts
 function requireObject(value, message) {
@@ -9617,12 +9626,14 @@ var ModelMetaImpl = class {
   features;
   badges;
   provider;
+  release;
   constructor(def) {
     this.mode = def.mode;
     this.inputType = def.inputType;
     this.description = def.description;
     this.features = def.features;
     this.badges = def.badge ?? [];
+    this.release = def.release ?? "production";
     this.provider = {
       id: def.provider,
       name: def.providerName,
@@ -9678,21 +9689,24 @@ var ModelDescriptorImpl = class {
 function _model(id) {
   return new ModelDescriptorImpl(resolveModel(id));
 }
-function _all() {
-  return ALL_MODELS.filter((m) => !m.disabled && !m.deprecated).map((m) => new ModelDescriptorImpl(m));
+function _all(filter = {}) {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
+  return ALL_MODELS.filter((m) => isVisibleForReleases(m, releases)).map((m) => new ModelDescriptorImpl(m));
 }
 function _find(filter) {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
   return ALL_MODELS.filter((m) => {
-    if (m.disabled || m.deprecated) return false;
+    if (!isVisibleForReleases(m, releases)) return false;
     if (filter.output && m.mode !== filter.output) return false;
     if (filter.provider && m.provider !== filter.provider) return false;
     return true;
   }).map((m) => new ModelDescriptorImpl(m));
 }
-function _search(query) {
+function _search(query, filter = {}) {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
   const q = query.toLowerCase();
   return ALL_MODELS.filter(
-    (m) => !m.disabled && !m.deprecated && (m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q) || m.provider.toLowerCase().includes(q))
+    (m) => isVisibleForReleases(m, releases) && (m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q) || m.provider.toLowerCase().includes(q))
   ).map((m) => new ModelDescriptorImpl(m));
 }
 var Model = _model;
@@ -10314,4 +10328,4 @@ function decodeDeepLinkPayload(encoded) {
   return deserializePayload(encoded);
 }
 
-export { ALL_MODELS, ExecutionMode as ApiRunMode, KLING_DUAL_IMAGE_EFFECTS, Model, Models, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, parseGeneration };
+export { ALL_MODELS, ExecutionMode as ApiRunMode, DEFAULT_VISIBLE_RELEASES, KLING_DUAL_IMAGE_EFFECTS, Model, Models, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf };

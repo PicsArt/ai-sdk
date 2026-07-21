@@ -1798,6 +1798,8 @@ interface ModelMeta {
     readonly features: ModelFeature[];
     readonly badges: BadgeType[];
     readonly provider: ProviderInfo;
+    /** Release / availability tier (EAI-3). Absent on the definition ⇒ `'production'`. */
+    readonly release: ReleaseTag;
 }
 /** Parameter operations — fluent access to model params, schemas, defaults. */
 interface ModelParamsAccessor {
@@ -1870,6 +1872,14 @@ interface ModelDescriptor {
 interface ModelFilter$1 {
     output?: GenerationMode;
     provider?: string;
+    /**
+     * Release tiers to include. Omitted ⇒ the default visible set
+     * (`['production', 'general-availability']`). List the tiers you want
+     * explicitly to opt into `preview` — e.g. `['preview']` for stage-only
+     * models, or all three to include everything. `disabled`/`deprecated`
+     * models stay hidden regardless.
+     */
+    release?: ReleaseTag[];
 }
 
 type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async';
@@ -2007,6 +2017,12 @@ interface Constraint {
     then: Record<string, Restriction>;
 }
 type BadgeType = 'new' | 'popular' | 'coming-soon' | 'fast' | 'premium' | 'hot';
+/**
+ * Model release / availability tier. See `ModelDefinition.release`.
+ * Ordered widest-exposure-last: `preview` (stage only) → `production` (our
+ * apps) → `general-availability` (enterprise / external use).
+ */
+type ReleaseTag = 'preview' | 'production' | 'general-availability';
 interface ModelDefinition {
     id: string;
     name: string;
@@ -2038,6 +2054,7 @@ interface ModelDefinition {
      * from default catalog lookups, same as `disabled`.
      */
     deprecated?: boolean;
+    release?: ReleaseTag;
     mode: GenerationMode;
     inputType: InputType;
     modelId?: string;
@@ -2321,9 +2338,13 @@ declare function isPricingLoaded(): boolean;
 
 /** Look up a single model descriptor by id. */
 type ModelFunction = (id: string) => ModelDescriptor;
-declare function _all(): ModelDescriptor[];
+declare function _all(filter?: {
+    release?: readonly ReleaseTag[];
+}): ModelDescriptor[];
 declare function _find(filter: ModelFilter$1): ModelDescriptor[];
-declare function _search(query: string): ModelDescriptor[];
+declare function _search(query: string, filter?: {
+    release?: readonly ReleaseTag[];
+}): ModelDescriptor[];
 /** Look up a single model descriptor: `Model('flux-2-pro').params()`. */
 declare const Model: ModelFunction;
 /**
@@ -2367,7 +2388,31 @@ declare function decodeDeepLinkPayload(encoded: string): DeepLinkResult | null;
 
 /** All models from all vendors. */
 declare const ALL_MODELS: ModelDefinition[];
+/**
+ * Models for a generation mode. By default returns only default-visible models
+ * (production / general-availability — preview, disabled and deprecated are
+ * hidden). `includeDisabled = true` returns every model of the mode, bypassing
+ * all gates. For release-tier filtering use `catalog.find({ output, release })`.
+ */
 declare const getModelsByMode: (mode: ModelDefinition["mode"], includeDisabled?: boolean) => ModelDefinition[];
+
+/**
+ * Release tags shown by default in discovery. `preview` is stage-only and
+ * opt-in (pass `release: ['preview', ...]`) — it is never in the default set.
+ */
+declare const DEFAULT_VISIBLE_RELEASES: readonly ReleaseTag[];
+/** Effective release tag of a model — absent ⇒ `'production'`. */
+declare const releaseOf: (m: ModelDefinition) => ReleaseTag;
+/**
+ * Whether `m` is visible for the requested `releases` (default: the production
+ * + general-availability set).
+ *
+ * `disabled` and `deprecated` are hard hides layered on top of `release`: a
+ * model carrying either is never visible, regardless of its release tag or the
+ * requested set. (`disabled` is being phased out in favour of
+ * `release: 'preview'` — EAI-3 — but is still honoured during the migration.)
+ */
+declare function isVisibleForReleases(m: ModelDefinition, releases?: readonly ReleaseTag[]): boolean;
 
 /** Look up a model by its ID or vendor modelId. */
 declare const getModel: (id: string) => ModelDefinition | undefined;
@@ -2377,4 +2422,4 @@ declare const findModel: (ref: string) => ModelDefinition | undefined;
 /** Effect scenes that require two input images (e.g. hugs, kisses, swaps). */
 declare const KLING_DUAL_IMAGE_EFFECTS: ReadonlySet<string>;
 
-export { ALL_MODELS, type AiClient, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type ClientConfig, type CreditRange, type CreditRangeContext, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, parseGeneration };
+export { ALL_MODELS, type AiClient, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type ClientConfig, type CreditRange, type CreditRangeContext, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf };

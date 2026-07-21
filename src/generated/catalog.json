@@ -1,5 +1,5 @@
 {
-  "sdkVersion": "3.17.6",
+  "sdkVersion": "3.18.0",
   "total": 169,
   "models": [
     {
@@ -7,6 +7,7 @@
       "name": "Kling V3",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -271,6 +272,7 @@
       "name": "Kling V3 Turbo",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -436,6 +438,7 @@
       "name": "Kling V2.6",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -597,6 +600,7 @@
       "name": "Kling V3 Omni",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -821,6 +825,7 @@
       "name": "Kling Video O1",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -938,6 +943,7 @@
       "name": "Kling Motion Control V3",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -1082,6 +1088,7 @@
       "name": "Kling Motion Control 2.6",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -1226,6 +1233,7 @@
       "name": "Kling Avatar",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -1323,6 +1331,7 @@
       "name": "Kling 3.0 Image",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -1468,6 +1477,7 @@
       "name": "Kling O1 Image",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -1606,6 +1616,7 @@
       "name": "Kling V2 New Image",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -1783,6 +1794,7 @@
       "name": "Kling Video Effects",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -2921,6 +2933,7 @@
       "name": "Kling T2A",
       "mode": "audio",
       "inputType": "t2a",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -2968,6 +2981,7 @@
       "name": "Kling V2A",
       "mode": "audio",
       "inputType": "v2a",
+      "release": "production",
       "provider": {
         "id": "kling",
         "name": "Kling",
@@ -3006,6 +3020,7 @@
       "name": "LTX 2.3 Pro",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "ltx",
         "name": "LTX",
@@ -3139,6 +3154,7 @@
       "name": "LTX 2.3 Fast",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "ltx",
         "name": "LTX",
@@ -3287,6 +3303,7 @@
       "name": "LTX 2.3 Audio-to-Video",
       "mode": "video",
       "inputType": "a2v",
+      "release": "production",
       "provider": {
         "id": "ltx",
         "name": "LTX",
@@ -3370,6 +3387,7 @@
       "name": "LTX 2.3 Extend",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "ltx",
         "name": "LTX",
@@ -3445,6 +3463,7 @@
       "name": "LTX 2.3 Retake",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "ltx",
         "name": "LTX",
@@ -3520,6 +3539,7 @@
       "name": "Creatify Aurora HD",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "creatify",
         "name": "Creatify",
@@ -3588,6 +3608,7 @@
       "name": "VEED Fabric 1.0",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "veed",
         "name": "VEED",
@@ -3676,6 +3697,7 @@
       "name": "VEED Fabric 1.0 Fast",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "veed",
         "name": "VEED",
@@ -3768,6 +3790,7 @@
       "name": "OVI",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "ovi",
         "name": "OVI",
@@ -3854,6 +3877,7 @@
       "name": "ByteDance Upscaler",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "bytedance",
         "name": "ByteDance",
@@ -3896,6 +3920,7 @@
       "name": "ByteDance OmniHuman",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "bytedance",
         "name": "ByteDance",
@@ -3964,6 +3989,7 @@
       "name": "Videography",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "videography",
         "name": "Videography",
@@ -4004,6 +4030,7 @@
       "name": "Hunyuan V3",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "hunyuan",
         "name": "Hunyuan",
@@ -4106,6 +4133,7 @@
       "name": "Hailuo 2.3",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "minimax",
         "name": "MiniMax",
@@ -4193,6 +4221,7 @@
       "name": "Hailuo 2.3 Pro",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "minimax",
         "name": "MiniMax",
@@ -4264,6 +4293,7 @@
       "name": "Hailuo 2.3 Fast",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "minimax",
         "name": "MiniMax",
@@ -4351,6 +4381,7 @@
       "name": "Hailuo 2.3 Fast Pro",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "minimax",
         "name": "MiniMax",
@@ -4422,6 +4453,7 @@
       "name": "Wan 2.7",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "wan",
         "name": "Wan",
@@ -4584,6 +4616,7 @@
       "name": "Wan 2.7 Image-to-Video",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "wan",
         "name": "Wan",
@@ -4727,6 +4760,7 @@
       "name": "Wan 2.7 Ref-to-Video",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "wan",
         "name": "Wan",
@@ -4873,6 +4907,7 @@
       "name": "Wan 2.7 Video Edit",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "wan",
         "name": "Wan",
@@ -4999,6 +5034,7 @@
       "name": "Luma Ray 2",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "luma",
         "name": "Luma",
@@ -5142,6 +5178,7 @@
       "name": "Luma Flash 2",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "luma",
         "name": "Luma",
@@ -5285,6 +5322,7 @@
       "name": "Luma Ray 2 Reframe",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "luma",
         "name": "Luma",
@@ -5369,6 +5407,7 @@
       "name": "Luma Flash 2 Reframe",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "luma",
         "name": "Luma",
@@ -5453,6 +5492,7 @@
       "name": "Luma UNI-1",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "luma",
         "name": "Luma",
@@ -5567,6 +5607,7 @@
       "name": "Luma UNI-1 Max",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "luma",
         "name": "Luma",
@@ -5681,6 +5722,7 @@
       "name": "Luma Ray 3.2",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "luma",
         "name": "Luma",
@@ -5842,6 +5884,7 @@
       "name": "Luma Ray 3.2 Edit",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "luma",
         "name": "Luma",
@@ -6000,6 +6043,7 @@
       "name": "Luma Ray 3.2 Reframe",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "luma",
         "name": "Luma",
@@ -6100,6 +6144,7 @@
       "name": "Seedance 2.0",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "seedance",
         "name": "Seedance",
@@ -6341,6 +6386,7 @@
       "name": "Seedance 2.0 Fast",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "seedance",
         "name": "Seedance",
@@ -6577,6 +6623,7 @@
       "name": "Seedance 2.0 Mini",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "seedance",
         "name": "Seedance",
@@ -6812,6 +6859,7 @@
       "name": "Seedance 2.0 Video Edit",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "seedance",
         "name": "Seedance",
@@ -7010,6 +7058,7 @@
       "name": "Seedance 2.0 Fast Video Edit",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "seedance",
         "name": "Seedance",
@@ -7203,6 +7252,7 @@
       "name": "Seedance 2.0 Mini Video Edit",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "seedance",
         "name": "Seedance",
@@ -7395,6 +7445,7 @@
       "name": "Seedance 2.0 Video Extend",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "seedance",
         "name": "Seedance",
@@ -7568,6 +7619,7 @@
       "name": "Seedance 2.0 Fast Video Extend",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "seedance",
         "name": "Seedance",
@@ -7736,6 +7788,7 @@
       "name": "Seedance 2.0 Mini Video Extend",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "seedance",
         "name": "Seedance",
@@ -7903,6 +7956,7 @@
       "name": "Sora 2 Pro",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "openai",
         "name": "OpenAI",
@@ -8033,6 +8087,7 @@
       "name": "Sora 2",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "openai",
         "name": "OpenAI",
@@ -8139,6 +8194,7 @@
       "name": "Sora 2 Extend",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "openai",
         "name": "OpenAI",
@@ -8213,6 +8269,7 @@
       "name": "Seedream 5.0 Pro",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "seedream",
         "name": "Seedream",
@@ -8332,6 +8389,7 @@
       "name": "Seedream 5.0 Lite",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "seedream",
         "name": "Seedream",
@@ -8481,6 +8539,7 @@
       "name": "Seedream 4.5",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "seedream",
         "name": "Seedream",
@@ -8628,6 +8687,7 @@
       "name": "Reve",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "reve",
         "name": "Reve",
@@ -8742,6 +8802,7 @@
       "name": "Grok Imagine 1.0",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "grok",
         "name": "Grok",
@@ -8889,6 +8950,7 @@
       "name": "Grok Imagine 1.5",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "grok",
         "name": "Grok",
@@ -9033,6 +9095,7 @@
       "name": "Grok Edit Video",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "grok",
         "name": "Grok",
@@ -9086,6 +9149,7 @@
       "name": "Grok Extend Video",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "grok",
         "name": "Grok",
@@ -9164,6 +9228,7 @@
       "name": "Grok Imagine",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "grok",
         "name": "Grok",
@@ -9301,6 +9366,7 @@
       "name": "Grok Imagine Quality",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "grok",
         "name": "Grok",
@@ -9440,6 +9506,7 @@
       "name": "Grok TTS",
       "mode": "audio",
       "inputType": "tts",
+      "release": "production",
       "provider": {
         "id": "grok",
         "name": "Grok",
@@ -9532,6 +9599,7 @@
       "name": "Pika",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "pika",
         "name": "Pika",
@@ -9654,6 +9722,7 @@
       "name": "Pika Scenes",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "pika",
         "name": "Pika",
@@ -9776,6 +9845,7 @@
       "name": "Pika Frames",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "pika",
         "name": "Pika",
@@ -9867,6 +9937,7 @@
       "name": "Veo 3.1",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -10040,6 +10111,7 @@
       "name": "Veo 3.1 Fast",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -10213,6 +10285,7 @@
       "name": "Veo 3.1 Lite",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -10330,6 +10403,7 @@
       "name": "Runway Avatar",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "runway",
         "name": "Runway",
@@ -10555,6 +10629,7 @@
       "name": "Runway Gen 4.5",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "runway",
         "name": "Runway",
@@ -10651,6 +10726,7 @@
       "name": "Runway Aleph 2",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "runway",
         "name": "Runway",
@@ -10730,6 +10806,7 @@
       "name": "Runway Gen4 Ref",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "runway",
         "name": "Runway",
@@ -10801,6 +10878,7 @@
       "name": "Flux 2 Pro",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "flux",
         "name": "Flux",
@@ -10909,6 +10987,7 @@
       "name": "Flux 2 Max",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "flux",
         "name": "Flux",
@@ -11017,6 +11096,7 @@
       "name": "Flux 2 Flex",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "flux",
         "name": "Flux",
@@ -11125,6 +11205,7 @@
       "name": "Flux Kontext Max",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "flux",
         "name": "Flux",
@@ -11235,6 +11316,7 @@
       "name": "Flux Kontext Pro",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "flux",
         "name": "Flux",
@@ -11347,6 +11429,7 @@
       "name": "Nano Banana 2",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -11534,6 +11617,7 @@
       "name": "Nano Banana 2 Lite",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -11689,6 +11773,7 @@
       "name": "Nano Banana Pro",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -11841,6 +11926,7 @@
       "name": "Nano Banana",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -11958,6 +12044,7 @@
       "name": "Gemini 2.5 Flash TTS",
       "mode": "audio",
       "inputType": "tts",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -12146,6 +12233,7 @@
       "name": "Gemini 2.5 Pro TTS",
       "mode": "audio",
       "inputType": "tts",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -12340,6 +12428,7 @@
       "name": "Gemini Omni",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -12453,6 +12542,7 @@
       "name": "GPT Image 2",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "openai",
         "name": "OpenAI",
@@ -12608,6 +12698,7 @@
       "name": "GPT Image 1.5",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "openai",
         "name": "OpenAI",
@@ -12776,6 +12867,7 @@
       "name": "Eleven v3",
       "mode": "audio",
       "inputType": "tts",
+      "release": "production",
       "provider": {
         "id": "elevenlabs",
         "name": "ElevenLabs",
@@ -12930,6 +13022,7 @@
       "name": "Eleven Multilingual v2",
       "mode": "audio",
       "inputType": "tts",
+      "release": "production",
       "provider": {
         "id": "elevenlabs",
         "name": "ElevenLabs",
@@ -13085,6 +13178,7 @@
       "name": "ElevenLabs SFX v2",
       "mode": "audio",
       "inputType": "sfx",
+      "release": "production",
       "provider": {
         "id": "elevenlabs",
         "name": "ElevenLabs",
@@ -13151,6 +13245,7 @@
       "name": "ElevenLabs Music v2",
       "mode": "audio",
       "inputType": "music",
+      "release": "production",
       "provider": {
         "id": "elevenlabs",
         "name": "ElevenLabs",
@@ -13229,6 +13324,7 @@
       "name": "Eleven STS v2",
       "mode": "audio",
       "inputType": "sts",
+      "release": "production",
       "provider": {
         "id": "elevenlabs",
         "name": "ElevenLabs",
@@ -13369,6 +13465,7 @@
       "name": "Eleven Multilingual STS v2",
       "mode": "audio",
       "inputType": "sts",
+      "release": "production",
       "provider": {
         "id": "elevenlabs",
         "name": "ElevenLabs",
@@ -13535,6 +13632,7 @@
       "name": "Eleven Audio Isolation",
       "mode": "audio",
       "inputType": "sts",
+      "release": "production",
       "provider": {
         "id": "elevenlabs",
         "name": "ElevenLabs",
@@ -13577,6 +13675,7 @@
       "name": "Eleven Dubbing",
       "mode": "audio",
       "inputType": "sts",
+      "release": "production",
       "provider": {
         "id": "elevenlabs",
         "name": "ElevenLabs",
@@ -13641,6 +13740,7 @@
       "name": "Eleven Voice Design v3",
       "mode": "audio",
       "inputType": "tts",
+      "release": "production",
       "provider": {
         "id": "elevenlabs",
         "name": "ElevenLabs",
@@ -13681,6 +13781,7 @@
       "name": "Eleven Voice Design Multilingual v2",
       "mode": "audio",
       "inputType": "tts",
+      "release": "production",
       "provider": {
         "id": "elevenlabs",
         "name": "ElevenLabs",
@@ -13725,6 +13826,7 @@
       "name": "Eleven Voice Previews",
       "mode": "audio",
       "inputType": "tts",
+      "release": "production",
       "provider": {
         "id": "elevenlabs",
         "name": "ElevenLabs",
@@ -13765,6 +13867,7 @@
       "name": "HeyGen Talking Photo",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "heygen",
         "name": "HeyGen",
@@ -13868,6 +13971,7 @@
       "name": "MiniMax Music v2",
       "mode": "audio",
       "inputType": "music",
+      "release": "production",
       "provider": {
         "id": "minimax",
         "name": "MiniMax",
@@ -13951,6 +14055,7 @@
       "name": "Ideogram 4.0",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "ideogram",
         "name": "Ideogram",
@@ -14094,6 +14199,7 @@
       "name": "Ideogram v3",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "ideogram",
         "name": "Ideogram",
@@ -14272,6 +14378,7 @@
       "name": "Ideogram Character",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "ideogram",
         "name": "Ideogram",
@@ -14430,6 +14537,7 @@
       "name": "Imagen 4.0",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -14531,6 +14639,7 @@
       "name": "Imagen 4.0 Ultra",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -14632,6 +14741,7 @@
       "name": "Imagen 4.0 Fast",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -14735,6 +14845,7 @@
       "name": "Lyria 3 Clip",
       "mode": "audio",
       "inputType": "music",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -14790,6 +14901,7 @@
       "name": "Lyria 3 Pro",
       "mode": "audio",
       "inputType": "music",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",
@@ -14851,6 +14963,7 @@
       "name": "Qwen 2",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "qwen",
         "name": "Qwen",
@@ -14938,6 +15051,7 @@
       "name": "Qwen 2 Pro",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "qwen",
         "name": "Qwen",
@@ -15065,6 +15179,7 @@
       "name": "Qwen Edit Plus",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "qwen",
         "name": "Qwen",
@@ -15116,6 +15231,7 @@
       "name": "Recraft V4.1",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -15245,6 +15361,7 @@
       "name": "Recraft V4.1 Pro",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -15376,6 +15493,7 @@
       "name": "Recraft V4.1 Utility",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -15505,6 +15623,7 @@
       "name": "Recraft V4.1 Utility Pro",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -15636,6 +15755,7 @@
       "name": "Recraft V4.1 Vector",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -15769,6 +15889,7 @@
       "name": "Recraft V4.1 Pro Vector",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -15904,6 +16025,7 @@
       "name": "Recraft V4.1 Utility Vector",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -16037,6 +16159,7 @@
       "name": "Recraft V4.1 Utility Pro Vector",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -16172,6 +16295,7 @@
       "name": "Recraft V4",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -16323,6 +16447,7 @@
       "name": "Recraft V3",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -16493,6 +16618,7 @@
       "name": "Recraft V4 Pro",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -16646,6 +16772,7 @@
       "name": "Recraft V4 Vector",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -16779,6 +16906,7 @@
       "name": "Recraft V4 Pro Vector",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -16914,6 +17042,7 @@
       "name": "Recraft V3 Vector",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -17024,6 +17153,7 @@
       "name": "Recraft Vectorize",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -17079,6 +17209,7 @@
       "name": "Recraft Creative Upscale",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -17123,6 +17254,7 @@
       "name": "Recraft Crisp Upscale",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -17167,6 +17299,7 @@
       "name": "Recraft Replace Background",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -17218,6 +17351,7 @@
       "name": "Recraft Explore",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -17291,6 +17425,7 @@
       "name": "Recraft Explore Similar",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "recraft",
         "name": "Recraft",
@@ -17375,6 +17510,7 @@
       "name": "Topaz HD Upscale",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "topaz",
         "name": "Topaz",
@@ -17419,6 +17555,7 @@
       "name": "Topaz Standard",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "topaz",
         "name": "Topaz",
@@ -17463,6 +17600,7 @@
       "name": "Topaz Low Res",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "topaz",
         "name": "Topaz",
@@ -17507,6 +17645,7 @@
       "name": "Topaz CGI",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "topaz",
         "name": "Topaz",
@@ -17551,6 +17690,7 @@
       "name": "Topaz Hi-Fi",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "topaz",
         "name": "Topaz",
@@ -17595,6 +17735,7 @@
       "name": "Topaz Text",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "topaz",
         "name": "Topaz",
@@ -17639,6 +17780,7 @@
       "name": "Topaz Redefine",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "topaz",
         "name": "Topaz",
@@ -17683,6 +17825,7 @@
       "name": "Topaz Recovery",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "topaz",
         "name": "Topaz",
@@ -17727,6 +17870,7 @@
       "name": "Topaz Recovery V2",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "topaz",
         "name": "Topaz",
@@ -17771,6 +17915,7 @@
       "name": "Picsart Change Background",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "picsart",
         "name": "Picsart",
@@ -17826,6 +17971,7 @@
       "name": "Remove Background",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "picsart",
         "name": "Picsart",
@@ -17870,6 +18016,7 @@
       "name": "Enhance",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "picsart",
         "name": "Picsart",
@@ -17914,6 +18061,7 @@
       "name": "Picsart Image Edit",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "picsart",
         "name": "Picsart",
@@ -17980,6 +18128,7 @@
       "name": "Picsart Makeup",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "picsart",
         "name": "Picsart",
@@ -18046,6 +18195,7 @@
       "name": "Picsart Angle Change",
       "mode": "image",
       "inputType": "i2i",
+      "release": "production",
       "provider": {
         "id": "picsart",
         "name": "Picsart",
@@ -18146,6 +18296,7 @@
       "name": "Flux 2 Klein 4B",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "picsart",
         "name": "Picsart",
@@ -18228,6 +18379,7 @@
       "name": "Picsart SANA-Sprint",
       "mode": "image",
       "inputType": "t2i",
+      "release": "production",
       "provider": {
         "id": "picsart",
         "name": "Picsart",
@@ -18307,6 +18459,7 @@
       "name": "Happy Horse 1.0",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "happyhorse",
         "name": "Happy Horse",
@@ -18424,6 +18577,7 @@
       "name": "Happy Horse 1.0 Ref-to-Video",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "happyhorse",
         "name": "Happy Horse",
@@ -18543,6 +18697,7 @@
       "name": "Happy Horse 1.0 Video Edit",
       "mode": "video",
       "inputType": "v2v",
+      "release": "production",
       "provider": {
         "id": "happyhorse",
         "name": "Happy Horse",
@@ -18647,6 +18802,7 @@
       "name": "Happy Horse 1.1",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "happyhorse",
         "name": "Happy Horse",
@@ -18764,6 +18920,7 @@
       "name": "Happy Horse 1.1 Ref-to-Video",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "happyhorse",
         "name": "Happy Horse",
@@ -18883,6 +19040,7 @@
       "name": "PixVerse V6",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "pixverse",
         "name": "PixVerse",
@@ -19034,6 +19192,7 @@
       "name": "PixVerse V6 Image",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "pixverse",
         "name": "PixVerse",
@@ -19170,6 +19329,7 @@
       "name": "PixVerse V6 Fusion",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "pixverse",
         "name": "PixVerse",
@@ -19340,6 +19500,7 @@
       "name": "PixVerse C1",
       "mode": "video",
       "inputType": "t2v",
+      "release": "production",
       "provider": {
         "id": "pixverse",
         "name": "PixVerse",
@@ -19491,6 +19652,7 @@
       "name": "PixVerse C1 Image",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "pixverse",
         "name": "PixVerse",
@@ -19627,6 +19789,7 @@
       "name": "PixVerse C1 Fusion",
       "mode": "video",
       "inputType": "i2v",
+      "release": "production",
       "provider": {
         "id": "pixverse",
         "name": "PixVerse",
@@ -19797,6 +19960,7 @@
       "name": "Async Flash v1.0",
       "mode": "audio",
       "inputType": "tts",
+      "release": "production",
       "provider": {
         "id": "async",
         "name": "Async AI",
@@ -20304,6 +20468,7 @@
       "name": "Claude Opus 4.8",
       "mode": "text",
       "inputType": "i2t",
+      "release": "production",
       "provider": {
         "id": "anthropic",
         "name": "Anthropic",
@@ -20357,6 +20522,7 @@
       "name": "Claude Sonnet 4.6",
       "mode": "text",
       "inputType": "i2t",
+      "release": "production",
       "provider": {
         "id": "anthropic",
         "name": "Anthropic",
@@ -20410,6 +20576,7 @@
       "name": "Claude Haiku 4.5",
       "mode": "text",
       "inputType": "i2t",
+      "release": "production",
       "provider": {
         "id": "anthropic",
         "name": "Anthropic",
@@ -20463,6 +20630,7 @@
       "name": "GPT-5.5",
       "mode": "text",
       "inputType": "i2t",
+      "release": "production",
       "provider": {
         "id": "openai",
         "name": "OpenAI",
@@ -20542,6 +20710,7 @@
       "name": "Gemini 3 Pro",
       "mode": "text",
       "inputType": "v2t",
+      "release": "production",
       "provider": {
         "id": "google",
         "name": "Google",

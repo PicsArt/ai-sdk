@@ -3,6 +3,7 @@
 
 import type { ModelDefinition, GenerationMode } from './types.ts';
 import { ALL_MODELS, getModelsByMode } from '../vendors/catalog/index.ts';
+import { isVisibleForReleases } from './visibility.ts';
 
 // ── Indexes (built once at module load) ──────────────────────────────
 
@@ -49,10 +50,11 @@ export const findModel = (ref: string): ModelDefinition | undefined => {
     ?? MODEL_BY_NAME.get(key.toLowerCase());
 };
 
-/** Get the first enabled model for the given generation mode. */
+/** Get the first default-visible model for the given generation mode
+ *  (production / general-availability — never a preview/disabled/deprecated model). */
 export const getDefaultModel = (mode: GenerationMode): ModelDefinition => {
   const models = getModelsByMode(mode);
-  const model = models.find((m) => !m.disabled && !m.deprecated) ?? models[0];
+  const model = models.find((m) => isVisibleForReleases(m)) ?? models[0];
   if (!model) throw new Error(`No models available for mode "${mode}"`);
   return model;
 };

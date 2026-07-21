@@ -24,7 +24,7 @@ const DEPRECATED_IDS = [
   'kling-v2-image', 'kling-v2-1-image', 'kling-v1-5-image',
   'kling-multi-image', 'kling-multi-image-v2-1',
   'ltx-pro-t2v', 'ltx-v2-fast', 'ltx-v2-retake',
-  'runway-gen3a-turbo',
+  'runway-gen3a-turbo', 'runway-gen4-aleph',
 ];
 
 // IDs operationally disabled (backend not deployed, catalog mismatch, etc.).

@@ -206,6 +206,13 @@ export interface Constraint {
 
 export type BadgeType = 'new' | 'popular' | 'coming-soon' | 'fast' | 'premium' | 'hot';
 
+/**
+ * Model release / availability tier. See `ModelDefinition.release`.
+ * Ordered widest-exposure-last: `preview` (stage only) → `production` (our
+ * apps) → `general-availability` (enterprise / external use).
+ */
+export type ReleaseTag = 'preview' | 'production' | 'general-availability';
+
 export interface ModelDefinition {
   id: string;
   name: string;
@@ -237,6 +244,7 @@ export interface ModelDefinition {
    * from default catalog lookups, same as `disabled`.
    */
   deprecated?: boolean;
+  release?: ReleaseTag;
   mode: GenerationMode;
   inputType: InputType;
   modelId?: string;

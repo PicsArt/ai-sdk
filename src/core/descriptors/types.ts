@@ -130,7 +130,7 @@ export type FlatParamEntry = EntryMeta & ParamDescriptor & { key: string };
 
 // ── Model accessor types ────────────────────────────────────────────
 
-import type { GenerationMode, InputType, ModelFeature, BadgeType, Provider, GenerationContext } from '../types.ts';
+import type { GenerationMode, InputType, ModelFeature, BadgeType, Provider, GenerationContext, ReleaseTag } from '../types.ts';
 import type { ModelParamSchema } from '../schema.ts';
 
 /** Provider metadata. */
@@ -149,6 +149,8 @@ export interface ModelMeta {
   readonly features: ModelFeature[];
   readonly badges: BadgeType[];
   readonly provider: ProviderInfo;
+  /** Release / availability tier (EAI-3). Absent on the definition ⇒ `'production'`. */
+  readonly release: ReleaseTag;
 }
 
 /** Parameter operations — fluent access to model params, schemas, defaults. */
@@ -237,4 +239,12 @@ export interface ModelDescriptor {
 export interface ModelFilter {
   output?: GenerationMode;
   provider?: string;
+  /**
+   * Release tiers to include. Omitted ⇒ the default visible set
+   * (`['production', 'general-availability']`). List the tiers you want
+   * explicitly to opt into `preview` — e.g. `['preview']` for stage-only
+   * models, or all three to include everything. `disabled`/`deprecated`
+   * models stay hidden regardless.
+   */
+  release?: ReleaseTag[];
 }

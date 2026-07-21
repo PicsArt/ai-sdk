@@ -384,24 +384,10 @@ export const Sora2 = 'sora-2' as const;
 export const Sora2Extend = 'sora-2-extend' as const;
 /** Sora 2 Pro — openai (video) */
 export const Sora2Pro = 'sora-2-pro' as const;
-/** Topaz CGI — topaz (image) */
-export const TopazEnhanceCgi = 'topaz-enhance-cgi' as const;
-/** Topaz Hi-Fi — topaz (image) */
-export const TopazEnhanceHighFidelityV2 = 'topaz-enhance-high-fidelity-v2' as const;
-/** Topaz Low Res — topaz (image) */
-export const TopazEnhanceLowResV2 = 'topaz-enhance-low-res-v2' as const;
-/** Topaz Recovery — topaz (image) */
-export const TopazEnhanceRecovery = 'topaz-enhance-recovery' as const;
-/** Topaz Recovery V2 — topaz (image) */
-export const TopazEnhanceRecoveryV2 = 'topaz-enhance-recovery-v2' as const;
-/** Topaz Redefine — topaz (image) */
-export const TopazEnhanceRedefine = 'topaz-enhance-redefine' as const;
-/** Topaz Standard — topaz (image) */
-export const TopazEnhanceStandardV2 = 'topaz-enhance-standard-v2' as const;
-/** Topaz Text — topaz (image) */
-export const TopazEnhanceTextRefine = 'topaz-enhance-text-refine' as const;
-/** Topaz HD Upscale — topaz (image) */
+/** Topaz Image Upscale — topaz (image) */
 export const TopazUpscaleImage = 'topaz-upscale-image' as const;
+/** Topaz Video Upscale — topaz (video) */
+export const TopazUpscaleVideo = 'topaz-upscale-video' as const;
 /** VEED Fabric 1.0 — veed (video) */
 export const VeedFabricV1 = 'veed-fabric-v1' as const;
 /** VEED Fabric 1.0 Fast — veed (video) */
@@ -613,15 +599,8 @@ export const Models = {
   Sora2,
   Sora2Extend,
   Sora2Pro,
-  TopazEnhanceCgi,
-  TopazEnhanceHighFidelityV2,
-  TopazEnhanceLowResV2,
-  TopazEnhanceRecovery,
-  TopazEnhanceRecoveryV2,
-  TopazEnhanceRedefine,
-  TopazEnhanceStandardV2,
-  TopazEnhanceTextRefine,
   TopazUpscaleImage,
+  TopazUpscaleVideo,
   VeedFabricV1,
   VeedFabricV1Fast,
   Veo31,

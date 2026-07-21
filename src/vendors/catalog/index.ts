@@ -35,6 +35,7 @@ import './imagen.payloads.ts'; // registers payload builders after model definit
 import { MODELS as qwenMODELS } from './qwen.ts';
 import { MODELS as recraftMODELS } from './recraft.ts';
 import { MODELS as topazMODELS } from './topaz.ts';
+import './topaz.payloads.ts'; // registers Topaz image + video upscale payload builders after model definitions
 import { MODELS as picsartMODELS } from './picsart.ts';
 import { MODELS as lyriaMODELS } from './lyria.ts';
 import { MODELS as happyhorseMODELS } from './happyhorse.ts';

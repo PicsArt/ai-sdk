@@ -6918,62 +6918,95 @@ var { MODELS: MODELS29 } = defineModels("recraft", [
 ]);
 
 // src/vendors/catalog/topaz.ts
-var buildTopazUpscalePayload = (ctx) => ({
-  face_enhancement: false,
-  face_enhancement_creativity: 0,
-  face_enhancement_strength: 0.8,
-  output_format: "png",
-  subject_detection: "All",
-  model: "Standard V2",
-  image_url: ctx.imageUrls?.[0] ?? "",
-  upscale_factor: 2,
-  crop_to_fill: false
-});
-var buildTopazEnhancePayload = (model) => (ctx) => ({
-  image_url: ctx.imageUrls?.[0] ?? "",
-  upscale_factor: 1,
-  output_format: "png",
-  model
-});
-var TOPAZ_ENHANCE_VARIANTS = [
-  { key: "standard-v2", label: "Topaz Standard", model: "Standard V2" },
-  { key: "low-res-v2", label: "Topaz Low Res", model: "Low Resolution V2" },
-  { key: "cgi", label: "Topaz CGI", model: "CGI" },
-  { key: "high-fidelity-v2", label: "Topaz Hi-Fi", model: "High Fidelity V2" },
-  { key: "text-refine", label: "Topaz Text", model: "Text Refine" },
-  { key: "redefine", label: "Topaz Redefine", model: "Redefine" },
-  { key: "recovery", label: "Topaz Recovery", model: "Recovery" },
-  { key: "recovery-v2", label: "Topaz Recovery V2", model: "Recovery V2" }
+var TOPAZ_IMAGE_MODEL_OPTIONS = [
+  "Standard V2",
+  "Standard MAX",
+  "Low Resolution V2",
+  "High Fidelity V2",
+  "CGI",
+  "Text Refine",
+  "Redefine",
+  "Recovery",
+  "Recovery V2",
+  "Wonder",
+  "Wonder 3"
+];
+var TOPAZ_VIDEO_MODEL_OPTIONS = [
+  "Proteus",
+  "Artemis HQ",
+  "Artemis MQ",
+  "Artemis LQ",
+  "Nyx",
+  "Nyx Fast",
+  "Nyx XL",
+  "Nyx HF",
+  "Gaia HQ",
+  "Gaia CG",
+  "Gaia 2",
+  "Starlight Precise 1",
+  "Starlight Precise 2",
+  "Starlight Precise 2.5",
+  "Starlight HQ",
+  "Starlight Mini",
+  "Starlight Sharp",
+  "Starlight Fast 1",
+  "Starlight Fast 2"
 ];
 var { MODELS: MODELS30 } = defineModels("topaz", [
   {
     id: "topaz-upscale-image",
-    name: "Topaz HD Upscale",
+    name: "Topaz Image Upscale",
     addedAt: "2026-03-06",
     workflow: "topaz/upscale/image",
-    buildPayload: buildTopazUpscalePayload,
     estimatedTime: 30,
     mode: "image",
     inputType: "i2i",
-    description: "2x image upscale with Topaz AI.",
+    description: "Image upscaling and enhancement with Topaz AI \u2014 Standard, Hi-Fi, CGI, Recovery and Wonder models.",
     features: [feat("Upscale", "quality"), feat("Image Required", "input")],
-    paramConfig: { ...params.imageInput(1, "Image", true) }
+    paramConfig: {
+      ...params.imageInput(1, "Image", true),
+      ...p.enum("model", [...TOPAZ_IMAGE_MODEL_OPTIONS], "Standard V2", { label: "Model" })
+    }
   },
-  ...TOPAZ_ENHANCE_VARIANTS.map((v) => ({
-    id: `topaz-enhance-${v.key}`,
-    modelId: "topaz-upscale-image",
-    addedAt: "2026-03-06",
-    name: v.label,
-    workflow: "topaz/upscale/image",
-    buildPayload: buildTopazEnhancePayload(v.model),
-    estimatedTime: 30,
-    mode: "image",
-    inputType: "i2i",
-    description: `${v.model} image enhancement`,
-    features: [feat("Enhancement", "quality"), feat("Image Required", "input")],
-    paramConfig: { ...params.imageInput(1, "Image", true) }
-  }))
+  {
+    id: "topaz-upscale-video",
+    name: "Topaz Video Upscale",
+    addedAt: "2026-07-21",
+    workflow: "topaz/upscale/video",
+    estimatedTime: 600,
+    mode: "video",
+    inputType: "v2v",
+    description: "Video upscaling and enhancement with Topaz AI \u2014 Proteus, Artemis, Nyx, Gaia and Starlight models.",
+    features: [feat("Upscale", "quality"), feat("Video Required", "input")],
+    paramConfig: {
+      ...params.videoInput("Source Video", "asset", true),
+      ...p.enum("model", [...TOPAZ_VIDEO_MODEL_OPTIONS], "Proteus", { label: "Model" })
+    }
+  }
 ]);
+
+// src/vendors/catalog/topaz.payloads.ts
+var buildTopazImagePayload = (input) => ({
+  image_url: input.imageUrls[0],
+  model: input.model ?? "Standard V2",
+  upscale_factor: 2,
+  output_format: "png",
+  face_enhancement: false,
+  face_enhancement_creativity: 0,
+  face_enhancement_strength: 0.8,
+  subject_detection: "All",
+  crop_to_fill: false
+});
+var buildTopazVideoPayload = (input) => ({
+  video_url: input.videoUrl,
+  model: input.model ?? "Proteus",
+  upscale_factor: 2,
+  H264_output: false
+});
+registerPayloads(MODELS30, {
+  "topaz-upscale-image": buildTopazImagePayload,
+  "topaz-upscale-video": buildTopazVideoPayload
+});
 
 // src/vendors/catalog/picsart.ts
 var MAX_WORDS = 77;
@@ -9896,15 +9929,8 @@ var Seedream50Pro = "seedream-5.0-pro";
 var Sora2 = "sora-2";
 var Sora2Extend = "sora-2-extend";
 var Sora2Pro = "sora-2-pro";
-var TopazEnhanceCgi = "topaz-enhance-cgi";
-var TopazEnhanceHighFidelityV2 = "topaz-enhance-high-fidelity-v2";
-var TopazEnhanceLowResV2 = "topaz-enhance-low-res-v2";
-var TopazEnhanceRecovery = "topaz-enhance-recovery";
-var TopazEnhanceRecoveryV2 = "topaz-enhance-recovery-v2";
-var TopazEnhanceRedefine = "topaz-enhance-redefine";
-var TopazEnhanceStandardV2 = "topaz-enhance-standard-v2";
-var TopazEnhanceTextRefine = "topaz-enhance-text-refine";
 var TopazUpscaleImage = "topaz-upscale-image";
+var TopazUpscaleVideo = "topaz-upscale-video";
 var VeedFabricV1 = "veed-fabric-v1";
 var VeedFabricV1Fast = "veed-fabric-v1-fast";
 var Veo31 = "veo-3.1";
@@ -10092,15 +10118,8 @@ var Models = {
   Sora2,
   Sora2Extend,
   Sora2Pro,
-  TopazEnhanceCgi,
-  TopazEnhanceHighFidelityV2,
-  TopazEnhanceLowResV2,
-  TopazEnhanceRecovery,
-  TopazEnhanceRecoveryV2,
-  TopazEnhanceRedefine,
-  TopazEnhanceStandardV2,
-  TopazEnhanceTextRefine,
   TopazUpscaleImage,
+  TopazUpscaleVideo,
   VeedFabricV1,
   VeedFabricV1Fast,
   Veo31,

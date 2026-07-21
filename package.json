@@ -1,6 +1,6 @@
 {
   "name": "@picsart/ai-sdk",
-  "version": "3.18.0",
+  "version": "3.19.0",
   "type": "module",
   "description": "Type-safe SDK for 100+ AI models — image, video, audio, and text generation with Picsart",
   "license": "MIT",
@@ -42,7 +42,7 @@
   "dependencies": {
     "@picsart/pa-model-pricing-sdk": "^1.0.2",
     "@picsart/workflows-client": "^1.6.1",
-    "@picsart/workflows-types": "^1.1.51",
+    "@picsart/workflows-types": "^1.1.78",
     "fflate": "^0.8.3"
   },
   "devDependencies": {

@@ -1223,32 +1223,13 @@ type ModelInputById = {
         resolution?: "720p" | "1024p" | "1080p";
         duration?: 4 | 8 | 12 | 16 | 20;
     };
-    "topaz-enhance-cgi": {
-        imageUrls: [string, ...string[]];
-    };
-    "topaz-enhance-high-fidelity-v2": {
-        imageUrls: [string, ...string[]];
-    };
-    "topaz-enhance-low-res-v2": {
-        imageUrls: [string, ...string[]];
-    };
-    "topaz-enhance-recovery": {
-        imageUrls: [string, ...string[]];
-    };
-    "topaz-enhance-recovery-v2": {
-        imageUrls: [string, ...string[]];
-    };
-    "topaz-enhance-redefine": {
-        imageUrls: [string, ...string[]];
-    };
-    "topaz-enhance-standard-v2": {
-        imageUrls: [string, ...string[]];
-    };
-    "topaz-enhance-text-refine": {
-        imageUrls: [string, ...string[]];
-    };
     "topaz-upscale-image": {
         imageUrls: [string, ...string[]];
+        model?: "Standard V2" | "Standard MAX" | "Low Resolution V2" | "High Fidelity V2" | "CGI" | "Text Refine" | "Redefine" | "Recovery" | "Recovery V2" | "Wonder" | "Wonder 3";
+    };
+    "topaz-upscale-video": {
+        videoUrl: string;
+        model?: "Proteus" | "Artemis HQ" | "Artemis MQ" | "Artemis LQ" | "Nyx" | "Nyx Fast" | "Nyx XL" | "Nyx HF" | "Gaia HQ" | "Gaia CG" | "Gaia 2" | "Starlight Precise 1" | "Starlight Precise 2" | "Starlight Precise 2.5" | "Starlight HQ" | "Starlight Mini" | "Starlight Sharp" | "Starlight Fast 1" | "Starlight Fast 2";
     };
     "veed-fabric-v1": {
         prompt?: string;
@@ -2259,15 +2240,8 @@ declare const Models: {
     readonly Sora2: "sora-2";
     readonly Sora2Extend: "sora-2-extend";
     readonly Sora2Pro: "sora-2-pro";
-    readonly TopazEnhanceCgi: "topaz-enhance-cgi";
-    readonly TopazEnhanceHighFidelityV2: "topaz-enhance-high-fidelity-v2";
-    readonly TopazEnhanceLowResV2: "topaz-enhance-low-res-v2";
-    readonly TopazEnhanceRecovery: "topaz-enhance-recovery";
-    readonly TopazEnhanceRecoveryV2: "topaz-enhance-recovery-v2";
-    readonly TopazEnhanceRedefine: "topaz-enhance-redefine";
-    readonly TopazEnhanceStandardV2: "topaz-enhance-standard-v2";
-    readonly TopazEnhanceTextRefine: "topaz-enhance-text-refine";
     readonly TopazUpscaleImage: "topaz-upscale-image";
+    readonly TopazUpscaleVideo: "topaz-upscale-video";
     readonly VeedFabricV1: "veed-fabric-v1";
     readonly VeedFabricV1Fast: "veed-fabric-v1-fast";
     readonly Veo31: "veo-3.1";

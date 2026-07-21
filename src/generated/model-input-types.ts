@@ -179,15 +179,8 @@ export type ModelInputById = {
   "sora-2": { prompt: string; imageUrls?: string[]; aspectRatio?: "16:9" | "9:16"; duration?: 4 | 8 | 12 | 16 | 20; };
   "sora-2-extend": { prompt: string; duration?: 4 | 8 | 12 | 16 | 20; };
   "sora-2-pro": { prompt: string; imageUrls?: string[]; aspectRatio?: "16:9" | "9:16"; resolution?: "720p" | "1024p" | "1080p"; duration?: 4 | 8 | 12 | 16 | 20; };
-  "topaz-enhance-cgi": { imageUrls: [string, ...string[]]; };
-  "topaz-enhance-high-fidelity-v2": { imageUrls: [string, ...string[]]; };
-  "topaz-enhance-low-res-v2": { imageUrls: [string, ...string[]]; };
-  "topaz-enhance-recovery": { imageUrls: [string, ...string[]]; };
-  "topaz-enhance-recovery-v2": { imageUrls: [string, ...string[]]; };
-  "topaz-enhance-redefine": { imageUrls: [string, ...string[]]; };
-  "topaz-enhance-standard-v2": { imageUrls: [string, ...string[]]; };
-  "topaz-enhance-text-refine": { imageUrls: [string, ...string[]]; };
-  "topaz-upscale-image": { imageUrls: [string, ...string[]]; };
+  "topaz-upscale-image": { imageUrls: [string, ...string[]]; model?: "Standard V2" | "Standard MAX" | "Low Resolution V2" | "High Fidelity V2" | "CGI" | "Text Refine" | "Redefine" | "Recovery" | "Recovery V2" | "Wonder" | "Wonder 3"; };
+  "topaz-upscale-video": { videoUrl: string; model?: "Proteus" | "Artemis HQ" | "Artemis MQ" | "Artemis LQ" | "Nyx" | "Nyx Fast" | "Nyx XL" | "Nyx HF" | "Gaia HQ" | "Gaia CG" | "Gaia 2" | "Starlight Precise 1" | "Starlight Precise 2" | "Starlight Precise 2.5" | "Starlight HQ" | "Starlight Mini" | "Starlight Sharp" | "Starlight Fast 1" | "Starlight Fast 2"; };
   "veed-fabric-v1": { prompt?: string; resolution?: "480p" | "720p"; imageUrls: [string, ...string[]]; audioUrl: string; };
   "veed-fabric-v1-fast": { prompt?: string; resolution?: "480p" | "720p"; imageUrls: [string, ...string[]]; audioUrl: string; };
   "veo-3.1": { prompt: string; aspectRatio?: "16:9" | "9:16"; duration?: 4 | 6 | 8; resolution?: "720p" | "1080p" | "4k"; imageUrls?: string[]; generateAudio?: boolean; negativePrompt?: string; startFrame?: string; endFrame?: string; };

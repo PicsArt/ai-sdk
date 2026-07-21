@@ -1,6 +1,6 @@
 {
-  "sdkVersion": "3.18.0",
-  "total": 169,
+  "sdkVersion": "3.19.0",
+  "total": 162,
   "models": [
     {
       "id": "kling-v3",
@@ -17507,7 +17507,7 @@
     },
     {
       "id": "topaz-upscale-image",
-      "name": "Topaz HD Upscale",
+      "name": "Topaz Image Upscale",
       "mode": "image",
       "inputType": "i2i",
       "release": "production",
@@ -17517,7 +17517,7 @@
         "color": "#14B8A6",
         "label": "TZ"
       },
-      "description": "2x image upscale with Topaz AI.",
+      "description": "Image upscaling and enhancement with Topaz AI — Standard, Hi-Fi, CGI, Recovery and Wonder models.",
       "features": [
         {
           "label": "Upscale",
@@ -17547,14 +17547,57 @@
           "maxDurationSec": null,
           "minPixels": null,
           "maxShortSidePixels": null
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": "Standard V2",
+          "options": [
+            {
+              "id": "Standard V2"
+            },
+            {
+              "id": "Standard MAX"
+            },
+            {
+              "id": "Low Resolution V2"
+            },
+            {
+              "id": "High Fidelity V2"
+            },
+            {
+              "id": "CGI"
+            },
+            {
+              "id": "Text Refine"
+            },
+            {
+              "id": "Redefine"
+            },
+            {
+              "id": "Recovery"
+            },
+            {
+              "id": "Recovery V2"
+            },
+            {
+              "id": "Wonder"
+            },
+            {
+              "id": "Wonder 3"
+            }
+          ]
         }
       ]
     },
     {
-      "id": "topaz-enhance-standard-v2",
-      "name": "Topaz Standard",
-      "mode": "image",
-      "inputType": "i2i",
+      "id": "topaz-upscale-video",
+      "name": "Topaz Video Upscale",
+      "mode": "video",
+      "inputType": "v2v",
       "release": "production",
       "provider": {
         "id": "topaz",
@@ -17562,351 +17605,101 @@
         "color": "#14B8A6",
         "label": "TZ"
       },
-      "description": "Standard V2 image enhancement",
+      "description": "Video upscaling and enhancement with Topaz AI — Proteus, Artemis, Nyx, Gaia and Starlight models.",
       "features": [
         {
-          "label": "Enhancement",
+          "label": "Upscale",
           "variant": "quality"
         },
         {
-          "label": "Image Required",
+          "label": "Video Required",
           "variant": "input"
         }
       ],
       "badges": [],
-      "addedAt": "2026-03-06",
+      "addedAt": "2026-07-21",
       "creditRange": null,
-      "estimatedTime": 30,
+      "estimatedTime": 600,
       "params": [
         {
-          "key": "imageUrls",
-          "label": "Image",
+          "key": "videoUrl",
+          "label": "Source Video",
           "kind": "file",
           "required": true,
-          "category": "reference",
+          "category": "asset",
           "default": null,
-          "accept": "image",
-          "array": {
-            "max": 1
-          },
+          "accept": "video",
+          "array": null,
           "maxDurationSec": null,
           "minPixels": null,
           "maxShortSidePixels": null
-        }
-      ]
-    },
-    {
-      "id": "topaz-enhance-low-res-v2",
-      "name": "Topaz Low Res",
-      "mode": "image",
-      "inputType": "i2i",
-      "release": "production",
-      "provider": {
-        "id": "topaz",
-        "name": "Topaz",
-        "color": "#14B8A6",
-        "label": "TZ"
-      },
-      "description": "Low Resolution V2 image enhancement",
-      "features": [
-        {
-          "label": "Enhancement",
-          "variant": "quality"
         },
         {
-          "label": "Image Required",
-          "variant": "input"
-        }
-      ],
-      "badges": [],
-      "addedAt": "2026-03-06",
-      "creditRange": null,
-      "estimatedTime": 30,
-      "params": [
-        {
-          "key": "imageUrls",
-          "label": "Image",
-          "kind": "file",
-          "required": true,
-          "category": "reference",
-          "default": null,
-          "accept": "image",
-          "array": {
-            "max": 1
-          },
-          "maxDurationSec": null,
-          "minPixels": null,
-          "maxShortSidePixels": null
-        }
-      ]
-    },
-    {
-      "id": "topaz-enhance-cgi",
-      "name": "Topaz CGI",
-      "mode": "image",
-      "inputType": "i2i",
-      "release": "production",
-      "provider": {
-        "id": "topaz",
-        "name": "Topaz",
-        "color": "#14B8A6",
-        "label": "TZ"
-      },
-      "description": "CGI image enhancement",
-      "features": [
-        {
-          "label": "Enhancement",
-          "variant": "quality"
-        },
-        {
-          "label": "Image Required",
-          "variant": "input"
-        }
-      ],
-      "badges": [],
-      "addedAt": "2026-03-06",
-      "creditRange": null,
-      "estimatedTime": 30,
-      "params": [
-        {
-          "key": "imageUrls",
-          "label": "Image",
-          "kind": "file",
-          "required": true,
-          "category": "reference",
-          "default": null,
-          "accept": "image",
-          "array": {
-            "max": 1
-          },
-          "maxDurationSec": null,
-          "minPixels": null,
-          "maxShortSidePixels": null
-        }
-      ]
-    },
-    {
-      "id": "topaz-enhance-high-fidelity-v2",
-      "name": "Topaz Hi-Fi",
-      "mode": "image",
-      "inputType": "i2i",
-      "release": "production",
-      "provider": {
-        "id": "topaz",
-        "name": "Topaz",
-        "color": "#14B8A6",
-        "label": "TZ"
-      },
-      "description": "High Fidelity V2 image enhancement",
-      "features": [
-        {
-          "label": "Enhancement",
-          "variant": "quality"
-        },
-        {
-          "label": "Image Required",
-          "variant": "input"
-        }
-      ],
-      "badges": [],
-      "addedAt": "2026-03-06",
-      "creditRange": null,
-      "estimatedTime": 30,
-      "params": [
-        {
-          "key": "imageUrls",
-          "label": "Image",
-          "kind": "file",
-          "required": true,
-          "category": "reference",
-          "default": null,
-          "accept": "image",
-          "array": {
-            "max": 1
-          },
-          "maxDurationSec": null,
-          "minPixels": null,
-          "maxShortSidePixels": null
-        }
-      ]
-    },
-    {
-      "id": "topaz-enhance-text-refine",
-      "name": "Topaz Text",
-      "mode": "image",
-      "inputType": "i2i",
-      "release": "production",
-      "provider": {
-        "id": "topaz",
-        "name": "Topaz",
-        "color": "#14B8A6",
-        "label": "TZ"
-      },
-      "description": "Text Refine image enhancement",
-      "features": [
-        {
-          "label": "Enhancement",
-          "variant": "quality"
-        },
-        {
-          "label": "Image Required",
-          "variant": "input"
-        }
-      ],
-      "badges": [],
-      "addedAt": "2026-03-06",
-      "creditRange": null,
-      "estimatedTime": 30,
-      "params": [
-        {
-          "key": "imageUrls",
-          "label": "Image",
-          "kind": "file",
-          "required": true,
-          "category": "reference",
-          "default": null,
-          "accept": "image",
-          "array": {
-            "max": 1
-          },
-          "maxDurationSec": null,
-          "minPixels": null,
-          "maxShortSidePixels": null
-        }
-      ]
-    },
-    {
-      "id": "topaz-enhance-redefine",
-      "name": "Topaz Redefine",
-      "mode": "image",
-      "inputType": "i2i",
-      "release": "production",
-      "provider": {
-        "id": "topaz",
-        "name": "Topaz",
-        "color": "#14B8A6",
-        "label": "TZ"
-      },
-      "description": "Redefine image enhancement",
-      "features": [
-        {
-          "label": "Enhancement",
-          "variant": "quality"
-        },
-        {
-          "label": "Image Required",
-          "variant": "input"
-        }
-      ],
-      "badges": [],
-      "addedAt": "2026-03-06",
-      "creditRange": null,
-      "estimatedTime": 30,
-      "params": [
-        {
-          "key": "imageUrls",
-          "label": "Image",
-          "kind": "file",
-          "required": true,
-          "category": "reference",
-          "default": null,
-          "accept": "image",
-          "array": {
-            "max": 1
-          },
-          "maxDurationSec": null,
-          "minPixels": null,
-          "maxShortSidePixels": null
-        }
-      ]
-    },
-    {
-      "id": "topaz-enhance-recovery",
-      "name": "Topaz Recovery",
-      "mode": "image",
-      "inputType": "i2i",
-      "release": "production",
-      "provider": {
-        "id": "topaz",
-        "name": "Topaz",
-        "color": "#14B8A6",
-        "label": "TZ"
-      },
-      "description": "Recovery image enhancement",
-      "features": [
-        {
-          "label": "Enhancement",
-          "variant": "quality"
-        },
-        {
-          "label": "Image Required",
-          "variant": "input"
-        }
-      ],
-      "badges": [],
-      "addedAt": "2026-03-06",
-      "creditRange": null,
-      "estimatedTime": 30,
-      "params": [
-        {
-          "key": "imageUrls",
-          "label": "Image",
-          "kind": "file",
-          "required": true,
-          "category": "reference",
-          "default": null,
-          "accept": "image",
-          "array": {
-            "max": 1
-          },
-          "maxDurationSec": null,
-          "minPixels": null,
-          "maxShortSidePixels": null
-        }
-      ]
-    },
-    {
-      "id": "topaz-enhance-recovery-v2",
-      "name": "Topaz Recovery V2",
-      "mode": "image",
-      "inputType": "i2i",
-      "release": "production",
-      "provider": {
-        "id": "topaz",
-        "name": "Topaz",
-        "color": "#14B8A6",
-        "label": "TZ"
-      },
-      "description": "Recovery V2 image enhancement",
-      "features": [
-        {
-          "label": "Enhancement",
-          "variant": "quality"
-        },
-        {
-          "label": "Image Required",
-          "variant": "input"
-        }
-      ],
-      "badges": [],
-      "addedAt": "2026-03-06",
-      "creditRange": null,
-      "estimatedTime": 30,
-      "params": [
-        {
-          "key": "imageUrls",
-          "label": "Image",
-          "kind": "file",
-          "required": true,
-          "category": "reference",
-          "default": null,
-          "accept": "image",
-          "array": {
-            "max": 1
-          },
-          "maxDurationSec": null,
-          "minPixels": null,
-          "maxShortSidePixels": null
+          "key": "model",
+          "label": "Model",
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": "Proteus",
+          "options": [
+            {
+              "id": "Proteus"
+            },
+            {
+              "id": "Artemis HQ"
+            },
+            {
+              "id": "Artemis MQ"
+            },
+            {
+              "id": "Artemis LQ"
+            },
+            {
+              "id": "Nyx"
+            },
+            {
+              "id": "Nyx Fast"
+            },
+            {
+              "id": "Nyx XL"
+            },
+            {
+              "id": "Nyx HF"
+            },
+            {
+              "id": "Gaia HQ"
+            },
+            {
+              "id": "Gaia CG"
+            },
+            {
+              "id": "Gaia 2"
+            },
+            {
+              "id": "Starlight Precise 1"
+            },
+            {
+              "id": "Starlight Precise 2"
+            },
+            {
+              "id": "Starlight Precise 2.5"
+            },
+            {
+              "id": "Starlight HQ"
+            },
+            {
+              "id": "Starlight Mini"
+            },
+            {
+              "id": "Starlight Sharp"
+            },
+            {
+              "id": "Starlight Fast 1"
+            },
+            {
+              "id": "Starlight Fast 2"
+            }
+          ]
         }
       ]
     },

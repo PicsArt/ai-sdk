@@ -7768,6 +7768,39 @@ var { MODELS: GEMINI_LLM } = defineModels("google", [
       ...params.videoInput("Video", "reference", false),
       ...thinkingParam(["low", "high"])
     }
+  },
+  {
+    id: "gemini-3.6-flash",
+    name: "Gemini 3.6 Flash",
+    workflow: "chat-completions",
+    addedAt: "2026-07-22",
+    estimatedTime: 5,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["fast"],
+    description: "Fast Gemini model \u2014 low-latency multimodal text generation.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  {
+    id: "gemini-3.5-flash-lite",
+    name: "Gemini 3.5 Flash Lite",
+    workflow: "chat-completions",
+    addedAt: "2026-07-22",
+    estimatedTime: 4,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["fast"],
+    description: "Lightweight Gemini model \u2014 the fastest, most cost-efficient tier.",
+    features: [feat("Vision", "input")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images")
+    }
   }
 ]);
 var MODELS36 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM];
@@ -7826,7 +7859,11 @@ registerPayloads(MODELS36, {
   "claude-sonnet-4-6": buildClaudePayload("claude-sonnet-4-6"),
   "claude-haiku-4-5": buildClaudePayload("claude-haiku-4-5"),
   "gpt-5.5": buildOpenAiPayload("gpt-5.5"),
-  "gemini-3-pro": buildGeminiPayload("gemini-3-pro-preview")
+  "gemini-3-pro": buildGeminiPayload("gemini-3-pro-preview"),
+  // Flash models route through chat-completions (OpenAI-shaped), not the
+  // native `gemini` workflow. flash-lite has no thinking param → reasoning_effort omitted.
+  "gemini-3.6-flash": buildOpenAiPayload("gemini-3.6-flash"),
+  "gemini-3.5-flash-lite": buildOpenAiPayload("gemini-3.5-flash-lite")
 });
 
 // src/vendors/catalog/index.ts
@@ -9786,6 +9823,8 @@ var Gemini3Pro = "gemini-3-pro";
 var Gemini3ProImage = "gemini-3-pro-image";
 var Gemini31FlashImage = "gemini-3.1-flash-image";
 var Gemini31FlashLiteImage = "gemini-3.1-flash-lite-image";
+var Gemini35FlashLite = "gemini-3.5-flash-lite";
+var Gemini36Flash = "gemini-3.6-flash";
 var GeminiOmniFlashPreview = "gemini-omni-flash-preview";
 var Gpt55 = "gpt-5.5";
 var GptImage1 = "gpt-image-1";
@@ -9975,6 +10014,8 @@ var Models = {
   Gemini3ProImage,
   Gemini31FlashImage,
   Gemini31FlashLiteImage,
+  Gemini35FlashLite,
+  Gemini36Flash,
   GeminiOmniFlashPreview,
   Gpt55,
   GptImage1,

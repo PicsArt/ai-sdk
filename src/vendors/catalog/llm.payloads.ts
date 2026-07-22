@@ -16,6 +16,13 @@ type ChatParams = WorkflowTypes['chat-completions']['params'];
 type ClaudeParams = WorkflowTypes['claude/v1/messages']['params'];
 type GeminiParams = WorkflowTypes['gemini']['params'];
 
+// The live chat-completions workflow accepts the newest Gemini flash models,
+// but the published @picsart/workflows-types (1.1.79) doesn't list them in its
+// `model` enum yet. Widen locally until the types package catches up, then
+// drop ChatModel/ChatPayload and revert to ChatParams.
+type ChatModel = ChatParams['model'] | 'gemini-3.6-flash' | 'gemini-3.5-flash-lite';
+type ChatPayload = Omit<ChatParams, 'model'> & { model: ChatModel };
+
 const CLAUDE_MAX_TOKENS = 8192;
 
 function inferVideoMime(url: string): string {
@@ -34,7 +41,7 @@ function geminiThinkingLevel(thinking?: string): 'LOW' | 'HIGH' | undefined {
 // ── OpenAI (chat-completions) — shared by all OpenAI text models ─────
 type OpenAiInput = ModelInput<'gpt-5.5'>;
 
-const buildOpenAiPayload = (modelId: ChatParams['model']) => (input: OpenAiInput): ChatParams => {
+const buildOpenAiPayload = (modelId: ChatModel) => (input: OpenAiInput): ChatPayload => {
   const content: ChatParams['messages'][number]['content'] = [{ type: 'text', text: input.prompt }];
   for (const url of input.imageUrls ?? []) {
     content.push({ type: 'image_url', image_url: { url } });
@@ -89,4 +96,8 @@ registerPayloads(MODELS, {
   'claude-haiku-4-5': buildClaudePayload('claude-haiku-4-5'),
   'gpt-5.5': buildOpenAiPayload('gpt-5.5'),
   'gemini-3-pro': buildGeminiPayload('gemini-3-pro-preview'),
+  // Flash models route through chat-completions (OpenAI-shaped), not the
+  // native `gemini` workflow. flash-lite has no thinking param → reasoning_effort omitted.
+  'gemini-3.6-flash': buildOpenAiPayload('gemini-3.6-flash'),
+  'gemini-3.5-flash-lite': buildOpenAiPayload('gemini-3.5-flash-lite'),
 });

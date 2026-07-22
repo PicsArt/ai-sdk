@@ -73,6 +73,9 @@ const { MODELS: OPENAI_LLM } = defineModels('openai', [
   },
 ]);
 
+// Gemini 3 Pro uses the native `gemini` workflow (video input, thinkingLevel).
+// The flash models route through the OpenAI-compatible `chat-completions`
+// workflow (messages[]/image_url/reasoning_effort) — see buildOpenAiPayload.
 const { MODELS: GEMINI_LLM } = defineModels('google', [
   {
     id: 'gemini-3-pro', name: 'Gemini 3 Pro', modelId: 'gemini-3-pro-preview',
@@ -85,6 +88,29 @@ const { MODELS: GEMINI_LLM } = defineModels('google', [
       ...params.imageInput(8, 'Images'),
       ...params.videoInput('Video', 'reference', false),
       ...thinkingParam(['low', 'high']),
+    },
+  },
+  {
+    id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash',
+    workflow: 'chat-completions', addedAt: '2026-07-22', estimatedTime: 5,
+    mode: 'text', inputType: 'i2t', badge: ['fast'],
+    description: 'Fast Gemini model — low-latency multimodal text generation.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high']),
+    },
+  },
+  {
+    id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite',
+    workflow: 'chat-completions', addedAt: '2026-07-22', estimatedTime: 4,
+    mode: 'text', inputType: 'i2t', badge: ['fast'],
+    description: 'Lightweight Gemini model — the fastest, most cost-efficient tier.',
+    features: [feat('Vision', 'input')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
     },
   },
 ]);

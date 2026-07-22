@@ -5942,6 +5942,8 @@ interface PikaTextToVideoResponse {
 }
 interface PikaVideoResult$3 {
     url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
 }
 
 interface PikaImageToVideoCommand {
@@ -5978,6 +5980,8 @@ interface PikaImageToVideoResponse {
 }
 interface PikaVideoResult$2 {
     url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
 }
 
 interface PikaScenesCommand {
@@ -6017,6 +6021,8 @@ interface PikaScenesResponse {
 }
 interface PikaVideoResult$1 {
     url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
 }
 
 interface PikaFramesCommand {
@@ -6054,6 +6060,8 @@ interface PikaFramesResponse {
 }
 interface PikaVideoResult {
     url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
 }
 
 interface IdeogramV3GenerateCommand {

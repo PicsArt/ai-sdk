@@ -76,6 +76,10 @@ export const Gemini3ProImage = 'gemini-3-pro-image' as const;
 export const Gemini31FlashImage = 'gemini-3.1-flash-image' as const;
 /** Nano Banana 2 Lite — google (image) */
 export const Gemini31FlashLiteImage = 'gemini-3.1-flash-lite-image' as const;
+/** Gemini 3.5 Flash Lite — google (text) */
+export const Gemini35FlashLite = 'gemini-3.5-flash-lite' as const;
+/** Gemini 3.6 Flash — google (text) */
+export const Gemini36Flash = 'gemini-3.6-flash' as const;
 /** Gemini Omni — google (video) */
 export const GeminiOmniFlashPreview = 'gemini-omni-flash-preview' as const;
 /** GPT-5.5 — openai (text) */
@@ -456,6 +460,8 @@ export const Models = {
   Gemini3ProImage,
   Gemini31FlashImage,
   Gemini31FlashLiteImage,
+  Gemini35FlashLite,
+  Gemini36Flash,
   GeminiOmniFlashPreview,
   Gpt55,
   GptImage1,

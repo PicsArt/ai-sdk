@@ -1,6 +1,6 @@
 {
-  "sdkVersion": "3.19.0",
-  "total": 162,
+  "sdkVersion": "3.20.0",
+  "total": 164,
   "models": [
     {
       "id": "kling-v3",
@@ -20589,6 +20589,140 @@
               "id": "high"
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "gemini-3.6-flash",
+      "name": "Gemini 3.6 Flash",
+      "mode": "text",
+      "inputType": "i2t",
+      "release": "production",
+      "provider": {
+        "id": "google",
+        "name": "Google",
+        "color": "#4285F4",
+        "label": "G"
+      },
+      "description": "Fast Gemini model — low-latency multimodal text generation.",
+      "features": [
+        {
+          "label": "Vision",
+          "variant": "input"
+        },
+        {
+          "label": "Thinking",
+          "variant": "characteristic"
+        }
+      ],
+      "badges": [
+        "fast"
+      ],
+      "addedAt": "2026-07-22",
+      "creditRange": null,
+      "estimatedTime": 5,
+      "params": [
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "kind": "text",
+          "required": true,
+          "category": null,
+          "default": null,
+          "minLength": null,
+          "maxLength": null,
+          "placeholder": null
+        },
+        {
+          "key": "imageUrls",
+          "label": "Images",
+          "kind": "file",
+          "required": false,
+          "category": "reference",
+          "default": null,
+          "accept": "image",
+          "array": {
+            "max": 8
+          },
+          "maxDurationSec": null,
+          "minPixels": null,
+          "maxShortSidePixels": null
+        },
+        {
+          "key": "thinking",
+          "label": "Thinking",
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": "off",
+          "options": [
+            {
+              "id": "off"
+            },
+            {
+              "id": "low"
+            },
+            {
+              "id": "medium"
+            },
+            {
+              "id": "high"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gemini-3.5-flash-lite",
+      "name": "Gemini 3.5 Flash Lite",
+      "mode": "text",
+      "inputType": "i2t",
+      "release": "production",
+      "provider": {
+        "id": "google",
+        "name": "Google",
+        "color": "#4285F4",
+        "label": "G"
+      },
+      "description": "Lightweight Gemini model — the fastest, most cost-efficient tier.",
+      "features": [
+        {
+          "label": "Vision",
+          "variant": "input"
+        }
+      ],
+      "badges": [
+        "fast"
+      ],
+      "addedAt": "2026-07-22",
+      "creditRange": null,
+      "estimatedTime": 4,
+      "params": [
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "kind": "text",
+          "required": true,
+          "category": null,
+          "default": null,
+          "minLength": null,
+          "maxLength": null,
+          "placeholder": null
+        },
+        {
+          "key": "imageUrls",
+          "label": "Images",
+          "kind": "file",
+          "required": false,
+          "category": "reference",
+          "default": null,
+          "accept": "image",
+          "array": {
+            "max": 8
+          },
+          "maxDurationSec": null,
+          "minPixels": null,
+          "maxShortSidePixels": null
         }
       ]
     }

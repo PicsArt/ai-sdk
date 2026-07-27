@@ -894,6 +894,15 @@ type ModelInputById = {
         enhancePrompt?: boolean;
         imageUrls?: string[];
     };
+    "qwen-image-3.0": {
+        prompt: string;
+        negativePrompt?: string;
+        resolution?: "2048x2048" | "2688x1536" | "1536x2688" | "2368x1728" | "1728x2368";
+        count?: 1 | 2 | 4 | 6;
+        enhancePrompt?: boolean;
+        imageUrls?: string[];
+        promptExtendMode?: "direct" | "agent";
+    };
     "qwen-image-edit-plus": {
         prompt: string;
         imageUrls: [string, ...string[]];
@@ -1964,6 +1973,8 @@ interface GenerationContext {
     substyle?: string;
     thinkingLevel?: 'minimal' | 'high';
     thinkingBudget?: number;
+    /** Qwen 3.0 — prompt-rewrite strategy (`direct`/`agent`), sent as `prompt_extend_mode`. */
+    promptExtendMode?: 'direct' | 'agent';
 }
 type PayloadBuilder<TContext extends GenerationContext = GenerationContext> = (ctx: TContext) => object;
 /** Lightweight runtime schema contract used by SDK integrations. */
@@ -2203,6 +2214,7 @@ declare const Models: {
     readonly Qwen: "qwen";
     readonly QwenImage2: "qwen-image-2";
     readonly QwenImage2Pro: "qwen-image-2-pro";
+    readonly QwenImage30: "qwen-image-3.0";
     readonly QwenImageEditPlus: "qwen-image-edit-plus";
     readonly RecraftCreativeUpscale: "recraft-creative-upscale";
     readonly RecraftCrispUpscale: "recraft-crisp-upscale";

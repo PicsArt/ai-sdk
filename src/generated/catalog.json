@@ -1,6 +1,6 @@
 {
-  "sdkVersion": "3.20.0",
-  "total": 164,
+  "sdkVersion": "3.21.0",
+  "total": 165,
   "models": [
     {
       "id": "kling-v3",
@@ -15171,6 +15171,148 @@
           "maxDurationSec": null,
           "minPixels": null,
           "maxShortSidePixels": null
+        }
+      ]
+    },
+    {
+      "id": "qwen-image-3.0",
+      "name": "Qwen 3.0",
+      "mode": "image",
+      "inputType": "t2i",
+      "release": "production",
+      "provider": {
+        "id": "qwen",
+        "name": "Qwen",
+        "color": "#1E40AF",
+        "label": "QW"
+      },
+      "description": "Qwen-Image 3.0 — highest-fidelity text-to-image and image editing with a selectable prompt-rewrite mode.",
+      "features": [
+        {
+          "label": "Image Input",
+          "variant": "input"
+        },
+        {
+          "label": "Negative Prompt",
+          "variant": "characteristic"
+        },
+        {
+          "label": "2K",
+          "variant": "resolution"
+        }
+      ],
+      "badges": [],
+      "addedAt": "2026-07-27",
+      "creditRange": null,
+      "estimatedTime": 90,
+      "params": [
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "kind": "text",
+          "required": true,
+          "category": null,
+          "default": null,
+          "minLength": null,
+          "maxLength": 800,
+          "placeholder": null
+        },
+        {
+          "key": "negativePrompt",
+          "label": "Negative Prompt",
+          "kind": "text",
+          "required": false,
+          "category": null,
+          "default": null,
+          "minLength": null,
+          "maxLength": null,
+          "placeholder": null
+        },
+        {
+          "key": "resolution",
+          "label": null,
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": "2048x2048",
+          "options": [
+            {
+              "id": "2048x2048"
+            },
+            {
+              "id": "2688x1536"
+            },
+            {
+              "id": "1536x2688"
+            },
+            {
+              "id": "2368x1728"
+            },
+            {
+              "id": "1728x2368"
+            }
+          ]
+        },
+        {
+          "key": "count",
+          "label": null,
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": 1,
+          "options": [
+            {
+              "id": 1
+            },
+            {
+              "id": 2
+            },
+            {
+              "id": 4
+            },
+            {
+              "id": 6
+            }
+          ]
+        },
+        {
+          "key": "enhancePrompt",
+          "label": null,
+          "kind": "boolean",
+          "required": false,
+          "category": null,
+          "default": true
+        },
+        {
+          "key": "imageUrls",
+          "label": "Source Images",
+          "kind": "file",
+          "required": false,
+          "category": "reference",
+          "default": null,
+          "accept": "image",
+          "array": {
+            "max": 3
+          },
+          "maxDurationSec": null,
+          "minPixels": null,
+          "maxShortSidePixels": null
+        },
+        {
+          "key": "promptExtendMode",
+          "label": null,
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": "direct",
+          "options": [
+            {
+              "id": "direct"
+            },
+            {
+              "id": "agent"
+            }
+          ]
         }
       ]
     },

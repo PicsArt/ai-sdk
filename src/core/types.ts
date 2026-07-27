@@ -159,6 +159,8 @@ export interface GenerationContext {
   substyle?: string;
   thinkingLevel?: 'minimal' | 'high';
   thinkingBudget?: number;
+  /** Qwen 3.0 — prompt-rewrite strategy (`direct`/`agent`), sent as `prompt_extend_mode`. */
+  promptExtendMode?: 'direct' | 'agent';
 }
 
 export type PayloadBuilder<TContext extends GenerationContext = GenerationContext> =

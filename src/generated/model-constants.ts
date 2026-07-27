@@ -285,6 +285,8 @@ export const Qwen = 'qwen' as const;
 export const QwenImage2 = 'qwen-image-2' as const;
 /** Qwen 2 Pro — qwen (image) */
 export const QwenImage2Pro = 'qwen-image-2-pro' as const;
+/** Qwen 3.0 — qwen (image) */
+export const QwenImage30 = 'qwen-image-3.0' as const;
 /** Qwen Edit Plus — qwen (image) */
 export const QwenImageEditPlus = 'qwen-image-edit-plus' as const;
 /** Recraft Creative Upscale — recraft (image) */
@@ -557,6 +559,7 @@ export const Models = {
   Qwen,
   QwenImage2,
   QwenImage2Pro,
+  QwenImage30,
   QwenImageEditPlus,
   RecraftCreativeUpscale,
   RecraftCrispUpscale,

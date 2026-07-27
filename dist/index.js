@@ -6345,6 +6345,8 @@ var buildQwenV1 = (model) => (ctx) => {
     size: (ctx.resolution ?? "2048x2048").replace("x", "*"),
     n: ctx.count ?? 1,
     prompt_extend: ctx.enhancePrompt ?? true,
+    // Qwen 3.0 only — prompt-rewrite strategy (direct/agent); 2.x ignores it.
+    ...ctx.promptExtendMode ? { prompt_extend_mode: ctx.promptExtendMode } : {},
     watermark: false,
     ...ctx.seed != null ? { seed: ctx.seed } : {}
   };
@@ -6356,6 +6358,10 @@ var qwenV1Params = {
   ...params.count([1, 2, 4, 6]),
   ...params.enhancePrompt(true),
   ...params.imageInput(3, "Source Images")
+};
+var qwenV1Params3 = {
+  ...qwenV1Params,
+  ...p.enum("promptExtendMode", ["direct", "agent"], "direct")
 };
 var { MODELS: MODELS28 } = defineModels("qwen", [
   {
@@ -6414,6 +6420,24 @@ var { MODELS: MODELS28 } = defineModels("qwen", [
       feat("2K", "resolution")
     ],
     paramConfig: qwenV1Params
+  },
+  {
+    id: "qwen-image-3.0",
+    name: "Qwen 3.0",
+    addedAt: "2026-07-27",
+    workflow: "qwen/v1/text-to-image",
+    editWorkflow: "qwen/v1/image-to-image",
+    buildPayload: buildQwenV1("qwen-image-3.0"),
+    estimatedTime: 90,
+    mode: "image",
+    inputType: "t2i",
+    description: "Qwen-Image 3.0 \u2014 highest-fidelity text-to-image and image editing with a selectable prompt-rewrite mode.",
+    features: [
+      feat("Image Input", "input"),
+      feat("Negative Prompt", "characteristic"),
+      feat("2K", "resolution")
+    ],
+    paramConfig: qwenV1Params3
   },
   {
     id: "qwen-image-edit-plus",
@@ -9920,6 +9944,7 @@ var PixverseV6Image = "pixverse-v6-image";
 var Qwen = "qwen";
 var QwenImage2 = "qwen-image-2";
 var QwenImage2Pro = "qwen-image-2-pro";
+var QwenImage30 = "qwen-image-3.0";
 var QwenImageEditPlus = "qwen-image-edit-plus";
 var RecraftCreativeUpscale = "recraft-creative-upscale";
 var RecraftCrispUpscale = "recraft-crisp-upscale";
@@ -10111,6 +10136,7 @@ var Models = {
   Qwen,
   QwenImage2,
   QwenImage2Pro,
+  QwenImage30,
   QwenImageEditPlus,
   RecraftCreativeUpscale,
   RecraftCrispUpscale,

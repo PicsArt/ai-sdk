@@ -1,6 +1,6 @@
 {
-  "sdkVersion": "3.22.0",
-  "total": 165,
+  "sdkVersion": "3.23.0",
+  "total": 166,
   "models": [
     {
       "id": "kling-v3",
@@ -11421,6 +11421,259 @@
           "maxDurationSec": null,
           "minPixels": null,
           "maxShortSidePixels": null
+        }
+      ]
+    },
+    {
+      "id": "flux-3-video",
+      "name": "Flux 3 Video",
+      "mode": "video",
+      "inputType": "t2v",
+      "release": "preview",
+      "provider": {
+        "id": "flux",
+        "name": "Flux",
+        "color": "#FF6B6B",
+        "label": "F"
+      },
+      "description": "Text-to-video with synchronized audio, plus image and video conditioning (continuation, references, first/last frame).",
+      "features": [
+        {
+          "label": "Image & Video Input",
+          "variant": "input"
+        },
+        {
+          "label": "Start/End Frame",
+          "variant": "frame"
+        },
+        {
+          "label": "Audio",
+          "variant": "audio"
+        },
+        {
+          "label": "Up to 20s",
+          "variant": "duration"
+        },
+        {
+          "label": "720p",
+          "variant": "resolution"
+        }
+      ],
+      "badges": [],
+      "addedAt": "2026-07-27",
+      "creditRange": null,
+      "estimatedTime": 120,
+      "params": [
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "kind": "text",
+          "required": true,
+          "category": null,
+          "default": null,
+          "minLength": null,
+          "maxLength": null,
+          "placeholder": null
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": "flux-3-preview-high",
+          "options": [
+            {
+              "id": "flux-3-preview-high",
+              "label": "High"
+            },
+            {
+              "id": "flux-3-preview-optimized",
+              "label": "Optimized"
+            }
+          ]
+        },
+        {
+          "key": "aspectRatio",
+          "label": null,
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": "auto",
+          "options": [
+            {
+              "id": "auto"
+            },
+            {
+              "id": "21:9"
+            },
+            {
+              "id": "16:9"
+            },
+            {
+              "id": "4:3"
+            },
+            {
+              "id": "1:1"
+            },
+            {
+              "id": "3:4"
+            },
+            {
+              "id": "9:16"
+            },
+            {
+              "id": "9:21"
+            }
+          ]
+        },
+        {
+          "key": "resolution",
+          "label": null,
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": "720p",
+          "options": [
+            {
+              "id": "480p"
+            },
+            {
+              "id": "720p"
+            }
+          ]
+        },
+        {
+          "key": "duration",
+          "label": "Duration",
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": "auto",
+          "options": [
+            {
+              "id": "auto"
+            },
+            {
+              "id": "5"
+            },
+            {
+              "id": "10"
+            },
+            {
+              "id": "15"
+            },
+            {
+              "id": "20"
+            }
+          ]
+        },
+        {
+          "key": "startFrame",
+          "label": "Start Frame",
+          "kind": "file",
+          "required": false,
+          "category": "asset",
+          "default": null,
+          "accept": "image",
+          "array": null,
+          "maxDurationSec": null,
+          "minPixels": null,
+          "maxShortSidePixels": null
+        },
+        {
+          "key": "endFrame",
+          "label": "End Frame",
+          "kind": "file",
+          "required": false,
+          "category": "asset",
+          "default": null,
+          "accept": "image",
+          "array": null,
+          "maxDurationSec": null,
+          "minPixels": null,
+          "maxShortSidePixels": null
+        },
+        {
+          "key": "imageUrls",
+          "label": "Reference Images",
+          "kind": "file",
+          "required": false,
+          "category": "reference",
+          "default": null,
+          "accept": "image",
+          "array": {
+            "max": 10
+          },
+          "maxDurationSec": null,
+          "minPixels": null,
+          "maxShortSidePixels": null
+        },
+        {
+          "key": "videoUrl",
+          "label": "Start Video",
+          "kind": "file",
+          "required": false,
+          "category": "asset",
+          "default": null,
+          "accept": "video",
+          "array": null,
+          "maxDurationSec": 15,
+          "minPixels": null,
+          "maxShortSidePixels": null
+        },
+        {
+          "key": "videoUrls",
+          "label": "Reference Video",
+          "kind": "file",
+          "required": false,
+          "category": "reference",
+          "default": null,
+          "accept": "video",
+          "array": {
+            "max": 1
+          },
+          "maxDurationSec": null,
+          "minPixels": null,
+          "maxShortSidePixels": null
+        },
+        {
+          "key": "generateAudio",
+          "label": null,
+          "kind": "boolean",
+          "required": false,
+          "category": null,
+          "default": true
+        },
+        {
+          "key": "grounding",
+          "label": "Grounding",
+          "kind": "boolean",
+          "required": false,
+          "category": null,
+          "default": true
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "kind": "range",
+          "required": false,
+          "category": null,
+          "default": 0,
+          "min": 0,
+          "max": 4294967295,
+          "step": null
+        },
+        {
+          "key": "version",
+          "label": "Version",
+          "kind": "text",
+          "required": false,
+          "category": null,
+          "default": null,
+          "minLength": null,
+          "maxLength": null,
+          "placeholder": "latest"
         }
       ]
     },

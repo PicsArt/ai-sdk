@@ -161,6 +161,22 @@ type ModelInputById = {
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         imageUrls?: string[];
     };
+    "flux-3-video": {
+        prompt: string;
+        model?: "flux-3-preview-high" | "flux-3-preview-optimized";
+        aspectRatio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "9:21";
+        resolution?: "480p" | "720p";
+        duration?: "auto" | "5" | "10" | "15" | "20";
+        startFrame?: string;
+        endFrame?: string;
+        imageUrls?: string[];
+        videoUrl?: string;
+        videoUrls?: string[];
+        generateAudio?: boolean;
+        grounding?: boolean;
+        seed?: number;
+        version?: string;
+    };
     "flux-kontext-max": {
         prompt: string;
         aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21";
@@ -2108,6 +2124,7 @@ declare const Models: {
     readonly Flux2Flex: "flux-2-flex";
     readonly Flux2Max: "flux-2-max";
     readonly Flux2Pro: "flux-2-pro";
+    readonly Flux3Video: "flux-3-video";
     readonly FluxKontextMax: "flux-kontext-max";
     readonly FluxKontextPro: "flux-kontext-pro";
     readonly Gemini25FlashImage: "gemini-2.5-flash-image";

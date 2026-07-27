@@ -5246,8 +5246,89 @@ var { MODELS: MODELS20 } = defineModels("flux", [
       ...params.count(),
       ...params.imageInput(1, "Source Image")
     }
+  },
+  {
+    // Single workflow `flux/v1/video` handles t2v plus every conditioning
+    // mode (i2v via start frame, morph via start/end frame, reference images,
+    // reference video, video continuation) through optional inputs — no
+    // editWorkflow needed. Payload assembly lives in flux.payloads.ts.
+    id: "flux-3-video",
+    name: "Flux 3 Video",
+    workflow: "flux/v1/video",
+    mode: "video",
+    inputType: "t2v",
+    release: "preview",
+    addedAt: "2026-07-27",
+    estimatedTime: 120,
+    description: "Text-to-video with synchronized audio, plus image and video conditioning (continuation, references, first/last frame).",
+    features: [
+      feat("Image & Video Input", "input"),
+      feat("Start/End Frame", "frame"),
+      feat("Audio", "audio"),
+      feat("Up to 20s", "duration"),
+      feat("720p", "resolution")
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      // Checkpoint: `high` (default, full conditioning + draft) vs `optimized`
+      // (faster, text-to-video only). Sent as the wire `model` field.
+      ...p.enum("model", [
+        { id: "flux-3-preview-high", label: "High" },
+        { id: "flux-3-preview-optimized", label: "Optimized" }
+      ], "flux-3-preview-high", { label: "Model" }),
+      ...params.aspectRatio(["auto", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16", "9:21"], "auto"),
+      ...params.resolution(["480p", "720p"], "720p"),
+      // 'auto' lets the model fit length; an explicit whole number is required
+      // for a two-image (start+end) morph.
+      ...p.enum("duration", ["auto", "5", "10", "15", "20"], "auto", { label: "Duration" }),
+      // startFrame → keyframe @0 (i2v); endFrame → keyframe @duration×24 (morph).
+      ...params.startFrame("Start Frame"),
+      ...params.endFrame("End Frame"),
+      // referenceImages (ir2v): who/what appears, never shown on screen.
+      ...params.imageInput(10, "Reference Images", false, "reference"),
+      // startVideo (f2v): continue from a clip's final frames.
+      ...params.videoInput("Start Video", "asset", false, 15),
+      // referenceVideo (vr2v): carry subjects into a brand-new clip.
+      ...params.videoInputs(1, "Reference Video", false),
+      ...params.generateAudio(true),
+      ...p.boolean("grounding", true, "Grounding"),
+      ...p.range("seed", 0, 4294967295, 0, { label: "Seed" }),
+      ...p.text("version", { label: "Version", placeholder: "latest" })
+    }
   }
 ]);
+
+// src/vendors/catalog/flux.payloads.ts
+var buildFlux3VideoPayload = (input) => {
+  const duration = input.duration && input.duration !== "auto" ? Number(input.duration) : "auto";
+  const keyframes = [];
+  if (input.startFrame) keyframes.push({ imageUrl: input.startFrame, frameIndex: 0 });
+  if (input.endFrame && typeof duration === "number") {
+    keyframes.push({ imageUrl: input.endFrame, frameIndex: duration * 24 });
+  }
+  return {
+    prompt: input.prompt,
+    model: input.model ?? "flux-3-preview-high",
+    aspectRatio: input.aspectRatio ?? "auto",
+    resolution: input.resolution ?? "720p",
+    duration,
+    generateAudio: input.generateAudio ?? true,
+    grounding: input.grounding ?? true,
+    ...keyframes.length ? { keyframes } : {},
+    // referenceImages (ir2v) — reference images that define who/what appears.
+    ...input.imageUrls?.length ? { referenceImages: input.imageUrls } : {},
+    // startVideo (f2v) — continue from a clip's final frames.
+    ...input.videoUrl ? { startVideo: input.videoUrl } : {},
+    // referenceVideo (vr2v) — carry a clip's subjects into a brand-new video.
+    ...input.videoUrls?.length ? { referenceVideo: input.videoUrls[0] } : {},
+    // seed omitted when unset → vendor randomizes.
+    ...input.seed != null ? { seed: input.seed } : {},
+    ...input.version ? { version: input.version } : {}
+  };
+};
+registerPayloads(MODELS20, {
+  "flux-3-video": buildFlux3VideoPayload
+});
 
 // src/vendors/catalog/gemini.ts
 function buildThinkingConfig(ctx) {
@@ -9839,6 +9920,7 @@ var ElevenlabsSfx = "elevenlabs-sfx";
 var Flux2Flex = "flux-2-flex";
 var Flux2Max = "flux-2-max";
 var Flux2Pro = "flux-2-pro";
+var Flux3Video = "flux-3-video";
 var FluxKontextMax = "flux-kontext-max";
 var FluxKontextPro = "flux-kontext-pro";
 var Gemini25FlashImage = "gemini-2.5-flash-image";
@@ -10031,6 +10113,7 @@ var Models = {
   Flux2Flex,
   Flux2Max,
   Flux2Pro,
+  Flux3Video,
   FluxKontextMax,
   FluxKontextPro,
   Gemini25FlashImage,

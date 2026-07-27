@@ -23,6 +23,7 @@ import { MODELS as pikaMODELS } from './pika.ts';
 import { MODELS as veoMODELS } from './veo.ts';
 import { MODELS as runwayMODELS } from './runway.ts';
 import { MODELS as fluxMODELS } from './flux.ts';
+import './flux.payloads.ts'; // registers flux-3-video payload builder after model definitions
 import { MODELS as geminiMODELS } from './gemini.ts';
 import { MODELS as openaiMODELS } from './openai.ts';
 import { MODELS as elevenlabsMODELS } from './elevenlabs.ts';

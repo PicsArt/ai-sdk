@@ -3,6 +3,7 @@
  */
 import type { PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
+import { p } from '../../core/descriptors/presets.ts';
 import { resolveImageSize } from '../../core/helpers.ts';
 
 // ── Aspect-ratio → pixel-size map ────────────────────────────────────
@@ -171,6 +172,53 @@ export const { MODELS } = defineModels('flux', [
       ...params.aspectRatio(['1:1', '16:9', '9:16', '4:3', '3:4', '21:9', '9:21'], '1:1'),
       ...params.count(),
       ...params.imageInput(1, 'Source Image'),
+    },
+  },
+  {
+    // Single workflow `flux/v1/video` handles t2v plus every conditioning
+    // mode (i2v via start frame, morph via start/end frame, reference images,
+    // reference video, video continuation) through optional inputs — no
+    // editWorkflow needed. Payload assembly lives in flux.payloads.ts.
+    id: 'flux-3-video', name: 'Flux 3 Video',
+    workflow: 'flux/v1/video',
+    mode: 'video', inputType: 't2v',
+    release: 'preview',
+    addedAt: '2026-07-27',
+    estimatedTime: 120,
+    description: 'Text-to-video with synchronized audio, plus image and video conditioning (continuation, references, first/last frame).',
+    features: [
+      feat('Image & Video Input', 'input'),
+      feat('Start/End Frame', 'frame'),
+      feat('Audio', 'audio'),
+      feat('Up to 20s', 'duration'),
+      feat('720p', 'resolution'),
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      // Checkpoint: `high` (default, full conditioning + draft) vs `optimized`
+      // (faster, text-to-video only). Sent as the wire `model` field.
+      ...p.enum('model', [
+        { id: 'flux-3-preview-high', label: 'High' },
+        { id: 'flux-3-preview-optimized', label: 'Optimized' },
+      ], 'flux-3-preview-high', { label: 'Model' }),
+      ...params.aspectRatio(['auto', '21:9', '16:9', '4:3', '1:1', '3:4', '9:16', '9:21'], 'auto'),
+      ...params.resolution(['480p', '720p'], '720p'),
+      // 'auto' lets the model fit length; an explicit whole number is required
+      // for a two-image (start+end) morph.
+      ...p.enum('duration', ['auto', '5', '10', '15', '20'], 'auto', { label: 'Duration' }),
+      // startFrame → keyframe @0 (i2v); endFrame → keyframe @duration×24 (morph).
+      ...params.startFrame('Start Frame'),
+      ...params.endFrame('End Frame'),
+      // referenceImages (ir2v): who/what appears, never shown on screen.
+      ...params.imageInput(10, 'Reference Images', false, 'reference'),
+      // startVideo (f2v): continue from a clip's final frames.
+      ...params.videoInput('Start Video', 'asset', false, 15),
+      // referenceVideo (vr2v): carry subjects into a brand-new clip.
+      ...params.videoInputs(1, 'Reference Video', false),
+      ...params.generateAudio(true),
+      ...p.boolean('grounding', true, 'Grounding'),
+      ...p.range('seed', 0, 4294967295, 0, { label: 'Seed' }),
+      ...p.text('version', { label: 'Version', placeholder: 'latest' }),
     },
   },
 ]);

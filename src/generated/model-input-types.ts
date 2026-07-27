@@ -27,6 +27,7 @@ export type ModelInputById = {
   "flux-2-flex": { prompt: string; aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-2-max": { prompt: string; aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-2-pro": { prompt: string; aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
+  "flux-3-video": { prompt: string; model?: "flux-3-preview-high" | "flux-3-preview-optimized"; aspectRatio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "9:21"; resolution?: "480p" | "720p"; duration?: "auto" | "5" | "10" | "15" | "20"; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrl?: string; videoUrls?: string[]; generateAudio?: boolean; grounding?: boolean; seed?: number; version?: string; };
   "flux-kontext-max": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-kontext-pro": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "gemini-2.5-flash-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };

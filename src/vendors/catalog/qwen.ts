@@ -127,6 +127,7 @@ export const { MODELS } = defineModels('qwen', [
   {
     id: 'qwen-image-3.0', name: 'Qwen 3.0',
     addedAt: '2026-07-27',
+    release: 'preview',
     workflow: 'qwen/v1/text-to-image',
     editWorkflow: 'qwen/v1/image-to-image',
     buildPayload: buildQwenV1('qwen-image-3.0'),

@@ -1,5 +1,5 @@
 {
-  "sdkVersion": "3.21.0",
+  "sdkVersion": "3.22.0",
   "total": 165,
   "models": [
     {
@@ -15179,7 +15179,7 @@
       "name": "Qwen 3.0",
       "mode": "image",
       "inputType": "t2i",
-      "release": "production",
+      "release": "preview",
       "provider": {
         "id": "qwen",
         "name": "Qwen",

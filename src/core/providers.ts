@@ -20,6 +20,7 @@ export const providers: Record<Provider, ProviderMeta> = {
   seedance: { color: '#EC4899', label: 'SD', name: 'Seedance' },
   ltx: { color: '#6366F1', label: 'LT', name: 'LTX' },
   seedream: { color: '#14B8A6', label: 'SR', name: 'Seedream' },
+  seedaudio: { color: '#7C3AED', label: 'SA', name: 'Seed Audio' },
   hunyuan: { color: '#F59E0B', label: 'HY', name: 'Hunyuan' },
   pika: { color: '#FF6B9D', label: 'PK', name: 'Pika' },
   runway: { color: '#00D4AA', label: 'RW', name: 'Runway' },

@@ -12,6 +12,7 @@ type AppProvider =
   | 'seedance'
   | 'ltx'
   | 'seedream'
+  | 'seedaudio'
   | 'hunyuan'
   | 'pika'
   | 'runway'

@@ -1,6 +1,6 @@
 {
-  "sdkVersion": "3.23.0",
-  "total": 166,
+  "sdkVersion": "3.24.0",
+  "total": 167,
   "models": [
     {
       "id": "kling-v3",
@@ -8679,6 +8679,918 @@
           "minLength": null,
           "maxLength": null,
           "placeholder": null
+        }
+      ]
+    },
+    {
+      "id": "seed-audio-1.0",
+      "name": "Seed Audio",
+      "mode": "audio",
+      "inputType": "tts",
+      "release": "production",
+      "provider": {
+        "id": "seedaudio",
+        "name": "Seed Audio",
+        "color": "#7C3AED",
+        "label": "SA"
+      },
+      "description": "Synthesize natural speech from text — pick a named voice or clone one from a reference audio.",
+      "features": [
+        {
+          "label": "Voice Cloning",
+          "variant": "characteristic"
+        },
+        {
+          "label": "Reference Audio",
+          "variant": "audio"
+        }
+      ],
+      "badges": [],
+      "addedAt": "2026-07-27",
+      "creditRange": null,
+      "estimatedTime": 15,
+      "params": [
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "kind": "text",
+          "required": true,
+          "category": null,
+          "default": null,
+          "minLength": null,
+          "maxLength": 3000,
+          "placeholder": null
+        },
+        {
+          "key": "voiceId",
+          "label": "Voice",
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": "en_male_tim_uranus_bigtts",
+          "options": [
+            {
+              "id": "zh_female_vv_uranus_bigtts",
+              "label": "Vivi"
+            },
+            {
+              "id": "zh_female_xiaohe_uranus_bigtts",
+              "label": "Mindy"
+            },
+            {
+              "id": "en_female_stokie_uranus_bigtts",
+              "label": "Stokie"
+            },
+            {
+              "id": "en_female_dacey_uranus_bigtts",
+              "label": "Dacey"
+            },
+            {
+              "id": "en_male_tim_uranus_bigtts",
+              "label": "Tim"
+            },
+            {
+              "id": "zh_male_m191_uranus_bigtts",
+              "label": "Kian"
+            },
+            {
+              "id": "zh_male_taocheng_uranus_bigtts",
+              "label": "Cedric"
+            },
+            {
+              "id": "zh_male_sophie_uranus_bigtts",
+              "label": "Sophie"
+            },
+            {
+              "id": "zh_female_yingyujiaoxue_uranus_bigtts",
+              "label": "Jean"
+            },
+            {
+              "id": "zh_male_dayi_uranus_bigtts",
+              "label": "Magnus"
+            },
+            {
+              "id": "zh_female_mizai_uranus_bigtts",
+              "label": "Mabel"
+            },
+            {
+              "id": "zh_female_jitangnv_uranus_bigtts",
+              "label": "Nadia"
+            },
+            {
+              "id": "zh_female_meilinvyou_uranus_bigtts",
+              "label": "Opal"
+            },
+            {
+              "id": "zh_female_liuchangnv_uranus_bigtts",
+              "label": "Pearl"
+            },
+            {
+              "id": "zh_male_ruyayichen_uranus_bigtts",
+              "label": "Quentin"
+            },
+            {
+              "id": "zh_female_cancan_uranus_bigtts",
+              "label": "Corinne"
+            },
+            {
+              "id": "zh_female_tianmeixiaoyuan_uranus_bigtts",
+              "label": "Esther"
+            },
+            {
+              "id": "zh_female_tianmeitaozi_uranus_bigtts",
+              "label": "Freya"
+            },
+            {
+              "id": "zh_female_shuangkuaisisi_uranus_bigtts",
+              "label": "Gigi"
+            },
+            {
+              "id": "zh_female_peiqi_uranus_bigtts",
+              "label": "Holly"
+            },
+            {
+              "id": "zh_female_xiaoxue_uranus_bigtts",
+              "label": "Lyla"
+            },
+            {
+              "id": "zh_female_yuanqi_uranus_bigtts",
+              "label": "Daisy"
+            },
+            {
+              "id": "zh_female_kefunvsheng_uranus_bigtts",
+              "label": "Tracy"
+            },
+            {
+              "id": "zh_male_shaonianzixin_uranus_bigtts",
+              "label": "Jess"
+            },
+            {
+              "id": "zh_female_linjianvhai_uranus_bigtts",
+              "label": "Pinky"
+            },
+            {
+              "id": "zh_female_kiwi_uranus_bigtts",
+              "label": "Sweety"
+            },
+            {
+              "id": "zh_female_sajiaoxuemei_uranus_bigtts",
+              "label": "Sandy"
+            },
+            {
+              "id": "de_male_seven_uranus_bigtts",
+              "label": "Sven"
+            },
+            {
+              "id": "jp_female_minimi_uranus_bigtts",
+              "label": "Minimi"
+            },
+            {
+              "id": "fr_male_usseau_uranus_bigtts",
+              "label": "Usseau"
+            },
+            {
+              "id": "es_male_felipe_uranus_bigtts",
+              "label": "Felipe"
+            },
+            {
+              "id": "id_male_han_uranus_bigtts",
+              "label": "Han"
+            },
+            {
+              "id": "pt_male_martins_uranus_bigtts",
+              "label": "Martins"
+            },
+            {
+              "id": "it_male_enzo_uranus_bigtts",
+              "label": "Enzo"
+            },
+            {
+              "id": "kr_male_shane_uranus_bigtts",
+              "label": "Jihoon"
+            },
+            {
+              "id": "zh_male_liufei_uranus_bigtts",
+              "label": "Felix"
+            },
+            {
+              "id": "zh_female_qingxinnvsheng_uranus_bigtts",
+              "label": "Celeste"
+            },
+            {
+              "id": "zh_male_sunwukong_uranus_bigtts",
+              "label": "Monkey King"
+            },
+            {
+              "id": "en_male_adam-imitation_uranus_bigtts",
+              "label": "Rowan"
+            },
+            {
+              "id": "en_male_alberto_uranus_bigtts",
+              "label": "Alberto"
+            },
+            {
+              "id": "en_male_alex_uranus_bigtts",
+              "label": "Alex"
+            },
+            {
+              "id": "en_female_allison_uranus_bigtts",
+              "label": "Allison"
+            },
+            {
+              "id": "en_female_authoritative-british_uranus_bigtts",
+              "label": "Charlotte"
+            },
+            {
+              "id": "en_female_authoritative-informative_uranus_bigtts",
+              "label": "Margaret"
+            },
+            {
+              "id": "en_male_bill-jones_uranus_bigtts",
+              "label": "Jones"
+            },
+            {
+              "id": "en_male_bill_jones_corey_uranus_bigtts",
+              "label": "Bill"
+            },
+            {
+              "id": "en_male_brad_pitt_p1_uranus_bigtts",
+              "label": "Brad Pitt"
+            },
+            {
+              "id": "en_female_brittney_uranus_bigtts",
+              "label": "Brittney"
+            },
+            {
+              "id": "en_female_brittney_pimintel_uranus_bigtts",
+              "label": "Zoe"
+            },
+            {
+              "id": "en_male_bruce_uranus_bigtts",
+              "label": "Adrian"
+            },
+            {
+              "id": "en_male_chandler_p1_uranus_bigtts",
+              "label": "Leo"
+            },
+            {
+              "id": "en_male_cowboy-bob_uranus_bigtts",
+              "label": "Bob"
+            },
+            {
+              "id": "en_male_cowboy_john_b_uranus_bigtts",
+              "label": "John"
+            },
+            {
+              "id": "en_male_david_uranus_bigtts",
+              "label": "David"
+            },
+            {
+              "id": "en_male_deep-voice_uranus_bigtts",
+              "label": "Orion"
+            },
+            {
+              "id": "en_male_diyuwenrounan_uranus_bigtts",
+              "label": "Julian"
+            },
+            {
+              "id": "en_male_evil-guy-oxley_uranus_bigtts",
+              "label": "Harrison"
+            },
+            {
+              "id": "en_male_excited-male-voice_uranus_bigtts",
+              "label": "Jasper"
+            },
+            {
+              "id": "en_male_father-christmas_uranus_bigtts",
+              "label": "Alfred"
+            },
+            {
+              "id": "en_female_female_tutor_ms-jenny_uranus_bigtts",
+              "label": "Holly"
+            },
+            {
+              "id": "en_male_fernando-martinez_uranus_bigtts",
+              "label": "Felix"
+            },
+            {
+              "id": "en_male_godfather_uranus_bigtts",
+              "label": "Godfather"
+            },
+            {
+              "id": "en_male_gollum_uranus_bigtts",
+              "label": "Gollum"
+            },
+            {
+              "id": "en_male_hades_uranus_bigtts",
+              "label": "Beau"
+            },
+            {
+              "id": "en_female_hayley_uranus_bigtts",
+              "label": "Hayley"
+            },
+            {
+              "id": "en_male_jamie_uranus_bigtts",
+              "label": "Jamie"
+            },
+            {
+              "id": "en_female_jane_uranus_bigtts",
+              "label": "Jane"
+            },
+            {
+              "id": "en_female_jenny_uranus_bigtts",
+              "label": "Jenny"
+            },
+            {
+              "id": "en_male_jidongchuanjiaoshi_uranus_bigtts",
+              "label": "Blaze"
+            },
+            {
+              "id": "en_male_jimmy_uranus_bigtts",
+              "label": "Jimmy"
+            },
+            {
+              "id": "en_female_joanne_uranus_bigtts",
+              "label": "Joanne"
+            },
+            {
+              "id": "en_male_joker_uranus_bigtts",
+              "label": "Joker"
+            },
+            {
+              "id": "en_male_josh_uranus_bigtts",
+              "label": "Josh"
+            },
+            {
+              "id": "en_male_josh_coery_uranus_bigtts",
+              "label": "Josiah"
+            },
+            {
+              "id": "en_male_kevin_uranus_bigtts",
+              "label": "Kevin"
+            },
+            {
+              "id": "en_male_knightley_uranus_bigtts",
+              "label": "Knightley"
+            },
+            {
+              "id": "en_female_lana_del_rey_kelley_d_p1_uranus_bigtts",
+              "label": "Lynn"
+            },
+            {
+              "id": "en_female_lana_del_rey_parky_s_p1_uranus_bigtts",
+              "label": "Ivy"
+            },
+            {
+              "id": "en_male_marcus_uranus_bigtts",
+              "label": "Marcus"
+            },
+            {
+              "id": "en_female_mel_uranus_bigtts",
+              "label": "Mel"
+            },
+            {
+              "id": "en_male_michael_uranus_bigtts",
+              "label": "Hank"
+            },
+            {
+              "id": "en_male_michael-mouse_uranus_bigtts",
+              "label": "Chip"
+            },
+            {
+              "id": "en_male_michael_kevin_uranus_bigtts",
+              "label": "Michael Kevin"
+            },
+            {
+              "id": "en_male_motivational-coach_uranus_bigtts",
+              "label": "Rory"
+            },
+            {
+              "id": "en_female_myra_uranus_bigtts",
+              "label": "Myra"
+            },
+            {
+              "id": "en_female_myra_cmb_uranus_bigtts",
+              "label": "Sunny"
+            },
+            {
+              "id": "en_female_nadia_uranus_bigtts",
+              "label": "Blair"
+            },
+            {
+              "id": "en_female_natasha_uranus_bigtts",
+              "label": "Natasha"
+            },
+            {
+              "id": "en_female_pleasant-female_uranus_bigtts",
+              "label": "Elaine"
+            },
+            {
+              "id": "en_female_rachel_p1_uranus_bigtts",
+              "label": "Rachel"
+            },
+            {
+              "id": "en_male_ronald_uranus_bigtts",
+              "label": "Ronald"
+            },
+            {
+              "id": "en_male_russell_uranus_bigtts",
+              "label": "Russell"
+            },
+            {
+              "id": "en_female_scarlet_p1_uranus_bigtts",
+              "label": "Scarlet"
+            },
+            {
+              "id": "en_female_sharron_uranus_bigtts",
+              "label": "Sharron"
+            },
+            {
+              "id": "en_male_simba_p1_uranus_bigtts",
+              "label": "Simba"
+            },
+            {
+              "id": "en_female_skye_uranus_bigtts",
+              "label": "Skye"
+            },
+            {
+              "id": "en_male_tom_hiddleston_p1_uranus_bigtts",
+              "label": "Tom"
+            },
+            {
+              "id": "en_male_valentino_uranus_bigtts",
+              "label": "Valentino"
+            },
+            {
+              "id": "en_male_valentino_corey_uranus_bigtts",
+              "label": "Clark"
+            },
+            {
+              "id": "en_female_wenrouzhishijieshuonv_uranus_bigtts",
+              "label": "Megan"
+            },
+            {
+              "id": "en_female_xinwenjieshuonv_uranus_bigtts",
+              "label": "Kayla"
+            },
+            {
+              "id": "en_male_yangguangjieshuonan_uranus_bigtts",
+              "label": "Dylan"
+            },
+            {
+              "id": "en_female_zendaya_p1_uranus_bigtts",
+              "label": "Zendaya"
+            },
+            {
+              "id": "ja_female_bv024_uranus_bigtts",
+              "label": "Bonnie"
+            },
+            {
+              "id": "ja_female_bv520_uranus_bigtts",
+              "label": "Poppy"
+            },
+            {
+              "id": "ja_female_bv521_uranus_bigtts",
+              "label": "Aoi"
+            },
+            {
+              "id": "ja_female_bv522_uranus_bigtts",
+              "label": "Hana"
+            },
+            {
+              "id": "ja_female_bv523_uranus_bigtts",
+              "label": "Lily"
+            },
+            {
+              "id": "ja_male_bv524_uranus_bigtts",
+              "label": "Ken"
+            },
+            {
+              "id": "ja_female_minimi_uranus_bigtts",
+              "label": "Minimi"
+            },
+            {
+              "id": "ja_female_shirou_uranus_bigtts",
+              "label": "Shirou"
+            },
+            {
+              "id": "de_female_bv081_uranus_bigtts",
+              "label": "Stella"
+            },
+            {
+              "id": "de_male_sven_uranus_bigtts",
+              "label": "Sven"
+            },
+            {
+              "id": "es_female_bv084_uranus_bigtts",
+              "label": "Gracie"
+            },
+            {
+              "id": "es_male_dani_uranus_bigtts",
+              "label": "Dani"
+            },
+            {
+              "id": "es_male_guillem_uranus_bigtts",
+              "label": "Guillem"
+            },
+            {
+              "id": "es_female_ht_mx_f6_uranus_bigtts",
+              "label": "Marisol"
+            },
+            {
+              "id": "mx_female_bv065_uranus_bigtts",
+              "label": "Irene"
+            },
+            {
+              "id": "mx_male_bv165dialogue_uranus_bigtts",
+              "label": "Diego"
+            },
+            {
+              "id": "mx_male_bv165narrator_uranus_bigtts",
+              "label": "Marcos"
+            },
+            {
+              "id": "mx_female_bv166dialogue_uranus_bigtts",
+              "label": "Lucy"
+            },
+            {
+              "id": "mx_female_bv166emotion_uranus_bigtts",
+              "label": "Rosa"
+            },
+            {
+              "id": "mx_female_bv166narrator_uranus_bigtts",
+              "label": "Freya"
+            },
+            {
+              "id": "mx_male_felipe_uranus_bigtts",
+              "label": "Felipe"
+            },
+            {
+              "id": "mx_male_ht_mx_m012_uranus_bigtts",
+              "label": "Derek"
+            },
+            {
+              "id": "mx_female_leslie_uranus_bigtts",
+              "label": "Leslie"
+            },
+            {
+              "id": "mx_male_marcelo_uranus_bigtts",
+              "label": "Marcelo"
+            },
+            {
+              "id": "fr_female_fr_bv078_uranus_bigtts",
+              "label": "Simone"
+            },
+            {
+              "id": "fr_female_fr_f47_uranus_bigtts",
+              "label": "Camille"
+            },
+            {
+              "id": "fr_male_fr_m29_uranus_bigtts",
+              "label": "Maurice"
+            },
+            {
+              "id": "id_male_bv160_uranus_bigtts",
+              "label": "Rocco"
+            },
+            {
+              "id": "id_male_bv160dialogue_uranus_bigtts",
+              "label": "Jude"
+            },
+            {
+              "id": "id_male_bv160narration_uranus_bigtts",
+              "label": "Hugo"
+            },
+            {
+              "id": "id_female_bv161_uranus_bigtts",
+              "label": "Clara"
+            },
+            {
+              "id": "id_female_bv161dialogue_uranus_bigtts",
+              "label": "Sylvia"
+            },
+            {
+              "id": "id_female_bv161narration_uranus_bigtts",
+              "label": "Celeste"
+            },
+            {
+              "id": "id_female_bv164_uranus_bigtts",
+              "label": "Crew"
+            },
+            {
+              "id": "id_male_bv164dialogue_uranus_bigtts",
+              "label": "Elian"
+            },
+            {
+              "id": "id_male_bv164narration_uranus_bigtts",
+              "label": "Ronan"
+            },
+            {
+              "id": "id_female_f20_uranus_bigtts",
+              "label": "Chloe"
+            },
+            {
+              "id": "id_male_m08_uranus_bigtts",
+              "label": "Kyle"
+            },
+            {
+              "id": "id_female_phulia_uranus_bigtts",
+              "label": "Phulia"
+            },
+            {
+              "id": "pt_male_bv172_uranus_bigtts",
+              "label": "Sam"
+            },
+            {
+              "id": "pt_male_bv172dialogue_uranus_bigtts",
+              "label": "Walter"
+            },
+            {
+              "id": "pt_male_bv172emotion_uranus_bigtts",
+              "label": "Vincent"
+            },
+            {
+              "id": "pt_male_bv172narrator_uranus_bigtts",
+              "label": "Miles"
+            },
+            {
+              "id": "pt_female_bv173_uranus_bigtts",
+              "label": "Diana"
+            },
+            {
+              "id": "pt_female_bv173dialogue_uranus_bigtts",
+              "label": "Elena"
+            },
+            {
+              "id": "pt_female_bv173emotion_uranus_bigtts",
+              "label": "Lola"
+            },
+            {
+              "id": "pt_female_bv173narrator_uranus_bigtts",
+              "label": "Emma"
+            },
+            {
+              "id": "pt_female_bv530_uranus_bigtts",
+              "label": "Sofia"
+            },
+            {
+              "id": "pt_male_bv531_uranus_bigtts",
+              "label": "Arthur"
+            },
+            {
+              "id": "pt_female_mari_uranus_bigtts",
+              "label": "Mari"
+            },
+            {
+              "id": "pt_male_rael_uranus_bigtts",
+              "label": "Rael"
+            },
+            {
+              "id": "ar_female_dina_uranus_bigtts",
+              "label": "Dina"
+            },
+            {
+              "id": "ar_female_fatma_uranus_bigtts",
+              "label": "Fatma"
+            },
+            {
+              "id": "ar_male_youssef_uranus_bigtts",
+              "label": "Youssef"
+            },
+            {
+              "id": "tl_female_annika_uranus_bigtts",
+              "label": "Annika"
+            },
+            {
+              "id": "tl_male_ed_uranus_bigtts",
+              "label": "Ed"
+            },
+            {
+              "id": "tl_female_hervie_uranus_bigtts",
+              "label": "Hervie"
+            },
+            {
+              "id": "ko_male_bv545_uranus_bigtts",
+              "label": "Jay"
+            },
+            {
+              "id": "ko_female_bv546_uranus_bigtts",
+              "label": "Momo"
+            },
+            {
+              "id": "ko_male_m03_uranus_bigtts",
+              "label": "Minho"
+            },
+            {
+              "id": "ko_male_shane_uranus_bigtts",
+              "label": "Shane"
+            },
+            {
+              "id": "ms_male_ham_uranus_bigtts",
+              "label": "Ham"
+            },
+            {
+              "id": "ms_male_naim_uranus_bigtts",
+              "label": "Naim"
+            },
+            {
+              "id": "ru_female_af07_uranus_bigtts",
+              "label": "Amelia"
+            },
+            {
+              "id": "ru_female_irinae_uranus_bigtts",
+              "label": "Irinae"
+            },
+            {
+              "id": "ru_male_pavel_uranus_bigtts",
+              "label": "Pavel"
+            },
+            {
+              "id": "ru_female_sophie_uranus_bigtts",
+              "label": "Ksenia"
+            },
+            {
+              "id": "ru_male_vlad_uranus_bigtts",
+              "label": "Silas"
+            },
+            {
+              "id": "th_female_bv568_angry_uranus_bigtts",
+              "label": "Valeria"
+            },
+            {
+              "id": "th_female_bv568_fear_uranus_bigtts",
+              "label": "Iris"
+            },
+            {
+              "id": "th_female_bv568_happy_uranus_bigtts",
+              "label": "Zara"
+            },
+            {
+              "id": "th_female_bv568_hate_uranus_bigtts",
+              "label": "Valentina"
+            },
+            {
+              "id": "th_female_bv568_neutral_uranus_bigtts",
+              "label": "Mildred"
+            },
+            {
+              "id": "th_female_bv568_sad_uranus_bigtts",
+              "label": "Lydia"
+            },
+            {
+              "id": "th_female_bv568_suprise_uranus_bigtts",
+              "label": "Phoebe"
+            },
+            {
+              "id": "vi_female_hong_uranus_bigtts",
+              "label": "Hong"
+            },
+            {
+              "id": "vi_female_ling_uranus_bigtts",
+              "label": "Ling"
+            },
+            {
+              "id": "vi_female_linh_uranus_bigtts",
+              "label": "Linh"
+            },
+            {
+              "id": "vi_female_partner_uranus_bigtts",
+              "label": "Partner"
+            },
+            {
+              "id": "vi_female_ruan_uranus_bigtts",
+              "label": "Ruan"
+            },
+            {
+              "id": "vi_female_wu_uranus_bigtts",
+              "label": "Wu"
+            },
+            {
+              "id": "vi_male_wumg_uranus_bigtts",
+              "label": "Wumg"
+            }
+          ]
+        },
+        {
+          "key": "audioUrls",
+          "label": "Reference Audios",
+          "kind": "file",
+          "required": false,
+          "category": "reference",
+          "default": null,
+          "accept": "audio",
+          "array": {
+            "max": 3
+          },
+          "maxDurationSec": null,
+          "minPixels": null,
+          "maxShortSidePixels": null
+        },
+        {
+          "key": "imageUrls",
+          "label": "Reference Image",
+          "kind": "file",
+          "required": false,
+          "category": "reference",
+          "default": null,
+          "accept": "image",
+          "array": {
+            "max": 1
+          },
+          "maxDurationSec": null,
+          "minPixels": null,
+          "maxShortSidePixels": null
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": "wav",
+          "options": [
+            {
+              "id": "wav"
+            },
+            {
+              "id": "mp3"
+            },
+            {
+              "id": "pcm"
+            },
+            {
+              "id": "ogg_opus"
+            }
+          ]
+        },
+        {
+          "key": "sampleRate",
+          "label": "Sample Rate",
+          "kind": "enum",
+          "required": false,
+          "category": null,
+          "default": 44100,
+          "options": [
+            {
+              "id": 8000
+            },
+            {
+              "id": 16000
+            },
+            {
+              "id": 24000
+            },
+            {
+              "id": 32000
+            },
+            {
+              "id": 44100
+            },
+            {
+              "id": 48000
+            }
+          ]
+        },
+        {
+          "key": "speechRate",
+          "label": "Speech Rate",
+          "kind": "range",
+          "required": false,
+          "category": null,
+          "default": 0,
+          "min": -50,
+          "max": 100,
+          "step": null
+        },
+        {
+          "key": "loudnessRate",
+          "label": "Loudness",
+          "kind": "range",
+          "required": false,
+          "category": null,
+          "default": 0,
+          "min": -50,
+          "max": 100,
+          "step": null
+        },
+        {
+          "key": "pitchRate",
+          "label": "Pitch",
+          "kind": "range",
+          "required": false,
+          "category": null,
+          "default": 0,
+          "min": -12,
+          "max": 12,
+          "step": null
+        },
+        {
+          "key": "aigcWatermark",
+          "label": "Watermark",
+          "kind": "boolean",
+          "required": false,
+          "category": null,
+          "default": false
         }
       ]
     },

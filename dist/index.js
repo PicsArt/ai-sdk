@@ -662,6 +662,7 @@ var providers = {
   seedance: { color: "#EC4899", label: "SD", name: "Seedance" },
   ltx: { color: "#6366F1", label: "LT", name: "LTX" },
   seedream: { color: "#14B8A6", label: "SR", name: "Seedream" },
+  seedaudio: { color: "#7C3AED", label: "SA", name: "Seed Audio" },
   hunyuan: { color: "#F59E0B", label: "HY", name: "Hunyuan" },
   pika: { color: "#FF6B9D", label: "PK", name: "Pika" },
   runway: { color: "#00D4AA", label: "RW", name: "Runway" },
@@ -1006,7 +1007,7 @@ var passthroughPayload = (paramConfig) => (ctx) => {
   return payload;
 };
 function defineModels(provider, configs) {
-  const MODELS37 = [];
+  const MODELS38 = [];
   for (const c of configs) {
     const prov = c.provider ?? provider;
     const resolvedPayload = c.buildPayload ?? passthroughPayload(c.paramConfig);
@@ -1041,19 +1042,19 @@ function defineModels(provider, configs) {
     if (c.constraints !== void 0) model.constraints = c.constraints;
     const contract = createModelContract(model);
     model.outputSchema = c.outputSchema ?? contract.output;
-    MODELS37.push(model);
+    MODELS38.push(model);
   }
-  return { MODELS: MODELS37 };
+  return { MODELS: MODELS38 };
 }
-function registerPayloads(MODELS37, payloads) {
+function registerPayloads(MODELS38, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS37.find((m) => m.id === id);
+    const model = MODELS38.find((m) => m.id === id);
     if (model) model.buildPayload = builder;
   }
 }
-function registerEditPayloads(MODELS37, payloads) {
+function registerEditPayloads(MODELS38, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS37.find((m) => m.id === id);
+    const model = MODELS38.find((m) => m.id === id);
     if (model) model.buildEditPayload = builder;
   }
 }
@@ -4078,39 +4079,6 @@ var { MODELS: MODELS14 } = defineModels("seedream", [
   }
 ]);
 
-// src/vendors/catalog/reve.ts
-var REVE_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "3:2", "2:3"];
-var buildRevePayload = (ctx) => {
-  const hasImages = ctx.imageUrls && ctx.imageUrls.length > 0;
-  return {
-    prompt: ctx.prompt,
-    num_images: ctx.count ?? 1,
-    ...ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {},
-    ...hasImages ? { image_url: ctx.imageUrls[0] } : {}
-  };
-};
-var { MODELS: MODELS15 } = defineModels("reve", [
-  {
-    id: "reve",
-    name: "Reve",
-    addedAt: "2026-02-06",
-    workflow: "reve/text-to-image",
-    editWorkflow: "reve/edit",
-    buildPayload: buildRevePayload,
-    estimatedTime: 20,
-    mode: "image",
-    inputType: "t2i",
-    description: "Stylized 1K images with optional reference input.",
-    features: [feat("Image Input", "input"), feat("1K", "resolution")],
-    paramConfig: {
-      ...params.prompt(),
-      ...params.aspectRatio(REVE_AR),
-      ...params.count(),
-      ...params.imageInput(1, "Source Image")
-    }
-  }
-]);
-
 // src/core/voices.ts
 var DEFAULT_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb";
 var ELEVENLABS_VOICES = [
@@ -4276,7 +4244,7 @@ var ELEVENLABS_VOICES = [
   }
 ];
 function getVoiceById(id, extra) {
-  return [...ELEVENLABS_VOICES, ...OPENAI_VOICES, ...GEMINI_VOICES, ...GROK_VOICES, ...extra ?? []].find((v) => v.id === id);
+  return [...ELEVENLABS_VOICES, ...OPENAI_VOICES, ...GEMINI_VOICES, ...GROK_VOICES, ...SEEDAUDIO_VOICES, ...extra ?? []].find((v) => v.id === id);
 }
 var OPENAI_DEFAULT_VOICE_ID = "alloy";
 var OPENAI_VOICES = [
@@ -4438,6 +4406,309 @@ var ASYNC_VOICES = [
   { id: "db21e50c-9c85-4177-9bb2-9bf177890e44", name: "Abel", description: "Male voice with an authoritative tone, calm delivery, and clear articulation, perfect for informative and educational content. His subtle emphasis on key points enhances understanding, creating a focused and engaging experience for the listener while maintaining a professional presence.", tags: ["Male", "American (US)", "Informative/Educational"], provider: "async" },
   { id: "d7114790-534e-4007-b80d-6d176230553c", name: "Nellie", description: "Bold British-accented female voice with a slightly sharp, newscasting style. This voice delivers with clarity and confidence, ideal for news, reports, and formal announcements, ensuring a strong, professional presence while maintaining a sharp and impactful delivery.", tags: ["Female", "British (UK)", "Newscasting", "Informative/Educational"], provider: "async" }
 ];
+var SEEDAUDIO_DEFAULT_VOICE_ID = "en_male_tim_uranus_bigtts";
+var SEEDAUDIO_VOICES = [
+  { id: "zh_female_vv_uranus_bigtts", name: "Vivi", description: "A youthful and vibrant female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_xiaohe_uranus_bigtts", name: "Mindy", description: "A gentle, soft-spoken, and slightly mature female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "en_female_stokie_uranus_bigtts", name: "Stokie", description: "A trendy, casual, and expressive young female voice.", tags: ["Female", "English"], provider: "seedaudio" },
+  { id: "en_female_dacey_uranus_bigtts", name: "Dacey", description: "A warm, empathetic, and highly engaging female voice.", tags: ["Female", "English"], provider: "seedaudio" },
+  { id: "en_male_tim_uranus_bigtts", name: "Tim", description: "A clear, versatile, and friendly mid-range male voice.", tags: ["Male", "English"], provider: "seedaudio" },
+  { id: "zh_male_m191_uranus_bigtts", name: "Kian", description: "A steady, clear, and versatile mid-range male voice.", tags: ["Male", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_male_taocheng_uranus_bigtts", name: "Cedric", description: "A dynamic, spirited, and energetic young male voice.", tags: ["Male", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_male_sophie_uranus_bigtts", name: "Sophie", description: "A smooth, modern, and soft-spoken young voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_yingyujiaoxue_uranus_bigtts", name: "Jean", description: "A clear, authoritative yet encouraging female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_male_dayi_uranus_bigtts", name: "Magnus", description: "A mature, resonant, and slightly dramatic male voice.", tags: ["Male", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_mizai_uranus_bigtts", name: "Mabel", description: "A youthful, playful voice with a kid vibe.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_jitangnv_uranus_bigtts", name: "Nadia", description: "A mature, soothing, and deeply emotional female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_meilinvyou_uranus_bigtts", name: "Opal", description: "A sweet, intimate, and affectionate young female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_liuchangnv_uranus_bigtts", name: "Pearl", description: "A clear, steady, and highly articulate female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_male_ruyayichen_uranus_bigtts", name: "Quentin", description: "A refined, gentle, and elegant young male voice.", tags: ["Male", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_cancan_uranus_bigtts", name: "Corinne", description: "A young, vivid and energetic female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_tianmeixiaoyuan_uranus_bigtts", name: "Esther", description: "A fresh, innocent, and youthful female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_tianmeitaozi_uranus_bigtts", name: "Freya", description: "A soft, bright, and incredibly sweet young female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_shuangkuaisisi_uranus_bigtts", name: "Gigi", description: "A crisp, fast-paced, and confident young female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_peiqi_uranus_bigtts", name: "Holly", description: "A childlike, innocent little girl's voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_xiaoxue_uranus_bigtts", name: "Lyla", description: "A pure, steady, and crystal-clear young female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_yuanqi_uranus_bigtts", name: "Daisy", description: "An energetic, cheerful, and optimistic young female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_kefunvsheng_uranus_bigtts", name: "Tracy", description: "A polished, professional, and courteous female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_male_shaonianzixin_uranus_bigtts", name: "Jess", description: "A bright, confident, and energetic teenage male voice.", tags: ["Male", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_linjianvhai_uranus_bigtts", name: "Pinky", description: "A warm, friendly, and approachable young female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_kiwi_uranus_bigtts", name: "Sweety", description: "A bright, cheerful, and modern young female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "zh_female_sajiaoxuemei_uranus_bigtts", name: "Sandy", description: "A very young, sweet, and playful female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
+  { id: "de_male_seven_uranus_bigtts", name: "Sven", description: "A steady, clear, and confident male voice.", tags: ["Male", "German"], provider: "seedaudio" },
+  { id: "jp_female_minimi_uranus_bigtts", name: "Minimi", description: "A high-pitched, sweet, 'kawaii' young female voice.", tags: ["Female", "Japanese"], provider: "seedaudio" },
+  { id: "fr_male_usseau_uranus_bigtts", name: "Usseau", description: "A sophisticated, crisp, and articulate male voice.", tags: ["Male", "French"], provider: "seedaudio" },
+  { id: "es_male_felipe_uranus_bigtts", name: "Felipe", description: "An energetic, upbeat, and charismatic young male voice.", tags: ["Male", "Spanish (MX)"], provider: "seedaudio" },
+  { id: "id_male_han_uranus_bigtts", name: "Han", description: "A modern, smooth, and friendly young adult male voice.", tags: ["Male", "Indonesian"], provider: "seedaudio" },
+  { id: "pt_male_martins_uranus_bigtts", name: "Martins", description: "A charismatic, warm, and expressive male voice.", tags: ["Male", "Portuguese (BR)"], provider: "seedaudio" },
+  { id: "it_male_enzo_uranus_bigtts", name: "Enzo", description: "An authentic, charismatic, and warm Italian male voice.", tags: ["Male", "Italian"], provider: "seedaudio" },
+  { id: "kr_male_shane_uranus_bigtts", name: "Jihoon", description: "A polished, modern, and smooth Korean male voice.", tags: ["Male", "Korean"], provider: "seedaudio" },
+  { id: "zh_male_liufei_uranus_bigtts", name: "Felix", description: "A clear and energetic voice.", tags: ["Male", "Chinese"], provider: "seedaudio" },
+  { id: "zh_female_qingxinnvsheng_uranus_bigtts", name: "Celeste", description: "A fresh and clear female voice.", tags: ["Female", "Chinese"], provider: "seedaudio" },
+  { id: "zh_male_sunwukong_uranus_bigtts", name: "Monkey King", description: "A Monkey King character voice.", tags: ["Male", "Chinese", "Character"], provider: "seedaudio" },
+  { id: "en_male_adam-imitation_uranus_bigtts", name: "Rowan", description: "An easygoing, natural young man with a cool, aloof edge.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_alberto_uranus_bigtts", name: "Alberto", description: "A gentle, approachable man with a low, soothing tone.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_alex_uranus_bigtts", name: "Alex", description: "An objective, composed young man with a warm, clear voice.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_allison_uranus_bigtts", name: "Allison", description: "An upbeat, enthusiastic college-aged woman, full of energy.", tags: ["Female", "English (US)", "Dubbing"], provider: "seedaudio" },
+  { id: "en_female_authoritative-british_uranus_bigtts", name: "Charlotte", description: "A bright, crisp older sister with tension and drive.", tags: ["Female", "English (US)", "Education"], provider: "seedaudio" },
+  { id: "en_female_authoritative-informative_uranus_bigtts", name: "Margaret", description: "A gentle, sincere big sister with a soft, unhurried tone.", tags: ["Female", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_bill-jones_uranus_bigtts", name: "Jones", description: "A humorous uncle with a thick Southern American accent.", tags: ["Male", "English (US)", "Entertainment"], provider: "seedaudio" },
+  { id: "en_male_bill_jones_corey_uranus_bigtts", name: "Bill", description: "A steady, self-assured male professional with composure.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_brad_pitt_p1_uranus_bigtts", name: "Brad Pitt", description: "A laid-back man with a low, husky, relaxed voice.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_brittney_uranus_bigtts", name: "Brittney", description: "A warm, intelligent older sister with a tender heart.", tags: ["Female", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_brittney_pimintel_uranus_bigtts", name: "Zoe", description: "A bright, spirited young girl bursting with energy.", tags: ["Female", "English (US)", "Audiobook"], provider: "seedaudio" },
+  { id: "en_male_bruce_uranus_bigtts", name: "Adrian", description: "A composed, level-headed gentleman with rational restraint.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_chandler_p1_uranus_bigtts", name: "Leo", description: "A theatrical man with dramatic intonation and expressiveness.", tags: ["Male", "English (US)", "Entertainment"], provider: "seedaudio" },
+  { id: "en_male_cowboy-bob_uranus_bigtts", name: "Bob", description: "A mature man with a deep, resonant, slightly raspy voice.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_cowboy_john_b_uranus_bigtts", name: "John", description: "An energetic, flamboyant uncle with a Southern accent.", tags: ["Male", "English (US)", "Entertainment"], provider: "seedaudio" },
+  { id: "en_male_david_uranus_bigtts", name: "David", description: "A middle-aged man with a deep, weighty, unhurried voice.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_deep-voice_uranus_bigtts", name: "Orion", description: "A solid, textured voice with a slow pace and drama.", tags: ["Male", "English (US)", "Entertainment"], provider: "seedaudio" },
+  { id: "en_male_diyuwenrounan_uranus_bigtts", name: "Julian", description: "A refined, gentle, sincere man with an easygoing manner.", tags: ["Male", "English (US)", "Audiobook"], provider: "seedaudio" },
+  { id: "en_male_evil-guy-oxley_uranus_bigtts", name: "Harrison", description: "A rigorous, professional heavyweight with commanding presence.", tags: ["Male", "English (US)", "Dubbing"], provider: "seedaudio" },
+  { id: "en_male_excited-male-voice_uranus_bigtts", name: "Jasper", description: "A passionate young male voice with sweeping intonation.", tags: ["Male", "English (US)", "Entertainment"], provider: "seedaudio" },
+  { id: "en_male_father-christmas_uranus_bigtts", name: "Alfred", description: "An elder with a deep, resonant voice and clear articulation.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_female_tutor_ms-jenny_uranus_bigtts", name: "Holly", description: "An enthusiastic, energetic female host with a vivid style.", tags: ["Female", "English (US)", "Education"], provider: "seedaudio" },
+  { id: "en_male_fernando-martinez_uranus_bigtts", name: "Felix", description: "A cheerful, lively male voice, contagious in emotion.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_godfather_uranus_bigtts", name: "Godfather", description: "A mature man with sincere emotion and a gentle, unhurried tone.", tags: ["Male", "English (US)", "Audiobook"], provider: "seedaudio" },
+  { id: "en_male_gollum_uranus_bigtts", name: "Gollum", description: "A wacky, over-the-top voice skilled at playful characters.", tags: ["Male", "English (US)", "RolePlay"], provider: "seedaudio" },
+  { id: "en_male_hades_uranus_bigtts", name: "Beau", description: "A free-spirited mature man with a relaxed, easygoing tone.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_hayley_uranus_bigtts", name: "Hayley", description: "A lively female voice with strong emotional tension.", tags: ["Female", "English (US)", "Education"], provider: "seedaudio" },
+  { id: "en_male_jamie_uranus_bigtts", name: "Jamie", description: "A hearty, sincere, witty male voice full of energy.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_jane_uranus_bigtts", name: "Jane", description: "An energetic young girl with vivid, expressive emotion.", tags: ["Female", "English (US)", "Dubbing"], provider: "seedaudio" },
+  { id: "en_female_jenny_uranus_bigtts", name: "Jenny", description: "A cheerful, warm, and talkative personality.", tags: ["Female", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_jidongchuanjiaoshi_uranus_bigtts", name: "Blaze", description: "An immersive, passionate performance with fervent intonation.", tags: ["Male", "English (US)", "Entertainment"], provider: "seedaudio" },
+  { id: "en_male_jimmy_uranus_bigtts", name: "Jimmy", description: "A sunny young man, vivid and engaging at sharing stories.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_joanne_uranus_bigtts", name: "Joanne", description: "A crisp, lively young female voice with a relaxed feel.", tags: ["Female", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_joker_uranus_bigtts", name: "Joker", description: "A middle-aged voice with a slow pace and warm, magnetic tone.", tags: ["Male", "English (US)", "Entertainment"], provider: "seedaudio" },
+  { id: "en_male_josh_uranus_bigtts", name: "Josh", description: "A clear, bright, cheerful, energetic young man.", tags: ["Male", "English (US)", "Dubbing"], provider: "seedaudio" },
+  { id: "en_male_josh_coery_uranus_bigtts", name: "Josiah", description: "A businesslike young man with a deep, dignified voice.", tags: ["Male", "English (US)", "Education"], provider: "seedaudio" },
+  { id: "en_male_kevin_uranus_bigtts", name: "Kevin", description: "A warm, magnetic middle-aged voice with fluent delivery.", tags: ["Male", "English (US)", "Education"], provider: "seedaudio" },
+  { id: "en_male_knightley_uranus_bigtts", name: "Knightley", description: "A deep, magnetic middle-aged male voice with a steady manner.", tags: ["Male", "English (US)", "Audiobook"], provider: "seedaudio" },
+  { id: "en_female_lana_del_rey_kelley_d_p1_uranus_bigtts", name: "Lynn", description: "A soft, slightly husky young female voice.", tags: ["Female", "English (US)", "RolePlay"], provider: "seedaudio" },
+  { id: "en_female_lana_del_rey_parky_s_p1_uranus_bigtts", name: "Ivy", description: "A gentle, soft female voice with a warm, natural tone.", tags: ["Female", "English (US)", "CustomerService"], provider: "seedaudio" },
+  { id: "en_male_marcus_uranus_bigtts", name: "Marcus", description: "A mellow, deep mature male voice skilled at storytelling.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_mel_uranus_bigtts", name: "Mel", description: "A lively, dynamic female voice with vivid ups and downs.", tags: ["Female", "English (US)", "Education"], provider: "seedaudio" },
+  { id: "en_male_michael_uranus_bigtts", name: "Hank", description: "A laid-back man with a deep, magnetic, easygoing voice.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_michael-mouse_uranus_bigtts", name: "Chip", description: "A cartoonish, high-pitched, exaggerated comical voice.", tags: ["Male", "English (US)", "Entertainment"], provider: "seedaudio" },
+  { id: "en_male_michael_kevin_uranus_bigtts", name: "Michael Kevin", description: "A professional narrator\u2014gentle, bright, and persuasive.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_motivational-coach_uranus_bigtts", name: "Rory", description: "An energetic college-aged man, full of emotion and dynamic.", tags: ["Male", "English (US)", "Entertainment"], provider: "seedaudio" },
+  { id: "en_female_myra_uranus_bigtts", name: "Myra", description: "A sweet, lively young-girl voice that tells stories gently.", tags: ["Female", "English (US)", "Education"], provider: "seedaudio" },
+  { id: "en_female_myra_cmb_uranus_bigtts", name: "Sunny", description: "A crisp, lively young female voice full of enthusiasm.", tags: ["Female", "English (US)", "Education"], provider: "seedaudio" },
+  { id: "en_female_nadia_uranus_bigtts", name: "Blair", description: "A clean, clear young female voice with a gentle way of speaking.", tags: ["Female", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_natasha_uranus_bigtts", name: "Natasha", description: "A bright, vivid, warm and approachable conversational voice.", tags: ["Female", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_pleasant-female_uranus_bigtts", name: "Elaine", description: "A gentle, lovely young lady with heartfelt warmth.", tags: ["Female", "English (US)", "Audiobook"], provider: "seedaudio" },
+  { id: "en_female_rachel_p1_uranus_bigtts", name: "Rachel", description: "A bright, clear young female voice with strong dramatic flair.", tags: ["Female", "English (US)", "Entertainment"], provider: "seedaudio" },
+  { id: "en_male_ronald_uranus_bigtts", name: "Ronald", description: "A British gentleman with a deep, resonant, dignified voice.", tags: ["Male", "English (US)", "Audiobook"], provider: "seedaudio" },
+  { id: "en_male_russell_uranus_bigtts", name: "Russell", description: "A warm, bright, sincere American boyfriend voice.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_scarlet_p1_uranus_bigtts", name: "Scarlet", description: "A gentle, deeply affectionate older sister.", tags: ["Female", "English (US)", "CustomerService"], provider: "seedaudio" },
+  { id: "en_female_sharron_uranus_bigtts", name: "Sharron", description: "A young lady with a soft, slightly husky, easygoing voice.", tags: ["Female", "English (US)", "Entertainment"], provider: "seedaudio" },
+  { id: "en_male_simba_p1_uranus_bigtts", name: "Simba", description: "A bright yet husky young male voice with strong expressiveness.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_skye_uranus_bigtts", name: "Skye", description: "A clear, candid older sister who speaks from the heart.", tags: ["Female", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_tom_hiddleston_p1_uranus_bigtts", name: "Tom", description: "A deep, reserved uncle with a narrative reciting style.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_valentino_uranus_bigtts", name: "Valentino", description: "A sunny, cheerful young man full of warmth and energy.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_male_valentino_corey_uranus_bigtts", name: "Clark", description: "A mature, dignified uncle with a steady narration style.", tags: ["Male", "English (US)", "Dubbing"], provider: "seedaudio" },
+  { id: "en_female_wenrouzhishijieshuonv_uranus_bigtts", name: "Megan", description: "A gentle, fun older sister sharing knowledge in a relaxed way.", tags: ["Female", "English (US)", "CustomerService"], provider: "seedaudio" },
+  { id: "en_female_xinwenjieshuonv_uranus_bigtts", name: "Kayla", description: "An enthusiastic, outgoing female student full of expressiveness.", tags: ["Female", "English (US)", "RolePlay"], provider: "seedaudio" },
+  { id: "en_male_yangguangjieshuonan_uranus_bigtts", name: "Dylan", description: "A witty, humorous uncle with a vivid narrative style.", tags: ["Male", "English (US)"], provider: "seedaudio" },
+  { id: "en_female_zendaya_p1_uranus_bigtts", name: "Zendaya", description: "An easygoing, approachable older sister full of energy.", tags: ["Female", "English (US)", "Education"], provider: "seedaudio" },
+  { id: "ja_female_bv024_uranus_bigtts", name: "Bonnie", description: "A gentle, soft, warm female college student.", tags: ["Female", "Japanese"], provider: "seedaudio" },
+  { id: "ja_female_bv520_uranus_bigtts", name: "Poppy", description: "An energetic young woman with an anime-dubbing style.", tags: ["Female", "Japanese", "Dubbing"], provider: "seedaudio" },
+  { id: "ja_female_bv521_uranus_bigtts", name: "Aoi", description: "A sweet, lively young woman with strong performance appeal.", tags: ["Female", "Japanese", "Entertainment"], provider: "seedaudio" },
+  { id: "ja_female_bv522_uranus_bigtts", name: "Hana", description: "A professional, dignified young woman with a broadcast tone.", tags: ["Female", "Japanese"], provider: "seedaudio" },
+  { id: "ja_female_bv523_uranus_bigtts", name: "Lily", description: "An innocent, carefree little girl full of childlike charm.", tags: ["Female", "Japanese", "Entertainment"], provider: "seedaudio" },
+  { id: "ja_male_bv524_uranus_bigtts", name: "Ken", description: "A capable, professional young man with a calm, restrained tone.", tags: ["Male", "Japanese"], provider: "seedaudio" },
+  { id: "ja_female_minimi_uranus_bigtts", name: "Minimi", description: "A vibrant, hearty young woman with an outgoing personality.", tags: ["Female", "Japanese"], provider: "seedaudio" },
+  { id: "ja_female_shirou_uranus_bigtts", name: "Shirou", description: "A spirited, straightforward young woman with anime style.", tags: ["Female", "Japanese", "Dubbing"], provider: "seedaudio" },
+  { id: "de_female_bv081_uranus_bigtts", name: "Stella", description: "An objective, composed, and professional young female voice.", tags: ["Female", "German", "Education"], provider: "seedaudio" },
+  { id: "de_male_sven_uranus_bigtts", name: "Sven", description: "A middle-aged man with a deep, magnetic, slightly raspy voice.", tags: ["Male", "German"], provider: "seedaudio" },
+  { id: "es_female_bv084_uranus_bigtts", name: "Gracie", description: "A rational, capable woman with clear, organized narration.", tags: ["Female", "Spanish"], provider: "seedaudio" },
+  { id: "es_male_dani_uranus_bigtts", name: "Dani", description: "An enthusiastic, talkative uncle with a charming style.", tags: ["Male", "Spanish", "Audiobook"], provider: "seedaudio" },
+  { id: "es_male_guillem_uranus_bigtts", name: "Guillem", description: "An easygoing, cheerful, approachable young man.", tags: ["Male", "Spanish", "Audiobook"], provider: "seedaudio" },
+  { id: "es_female_ht_mx_f6_uranus_bigtts", name: "Marisol", description: "A lively, enthusiastic girl-next-door full of energy.", tags: ["Female", "Spanish"], provider: "seedaudio" },
+  { id: "mx_female_bv065_uranus_bigtts", name: "Irene", description: "A calm, objective, efficient, well-organized young woman.", tags: ["Female", "Spanish (MX)", "Education"], provider: "seedaudio" },
+  { id: "mx_male_bv165dialogue_uranus_bigtts", name: "Diego", description: "A charming young man with a magnetic, vivid dialogue style.", tags: ["Male", "Spanish (MX)", "Audiobook"], provider: "seedaudio" },
+  { id: "mx_male_bv165narrator_uranus_bigtts", name: "Marcos", description: "A steady, mature man with a deep, magnetic, professional tone.", tags: ["Male", "Spanish (MX)", "Audiobook"], provider: "seedaudio" },
+  { id: "mx_female_bv166dialogue_uranus_bigtts", name: "Lucy", description: "A playful, cheerful, lovely young woman with vivid emotion.", tags: ["Female", "Spanish (MX)"], provider: "seedaudio" },
+  { id: "mx_female_bv166emotion_uranus_bigtts", name: "Rosa", description: "A young woman with intense emotion and dramatic tension.", tags: ["Female", "Spanish (MX)"], provider: "seedaudio" },
+  { id: "mx_female_bv166narrator_uranus_bigtts", name: "Freya", description: "A distinctive young woman skilled at vivid storytelling.", tags: ["Female", "Spanish (MX)", "Audiobook"], provider: "seedaudio" },
+  { id: "mx_male_felipe_uranus_bigtts", name: "Felipe", description: "An enthusiastic, sharp-witted young man building suspense.", tags: ["Male", "Spanish (MX)"], provider: "seedaudio" },
+  { id: "mx_male_ht_mx_m012_uranus_bigtts", name: "Derek", description: "An objective, restrained young man with a professional style.", tags: ["Male", "Spanish (MX)", "Education"], provider: "seedaudio" },
+  { id: "mx_female_leslie_uranus_bigtts", name: "Leslie", description: "An approachable, gentle young woman with a soft pace.", tags: ["Female", "Spanish (MX)"], provider: "seedaudio" },
+  { id: "mx_male_marcelo_uranus_bigtts", name: "Marcelo", description: "A gentle, refined, steady, dignified young man.", tags: ["Male", "Spanish (MX)"], provider: "seedaudio" },
+  { id: "fr_female_fr_bv078_uranus_bigtts", name: "Simone", description: "A steady, professional, even-tempered auntie.", tags: ["Female", "French", "Dubbing"], provider: "seedaudio" },
+  { id: "fr_female_fr_f47_uranus_bigtts", name: "Camille", description: "A professional, capable older sister with a calm style.", tags: ["Female", "French", "CustomerService"], provider: "seedaudio" },
+  { id: "fr_male_fr_m29_uranus_bigtts", name: "Maurice", description: "A mature, steady uncle with a resonant, dignified voice.", tags: ["Male", "French", "Dubbing"], provider: "seedaudio" },
+  { id: "id_male_bv160_uranus_bigtts", name: "Rocco", description: "An impassioned young man with intensely dramatic delivery.", tags: ["Male", "Indonesian"], provider: "seedaudio" },
+  { id: "id_male_bv160dialogue_uranus_bigtts", name: "Jude", description: "A young man with a dramatic, emotional performance style.", tags: ["Male", "Indonesian"], provider: "seedaudio" },
+  { id: "id_male_bv160narration_uranus_bigtts", name: "Hugo", description: "A rational, steady young man skilled at narrative storytelling.", tags: ["Male", "Indonesian", "Audiobook"], provider: "seedaudio" },
+  { id: "id_female_bv161_uranus_bigtts", name: "Clara", description: "A gentle, even-tempered young woman with a bright, soft voice.", tags: ["Female", "Indonesian"], provider: "seedaudio" },
+  { id: "id_female_bv161dialogue_uranus_bigtts", name: "Sylvia", description: "A young woman with shifting emotions and film-dialogue atmosphere.", tags: ["Female", "Indonesian"], provider: "seedaudio" },
+  { id: "id_female_bv161narration_uranus_bigtts", name: "Celeste", description: "A sweet, lively female lead with emotionally rich narration.", tags: ["Female", "Indonesian"], provider: "seedaudio" },
+  { id: "id_female_bv164_uranus_bigtts", name: "Crew", description: "A blend of diverse voices for vivid multi-person dialogue.", tags: ["Female", "Indonesian"], provider: "seedaudio" },
+  { id: "id_male_bv164dialogue_uranus_bigtts", name: "Elian", description: "A gentle, refined young man with a dramatic performance style.", tags: ["Male", "Indonesian", "Dubbing"], provider: "seedaudio" },
+  { id: "id_male_bv164narration_uranus_bigtts", name: "Ronan", description: "A professional, steady, calm mature uncle.", tags: ["Male", "Indonesian", "Audiobook"], provider: "seedaudio" },
+  { id: "id_female_f20_uranus_bigtts", name: "Chloe", description: "An energetic, lively young woman with an elegant air.", tags: ["Female", "Indonesian", "Dubbing"], provider: "seedaudio" },
+  { id: "id_male_m08_uranus_bigtts", name: "Kyle", description: "A rational, steady young man with a professional narration style.", tags: ["Male", "Indonesian"], provider: "seedaudio" },
+  { id: "id_female_phulia_uranus_bigtts", name: "Phulia", description: "A lively, cheerful young woman full of emotion and tension.", tags: ["Female", "Indonesian"], provider: "seedaudio" },
+  { id: "pt_male_bv172_uranus_bigtts", name: "Sam", description: "A two-person dialogue with contrasting fast and slow pacing.", tags: ["Male", "Portuguese (BR)"], provider: "seedaudio" },
+  { id: "pt_male_bv172dialogue_uranus_bigtts", name: "Walter", description: "A resonant, husky middle-aged uncle with a film-dialogue feel.", tags: ["Male", "Portuguese (BR)", "Dubbing"], provider: "seedaudio" },
+  { id: "pt_male_bv172emotion_uranus_bigtts", name: "Vincent", description: "A middle-aged voice with intense emotion and dramatic flair.", tags: ["Male", "Portuguese (BR)", "Education"], provider: "seedaudio" },
+  { id: "pt_male_bv172narrator_uranus_bigtts", name: "Miles", description: "A rational, calm, rigorous, professional male narrator.", tags: ["Male", "Portuguese (BR)", "Audiobook"], provider: "seedaudio" },
+  { id: "pt_female_bv173_uranus_bigtts", name: "Diana", description: "A professional, composed, sharp, capable female narrator.", tags: ["Female", "Portuguese (BR)"], provider: "seedaudio" },
+  { id: "pt_female_bv173dialogue_uranus_bigtts", name: "Elena", description: "An elegant, mature idol-drama female lead.", tags: ["Female", "Portuguese (BR)"], provider: "seedaudio" },
+  { id: "pt_female_bv173emotion_uranus_bigtts", name: "Lola", description: "An enthusiastic performer full of emotion and expressive tension.", tags: ["Female", "Portuguese (BR)"], provider: "seedaudio" },
+  { id: "pt_female_bv173narrator_uranus_bigtts", name: "Emma", description: "A sharp, capable, calm, commanding female narrator.", tags: ["Female", "Portuguese (BR)", "Dubbing"], provider: "seedaudio" },
+  { id: "pt_female_bv530_uranus_bigtts", name: "Sofia", description: "A gentle, soft, approachable, lively young woman.", tags: ["Female", "Portuguese (BR)"], provider: "seedaudio" },
+  { id: "pt_male_bv531_uranus_bigtts", name: "Arthur", description: "A rational, objective, steady, dependable middle-aged voice.", tags: ["Male", "Portuguese (BR)"], provider: "seedaudio" },
+  { id: "pt_female_mari_uranus_bigtts", name: "Mari", description: "A cheerful young woman with a hearty, gracious manner.", tags: ["Female", "Portuguese (BR)", "Education"], provider: "seedaudio" },
+  { id: "pt_male_rael_uranus_bigtts", name: "Rael", description: "A fresh, crisp, energetic, sunny young man.", tags: ["Male", "Portuguese (BR)"], provider: "seedaudio" },
+  { id: "ar_female_dina_uranus_bigtts", name: "Dina", description: "A warm, lively Egyptian woman versed in local culture.", tags: ["Female", "Arabic"], provider: "seedaudio" },
+  { id: "ar_female_fatma_uranus_bigtts", name: "Fatma", description: "A young woman with a gentle, tender voice for soft monologues.", tags: ["Female", "Arabic", "Entertainment"], provider: "seedaudio" },
+  { id: "ar_male_youssef_uranus_bigtts", name: "Youssef", description: "A calm, easygoing middle-aged man with a conversational manner.", tags: ["Male", "Arabic"], provider: "seedaudio" },
+  { id: "tl_female_annika_uranus_bigtts", name: "Annika", description: "An approachable young woman with an everyday-conversation quality.", tags: ["Female", "Filipino"], provider: "seedaudio" },
+  { id: "tl_male_ed_uranus_bigtts", name: "Ed", description: "An approachable, easygoing middle-aged male voice.", tags: ["Male", "Filipino"], provider: "seedaudio" },
+  { id: "tl_female_hervie_uranus_bigtts", name: "Hervie", description: "A professional, confident, engaging entertainment-news anchor.", tags: ["Female", "Filipino", "Audiobook"], provider: "seedaudio" },
+  { id: "ko_male_bv545_uranus_bigtts", name: "Jay", description: "A hearty young man with a true-to-life performance style.", tags: ["Male", "Korean"], provider: "seedaudio" },
+  { id: "ko_female_bv546_uranus_bigtts", name: "Momo", description: "A candid, lively young woman with an anime-drama style.", tags: ["Female", "Korean", "Dubbing"], provider: "seedaudio" },
+  { id: "ko_male_m03_uranus_bigtts", name: "Minho", description: "A standard, professional Korean narrator with a magnetic voice.", tags: ["Male", "Korean"], provider: "seedaudio" },
+  { id: "ko_male_shane_uranus_bigtts", name: "Shane", description: "A steady, refined, persuasive middle-aged uncle.", tags: ["Male", "Korean"], provider: "seedaudio" },
+  { id: "ms_male_ham_uranus_bigtts", name: "Ham", description: "A steady, easygoing uncle skilled at analysis and explanation.", tags: ["Male", "Malay"], provider: "seedaudio" },
+  { id: "ms_male_naim_uranus_bigtts", name: "Naim", description: "A gentle, refined, calm, dependable middle-aged uncle.", tags: ["Male", "Malay"], provider: "seedaudio" },
+  { id: "ru_female_af07_uranus_bigtts", name: "Amelia", description: "A gentle, approachable, understanding, graceful young woman.", tags: ["Female", "Russian", "Audiobook"], provider: "seedaudio" },
+  { id: "ru_female_irinae_uranus_bigtts", name: "Irinae", description: "An enthusiastic young woman with rich, expressive emotion.", tags: ["Female", "Russian", "Audiobook"], provider: "seedaudio" },
+  { id: "ru_male_pavel_uranus_bigtts", name: "Pavel", description: "A middle-aged voice with a natural, comfortable narrative tone.", tags: ["Male", "Russian"], provider: "seedaudio" },
+  { id: "ru_female_sophie_uranus_bigtts", name: "Ksenia", description: "A young female voice full of energy and warmth.", tags: ["Female", "Russian"], provider: "seedaudio" },
+  { id: "ru_male_vlad_uranus_bigtts", name: "Silas", description: "A soft-spoken, gentle, calm, even-tempered young man.", tags: ["Male", "Russian", "Entertainment"], provider: "seedaudio" },
+  { id: "th_female_bv568_angry_uranus_bigtts", name: "Valeria", description: "A domineering female lead with highly expressive emotion.", tags: ["Female", "Thai", "Education"], provider: "seedaudio" },
+  { id: "th_female_bv568_fear_uranus_bigtts", name: "Iris", description: "An anxious, fearful, emotionally fragile young woman.", tags: ["Female", "Thai", "Audiobook"], provider: "seedaudio" },
+  { id: "th_female_bv568_happy_uranus_bigtts", name: "Zara", description: "A young woman full of emotion with dramatic/animation dubbing.", tags: ["Female", "Thai"], provider: "seedaudio" },
+  { id: "th_female_bv568_hate_uranus_bigtts", name: "Valentina", description: "A female lead with strong dramatic tension and expressive emotion.", tags: ["Female", "Thai"], provider: "seedaudio" },
+  { id: "th_female_bv568_neutral_uranus_bigtts", name: "Mildred", description: "A calm, even-tempered young woman with balanced, neutral emotion.", tags: ["Female", "Thai"], provider: "seedaudio" },
+  { id: "th_female_bv568_sad_uranus_bigtts", name: "Lydia", description: "A gentle, melancholic young woman with a strong narrative sense.", tags: ["Female", "Thai", "Dubbing"], provider: "seedaudio" },
+  { id: "th_female_bv568_suprise_uranus_bigtts", name: "Phoebe", description: "A lively, vivid-minded young woman with a playful air.", tags: ["Female", "Thai", "Audiobook"], provider: "seedaudio" },
+  { id: "vi_female_hong_uranus_bigtts", name: "Hong", description: "A straightforward young woman with frank emotional expression.", tags: ["Female", "Vietnamese"], provider: "seedaudio" },
+  { id: "vi_female_ling_uranus_bigtts", name: "Ling", description: "A tender, kind, earnest, dependable young woman.", tags: ["Female", "Vietnamese"], provider: "seedaudio" },
+  { id: "vi_female_linh_uranus_bigtts", name: "Linh", description: "A straightforward, candid young woman, crisp and decisive.", tags: ["Female", "Vietnamese", "Dubbing"], provider: "seedaudio" },
+  { id: "vi_female_partner_uranus_bigtts", name: "Partner", description: "A young woman with intense, full emotion and youthful vitality.", tags: ["Female", "Vietnamese", "Dubbing"], provider: "seedaudio" },
+  { id: "vi_female_ruan_uranus_bigtts", name: "Ruan", description: "A steady, clear-minded, dignified, poised young woman.", tags: ["Female", "Vietnamese"], provider: "seedaudio" },
+  { id: "vi_female_wu_uranus_bigtts", name: "Wu", description: "A straightforward, outgoing young woman with a rational mindset.", tags: ["Female", "Vietnamese"], provider: "seedaudio" },
+  { id: "vi_male_wumg_uranus_bigtts", name: "Wumg", description: "A modest, patient, rigorous, meticulous young man.", tags: ["Male", "Vietnamese"], provider: "seedaudio" }
+];
+
+// src/vendors/catalog/seedaudio.ts
+var REF_MUTEX_REASON = "A named voice and audio/image references cannot be combined.";
+var { MODELS: MODELS15 } = defineModels("seedaudio", [
+  {
+    id: "seed-audio-1.0",
+    name: "Seed Audio",
+    addedAt: "2026-07-27",
+    workflow: "bytedance/text-to-speech",
+    estimatedTime: 15,
+    mode: "audio",
+    inputType: "tts",
+    description: "Synthesize natural speech from text \u2014 pick a named voice or clone one from a reference audio.",
+    features: [feat("Voice Cloning", "characteristic"), feat("Reference Audio", "audio")],
+    paramConfig: {
+      ...params.prompt({ maxLength: 3e3 }),
+      // Voice: a named BytePlus voice (default), OR clone from up to 3 reference
+      // audios, OR one image reference. The three are mutually exclusive; the
+      // payload builder prioritizes an uploaded reference over the named voice.
+      ...params.voiceId(SEEDAUDIO_VOICES, SEEDAUDIO_DEFAULT_VOICE_ID),
+      ...params.audioInputs(3, "Reference Audios"),
+      ...params.imageInput(1, "Reference Image", false),
+      // Output audio configuration (nested under `audio_config` at the wire).
+      ...p.enum("format", ["wav", "mp3", "pcm", "ogg_opus"], "wav", { label: "Format" }),
+      ...p.enum("sampleRate", [8e3, 16e3, 24e3, 32e3, 44100, 48e3], 44100, { label: "Sample Rate" }),
+      ...p.range("speechRate", -50, 100, 0, { label: "Speech Rate" }),
+      ...p.range("loudnessRate", -50, 100, 0, { label: "Loudness" }),
+      ...p.range("pitchRate", -12, 12, 0, { label: "Pitch" }),
+      ...p.boolean("aigcWatermark", false, "Watermark")
+    },
+    // Backend rejects mixing reference kinds. Trigger the mutex off the uploads
+    // (voiceId always has a default, so it can't be a trigger) — an uploaded
+    // reference greys out the voice picker and the other upload slot.
+    constraints: [
+      { when: { imageUrls: { exists: true } }, then: {
+        voiceId: { disabled: true, reason: REF_MUTEX_REASON },
+        audioUrls: { disabled: true, reason: REF_MUTEX_REASON }
+      } },
+      { when: { audioUrls: { exists: true } }, then: {
+        voiceId: { disabled: true, reason: REF_MUTEX_REASON },
+        imageUrls: { disabled: true, reason: REF_MUTEX_REASON }
+      } }
+    ]
+  }
+]);
+
+// src/vendors/catalog/seedaudio.payloads.ts
+var assembleReferences = (input) => {
+  const imageUrl = input.imageUrls?.[0];
+  if (imageUrl) {
+    return [{ image_url: imageUrl }];
+  }
+  if (input.audioUrls?.length) {
+    return input.audioUrls.map((audioUrl) => ({ audio_url: audioUrl }));
+  }
+  return [{ speaker: input.voiceId ?? SEEDAUDIO_DEFAULT_VOICE_ID }];
+};
+var buildSeedAudioPayload = (input) => {
+  const references = assembleReferences(input);
+  return {
+    model: "seed-audio-1.0",
+    text_prompt: input.prompt,
+    // Apply the paramConfig defaults explicitly — a custom builder (unlike the
+    // pass-through one) doesn't get them for free, and the advertised defaults
+    // must reach the wire (e.g. sampleRate 44100, else the backend picks a
+    // format-dependent default that differs from what the UI showed).
+    audio_config: {
+      format: input.format ?? "wav",
+      sample_rate: input.sampleRate ?? 44100,
+      speech_rate: input.speechRate ?? 0,
+      loudness_rate: input.loudnessRate ?? 0,
+      pitch_rate: input.pitchRate ?? 0
+    },
+    // Send the watermark flag explicitly (default false) rather than omitting it
+    // when false, so the SDK setting is honored instead of the backend default.
+    watermark: { aigc_watermark: input.aigcWatermark ?? false },
+    ...references ? { references } : {}
+  };
+};
+registerPayloads(MODELS15, {
+  "seed-audio-1.0": buildSeedAudioPayload
+});
+
+// src/vendors/catalog/reve.ts
+var REVE_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "3:2", "2:3"];
+var buildRevePayload = (ctx) => {
+  const hasImages = ctx.imageUrls && ctx.imageUrls.length > 0;
+  return {
+    prompt: ctx.prompt,
+    num_images: ctx.count ?? 1,
+    ...ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {},
+    ...hasImages ? { image_url: ctx.imageUrls[0] } : {}
+  };
+};
+var { MODELS: MODELS16 } = defineModels("reve", [
+  {
+    id: "reve",
+    name: "Reve",
+    addedAt: "2026-02-06",
+    workflow: "reve/text-to-image",
+    editWorkflow: "reve/edit",
+    buildPayload: buildRevePayload,
+    estimatedTime: 20,
+    mode: "image",
+    inputType: "t2i",
+    description: "Stylized 1K images with optional reference input.",
+    features: [feat("Image Input", "input"), feat("1K", "resolution")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(REVE_AR),
+      ...params.count(),
+      ...params.imageInput(1, "Source Image")
+    }
+  }
+]);
 
 // src/vendors/catalog/grok.ts
 var buildGrokT2VPayload = (ctx) => ({
@@ -4509,7 +4780,7 @@ var GROK_DURATIONS = [3, 5, 6, 8, 10, 12, 15];
 var GROK_VIDEO_RESOLUTIONS = ["480p", "720p"];
 var GROK_VIDEO_RESOLUTIONS_15 = ["480p", "720p", "1080p"];
 var GROK_IMAGE_RESOLUTIONS = ["1k", "2k"];
-var { MODELS: MODELS16 } = defineModels("grok", [
+var { MODELS: MODELS17 } = defineModels("grok", [
   // ── Video ─────────────────────────────────────────
   {
     id: "grok-imagine-video",
@@ -4690,7 +4961,7 @@ var buildPikaFramesPayload = (ctx) => ({
 var PIKA_DURATIONS = [5, 10];
 var PIKA_AR = ["16:9", "9:16", "1:1", "4:5", "5:4", "3:2", "2:3"];
 var PIKA_RESOLUTIONS = ["720p", "1080p"];
-var { MODELS: MODELS17 } = defineModels("pika", [
+var { MODELS: MODELS18 } = defineModels("pika", [
   {
     id: "pika-2.2",
     name: "Pika",
@@ -4815,7 +5086,7 @@ var veoLiteParamConfig = {
 var veoLiteConstraints = [
   { when: { resolution: { is: "1080p" } }, then: { duration: { allowed: [8], reason: "1080p supports 8s only" } } }
 ];
-var { MODELS: MODELS18 } = defineModels("google", [
+var { MODELS: MODELS19 } = defineModels("google", [
   {
     id: "veo-3.1",
     name: "Veo 3.1",
@@ -4983,7 +5254,7 @@ var buildRunwayGen3aTurboPayload = (ctx) => ({
   ratio: RUNWAY_GEN3A_RATIO_MAP[ctx.aspectRatio ?? "16:9"] ?? "1280:768",
   duration: ctx.duration ?? 5
 });
-var { MODELS: MODELS19 } = defineModels("runway", [
+var { MODELS: MODELS20 } = defineModels("runway", [
   {
     id: "runway-avatar-video",
     name: "Runway Avatar",
@@ -5160,7 +5431,7 @@ var fluxKontextBase = {
   mode: "image",
   inputType: "t2i"
 };
-var { MODELS: MODELS20 } = defineModels("flux", [
+var { MODELS: MODELS21 } = defineModels("flux", [
   {
     ...fluxV2Base,
     id: "flux-2-pro",
@@ -5326,7 +5597,7 @@ var buildFlux3VideoPayload = (input) => {
     ...input.version ? { version: input.version } : {}
   };
 };
-registerPayloads(MODELS20, {
+registerPayloads(MODELS21, {
   "flux-3-video": buildFlux3VideoPayload
 });
 
@@ -5408,7 +5679,7 @@ var thinkingBudgetParam = {
     descriptor: { kind: "range", min: 128, max: 24576, step: 128, default: 128 }
   }
 };
-var { MODELS: MODELS21 } = defineModels("google", [
+var { MODELS: MODELS22 } = defineModels("google", [
   // ── Image ─────────────────────────────────────────────────────────
   {
     id: "gemini-3.1-flash-image",
@@ -5669,7 +5940,7 @@ var ttsParamConfig = {
   ...params.prompt({ maxLength: 4096 }),
   ...params.voiceId(OPENAI_VOICES, OPENAI_DEFAULT_VOICE_ID)
 };
-var { MODELS: MODELS22 } = defineModels("openai", [
+var { MODELS: MODELS23 } = defineModels("openai", [
   // ── Image ─────────────────────────────────────────
   {
     id: "gpt-image-2",
@@ -5821,7 +6092,7 @@ var ttsParamConfig2 = (promptMaxLength) => ({
   ...params.prompt({ maxLength: promptMaxLength }),
   ...params.voiceId(ELEVENLABS_VOICES, DEFAULT_VOICE_ID)
 });
-var { MODELS: MODELS23 } = defineModels("elevenlabs", [
+var { MODELS: MODELS24 } = defineModels("elevenlabs", [
   // ── TTS ───────────────────────────────────────────────────────────
   {
     id: "eleven-v3",
@@ -6023,7 +6294,7 @@ var buildElevenLabsMusicPayload = (input) => ({
   model_id: "music_v2",
   force_instrumental: input.isInstrumental ?? false
 });
-registerPayloads(MODELS23, {
+registerPayloads(MODELS24, {
   "elevenlabs-music-v2": buildElevenLabsMusicPayload
 });
 
@@ -6045,7 +6316,7 @@ var buildHeyGenVideoAvatarPayload = (ctx) => ({
 var dynamicVoiceConfig = {
   ...params.voiceId([], "", { required: true })
 };
-var { MODELS: MODELS24 } = defineModels("heygen", [
+var { MODELS: MODELS25 } = defineModels("heygen", [
   // ── Photo Avatar (i2v) ────────────────────────────────────────────
   {
     id: "heygen-talking-photo",
@@ -6117,7 +6388,7 @@ var buildMinimaxMusicPayload = (ctx) => ({
   ...ctx.isInstrumental != null ? { is_instrumental: ctx.isInstrumental } : {},
   ...ctx.outputFormat ? { output_format: ctx.outputFormat } : { output_format: "url" }
 });
-var { MODELS: MODELS25 } = defineModels("minimax", [
+var { MODELS: MODELS26 } = defineModels("minimax", [
   {
     id: "minimax-02-hd",
     name: "MiniMax 02 HD",
@@ -6198,7 +6469,7 @@ var buildIdeogramV4GeneratePayload = (ctx) => ({
   ...ctx.renderingSpeed ? { rendering_speed: ctx.renderingSpeed } : {},
   ...ctx.enableCopyrightDetection ? { enable_copyright_detection: true } : {}
 });
-var { MODELS: MODELS26 } = defineModels("ideogram", [
+var { MODELS: MODELS27 } = defineModels("ideogram", [
   {
     id: "ideogram-v4",
     name: "Ideogram 4.0",
@@ -6318,7 +6589,7 @@ var imagenParams = {
   ...params.enhancePrompt(),
   ...params.negativePrompt()
 };
-var { MODELS: MODELS27 } = defineModels("google", [
+var { MODELS: MODELS28 } = defineModels("google", [
   {
     id: "imagen-4.0",
     name: "Imagen 4.0",
@@ -6375,7 +6646,7 @@ var buildImagenPayload = (modelId) => (
     ...input.negativePrompt ? { negativePrompt: input.negativePrompt } : {}
   })
 );
-registerPayloads(MODELS27, {
+registerPayloads(MODELS28, {
   "imagen-4.0": buildImagenPayload("imagen-4.0-generate-001"),
   "imagen-4.0-ultra": buildImagenPayload("imagen-4.0-ultra-generate-001"),
   "imagen-4.0-fast": buildImagenPayload("imagen-4.0-fast-generate-001")
@@ -6444,7 +6715,7 @@ var qwenV1Params3 = {
   ...qwenV1Params,
   ...p.enum("promptExtendMode", ["direct", "agent"], "direct")
 };
-var { MODELS: MODELS28 } = defineModels("qwen", [
+var { MODELS: MODELS29 } = defineModels("qwen", [
   {
     id: "qwen",
     name: "Qwen",
@@ -6592,7 +6863,7 @@ var buildRecraftExploreSimilarPayload = (ctx) => ({
   similarity: ctx.similarity ?? 3,
   ...ctx.aspectRatio ? { size: ctx.aspectRatio } : {}
 });
-var { MODELS: MODELS29 } = defineModels("recraft", [
+var { MODELS: MODELS30 } = defineModels("recraft", [
   // ── V4.1 family (raster only — vector variants exist in API but not exposed here) ─
   {
     id: "recraftv4_1",
@@ -7058,7 +7329,7 @@ var TOPAZ_VIDEO_MODEL_OPTIONS = [
   "Starlight Fast 1",
   "Starlight Fast 2"
 ];
-var { MODELS: MODELS30 } = defineModels("topaz", [
+var { MODELS: MODELS31 } = defineModels("topaz", [
   {
     id: "topaz-upscale-image",
     name: "Topaz Image Upscale",
@@ -7109,7 +7380,7 @@ var buildTopazVideoPayload = (input) => ({
   upscale_factor: 2,
   H264_output: false
 });
-registerPayloads(MODELS30, {
+registerPayloads(MODELS31, {
   "topaz-upscale-image": buildTopazImagePayload,
   "topaz-upscale-video": buildTopazVideoPayload
 });
@@ -7195,7 +7466,7 @@ var buildPcpSanaSprintPayload = (ctx) => {
     height: h
   };
 };
-var { MODELS: MODELS31 } = defineModels("picsart", [
+var { MODELS: MODELS32 } = defineModels("picsart", [
   {
     id: "picsart-change-bg",
     name: "Picsart Change Background",
@@ -7351,7 +7622,7 @@ var buildLyria3Payload = (apiModelId) => (ctx) => ({
   ...ctx.imageUrls?.length === 1 ? { image: imagePart(ctx.imageUrls[0]) } : {},
   ...(ctx.imageUrls?.length ?? 0) > 1 ? { images: ctx.imageUrls.slice(0, 10).map(imagePart) } : {}
 });
-var { MODELS: MODELS32 } = defineModels("google", [
+var { MODELS: MODELS33 } = defineModels("google", [
   {
     id: "lyria-3-clip",
     addedAt: "2026-03-26",
@@ -7474,7 +7745,7 @@ var buildHH11R2VPayload = (ctx) => {
 var HH_AR = ["16:9", "9:16", "1:1", "4:3", "3:4"];
 var HH_RES = ["720P", "1080P"];
 var HH_DURATIONS = [5, 10, 15];
-var { MODELS: MODELS33 } = defineModels("happyhorse", [
+var { MODELS: MODELS34 } = defineModels("happyhorse", [
   {
     id: "happyhorse-1.0-t2v",
     name: "Happy Horse 1.0",
@@ -7619,7 +7890,7 @@ var baseFeatures = [
   feat("Up to 1080p", "resolution"),
   feat("5-15 sec", "duration")
 ];
-var { MODELS: MODELS34 } = defineModels("pixverse", [
+var { MODELS: MODELS35 } = defineModels("pixverse", [
   // ── V6 ─────────────────────────────────────────────────────────────
   {
     id: "pixverse-v6",
@@ -7737,7 +8008,7 @@ var buildReferenceToVideoPayload = (model) => (input) => ({
   aspect_ratio: input.aspectRatio ?? "16:9",
   image_references: (input.imageUrls ?? []).map((url) => ({ url }))
 });
-registerPayloads(MODELS34, {
+registerPayloads(MODELS35, {
   "pixverse-v6": buildTextToVideoPayload("v6"),
   "pixverse-v6-image": buildImageToVideoPayload("v6"),
   "pixverse-v6-fusion": buildReferenceToVideoPayload("v6"),
@@ -7747,7 +8018,7 @@ registerPayloads(MODELS34, {
 });
 
 // src/vendors/catalog/async-ai.ts
-var { MODELS: MODELS35 } = defineModels("async", [
+var { MODELS: MODELS36 } = defineModels("async", [
   {
     id: "async-flash-v1",
     name: "Async Flash v1.0",
@@ -7787,7 +8058,7 @@ var buildAsyncTtsPayload = (input) => {
     }
   };
 };
-registerPayloads(MODELS35, { "async-flash-v1": buildAsyncTtsPayload });
+registerPayloads(MODELS36, { "async-flash-v1": buildAsyncTtsPayload });
 
 // src/vendors/catalog/llm.ts
 var ADDED = "2026-06-16";
@@ -7909,7 +8180,7 @@ var { MODELS: GEMINI_LLM } = defineModels("google", [
     }
   }
 ]);
-var MODELS36 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM];
+var MODELS37 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM];
 
 // src/vendors/catalog/llm.payloads.ts
 var CLAUDE_MAX_TOKENS = 8192;
@@ -7960,7 +8231,7 @@ var buildGeminiPayload = (modelId) => (input) => {
     ...level ? { generationConfig: { thinkingConfig: { thinkingLevel: level } } } : {}
   };
 };
-registerPayloads(MODELS36, {
+registerPayloads(MODELS37, {
   "claude-opus-4-8": buildClaudePayload("claude-opus-4-8"),
   "claude-sonnet-4-6": buildClaudePayload("claude-sonnet-4-6"),
   "claude-haiku-4-5": buildClaudePayload("claude-haiku-4-5"),
@@ -8001,15 +8272,16 @@ var ALL_MODELS = [
   ...MODELS25,
   ...MODELS26,
   ...MODELS27,
-  ...MODELS32,
   ...MODELS28,
+  ...MODELS33,
   ...MODELS29,
   ...MODELS30,
   ...MODELS31,
-  ...MODELS33,
+  ...MODELS32,
   ...MODELS34,
   ...MODELS35,
-  ...MODELS36
+  ...MODELS36,
+  ...MODELS37
 ];
 var getModelsByMode = (mode, includeDisabled = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeDisabled || isVisibleForReleases(m)));
 
@@ -10058,6 +10330,7 @@ var RunwayGen3aTurbo = "runway-gen3a-turbo";
 var RunwayGen4Aleph = "runway-gen4-aleph";
 var RunwayGen4Ref = "runway-gen4-ref";
 var RunwayGen45 = "runway-gen4.5";
+var SeedAudio10 = "seed-audio-1.0";
 var Seedance15Pro = "seedance-1.5-pro";
 var Seedance20 = "seedance-2.0";
 var Seedance20Fast = "seedance-2.0-fast";
@@ -10251,6 +10524,7 @@ var Models = {
   RunwayGen4Aleph,
   RunwayGen4Ref,
   RunwayGen45,
+  SeedAudio10,
   Seedance15Pro,
   Seedance20,
   Seedance20Fast,

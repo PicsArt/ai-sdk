@@ -109,9 +109,9 @@ assert.strictEqual((apisResult.result as { url: string }).url, 'https://cdn.exam
 // \u2500\u2500 Test: apiKey config builds an authenticated fetch (Authorization: Bearer) \u2500\u2500
 
 const originalFetch = globalThis.fetch;
-let capturedAuth: string | null = null;
+let capturedHeaders: Headers | null = null;
 globalThis.fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
-  capturedAuth = new Headers(init?.headers).get('Authorization');
+  capturedHeaders = new Headers(init?.headers);
   return new Response(
     JSON.stringify({ status: 'success', response: { result: { ok: true } } }),
     { status: 200, headers: { 'Content-Type': 'application/json' } },
@@ -122,7 +122,12 @@ try {
   // A leading "Bearer " is stripped so it isn't doubled in the header.
   const keyClient = createClient({ apiUrl: 'https://api.test', apiKey: 'Bearer secret-key' });
   await keyClient.apis.run('media-platform/v1/videos/edit', { x: 1 }, { mode: ApiRunMode.SYNC });
-  assert.strictEqual(capturedAuth, 'Bearer secret-key', 'apiKey should send Authorization: Bearer <key>');
+  const sent = capturedHeaders as Headers | null;
+  assert(sent, 'apiKey fetch should have been called');
+  assert.strictEqual(sent.get('Authorization'), 'Bearer secret-key', 'apiKey should send Authorization: Bearer <key>');
+  // The gateway rejects requests without these, so the apiKey fetch defaults them.
+  assert.strictEqual(sent.get('platform'), 'api', 'apiKey should default platform: api');
+  assert.strictEqual(sent.get('X-Touchpoint'), 'sdk', 'apiKey should default X-Touchpoint: sdk');
 } finally {
   globalThis.fetch = originalFetch;
 }

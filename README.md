@@ -24,9 +24,9 @@ npm install @picsart/ai-sdk
 ```typescript
 import { createClient, Models, Model, catalog } from '@picsart/ai-sdk'
 
-// Create a client — pass your authenticated fetch
+// Create a client — pass your Picsart API key
 const ai = createClient({
-  fetch: myAuthenticatedFetch,
+  apiKey: process.env.PICSART_API_KEY,
   apiUrl: 'https://api.picsart.com',
 })
 
@@ -49,13 +49,41 @@ Model(Models.Flux2Pro).params().toSchema() // param schema
 Model(Models.Flux2Pro).validate({ prompt: 'a cat' })
 ```
 
+## Authentication
+
+Pass `apiKey` and the SDK sends `Authorization: Bearer <apiKey>` on every request
+(a leading `Bearer ` is stripped if present). Create a key from the
+[Authentication guide](https://picsart.com/api-platform/docs/authentication).
+
+```typescript
+const ai = createClient({
+  apiKey: process.env.PICSART_API_KEY,
+  apiUrl: 'https://api.picsart.com',
+})
+```
+
+Keep the key server-side — anything shipped to a browser is public.
+
+Apps that already handle auth themselves (session cookies, token refresh, a
+backend proxy) can pass their own `fetch` instead. It takes precedence over
+`apiKey` when both are set:
+
+```typescript
+const ai = createClient({
+  fetch: myAuthenticatedFetch,
+  apiUrl: 'https://api.picsart.com',
+})
+```
+
+`createClient` throws if neither `apiKey` nor `fetch` is provided.
+
 ## Drive Integration
 
 Auto-save generations to Picsart Drive:
 
 ```typescript
 const ai = createClient({
-  fetch: myAuthenticatedFetch,
+  apiKey: process.env.PICSART_API_KEY,
   apiUrl: 'https://api.picsart.com',
   drive: { folder: 'AI Playground' },
 })
@@ -83,7 +111,7 @@ as `mode: 'text'`. Each vendor uses its own native workflow, so capabilities are
 ```typescript
 import { createClient, Models } from '@picsart/ai-sdk'
 
-const ai = createClient({ fetch: myAuthenticatedFetch, apiUrl: 'https://api.picsart.com' })
+const ai = createClient({ apiKey: process.env.PICSART_API_KEY, apiUrl: 'https://api.picsart.com' })
 
 // Text in, text out
 const { text } = await ai.generateText(Models.ClaudeOpus48, { prompt: 'Explain RAG in one line.' })
@@ -139,11 +167,11 @@ The SDK exports 7 symbols:
 
 | Export | Type | Description |
 |--------|------|-------------|
-| `createClient` | function | Create an AI client from authenticated fetch |
+| `createClient` | function | Create an AI client from an API key (or a custom authenticated fetch) |
 | `Models` | object | Model catalog: 108 models + list/search/validate/toSchema |
 | `GenerateResult` | type | `{ url, model, handle, drive? }` |
-| `ClientConfig` | type | `{ fetch, apiUrl, drive? }` |
-| `AuthenticatedFetch` | type | `(url, init?) => Promise<Response>` |
+| `ClientConfig` | type | `{ apiKey?, fetch?, apiUrl, drive? }` — one of `apiKey` / `fetch` required |
+| `AuthenticatedFetch` | type | `(url, init?) => Promise<Response>` — for the custom-`fetch` path |
 | `SdkTransport` | type | Advanced: custom transport interface |
 | `WorkflowJobHandle` | type | Job handle for submit/status/cancel |
 

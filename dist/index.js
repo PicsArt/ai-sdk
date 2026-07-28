@@ -8553,6 +8553,10 @@ function resolveModel(id) {
 }
 
 // src/client/transport.ts
+var GATEWAY_HEADERS = {
+  "platform": "api",
+  "X-Touchpoint": "sdk"
+};
 function resolveFetch(config) {
   if (config.fetch) return config.fetch;
   if (config.apiKey) {
@@ -8560,6 +8564,9 @@ function resolveFetch(config) {
     return (url, init) => {
       const headers = new Headers(init?.headers);
       headers.set("Authorization", `Bearer ${token}`);
+      for (const [name, value] of Object.entries(GATEWAY_HEADERS)) {
+        if (!headers.has(name)) headers.set(name, value);
+      }
       return globalThis.fetch(url, { ...init, headers });
     };
   }

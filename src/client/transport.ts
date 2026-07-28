@@ -1,9 +1,23 @@
 import type { AuthenticatedFetch, ClientConfig, SdkTransport } from './types.ts';
 
 /**
+ * Attribution headers the gateway requires on every request. The `apiKey` fetch
+ * sends these so a key alone is enough to reach the API; already-present values
+ * are left alone, so a caller-supplied header still wins.
+ *
+ * Callers on the custom-`fetch` path own their headers entirely — they must set
+ * these themselves (see `__tests__/e2e/helpers/ai-sdk-test-client.ts`).
+ */
+const GATEWAY_HEADERS: Record<string, string> = {
+  'platform': 'api',
+  'X-Touchpoint': 'sdk',
+};
+
+/**
  * Resolve the authenticated fetch the SDK uses for every request: the
  * caller-supplied `fetch` when present, otherwise a fetch built from `apiKey`
- * that adds `Authorization: Bearer <apiKey>` on top of the global `fetch`.
+ * that adds `Authorization: Bearer <apiKey>` plus the required gateway
+ * attribution headers on top of the global `fetch`.
  */
 export function resolveFetch(config: ClientConfig): AuthenticatedFetch {
   if (config.fetch) return config.fetch;
@@ -12,6 +26,9 @@ export function resolveFetch(config: ClientConfig): AuthenticatedFetch {
     return (url, init) => {
       const headers = new Headers(init?.headers);
       headers.set('Authorization', `Bearer ${token}`);
+      for (const [name, value] of Object.entries(GATEWAY_HEADERS)) {
+        if (!headers.has(name)) headers.set(name, value);
+      }
       return globalThis.fetch(url, { ...init, headers });
     };
   }

@@ -2,10 +2,9 @@
  * Release-tag tests (EAI-3) — offline, no API calls.
  *
  * Covers the `release` availability tier: the default visible set, opt-in
- * filtering via `release: [...]`, exposure on `model.meta()`, the shared
+ * filtering via `release: [...]`, exposure on `model.meta()`, and the shared
  * `isVisibleForReleases` predicate (with `disabled`/`deprecated` layered on
- * top), and that catalog.json carries the `release` tag for consumer-side
- * filtering (preview included — clients get everything and filter themselves).
+ * top).
  */
 import assert from 'node:assert';
 import { catalog } from '../../src/core/descriptors/model-accessor.ts';
@@ -93,20 +92,6 @@ for (const id of ['heygen-video-avatar', 'minimax-02-hd', 'kling-elements', 'ele
   assert(!allIds.has(id), `${id}: disabled model must stay hidden even when all releases are requested`);
 }
 
-// ── Public catalog.json: every model carries a valid release tag ──
-// preview IS published (tagged) so clients can fetch everything and filter.
-const catalogPath = new URL('../../src/generated/catalog.json', import.meta.url);
-const catalogJson = JSON.parse(
-  await (await import('node:fs/promises')).readFile(catalogPath, 'utf8'),
-) as { models: { id: string; release?: string }[] };
-for (const m of catalogJson.models) {
-  assert(
-    m.release !== undefined && (RELEASES as string[]).includes(m.release),
-    `catalog.json: ${m.id} has invalid/missing release "${m.release}"`,
-  );
-}
-
 console.log(
-  `release.test.ts: OK (${defaultAll.length} default-visible, ` +
-    `${previewOnly.length} preview, ${catalogJson.models.length} in public catalog)`,
+  `release.test.ts: OK (${defaultAll.length} default-visible, ${previewOnly.length} preview)`,
 );

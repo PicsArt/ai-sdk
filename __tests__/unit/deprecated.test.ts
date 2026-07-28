@@ -83,23 +83,6 @@ for (const m of Models.list({})) {
   }
 }
 
-// ── Public catalog JSON excludes both ─────────────────────────────
-//
-// specs/src/generated/catalog.json is what external SDK consumers read.
-// Neither retired nor operationally-disabled models should leak — calling
-// either would lead to an immediate failure or an unsupported result.
-const catalogPath = new URL('../../src/generated/catalog.json', import.meta.url);
-const catalogJson = JSON.parse(
-  await (await import('node:fs/promises')).readFile(catalogPath, 'utf8'),
-) as { models: { id: string }[] };
-const publishedIds = new Set(catalogJson.models.map((m) => m.id));
-for (const id of DEPRECATED_IDS) {
-  assert(!publishedIds.has(id), `public catalog.json must not include deprecated id ${id}`);
-}
-for (const id of DISABLED_IDS) {
-  assert(!publishedIds.has(id), `public catalog.json must not include disabled id ${id}`);
-}
-
 console.log(
-  `deprecated.test.ts: OK (${DEPRECATED_IDS.length} deprecated, ${DISABLED_IDS.length} disabled, ${publishedIds.size} in public catalog)`,
+  `deprecated.test.ts: OK (${DEPRECATED_IDS.length} deprecated, ${DISABLED_IDS.length} disabled)`,
 );

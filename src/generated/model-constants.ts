@@ -355,6 +355,8 @@ export const RunwayGen4Ref = 'runway-gen4-ref' as const;
 export const RunwayGen45 = 'runway-gen4.5' as const;
 /** Seed Audio — seedaudio (audio) */
 export const SeedAudio10 = 'seed-audio-1.0' as const;
+/** Seed Audio Multilingual — seedaudio (audio) */
+export const SeedAudio10Multilingual = 'seed-audio-1.0-multilingual' as const;
 /** Seedance 1.5 Pro — seedance (video) */
 /** @deprecated This model is retired (deprecated). */
 export const Seedance15Pro = 'seedance-1.5-pro' as const;
@@ -596,6 +598,7 @@ export const Models = {
   RunwayGen4Ref,
   RunwayGen45,
   SeedAudio10,
+  SeedAudio10Multilingual,
   Seedance15Pro,
   Seedance20,
   Seedance20Fast,

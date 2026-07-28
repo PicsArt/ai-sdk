@@ -1,6 +1,6 @@
 {
   "name": "@picsart/ai-sdk",
-  "version": "3.24.1",
+  "version": "3.25.0",
   "type": "module",
   "description": "Type-safe SDK for 100+ AI models — image, video, audio, and text generation with Picsart",
   "license": "MIT",
@@ -36,7 +36,6 @@
     "build:sdk": "npm run build:model-constants && npx tsup && node scripts/inline-dist-types.mjs && node scripts/write-dist-package.mjs",
     "build:model-constants": "node scripts/build-model-constants.mjs",
     "build:model-input-types": "tsx scripts/build-model-input-types.ts",
-    "build:models-catalog": "tsx scripts/build-models-catalog.ts",
     "bundle": "npm run build:sdk"
   },
   "dependencies": {

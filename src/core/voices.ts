@@ -353,10 +353,21 @@ export const ASYNC_VOICES: readonly VoiceOption[] = [
 // Predefined BytePlus "uranus_bigtts" (TTS 2.0) speaker ids, sent to the worker
 // as the reference `speaker`. Source: BytePlus Seed Audio docs. Deduped by id.
 // previewUrl is unavailable — the vendor docs don't expose preview audio.
+//
+// Split by what each model can actually speak. A voice only sounds right in its
+// own language, so listing Russian or Thai voices under a model that speaks only
+// English and Chinese is a dead end for the caller:
+//
+//   SEEDAUDIO_EN_ZH_VOICES  → seed-audio-1.0
+//   SEEDAUDIO_VOICES        → seed-audio-1.0-multilingual (both lists)
+//
+// The vendor ids are language-prefixed, so a new voice belongs in the first list
+// only when its id starts with `en_` or `zh_`.
 
 export const SEEDAUDIO_DEFAULT_VOICE_ID = 'en_male_tim_uranus_bigtts';
 
-export const SEEDAUDIO_VOICES: readonly VoiceOption[] = [
+/** English + Chinese voices — everything `seed-audio-1.0` can speak. */
+export const SEEDAUDIO_EN_ZH_VOICES: readonly VoiceOption[] = [
   { id: 'zh_female_vv_uranus_bigtts', name: 'Vivi', description: 'A youthful and vibrant female voice.', tags: ['Female', 'Multilingual'], provider: 'seedaudio' },
   { id: 'zh_female_xiaohe_uranus_bigtts', name: 'Mindy', description: 'A gentle, soft-spoken, and slightly mature female voice.', tags: ['Female', 'Multilingual'], provider: 'seedaudio' },
   { id: 'en_female_stokie_uranus_bigtts', name: 'Stokie', description: 'A trendy, casual, and expressive young female voice.', tags: ['Female', 'English'], provider: 'seedaudio' },
@@ -384,14 +395,6 @@ export const SEEDAUDIO_VOICES: readonly VoiceOption[] = [
   { id: 'zh_female_linjianvhai_uranus_bigtts', name: 'Pinky', description: 'A warm, friendly, and approachable young female voice.', tags: ['Female', 'Multilingual'], provider: 'seedaudio' },
   { id: 'zh_female_kiwi_uranus_bigtts', name: 'Sweety', description: 'A bright, cheerful, and modern young female voice.', tags: ['Female', 'Multilingual'], provider: 'seedaudio' },
   { id: 'zh_female_sajiaoxuemei_uranus_bigtts', name: 'Sandy', description: 'A very young, sweet, and playful female voice.', tags: ['Female', 'Multilingual'], provider: 'seedaudio' },
-  { id: 'de_male_seven_uranus_bigtts', name: 'Sven', description: 'A steady, clear, and confident male voice.', tags: ['Male', 'German'], provider: 'seedaudio' },
-  { id: 'jp_female_minimi_uranus_bigtts', name: 'Minimi', description: "A high-pitched, sweet, 'kawaii' young female voice.", tags: ['Female', 'Japanese'], provider: 'seedaudio' },
-  { id: 'fr_male_usseau_uranus_bigtts', name: 'Usseau', description: 'A sophisticated, crisp, and articulate male voice.', tags: ['Male', 'French'], provider: 'seedaudio' },
-  { id: 'es_male_felipe_uranus_bigtts', name: 'Felipe', description: 'An energetic, upbeat, and charismatic young male voice.', tags: ['Male', 'Spanish (MX)'], provider: 'seedaudio' },
-  { id: 'id_male_han_uranus_bigtts', name: 'Han', description: 'A modern, smooth, and friendly young adult male voice.', tags: ['Male', 'Indonesian'], provider: 'seedaudio' },
-  { id: 'pt_male_martins_uranus_bigtts', name: 'Martins', description: 'A charismatic, warm, and expressive male voice.', tags: ['Male', 'Portuguese (BR)'], provider: 'seedaudio' },
-  { id: 'it_male_enzo_uranus_bigtts', name: 'Enzo', description: 'An authentic, charismatic, and warm Italian male voice.', tags: ['Male', 'Italian'], provider: 'seedaudio' },
-  { id: 'kr_male_shane_uranus_bigtts', name: 'Jihoon', description: 'A polished, modern, and smooth Korean male voice.', tags: ['Male', 'Korean'], provider: 'seedaudio' },
   { id: 'zh_male_liufei_uranus_bigtts', name: 'Felix', description: 'A clear and energetic voice.', tags: ['Male', 'Chinese'], provider: 'seedaudio' },
   { id: 'zh_female_qingxinnvsheng_uranus_bigtts', name: 'Celeste', description: 'A fresh and clear female voice.', tags: ['Female', 'Chinese'], provider: 'seedaudio' },
   { id: 'zh_male_sunwukong_uranus_bigtts', name: 'Monkey King', description: 'A Monkey King character voice.', tags: ['Male', 'Chinese', 'Character'], provider: 'seedaudio' },
@@ -460,6 +463,22 @@ export const SEEDAUDIO_VOICES: readonly VoiceOption[] = [
   { id: 'en_female_xinwenjieshuonv_uranus_bigtts', name: 'Kayla', description: 'An enthusiastic, outgoing female student full of expressiveness.', tags: ['Female', 'English (US)', 'RolePlay'], provider: 'seedaudio' },
   { id: 'en_male_yangguangjieshuonan_uranus_bigtts', name: 'Dylan', description: 'A witty, humorous uncle with a vivid narrative style.', tags: ['Male', 'English (US)'], provider: 'seedaudio' },
   { id: 'en_female_zendaya_p1_uranus_bigtts', name: 'Zendaya', description: 'An easygoing, approachable older sister full of energy.', tags: ['Female', 'English (US)', 'Education'], provider: 'seedaudio' },
+];
+
+/**
+ * Voices for the remaining languages (Japanese, Korean, Spanish, German,
+ * French, Portuguese, Russian, Thai, Vietnamese, …). Usable only with
+ * `seed-audio-1.0-multilingual` — `seed-audio-1.0` cannot speak them.
+ */
+export const SEEDAUDIO_OTHER_LANGUAGE_VOICES: readonly VoiceOption[] = [
+  { id: 'de_male_seven_uranus_bigtts', name: 'Sven', description: 'A steady, clear, and confident male voice.', tags: ['Male', 'German'], provider: 'seedaudio' },
+  { id: 'jp_female_minimi_uranus_bigtts', name: 'Minimi', description: "A high-pitched, sweet, 'kawaii' young female voice.", tags: ['Female', 'Japanese'], provider: 'seedaudio' },
+  { id: 'fr_male_usseau_uranus_bigtts', name: 'Usseau', description: 'A sophisticated, crisp, and articulate male voice.', tags: ['Male', 'French'], provider: 'seedaudio' },
+  { id: 'es_male_felipe_uranus_bigtts', name: 'Felipe', description: 'An energetic, upbeat, and charismatic young male voice.', tags: ['Male', 'Spanish (MX)'], provider: 'seedaudio' },
+  { id: 'id_male_han_uranus_bigtts', name: 'Han', description: 'A modern, smooth, and friendly young adult male voice.', tags: ['Male', 'Indonesian'], provider: 'seedaudio' },
+  { id: 'pt_male_martins_uranus_bigtts', name: 'Martins', description: 'A charismatic, warm, and expressive male voice.', tags: ['Male', 'Portuguese (BR)'], provider: 'seedaudio' },
+  { id: 'it_male_enzo_uranus_bigtts', name: 'Enzo', description: 'An authentic, charismatic, and warm Italian male voice.', tags: ['Male', 'Italian'], provider: 'seedaudio' },
+  { id: 'kr_male_shane_uranus_bigtts', name: 'Jihoon', description: 'A polished, modern, and smooth Korean male voice.', tags: ['Male', 'Korean'], provider: 'seedaudio' },
   { id: 'ja_female_bv024_uranus_bigtts', name: 'Bonnie', description: 'A gentle, soft, warm female college student.', tags: ['Female', 'Japanese'], provider: 'seedaudio' },
   { id: 'ja_female_bv520_uranus_bigtts', name: 'Poppy', description: 'An energetic young woman with an anime-dubbing style.', tags: ['Female', 'Japanese', 'Dubbing'], provider: 'seedaudio' },
   { id: 'ja_female_bv521_uranus_bigtts', name: 'Aoi', description: 'A sweet, lively young woman with strong performance appeal.', tags: ['Female', 'Japanese', 'Entertainment'], provider: 'seedaudio' },
@@ -542,4 +561,10 @@ export const SEEDAUDIO_VOICES: readonly VoiceOption[] = [
   { id: 'vi_female_ruan_uranus_bigtts', name: 'Ruan', description: 'A steady, clear-minded, dignified, poised young woman.', tags: ['Female', 'Vietnamese'], provider: 'seedaudio' },
   { id: 'vi_female_wu_uranus_bigtts', name: 'Wu', description: 'A straightforward, outgoing young woman with a rational mindset.', tags: ['Female', 'Vietnamese'], provider: 'seedaudio' },
   { id: 'vi_male_wumg_uranus_bigtts', name: 'Wumg', description: 'A modest, patient, rigorous, meticulous young man.', tags: ['Male', 'Vietnamese'], provider: 'seedaudio' },
+];
+
+/** Every predefined voice — the full set `seed-audio-1.0-multilingual` supports. */
+export const SEEDAUDIO_VOICES: readonly VoiceOption[] = [
+  ...SEEDAUDIO_EN_ZH_VOICES,
+  ...SEEDAUDIO_OTHER_LANGUAGE_VOICES,
 ];

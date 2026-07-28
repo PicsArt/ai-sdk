@@ -4407,7 +4407,7 @@ var ASYNC_VOICES = [
   { id: "d7114790-534e-4007-b80d-6d176230553c", name: "Nellie", description: "Bold British-accented female voice with a slightly sharp, newscasting style. This voice delivers with clarity and confidence, ideal for news, reports, and formal announcements, ensuring a strong, professional presence while maintaining a sharp and impactful delivery.", tags: ["Female", "British (UK)", "Newscasting", "Informative/Educational"], provider: "async" }
 ];
 var SEEDAUDIO_DEFAULT_VOICE_ID = "en_male_tim_uranus_bigtts";
-var SEEDAUDIO_VOICES = [
+var SEEDAUDIO_EN_ZH_VOICES = [
   { id: "zh_female_vv_uranus_bigtts", name: "Vivi", description: "A youthful and vibrant female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
   { id: "zh_female_xiaohe_uranus_bigtts", name: "Mindy", description: "A gentle, soft-spoken, and slightly mature female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
   { id: "en_female_stokie_uranus_bigtts", name: "Stokie", description: "A trendy, casual, and expressive young female voice.", tags: ["Female", "English"], provider: "seedaudio" },
@@ -4435,14 +4435,6 @@ var SEEDAUDIO_VOICES = [
   { id: "zh_female_linjianvhai_uranus_bigtts", name: "Pinky", description: "A warm, friendly, and approachable young female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
   { id: "zh_female_kiwi_uranus_bigtts", name: "Sweety", description: "A bright, cheerful, and modern young female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
   { id: "zh_female_sajiaoxuemei_uranus_bigtts", name: "Sandy", description: "A very young, sweet, and playful female voice.", tags: ["Female", "Multilingual"], provider: "seedaudio" },
-  { id: "de_male_seven_uranus_bigtts", name: "Sven", description: "A steady, clear, and confident male voice.", tags: ["Male", "German"], provider: "seedaudio" },
-  { id: "jp_female_minimi_uranus_bigtts", name: "Minimi", description: "A high-pitched, sweet, 'kawaii' young female voice.", tags: ["Female", "Japanese"], provider: "seedaudio" },
-  { id: "fr_male_usseau_uranus_bigtts", name: "Usseau", description: "A sophisticated, crisp, and articulate male voice.", tags: ["Male", "French"], provider: "seedaudio" },
-  { id: "es_male_felipe_uranus_bigtts", name: "Felipe", description: "An energetic, upbeat, and charismatic young male voice.", tags: ["Male", "Spanish (MX)"], provider: "seedaudio" },
-  { id: "id_male_han_uranus_bigtts", name: "Han", description: "A modern, smooth, and friendly young adult male voice.", tags: ["Male", "Indonesian"], provider: "seedaudio" },
-  { id: "pt_male_martins_uranus_bigtts", name: "Martins", description: "A charismatic, warm, and expressive male voice.", tags: ["Male", "Portuguese (BR)"], provider: "seedaudio" },
-  { id: "it_male_enzo_uranus_bigtts", name: "Enzo", description: "An authentic, charismatic, and warm Italian male voice.", tags: ["Male", "Italian"], provider: "seedaudio" },
-  { id: "kr_male_shane_uranus_bigtts", name: "Jihoon", description: "A polished, modern, and smooth Korean male voice.", tags: ["Male", "Korean"], provider: "seedaudio" },
   { id: "zh_male_liufei_uranus_bigtts", name: "Felix", description: "A clear and energetic voice.", tags: ["Male", "Chinese"], provider: "seedaudio" },
   { id: "zh_female_qingxinnvsheng_uranus_bigtts", name: "Celeste", description: "A fresh and clear female voice.", tags: ["Female", "Chinese"], provider: "seedaudio" },
   { id: "zh_male_sunwukong_uranus_bigtts", name: "Monkey King", description: "A Monkey King character voice.", tags: ["Male", "Chinese", "Character"], provider: "seedaudio" },
@@ -4510,7 +4502,17 @@ var SEEDAUDIO_VOICES = [
   { id: "en_female_wenrouzhishijieshuonv_uranus_bigtts", name: "Megan", description: "A gentle, fun older sister sharing knowledge in a relaxed way.", tags: ["Female", "English (US)", "CustomerService"], provider: "seedaudio" },
   { id: "en_female_xinwenjieshuonv_uranus_bigtts", name: "Kayla", description: "An enthusiastic, outgoing female student full of expressiveness.", tags: ["Female", "English (US)", "RolePlay"], provider: "seedaudio" },
   { id: "en_male_yangguangjieshuonan_uranus_bigtts", name: "Dylan", description: "A witty, humorous uncle with a vivid narrative style.", tags: ["Male", "English (US)"], provider: "seedaudio" },
-  { id: "en_female_zendaya_p1_uranus_bigtts", name: "Zendaya", description: "An easygoing, approachable older sister full of energy.", tags: ["Female", "English (US)", "Education"], provider: "seedaudio" },
+  { id: "en_female_zendaya_p1_uranus_bigtts", name: "Zendaya", description: "An easygoing, approachable older sister full of energy.", tags: ["Female", "English (US)", "Education"], provider: "seedaudio" }
+];
+var SEEDAUDIO_OTHER_LANGUAGE_VOICES = [
+  { id: "de_male_seven_uranus_bigtts", name: "Sven", description: "A steady, clear, and confident male voice.", tags: ["Male", "German"], provider: "seedaudio" },
+  { id: "jp_female_minimi_uranus_bigtts", name: "Minimi", description: "A high-pitched, sweet, 'kawaii' young female voice.", tags: ["Female", "Japanese"], provider: "seedaudio" },
+  { id: "fr_male_usseau_uranus_bigtts", name: "Usseau", description: "A sophisticated, crisp, and articulate male voice.", tags: ["Male", "French"], provider: "seedaudio" },
+  { id: "es_male_felipe_uranus_bigtts", name: "Felipe", description: "An energetic, upbeat, and charismatic young male voice.", tags: ["Male", "Spanish (MX)"], provider: "seedaudio" },
+  { id: "id_male_han_uranus_bigtts", name: "Han", description: "A modern, smooth, and friendly young adult male voice.", tags: ["Male", "Indonesian"], provider: "seedaudio" },
+  { id: "pt_male_martins_uranus_bigtts", name: "Martins", description: "A charismatic, warm, and expressive male voice.", tags: ["Male", "Portuguese (BR)"], provider: "seedaudio" },
+  { id: "it_male_enzo_uranus_bigtts", name: "Enzo", description: "An authentic, charismatic, and warm Italian male voice.", tags: ["Male", "Italian"], provider: "seedaudio" },
+  { id: "kr_male_shane_uranus_bigtts", name: "Jihoon", description: "A polished, modern, and smooth Korean male voice.", tags: ["Male", "Korean"], provider: "seedaudio" },
   { id: "ja_female_bv024_uranus_bigtts", name: "Bonnie", description: "A gentle, soft, warm female college student.", tags: ["Female", "Japanese"], provider: "seedaudio" },
   { id: "ja_female_bv520_uranus_bigtts", name: "Poppy", description: "An energetic young woman with an anime-dubbing style.", tags: ["Female", "Japanese", "Dubbing"], provider: "seedaudio" },
   { id: "ja_female_bv521_uranus_bigtts", name: "Aoi", description: "A sweet, lively young woman with strong performance appeal.", tags: ["Female", "Japanese", "Entertainment"], provider: "seedaudio" },
@@ -4594,10 +4596,57 @@ var SEEDAUDIO_VOICES = [
   { id: "vi_female_wu_uranus_bigtts", name: "Wu", description: "A straightforward, outgoing young woman with a rational mindset.", tags: ["Female", "Vietnamese"], provider: "seedaudio" },
   { id: "vi_male_wumg_uranus_bigtts", name: "Wumg", description: "A modest, patient, rigorous, meticulous young man.", tags: ["Male", "Vietnamese"], provider: "seedaudio" }
 ];
+var SEEDAUDIO_VOICES = [
+  ...SEEDAUDIO_EN_ZH_VOICES,
+  ...SEEDAUDIO_OTHER_LANGUAGE_VOICES
+];
 
 // src/vendors/catalog/seedaudio.ts
 var REF_MUTEX_REASON = "A named voice and audio/image references cannot be combined.";
+var seedAudioParams = (voices) => ({
+  ...params.prompt({ maxLength: 3e3 }),
+  // Voice: a named BytePlus voice (default), OR clone from up to 3 reference
+  // audios, OR one image reference. The three are mutually exclusive; the
+  // payload builder prioritizes an uploaded reference over the named voice.
+  ...params.voiceId(voices, SEEDAUDIO_DEFAULT_VOICE_ID),
+  ...params.audioInputs(3, "Reference Audios"),
+  ...params.imageInput(1, "Reference Image", false),
+  // Output audio configuration (nested under `audio_config` at the wire).
+  ...p.enum("format", ["wav", "mp3", "pcm", "ogg_opus"], "wav", { label: "Format" }),
+  ...p.enum("sampleRate", [8e3, 16e3, 24e3, 32e3, 44100, 48e3], 44100, { label: "Sample Rate" }),
+  ...p.range("speechRate", -50, 100, 0, { label: "Speech Rate" }),
+  ...p.range("loudnessRate", -50, 100, 0, { label: "Loudness" }),
+  ...p.range("pitchRate", -12, 12, 0, { label: "Pitch" }),
+  ...p.boolean("aigcWatermark", false, "Watermark")
+});
+var refMutexConstraints = [
+  { when: { imageUrls: { exists: true } }, then: {
+    voiceId: { disabled: true, reason: REF_MUTEX_REASON },
+    audioUrls: { disabled: true, reason: REF_MUTEX_REASON }
+  } },
+  { when: { audioUrls: { exists: true } }, then: {
+    voiceId: { disabled: true, reason: REF_MUTEX_REASON },
+    imageUrls: { disabled: true, reason: REF_MUTEX_REASON }
+  } }
+];
 var { MODELS: MODELS15 } = defineModels("seedaudio", [
+  {
+    id: "seed-audio-1.0-multilingual",
+    name: "Seed Audio Multilingual",
+    addedAt: "2026-07-28",
+    workflow: "bytedance/text-to-speech",
+    estimatedTime: 15,
+    mode: "audio",
+    inputType: "tts",
+    description: "Synthesize natural speech in 20 languages \u2014 pick a named voice or clone one from a reference audio.",
+    features: [
+      feat("20 Languages", "characteristic"),
+      feat("Voice Cloning", "characteristic"),
+      feat("Reference Audio", "audio")
+    ],
+    paramConfig: seedAudioParams(SEEDAUDIO_VOICES),
+    constraints: refMutexConstraints
+  },
   {
     id: "seed-audio-1.0",
     name: "Seed Audio",
@@ -4606,37 +4655,10 @@ var { MODELS: MODELS15 } = defineModels("seedaudio", [
     estimatedTime: 15,
     mode: "audio",
     inputType: "tts",
-    description: "Synthesize natural speech from text \u2014 pick a named voice or clone one from a reference audio.",
+    description: "Synthesize natural English or Chinese speech \u2014 pick a named voice or clone one from a reference audio.",
     features: [feat("Voice Cloning", "characteristic"), feat("Reference Audio", "audio")],
-    paramConfig: {
-      ...params.prompt({ maxLength: 3e3 }),
-      // Voice: a named BytePlus voice (default), OR clone from up to 3 reference
-      // audios, OR one image reference. The three are mutually exclusive; the
-      // payload builder prioritizes an uploaded reference over the named voice.
-      ...params.voiceId(SEEDAUDIO_VOICES, SEEDAUDIO_DEFAULT_VOICE_ID),
-      ...params.audioInputs(3, "Reference Audios"),
-      ...params.imageInput(1, "Reference Image", false),
-      // Output audio configuration (nested under `audio_config` at the wire).
-      ...p.enum("format", ["wav", "mp3", "pcm", "ogg_opus"], "wav", { label: "Format" }),
-      ...p.enum("sampleRate", [8e3, 16e3, 24e3, 32e3, 44100, 48e3], 44100, { label: "Sample Rate" }),
-      ...p.range("speechRate", -50, 100, 0, { label: "Speech Rate" }),
-      ...p.range("loudnessRate", -50, 100, 0, { label: "Loudness" }),
-      ...p.range("pitchRate", -12, 12, 0, { label: "Pitch" }),
-      ...p.boolean("aigcWatermark", false, "Watermark")
-    },
-    // Backend rejects mixing reference kinds. Trigger the mutex off the uploads
-    // (voiceId always has a default, so it can't be a trigger) — an uploaded
-    // reference greys out the voice picker and the other upload slot.
-    constraints: [
-      { when: { imageUrls: { exists: true } }, then: {
-        voiceId: { disabled: true, reason: REF_MUTEX_REASON },
-        audioUrls: { disabled: true, reason: REF_MUTEX_REASON }
-      } },
-      { when: { audioUrls: { exists: true } }, then: {
-        voiceId: { disabled: true, reason: REF_MUTEX_REASON },
-        imageUrls: { disabled: true, reason: REF_MUTEX_REASON }
-      } }
-    ]
+    paramConfig: seedAudioParams(SEEDAUDIO_EN_ZH_VOICES),
+    constraints: refMutexConstraints
   }
 ]);
 
@@ -4651,10 +4673,10 @@ var assembleReferences = (input) => {
   }
   return [{ speaker: input.voiceId ?? SEEDAUDIO_DEFAULT_VOICE_ID }];
 };
-var buildSeedAudioPayload = (input) => {
+var buildSeedAudioPayload = (model) => (input) => {
   const references = assembleReferences(input);
   return {
-    model: "seed-audio-1.0",
+    model,
     text_prompt: input.prompt,
     // Apply the paramConfig defaults explicitly — a custom builder (unlike the
     // pass-through one) doesn't get them for free, and the advertised defaults
@@ -4674,7 +4696,8 @@ var buildSeedAudioPayload = (input) => {
   };
 };
 registerPayloads(MODELS15, {
-  "seed-audio-1.0": buildSeedAudioPayload
+  "seed-audio-1.0": buildSeedAudioPayload("seed-audio-1.0"),
+  "seed-audio-1.0-multilingual": buildSeedAudioPayload("seed-audio-1.0-multilingual")
 });
 
 // src/vendors/catalog/reve.ts
@@ -10338,6 +10361,7 @@ var RunwayGen4Aleph = "runway-gen4-aleph";
 var RunwayGen4Ref = "runway-gen4-ref";
 var RunwayGen45 = "runway-gen4.5";
 var SeedAudio10 = "seed-audio-1.0";
+var SeedAudio10Multilingual = "seed-audio-1.0-multilingual";
 var Seedance15Pro = "seedance-1.5-pro";
 var Seedance20 = "seedance-2.0";
 var Seedance20Fast = "seedance-2.0-fast";
@@ -10532,6 +10556,7 @@ var Models = {
   RunwayGen4Ref,
   RunwayGen45,
   SeedAudio10,
+  SeedAudio10Multilingual,
   Seedance15Pro,
   Seedance20,
   Seedance20Fast,

@@ -6,6 +6,9 @@
  * array. Reference kinds are mutually exclusive; an uploaded reference wins over
  * the named voice: image reference > reference audios > named voice (`speaker`).
  *
+ * Both variants share one builder — they differ only in the `model` sent (and
+ * therefore in which pricing entry the worker bills against).
+ *
  * NOTE: the return type is left inferred — the `bytedance/text-to-speech`
  * workflow is not published in `@picsart/workflows-types` yet (the worker MR is
  * not merged). Annotate the return as
@@ -16,7 +19,11 @@ import type { ModelInput } from '../../generated/model-input-types.ts';
 import { registerPayloads } from '../define.ts';
 import { MODELS } from './seedaudio.ts';
 
-type SeedAudioInput = ModelInput<'seed-audio-1.0'>;
+type SeedAudioModelId = 'seed-audio-1.0' | 'seed-audio-1.0-multilingual';
+
+// The two variants take the same inputs; the multilingual one just offers more
+// voiceId values, so its input type is the wider of the two.
+type SeedAudioInput = ModelInput<'seed-audio-1.0-multilingual'>;
 
 type Reference =
   | { speaker: string }
@@ -45,10 +52,10 @@ const assembleReferences = (input: SeedAudioInput): Reference[] | undefined => {
   return [{ speaker: input.voiceId ?? SEEDAUDIO_DEFAULT_VOICE_ID }];
 };
 
-const buildSeedAudioPayload = (input: SeedAudioInput) => {
+const buildSeedAudioPayload = (model: SeedAudioModelId) => (input: SeedAudioInput) => {
   const references = assembleReferences(input);
   return {
-    model: 'seed-audio-1.0',
+    model,
     text_prompt: input.prompt,
     // Apply the paramConfig defaults explicitly — a custom builder (unlike the
     // pass-through one) doesn't get them for free, and the advertised defaults
@@ -69,5 +76,6 @@ const buildSeedAudioPayload = (input: SeedAudioInput) => {
 };
 
 registerPayloads(MODELS, {
-  'seed-audio-1.0': buildSeedAudioPayload,
+  'seed-audio-1.0': buildSeedAudioPayload('seed-audio-1.0'),
+  'seed-audio-1.0-multilingual': buildSeedAudioPayload('seed-audio-1.0-multilingual'),
 });

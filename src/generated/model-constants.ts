@@ -134,6 +134,8 @@ export const HeygenVideoAvatar = 'heygen-video-avatar' as const;
 export const HunyuanV3 = 'hunyuan-v3' as const;
 /** Ideogram Character — ideogram (image) */
 export const IdeogramCharacter = 'ideogram-character' as const;
+/** Ideogram P-Image — ideogram (image) */
+export const IdeogramPImage = 'ideogram-p-image' as const;
 /** Ideogram v3 — ideogram (image) */
 export const IdeogramV3 = 'ideogram-v3' as const;
 /** Ideogram 4.0 — ideogram (image) */
@@ -496,6 +498,7 @@ export const Models = {
   HeygenVideoAvatar,
   HunyuanV3,
   IdeogramCharacter,
+  IdeogramPImage,
   IdeogramV3,
   IdeogramV4,
   Imagen40,

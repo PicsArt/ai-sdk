@@ -53,6 +53,13 @@ export const buildIdeogramV4GeneratePayload: PayloadBuilder = (ctx) => ({
   ...(ctx.enableCopyrightDetection ? { enable_copyright_detection: true } : {}),
 });
 
+/** T2I — flat params for the ideogram/p-image/generate pluggable workflow. */
+export const buildIdeogramPImagePayload: PayloadBuilder = (ctx) => ({
+  prompt: ctx.prompt,
+  resolution: ctx.resolution ?? '1024x1024',
+  rendering_speed: ctx.renderingSpeed ?? 'medium',
+});
+
 export const { MODELS } = defineModels('ideogram', [
   {
     id: 'ideogram-v4', name: 'Ideogram 4.0',
@@ -77,6 +84,37 @@ export const { MODELS } = defineModels('ideogram', [
         { id: 'QUALITY', label: 'Quality' },
       ], 'DEFAULT'),
       ...p.boolean('enableCopyrightDetection', false, 'Copyright Detection'),
+    },
+  },
+  {
+    id: 'ideogram-p-image', name: 'Ideogram P-Image',
+    release: 'preview',
+    addedAt: '2026-07-28',
+    workflow: 'ideogram/p-image/generate', buildPayload: buildIdeogramPImagePayload,
+    estimatedTime: 15,
+    mode: 'image', inputType: 't2i',
+    description: 'Tiered Ideogram text-to-image — pick a speed/quality tier from very-low (fastest) to high (max quality).',
+    features: [feat('Speed Tiers', 'style'), feat('Up to 2K', 'resolution')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.resolution([
+        // 2K bucket (~3–4 MP)
+        '2048x2048', '1440x2880', '2880x1440', '1664x2496', '2496x1664',
+        '1792x2240', '2240x1792', '1440x2560', '2560x1440', '1600x2560',
+        '2560x1600', '1728x2304', '2304x1728', '1296x3168', '3168x1296',
+        '1152x2944', '2944x1152', '1248x3328', '3328x1248', '1280x3072',
+        '3072x1280', '1024x3072', '3072x1024',
+        // 1K bucket (~1 MP)
+        '1024x1024', '896x1120', '1120x896', '864x1152', '1152x864',
+        '832x1248', '1248x832', '800x1280', '1280x800', '720x1280',
+        '1280x720', '720x1440', '1440x720',
+      ], '1024x1024'),
+      ...params.renderingSpeed([
+        { id: 'very-low', label: 'Very Low' },
+        { id: 'low', label: 'Low' },
+        { id: 'medium', label: 'Balanced' },
+        { id: 'high', label: 'Quality' },
+      ], 'medium'),
     },
   },
   {

@@ -409,6 +409,11 @@ type ModelInputById = {
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         imageUrls: [string, ...string[]];
     };
+    "ideogram-p-image": {
+        prompt: string;
+        resolution?: "2048x2048" | "1440x2880" | "2880x1440" | "1664x2496" | "2496x1664" | "1792x2240" | "2240x1792" | "1440x2560" | "2560x1440" | "1600x2560" | "2560x1600" | "1728x2304" | "2304x1728" | "1296x3168" | "3168x1296" | "1152x2944" | "2944x1152" | "1248x3328" | "3328x1248" | "1280x3072" | "3072x1280" | "1024x3072" | "3072x1024" | "1024x1024" | "896x1120" | "1120x896" | "864x1152" | "1152x864" | "832x1248" | "1248x832" | "800x1280" | "1280x800" | "720x1280" | "1280x720" | "720x1440" | "1440x720";
+        renderingSpeed?: "very-low" | "low" | "medium" | "high";
+    };
     "ideogram-v3": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "3:4" | "4:3";
@@ -2185,6 +2190,7 @@ declare const Models: {
     readonly HeygenVideoAvatar: "heygen-video-avatar";
     readonly HunyuanV3: "hunyuan-v3";
     readonly IdeogramCharacter: "ideogram-character";
+    readonly IdeogramPImage: "ideogram-p-image";
     readonly IdeogramV3: "ideogram-v3";
     readonly IdeogramV4: "ideogram-v4";
     readonly Imagen40: "imagen-4.0";

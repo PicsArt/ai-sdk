@@ -17,6 +17,9 @@ import { Model } from '../core/descriptors/model-accessor.ts';
 export const AsyncFlashV1 = 'async-flash-v1' as const;
 /** ByteDance OmniHuman — bytedance (video) */
 export const BytedanceOmnihumanV15 = 'bytedance-omnihuman-v1.5' as const;
+/** ByteDance Video Enhance — bytedance (video) */
+/** @deprecated This model is currently unavailable (disabled). */
+export const BytedanceVideoEnhance = 'bytedance-video-enhance' as const;
 /** ByteDance Upscaler — bytedance (video) */
 export const BytedanceVideoUpscaler = 'bytedance-video-upscaler' as const;
 /** Claude Haiku 4.5 — anthropic (text) */
@@ -441,6 +444,7 @@ interface ModelFilter { mode?: GenerationMode; provider?: string }
 export const Models = {
   AsyncFlashV1,
   BytedanceOmnihumanV15,
+  BytedanceVideoEnhance,
   BytedanceVideoUpscaler,
   ClaudeHaiku45,
   ClaudeOpus48,

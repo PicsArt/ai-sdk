@@ -2652,6 +2652,22 @@ var { MODELS: MODELS5 } = defineModels("ovi", [
 ]);
 
 // src/vendors/catalog/bytedance.ts
+var BYTEDANCE_ENHANCE_RESOLUTION_OPTIONS = [
+  "source",
+  "720p",
+  "1080p",
+  "2k",
+  "4k",
+  "8k"
+];
+var BYTEDANCE_ENHANCE_FPS_OPTIONS = [30, 60, 120];
+var BYTEDANCE_ENHANCE_SCENE_OPTIONS = [
+  "common",
+  "ugc",
+  "short_series",
+  "aigc",
+  "old_film"
+];
 var buildBytedanceUpscalerPayload = (ctx) => ({
   video_url: ctx.videoUrl,
   target_resolution: "1080p"
@@ -2694,8 +2710,66 @@ var { MODELS: MODELS6 } = defineModels("bytedance", [
       ...params.imageInput(1, "Portrait Image", true),
       ...params.audioInput("Audio Track", true)
     }
+  },
+  {
+    id: "bytedance-video-enhance",
+    name: "ByteDance Video Enhance",
+    addedAt: "2026-07-29",
+    workflow: "bytedance/video-enhance",
+    // Measured on the live API: 303s end-to-end for a 5s 720p→1080p@60fps
+    // professional run. Wall time scales with source duration, so this is a
+    // representative short-clip figure, not a ceiling.
+    estimatedTime: 300,
+    mode: "video",
+    inputType: "v2v",
+    // The pa-bytedance-pluggable-worker MR adding this task is still open, so
+    // the workflow is not deployed. Flip this off once the worker ships.
+    disabled: true,
+    description: "Denoise, color-correct and super-resolve existing footage up to 8K, with frame-rate conversion.",
+    features: [feat("Video Required", "input"), feat("Up to 8K", "resolution"), feat("Enhance", "quality")],
+    paramConfig: {
+      ...params.videoInput("Source Video", "asset", true),
+      ...p.quality(["standard", "professional"], "standard"),
+      ...p.enum("resolution", [...BYTEDANCE_ENHANCE_RESOLUTION_OPTIONS], "source"),
+      // Always sent — the backend rejects a request it cannot price, and the
+      // source frame rate is not discoverable from file metadata.
+      ...p.enum("fps", [...BYTEDANCE_ENHANCE_FPS_OPTIONS], 30),
+      ...p.enum("scene", [...BYTEDANCE_ENHANCE_SCENE_OPTIONS], "common"),
+      ...p.enum("bitrateLevel", ["low", "medium", "high"], "medium")
+    },
+    constraints: [
+      {
+        when: { quality: { is: "professional" } },
+        then: { scene: { disabled: true, reason: "Scene presets only apply to the standard version" } }
+      }
+    ]
   }
 ]);
+
+// src/vendors/catalog/bytedance.payloads.ts
+var DEFAULT_TOOL_VERSION = "standard";
+var buildBytedanceVideoEnhancePayload = (input) => {
+  const toolVersion = input.quality ?? DEFAULT_TOOL_VERSION;
+  return {
+    video_url: input.videoUrl,
+    tool_version: toolVersion,
+    bitrate_level: input.bitrateLevel ?? "medium",
+    // Always sent: the backend resolves the billing tier before generating and
+    // rejects the request (`billing_undetermined`) when the output frame rate is
+    // unknown — it cannot read the source frame rate from file metadata.
+    fps: input.fps ?? 30,
+    // `source` is the SDK-only sentinel for "keep the source resolution"; the
+    // backend expresses that by omitting the field. Sending an explicit tier
+    // instead would silently rescale (and reprice) every request.
+    ...input.resolution && input.resolution !== "source" ? { resolution: input.resolution } : {},
+    // The vendor ignores `scene` unless tool_version is standard, and the
+    // backend validator rejects the combination outright.
+    ...input.scene && toolVersion === DEFAULT_TOOL_VERSION ? { scene: input.scene } : {}
+  };
+};
+registerPayloads(MODELS6, {
+  "bytedance-video-enhance": buildBytedanceVideoEnhancePayload
+});
 
 // src/vendors/catalog/videography.ts
 var buildVideographyPayload = (ctx) => ({
@@ -10269,6 +10343,7 @@ var catalog = {
 // src/generated/model-constants.ts
 var AsyncFlashV1 = "async-flash-v1";
 var BytedanceOmnihumanV15 = "bytedance-omnihuman-v1.5";
+var BytedanceVideoEnhance = "bytedance-video-enhance";
 var BytedanceVideoUpscaler = "bytedance-video-upscaler";
 var ClaudeHaiku45 = "claude-haiku-4-5";
 var ClaudeOpus48 = "claude-opus-4-8";
@@ -10465,6 +10540,7 @@ var Wan27VideoEdit = "wan-2.7-video-edit";
 var Models = {
   AsyncFlashV1,
   BytedanceOmnihumanV15,
+  BytedanceVideoEnhance,
   BytedanceVideoUpscaler,
   ClaudeHaiku45,
   ClaudeOpus48,

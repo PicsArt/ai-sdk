@@ -69,6 +69,14 @@ type ModelInputById = {
         imageUrls: [string, ...string[]];
         audioUrl: string;
     };
+    "bytedance-video-enhance": {
+        videoUrl: string;
+        quality?: "standard" | "professional";
+        resolution?: "source" | "720p" | "1080p" | "2k" | "4k" | "8k";
+        fps?: 30 | 60 | 120;
+        scene?: "common" | "ugc" | "short_series" | "aigc" | "old_film";
+        bitrateLevel?: "low" | "medium" | "high";
+    };
     "bytedance-video-upscaler": {
         videoUrl: string;
     };
@@ -2133,6 +2141,7 @@ interface ModelFilter {
 declare const Models: {
     readonly AsyncFlashV1: "async-flash-v1";
     readonly BytedanceOmnihumanV15: "bytedance-omnihuman-v1.5";
+    readonly BytedanceVideoEnhance: "bytedance-video-enhance";
     readonly BytedanceVideoUpscaler: "bytedance-video-upscaler";
     readonly ClaudeHaiku45: "claude-haiku-4-5";
     readonly ClaudeOpus48: "claude-opus-4-8";

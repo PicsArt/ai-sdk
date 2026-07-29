@@ -8,6 +8,7 @@ import { MODELS as creatifyMODELS } from './creatify.ts';
 import { MODELS as veedMODELS } from './veed.ts';
 import { MODELS as oviMODELS } from './ovi.ts';
 import { MODELS as bytedanceMODELS } from './bytedance.ts';
+import './bytedance.payloads.ts'; // registers the video-enhance payload builder after model definitions
 import { MODELS as videographyMODELS } from './videography.ts';
 import { MODELS as hunyuanMODELS } from './hunyuan.ts';
 import { MODELS as hailuoMODELS } from './hailuo.ts';

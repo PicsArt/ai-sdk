@@ -118,6 +118,7 @@ export type ModelInputById = {
   "picsart-change-bg": { imageUrls: [string, ...string[]]; prompt: string; };
   "picsart-enhance": { imageUrls: [string, ...string[]]; };
   "picsart-flux-2-klein": { prompt: string; aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4"; imageUrls?: string[]; };
+  "picsart-hidream-t2i": { prompt: string; aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4"; };
   "picsart-qwen-image-edit": { imageUrls: [string, ...string[]]; prompt: string; negativePrompt?: string; };
   "picsart-qwen-image-edit-angle": { imageUrls: [string, ...string[]]; prompt: string; negativePrompt?: string; numInferenceSteps?: number; cfgScale?: number; loraWeights?: { lora_angle?: number; lora_angle_lighting?: number }; };
   "picsart-qwen-makeup": { imageUrls: [string, ...string[]]; prompt: string; negativePrompt?: string; };

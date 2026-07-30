@@ -810,6 +810,10 @@ type ModelInputById = {
         aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4";
         imageUrls?: string[];
     };
+    "picsart-hidream-t2i": {
+        prompt: string;
+        aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4";
+    };
     "picsart-qwen-image-edit": {
         imageUrls: [string, ...string[]];
         prompt: string;
@@ -2252,6 +2256,7 @@ declare const Models: {
     readonly PicsartChangeBg: "picsart-change-bg";
     readonly PicsartEnhance: "picsart-enhance";
     readonly PicsartFlux2Klein: "picsart-flux-2-klein";
+    readonly PicsartHidreamT2i: "picsart-hidream-t2i";
     readonly PicsartQwenImageEdit: "picsart-qwen-image-edit";
     readonly PicsartQwenImageEditAngle: "picsart-qwen-image-edit-angle";
     readonly PicsartQwenMakeup: "picsart-qwen-makeup";

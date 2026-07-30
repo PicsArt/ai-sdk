@@ -255,6 +255,8 @@ export const PicsartChangeBg = 'picsart-change-bg' as const;
 export const PicsartEnhance = 'picsart-enhance' as const;
 /** Flux 2 Klein 4B — picsart (image) */
 export const PicsartFlux2Klein = 'picsart-flux-2-klein' as const;
+/** Picsart HiDream T2I — picsart (image) */
+export const PicsartHidreamT2i = 'picsart-hidream-t2i' as const;
 /** Picsart Image Edit — picsart (image) */
 export const PicsartQwenImageEdit = 'picsart-qwen-image-edit' as const;
 /** Picsart Angle Change — picsart (image) */
@@ -555,6 +557,7 @@ export const Models = {
   PicsartChangeBg,
   PicsartEnhance,
   PicsartFlux2Klein,
+  PicsartHidreamT2i,
   PicsartQwenImageEdit,
   PicsartQwenImageEditAngle,
   PicsartQwenMakeup,

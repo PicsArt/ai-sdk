@@ -7775,6 +7775,27 @@ var { MODELS: MODELS32 } = defineModels("picsart", [
       ...params.prompt(),
       ...params.aspectRatio(Object.keys(SANA_AR_TO_SIZE), "1:1")
     }
+  },
+  {
+    id: "picsart-hidream-t2i",
+    name: "Picsart HiDream T2I",
+    addedAt: "2026-07-29",
+    workflow: "pcp/v1/hidream-t2i",
+    estimatedTime: 7,
+    // measured on the backend service; p95 ~6.5s
+    mode: "image",
+    inputType: "t2i",
+    release: "preview",
+    description: "Fast text-to-image generation powered by HiDream-Image-O1",
+    features: [feat("Text-to-Image", "input")],
+    paramConfig: {
+      ...params.prompt(),
+      // The worker accepts any "W:H"; this list mirrors what Flux 2 Pro exposes.
+      // Deliberately not derived from FLUX_AR_TO_SIZE: HiDream passes the ratio
+      // straight through to the task, so its options must not drift with changes
+      // to Flux's ratio-to-size map.
+      ...params.aspectRatio(["1:1", "5:3", "3:5", "4:3", "3:4"], "1:1")
+    }
   }
 ]);
 
@@ -10454,6 +10475,7 @@ var Ovi = "ovi";
 var PicsartChangeBg = "picsart-change-bg";
 var PicsartEnhance = "picsart-enhance";
 var PicsartFlux2Klein = "picsart-flux-2-klein";
+var PicsartHidreamT2i = "picsart-hidream-t2i";
 var PicsartQwenImageEdit = "picsart-qwen-image-edit";
 var PicsartQwenImageEditAngle = "picsart-qwen-image-edit-angle";
 var PicsartQwenMakeup = "picsart-qwen-makeup";
@@ -10651,6 +10673,7 @@ var Models = {
   PicsartChangeBg,
   PicsartEnhance,
   PicsartFlux2Klein,
+  PicsartHidreamT2i,
   PicsartQwenImageEdit,
   PicsartQwenImageEditAngle,
   PicsartQwenMakeup,

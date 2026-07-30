@@ -149,7 +149,7 @@ export interface ModelMeta {
   readonly features: ModelFeature[];
   readonly badges: BadgeType[];
   readonly provider: ProviderInfo;
-  /** Release / availability tier (EAI-3). Absent on the definition ⇒ `'production'`. */
+  /** Release / availability tier. Absent on the definition ⇒ `'production'`. */
   readonly release: ReleaseTag;
 }
 

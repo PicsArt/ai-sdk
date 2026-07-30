@@ -48,8 +48,8 @@ interface AppModelFields {
   constraints?: Constraint[];
   badge?: BadgeType[];
   /**
-   * Release / availability tier (EAI-3). Absent ⇒ `'production'`. Set
-   * `'preview'` for stage-only models and `'general-availability'` for
+   * Release / availability tier. Absent ⇒ `'production'`. Set
+   * `'preview'` for pre-release models and `'general-availability'` for
    * enterprise-ready ones. See `ModelDefinition.release`.
    */
   release?: ReleaseTag;

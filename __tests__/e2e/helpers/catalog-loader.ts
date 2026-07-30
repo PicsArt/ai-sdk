@@ -3,8 +3,8 @@
  * entries for the OPTIONS matrix harness. Single source of truth is the SDK
  * catalog itself; called with no filter it returns every enabled model.
  *
- * Ported from ai-toolkit; the playground-app filter (`playgroundFilteredModels`)
- * was dropped — it doesn't exist in this repo.
+ * Ported from an earlier in-house harness; its playground-app filter
+ * (`playgroundFilteredModels`) was dropped — it doesn't exist in this repo.
  */
 import { ALL_MODELS, getModelsByMode, isVisibleForReleases } from '../../../src';
 import type { ModelDefinition, GenerationMode } from '../../../src';

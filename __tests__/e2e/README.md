@@ -12,18 +12,18 @@ Two live suites (`__tests__/e2e/*.e2e.ts`), run via `npm run test:e2e`:
 
 Pre-flights every model through the SDK's own `client.getCredits(id, ctx)` — the
 real consumer path: `resolveModel → prepareRequest (buildPayload +
-workflow/editWorkflow selection) → /options`. It replaces the 28 per-vendor
-options test files from ai-toolkit — `loadCatalog()` with no filter already
-returns the whole catalog, and `node:test` groups output per model id, so new
-vendors/models need **no** test changes.
+workflow/editWorkflow selection) → /options`. It is catalog-driven rather than
+per-vendor: `loadCatalog()` with no filter already returns the whole catalog, and
+`node:test` groups output per model id, so new vendors/models need **no** test
+changes.
 
 Both suites are **live**, kept separate from the unit suite:
 
 - The unit runner (`test:unit` → `test:sdk`) globs `__tests__/unit/*.test.ts`.
   These are `__tests__/e2e/*.e2e.ts`, run via their own `test:e2e` script.
 - **CI runs them** as a dedicated step in the `test` job (`npm run test:e2e`). That
-  step needs a `PICSART_TOKEN` CI/CD variable; it targets staging by default
-  (`PICSART_API_URL` to override).
+  step needs a `PICSART_TOKEN` credential and sets `PICSART_API_URL` to the
+  gateway it should target.
 - They are also type-checked by CI — they live under the package `tsconfig`
   (`include: ["./**/*.ts"]`), so a type error here fails CI.
 - They **require** `PICSART_TOKEN` — the run **fails** without it (never silently
@@ -39,10 +39,10 @@ an `editWorkflow`:
    and calls `/options`.
 2. credits `> 0` (pricing wired; `>= 0` for free tools).
 
-We intentionally **don't** cross-check pricing against `/shop/subscription/features`:
-the gateway derives `credits` from that same data, so a credits-vs-shop mismatch
-isn't a reachable failure mode. The matrix still varies the pricing-relevant params
-so every tier's `/options` path is exercised.
+We intentionally **don't** cross-check the returned `credits` against the gateway's
+own pricing catalogue: the gateway derives `credits` from that same data, so a
+mismatch isn't a reachable failure mode. The matrix still varies the
+pricing-relevant params so every tier's `/options` path is exercised.
 
 `/options` is pre-flight only — **no generation runs and no credits are consumed.**
 
@@ -70,8 +70,8 @@ a `.env.local` file at the repo root (auto-loaded) or an exported env var:
 cp .env.example .env.local
 $EDITOR .env.local                # PICSART_TOKEN=...  (plain KEY=VALUE, no `export`)
 
-npm run test:e2e                                          # staging gateway (default), whole catalog
-PICSART_API_URL=https://api.picsart.com npm run test:e2e  # prod gateway
+npm run test:e2e                                          # default gateway, whole catalog
+PICSART_API_URL=https://…  npm run test:e2e               # pick a different gateway
 
 # scope to a single model (loads only that model from the catalog):
 TEST_MODEL_ID=flux-2-pro npm run test:e2e
@@ -93,13 +93,14 @@ fails (non-zero exit), it does not skip.
 
 - **Zero-credit tools:** providers in `ZERO_CREDIT_PROVIDERS` (currently
   `picsart`) and ids in `ZERO_CREDIT_MODEL_IDS` are asserted `>= 0`; everything
-  else must be `> 0`. This replaces ai-toolkit's divergent `picsart.options.test.ts`
-  without a per-vendor file. If a `freeTier`/zero-credit flag is ever added to the
+  else must be `> 0`. This keeps the zero-credit case in the shared matrix rather
+  than a per-vendor file. If a `freeTier`/zero-credit flag is ever added to the
   model metadata, drive the assertion off that instead.
 - **Excluding a model:** add its id to `DISABLED_TEST_MODELS` in `helpers/catalog-loader.ts`
   with a reason.
-- Failure modes: a 404 from `/options` → the pluggable worker isn't deployed on
-  that stage. `getCredits returned null` / `credits should be > 0` → the
-  pricing-service entry for that `modelId` is missing — a backend/pricing-team task.
-  A validation throw from `getCredits` means the model's `paramConfig`/payload
-  builder produced input the contract rejects — a real SDK bug worth fixing.
+- Failure modes: a 404 from `/options` → the model's workflow isn't deployed on
+  the gateway being targeted. `getCredits returned null` / `credits should be > 0`
+  → that `modelId` has no pricing entry configured yet; both are backend-side, not
+  SDK bugs. A validation throw from `getCredits` means the model's
+  `paramConfig`/payload builder produced input the contract rejects — a real SDK
+  bug worth fixing.

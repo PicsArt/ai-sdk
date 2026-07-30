@@ -1,8 +1,8 @@
 /**
  * Recraft — single source of truth.
  *
- * Uses the `recraft/v1/images/generations` pluggable workflow (pa-recraft-pluggable-worker).
- * Payload fields go directly into RecraftImagesCommand — no modelOptions wrapper.
+ * Uses the `recraft/v1/images/generations` workflow. Payload fields go directly
+ * into RecraftImagesCommand — no modelOptions wrapper.
  *
  * Model enum values (RecraftImagesCommand.model):
  *   recraftv4_1 / recraftv4_1_pro / recraftv4_1_utility / recraftv4_1_utility_pro

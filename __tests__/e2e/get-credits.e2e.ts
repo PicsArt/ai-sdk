@@ -1,11 +1,11 @@
 /**
  * OPTIONS matrix e2e — ONE test for the whole catalog (all vendors).
  *
- * This replaces ai-toolkit's 28 per-vendor options test files. They were
- * byte-identical except the `loadCatalog({ vendor })` argument; `loadCatalog()`
- * with no filter already returns every enabled model, and node:test groups
- * output per model id. New vendors/models need zero changes here — they just
- * appear once they're in the SDK catalog.
+ * This replaces the 28 per-vendor options test files an earlier harness carried.
+ * They were byte-identical except the `loadCatalog({ vendor })` argument;
+ * `loadCatalog()` with no filter already returns every enabled model, and
+ * node:test groups output per model id. New vendors/models need zero changes
+ * here — they just appear once they're in the SDK catalog.
  *
  * LIVE test — hits the gateway's /options pre-flight (no generation, no credits
  * consumed). It is a separate suite from the unit tests: the unit runner globs
@@ -27,8 +27,8 @@
  *   1. getCredits resolves + prices the request (SDK builds payload, calls /options)
  *   2. credits is present (not null). A present-but-0 price is fine (free tools).
  *
- * We deliberately do NOT re-check pricing against /shop/subscription/features:
- * the gateway computes credits from that same source, so a credits-vs-shop
+ * We deliberately do NOT re-check the returned credits against the gateway's own
+ * pricing catalogue: the gateway computes credits from that same source, so a
  * mismatch isn't a reachable failure mode. The matrix still varies the
  * pricing-relevant params so every tier's OPTIONS path is exercised.
  */

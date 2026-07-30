@@ -37,9 +37,9 @@ export const { MODELS } = defineModels('seedream', [
     workflow: 'seedream', buildPayload: buildSeedream50ProPayload,
     estimatedTime: { '1K': 20, '2K': 35 },
     mode: 'image', inputType: 't2i',
-    // Backend (pa-bytedance-pluggable-worker) gates 5.0-pro to 1K/2K — it
-    // rejects 3K/4K ("not supported by model seedream_5_0_pro"). Single-image
-    // only (no group/sequential), up to 10 reference images.
+    // The backend gates 5.0-pro to 1K/2K — it rejects 3K/4K ("not supported by
+    // model seedream_5_0_pro"). Single-image only (no group/sequential), up to
+    // 10 reference images.
     description: 'Top-tier single-image generation with up to 10 reference images and 2K detail.',
     features: [feat('Multi-Image Input', 'input'), feat('2K', 'resolution')],
     // Single-image only (no sequential/batch) → no `count` param, unlike the V2 models.
@@ -57,9 +57,9 @@ export const { MODELS } = defineModels('seedream', [
     workflow: 'seedream', buildPayload: buildSeedream50LitePayload,
     estimatedTime: { '2K': 22, '3K': 44 },
     mode: 'image', inputType: 't2i', badge: ['popular'],
-    // Backend (pa-bytedance-pluggable-worker) gates 5.0-lite to 2K/3K — it
-    // rejects 4K ("not supported by model seedream_5_0_lite") even though the
-    // SeedreamResolution enum defines a 4K member. Boundary-verified 2026-05-25.
+    // The backend gates 5.0-lite to 2K/3K — it rejects 4K ("not supported by
+    // model seedream_5_0_lite") even though the SeedreamResolution enum defines
+    // a 4K member. Boundary-verified 2026-05-25.
     description: 'Speedy 3K output with negative prompt and dual-image input support.',
     features: [feat('Multi-Image Input', 'input'), feat('3K', 'resolution')],
     paramConfig: {

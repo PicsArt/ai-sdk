@@ -1,5 +1,5 @@
 /**
- * Release-tag tests (EAI-3) — offline, no API calls.
+ * Release-tag tests — offline, no API calls.
  *
  * Covers the `release` availability tier: the default visible set, opt-in
  * filtering via `release: [...]`, exposure on `model.meta()`, and the shared

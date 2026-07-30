@@ -12,10 +12,9 @@ import { MODELS } from './elevenlabs.ts';
 type MusicInput = ModelInput<'elevenlabs-music-v2'>;
 
 // TODO: annotate the return as WorkflowTypes['elevenlabs/v1/music-generation']['params']
-// once the music-generation workflow ships in @picsart/workflows-types. It is not
-// present as of 1.1.60 — pa-elevenlabs-pluggable-worker's feat/music-generation branch
-// is not yet merged. Until then the return is inferred, so backend command drift for
-// music_length_seconds / force_instrumental is not compile-checked.
+// once the music-generation workflow ships in @picsart/workflows-types — it is not
+// present as of 1.1.60. Until then the return is inferred, so backend command drift
+// for music_length_seconds / force_instrumental is not compile-checked.
 const buildElevenLabsMusicPayload = (input: MusicInput) => ({
   prompt: input.prompt,
   music_length_seconds: input.duration ?? 30,

@@ -1,9 +1,9 @@
 /**
  * Catalog integrity tests — offline, no API calls.
  *
- * Ported from ai-toolkit (tests/api/integrity/catalog.test.ts). Rewritten from
- * vitest to this repo's `node:assert` + `tsx` convention (see deprecated.test.ts).
- * Rule numbers are kept aligned with the ai-toolkit source for cross-repo sync.
+ * Ported from an earlier in-house integrity suite, rewritten from vitest to this
+ * repo's `node:assert` + `tsx` convention (see deprecated.test.ts). Rule numbers
+ * are kept aligned with that original source for cross-repo sync.
  *
  * Rules:
  *  1. All enabled async models have estimatedTime

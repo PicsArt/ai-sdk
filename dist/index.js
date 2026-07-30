@@ -2842,6 +2842,21 @@ var buildI2V = (withDuration) => (ctx) => ({
   ...ctx.enhancePrompt !== void 0 ? { prompt_optimizer: ctx.enhancePrompt } : {},
   ...withDuration && ctx.duration ? { duration: String(ctx.duration) } : {}
 });
+var buildMinimaxH3 = (ctx) => {
+  const content = [{ type: "text", text: ctx.prompt }];
+  if (ctx.startFrame) content.push({ type: "image_url", image_url: { url: ctx.startFrame }, role: "first_frame" });
+  if (ctx.endFrame) content.push({ type: "image_url", image_url: { url: ctx.endFrame }, role: "last_frame" });
+  for (const url of ctx.imageUrls ?? []) content.push({ type: "image_url", image_url: { url }, role: "reference_image" });
+  for (const url of ctx.videoUrls ?? []) content.push({ type: "video_url", video_url: { url }, role: "reference_video" });
+  for (const url of ctx.audioUrls ?? []) content.push({ type: "audio_url", audio_url: { url }, role: "reference_audio" });
+  return {
+    model: "MiniMax-H3",
+    content,
+    resolution: "2K",
+    ...ctx.duration ? { duration: ctx.duration } : {},
+    ...ctx.aspectRatio ? { ratio: ctx.aspectRatio } : {}
+  };
+};
 var base = {
   mode: "video"
 };
@@ -2922,6 +2937,36 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
       ...params.prompt(),
       ...params.enhancePrompt(),
       ...params.imageInput(1, "Start Image", true)
+    }
+  },
+  {
+    ...base,
+    id: "hailuo-03",
+    name: "Hailuo 03",
+    modelId: "minimax-h3",
+    addedAt: "2026-07-30",
+    inputType: "t2v",
+    workflow: "minimax/v2/video-generation",
+    buildPayload: buildMinimaxH3,
+    estimatedTime: 300,
+    release: "preview",
+    description: "MiniMax H3 2K video from text, start/last frame, or image/video/audio references.",
+    features: [
+      feat("Start Frame", "frame"),
+      feat("End Frame", "frame"),
+      feat("Reference Video", "input"),
+      feat("2K", "resolution"),
+      feat("15 sec", "duration")
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.startFrame(),
+      ...params.endFrame(),
+      ...params.imageInput(3, "Reference Images", false),
+      ...params.videoInputs(1, "Reference Videos", false),
+      ...params.audioInputs(1, "Reference Audios", false),
+      ...params.duration([5, 10, 15]),
+      ...p.aspectRatio(["adaptive", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "adaptive")
     }
   }
 ]);
@@ -3422,7 +3467,7 @@ var { MODELS: MODELS11 } = defineModels("luma", [
   },
   // ── Ray 3.2 (early access) — buildPayload registered in luma.payloads.ts ──
   {
-    // modelId defaults to id ('luma-ray-3.2') — matches the pricing-service key.
+    // modelId defaults to id ('luma-ray-3.2') — matches the backend pricing key.
     id: "luma-ray-3.2",
     name: "Luma Ray 3.2",
     addedAt: "2026-06-11",
@@ -4079,9 +4124,9 @@ var { MODELS: MODELS14 } = defineModels("seedream", [
     estimatedTime: { "1K": 20, "2K": 35 },
     mode: "image",
     inputType: "t2i",
-    // Backend (pa-bytedance-pluggable-worker) gates 5.0-pro to 1K/2K — it
-    // rejects 3K/4K ("not supported by model seedream_5_0_pro"). Single-image
-    // only (no group/sequential), up to 10 reference images.
+    // The backend gates 5.0-pro to 1K/2K — it rejects 3K/4K ("not supported by
+    // model seedream_5_0_pro"). Single-image only (no group/sequential), up to
+    // 10 reference images.
     description: "Top-tier single-image generation with up to 10 reference images and 2K detail.",
     features: [feat("Multi-Image Input", "input"), feat("2K", "resolution")],
     // Single-image only (no sequential/batch) → no `count` param, unlike the V2 models.
@@ -4105,9 +4150,9 @@ var { MODELS: MODELS14 } = defineModels("seedream", [
     mode: "image",
     inputType: "t2i",
     badge: ["popular"],
-    // Backend (pa-bytedance-pluggable-worker) gates 5.0-lite to 2K/3K — it
-    // rejects 4K ("not supported by model seedream_5_0_lite") even though the
-    // SeedreamResolution enum defines a 4K member. Boundary-verified 2026-05-25.
+    // The backend gates 5.0-lite to 2K/3K — it rejects 4K ("not supported by
+    // model seedream_5_0_lite") even though the SeedreamResolution enum defines
+    // a 4K member. Boundary-verified 2026-05-25.
     description: "Speedy 3K output with negative prompt and dual-image input support.",
     features: [feat("Multi-Image Input", "input"), feat("3K", "resolution")],
     paramConfig: {
@@ -10409,6 +10454,7 @@ var GrokImagineImageQuality = "grok-imagine-image-quality";
 var GrokImagineVideo = "grok-imagine-video";
 var GrokImagineVideo15 = "grok-imagine-video-1.5";
 var GrokTts = "grok-tts";
+var Hailuo03 = "hailuo-03";
 var Hailuo23 = "hailuo-2.3";
 var Hailuo23Fast = "hailuo-2.3-fast";
 var Hailuo23FastPro = "hailuo-2.3-fast-pro";
@@ -10607,6 +10653,7 @@ var Models = {
   GrokImagineVideo,
   GrokImagineVideo15,
   GrokTts,
+  Hailuo03,
   Hailuo23,
   Hailuo23Fast,
   Hailuo23FastPro,

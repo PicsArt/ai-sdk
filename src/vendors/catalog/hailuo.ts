@@ -4,6 +4,7 @@
  */
 import type { PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
+import { p } from '../../core/descriptors/presets.ts';
 
 /** T2V payload — prompt + prompt_optimizer + optional duration (standard only). */
 const buildT2V = (withDuration: boolean): PayloadBuilder => (ctx) => ({
@@ -19,6 +20,30 @@ const buildI2V = (withDuration: boolean): PayloadBuilder => (ctx) => ({
   ...(ctx.enhancePrompt !== undefined ? { prompt_optimizer: ctx.enhancePrompt } : {}),
   ...(withDuration && ctx.duration ? { duration: String(ctx.duration) } : {}),
 });
+
+/**
+ * Hailuo 03 / MiniMax-H3 — single unified `minimax/v2/video-generation` endpoint.
+ * The mode is inferred from the discriminated `content[]` array roles:
+ *   - one required `text` item (the prompt);
+ *   - `first_frame` / `last_frame` image roles → i2v / keyframe;
+ *   - `reference_image` / `reference_video` / `reference_audio` roles → multimodal v2v.
+ * Frame roles and reference roles are mutually exclusive (backend-enforced).
+ */
+const buildMinimaxH3: PayloadBuilder = (ctx) => {
+  const content: Array<Record<string, unknown>> = [{ type: 'text', text: ctx.prompt }];
+  if (ctx.startFrame) content.push({ type: 'image_url', image_url: { url: ctx.startFrame }, role: 'first_frame' });
+  if (ctx.endFrame) content.push({ type: 'image_url', image_url: { url: ctx.endFrame }, role: 'last_frame' });
+  for (const url of ctx.imageUrls ?? []) content.push({ type: 'image_url', image_url: { url }, role: 'reference_image' });
+  for (const url of ctx.videoUrls ?? []) content.push({ type: 'video_url', video_url: { url }, role: 'reference_video' });
+  for (const url of ctx.audioUrls ?? []) content.push({ type: 'audio_url', audio_url: { url }, role: 'reference_audio' });
+  return {
+    model: 'MiniMax-H3',
+    content,
+    resolution: '2K',
+    ...(ctx.duration ? { duration: ctx.duration } : {}),
+    ...(ctx.aspectRatio ? { ratio: ctx.aspectRatio } : {}),
+  };
+};
 
 /** Shared base (mode + common params). Workflow set per-model. */
 const base = {
@@ -90,6 +115,30 @@ export const { MODELS } = defineModels('minimax', [
       ...params.prompt(),
       ...params.enhancePrompt(),
       ...params.imageInput(1, 'Start Image', true),
+    },
+  },
+  {
+    ...base, id: 'hailuo-03', name: 'Hailuo 03', modelId: 'minimax-h3',
+    addedAt: '2026-07-30',
+    inputType: 't2v' as const,
+    workflow: 'minimax/v2/video-generation',
+    buildPayload: buildMinimaxH3,
+    estimatedTime: 300,
+    release: 'preview',
+    description: 'MiniMax H3 2K video from text, start/last frame, or image/video/audio references.',
+    features: [
+      feat('Start Frame', 'frame'), feat('End Frame', 'frame'),
+      feat('Reference Video', 'input'), feat('2K', 'resolution'), feat('15 sec', 'duration'),
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.startFrame(),
+      ...params.endFrame(),
+      ...params.imageInput(3, 'Reference Images', false),
+      ...params.videoInputs(1, 'Reference Videos', false),
+      ...params.audioInputs(1, 'Reference Audios', false),
+      ...params.duration([5, 10, 15]),
+      ...p.aspectRatio(['adaptive', '21:9', '16:9', '4:3', '1:1', '3:4', '9:16'], 'adaptive'),
     },
   },
 ]);

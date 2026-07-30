@@ -274,7 +274,7 @@ export const { MODELS } = defineModels('luma', [
   },
   // ── Ray 3.2 (early access) — buildPayload registered in luma.payloads.ts ──
   {
-    // modelId defaults to id ('luma-ray-3.2') — matches the pricing-service key.
+    // modelId defaults to id ('luma-ray-3.2') — matches the backend pricing key.
     id: 'luma-ray-3.2', name: 'Luma Ray 3.2',
     addedAt: '2026-06-11',
     workflow: 'luma-ray32-video',

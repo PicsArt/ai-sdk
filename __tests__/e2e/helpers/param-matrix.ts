@@ -6,7 +6,7 @@
  *  2. Optional file params → with/without variants. If "without" fails OPTIONS,
  *     that's a real bug (param marked optional but backend requires it).
  *
- * Ported verbatim from ai-toolkit (import paths adjusted for this repo).
+ * Ported verbatim from an earlier in-house harness (import paths adjusted).
  */
 import { Model } from '../../../src/index.ts';
 import type { ParamEntry } from '../../../src/index.ts';

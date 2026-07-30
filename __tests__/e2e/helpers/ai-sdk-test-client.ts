@@ -8,11 +8,14 @@
  */
 import { createClient, type AiClient } from '../../../src';
 
-/** Default gateway — staging. Override with PICSART_API_URL (prod: https://api.picsart.com). */
-const DEFAULT_API_URL = 'https://api-stage.picsartstage2.com';
+/**
+ * Default gateway — the public production gateway. Point the run at a different
+ * environment with PICSART_API_URL (CI sets it; see `.env.example` for local use).
+ */
+const DEFAULT_API_URL = 'https://api.picsart.com';
 
 export interface ClientConfig {
-  /** Gateway base URL. Defaults to process.env.PICSART_API_URL, then the staging gateway. */
+  /** Gateway base URL. Defaults to process.env.PICSART_API_URL, then the production gateway. */
   apiUrl?: string;
   /** Bearer token. Defaults to process.env.PICSART_TOKEN. */
   token?: string;

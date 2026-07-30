@@ -1,7 +1,6 @@
 /**
  * Happy Horse 1.0 — Alibaba ATH (single source of truth).
  *
- * Backend MR: pa-alibaba-pluggable-worker !15
  * Backend ETA: getVideoGenerationETA({ resolution, duration }) — shared with Wan 2.7.
  */
 import type { PayloadBuilder } from '../../core/types.ts';

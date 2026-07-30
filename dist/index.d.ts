@@ -334,6 +334,16 @@ type ModelInputById = {
         prompt: string;
         voiceId?: "eve" | "ara" | "rex" | "sal" | "leo";
     };
+    "hailuo-03": {
+        prompt: string;
+        startFrame?: string;
+        endFrame?: string;
+        imageUrls?: string[];
+        videoUrls?: string[];
+        audioUrls?: string[];
+        duration?: 5 | 10 | 15;
+        aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
+    };
     "hailuo-2.3": {
         prompt: string;
         enhancePrompt?: boolean;
@@ -1854,7 +1864,7 @@ interface ModelMeta {
     readonly features: ModelFeature[];
     readonly badges: BadgeType[];
     readonly provider: ProviderInfo;
-    /** Release / availability tier (EAI-3). Absent on the definition ⇒ `'production'`. */
+    /** Release / availability tier. Absent on the definition ⇒ `'production'`. */
     readonly release: ReleaseTag;
 }
 /** Parameter operations — fluent access to model params, schemas, defaults. */
@@ -2190,6 +2200,7 @@ declare const Models: {
     readonly GrokImagineVideo: "grok-imagine-video";
     readonly GrokImagineVideo15: "grok-imagine-video-1.5";
     readonly GrokTts: "grok-tts";
+    readonly Hailuo03: "hailuo-03";
     readonly Hailuo23: "hailuo-2.3";
     readonly Hailuo23Fast: "hailuo-2.3-fast";
     readonly Hailuo23FastPro: "hailuo-2.3-fast-pro";
@@ -2470,7 +2481,7 @@ declare const releaseOf: (m: ModelDefinition) => ReleaseTag;
  * `disabled` and `deprecated` are hard hides layered on top of `release`: a
  * model carrying either is never visible, regardless of its release tag or the
  * requested set. (`disabled` is being phased out in favour of
- * `release: 'preview'` — EAI-3 — but is still honoured during the migration.)
+ * `release: 'preview'`, but is still honoured during the migration.)
  */
 declare function isVisibleForReleases(m: ModelDefinition, releases?: readonly ReleaseTag[]): boolean;
 

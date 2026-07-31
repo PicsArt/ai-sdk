@@ -88,7 +88,6 @@ export const { MODELS } = defineModels('ideogram', [
   },
   {
     id: 'ideogram-p-image', name: 'Ideogram P-Image',
-    release: 'preview',
     addedAt: '2026-07-28',
     workflow: 'ideogram/p-image/generate', buildPayload: buildIdeogramPImagePayload,
     estimatedTime: 15,

@@ -2,7 +2,7 @@
  * Hailuo (MiniMax Video) — single source of truth.
  * NOTE: Provider is 'minimax' (not 'hailuo') in the backend.
  */
-import type { PayloadBuilder } from '../../core/types.ts';
+import type { Constraint, PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 
@@ -44,6 +44,50 @@ const buildMinimaxH3: PayloadBuilder = (ctx) => {
     ...(ctx.aspectRatio ? { ratio: ctx.aspectRatio } : {}),
   };
 };
+
+// MiniMax H3 content-role rules, mirrored from the backend's
+// IsValidContentCombination so the UI (and the OPTIONS matrix) never produces a
+// combination the gateway rejects:
+//   - first/last frame roles and reference roles are mutually exclusive;
+//   - a last frame (endFrame) requires a start frame (startFrame);
+//   - reference audio cannot be used alone — it needs a reference image or video.
+const FRAME_REF_EXCLUSIVE = 'First/last frame and reference inputs cannot be combined.';
+const LAST_NEEDS_FIRST = 'An end frame requires a start frame.';
+const AUDIO_NEEDS_VISUAL = 'Reference audio needs a reference image or video.';
+
+const hailuo03Constraints: Constraint[] = [
+  // Frame roles ⊥ reference roles (declared both ways so either input disables the other).
+  { when: { startFrame: { exists: true } }, then: {
+    imageUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    videoUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    audioUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+  } },
+  { when: { endFrame: { exists: true } }, then: {
+    imageUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    videoUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    audioUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+  } },
+  { when: { imageUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    endFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+  } },
+  { when: { videoUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    endFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+  } },
+  { when: { audioUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    endFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+  } },
+  // last_frame requires first_frame.
+  { when: { startFrame: { exists: false } }, then: {
+    endFrame: { disabled: true, reason: LAST_NEEDS_FIRST },
+  } },
+  // reference_audio cannot be the only reference input.
+  { when: { imageUrls: { exists: false }, videoUrls: { exists: false } }, then: {
+    audioUrls: { disabled: true, reason: AUDIO_NEEDS_VISUAL },
+  } },
+];
 
 /** Shared base (mode + common params). Workflow set per-model. */
 const base = {
@@ -124,7 +168,6 @@ export const { MODELS } = defineModels('minimax', [
     workflow: 'minimax/v2/video-generation',
     buildPayload: buildMinimaxH3,
     estimatedTime: 300,
-    release: 'preview',
     description: 'MiniMax H3 2K video from text, start/last frame, or image/video/audio references.',
     features: [
       feat('Start Frame', 'frame'), feat('End Frame', 'frame'),
@@ -140,5 +183,6 @@ export const { MODELS } = defineModels('minimax', [
       ...params.duration([5, 10, 15]),
       ...p.aspectRatio(['adaptive', '21:9', '16:9', '4:3', '1:1', '3:4', '9:16'], 'adaptive'),
     },
+    constraints: hailuo03Constraints,
   },
 ]);

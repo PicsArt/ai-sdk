@@ -2857,6 +2857,42 @@ var buildMinimaxH3 = (ctx) => {
     ...ctx.aspectRatio ? { ratio: ctx.aspectRatio } : {}
   };
 };
+var FRAME_REF_EXCLUSIVE = "First/last frame and reference inputs cannot be combined.";
+var LAST_NEEDS_FIRST = "An end frame requires a start frame.";
+var AUDIO_NEEDS_VISUAL = "Reference audio needs a reference image or video.";
+var hailuo03Constraints = [
+  // Frame roles ⊥ reference roles (declared both ways so either input disables the other).
+  { when: { startFrame: { exists: true } }, then: {
+    imageUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    videoUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    audioUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE }
+  } },
+  { when: { endFrame: { exists: true } }, then: {
+    imageUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    videoUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    audioUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE }
+  } },
+  { when: { imageUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    endFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE }
+  } },
+  { when: { videoUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    endFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE }
+  } },
+  { when: { audioUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
+    endFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE }
+  } },
+  // last_frame requires first_frame.
+  { when: { startFrame: { exists: false } }, then: {
+    endFrame: { disabled: true, reason: LAST_NEEDS_FIRST }
+  } },
+  // reference_audio cannot be the only reference input.
+  { when: { imageUrls: { exists: false }, videoUrls: { exists: false } }, then: {
+    audioUrls: { disabled: true, reason: AUDIO_NEEDS_VISUAL }
+  } }
+];
 var base = {
   mode: "video"
 };
@@ -2949,7 +2985,6 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
     workflow: "minimax/v2/video-generation",
     buildPayload: buildMinimaxH3,
     estimatedTime: 300,
-    release: "preview",
     description: "MiniMax H3 2K video from text, start/last frame, or image/video/audio references.",
     features: [
       feat("Start Frame", "frame"),
@@ -2967,7 +3002,8 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
       ...params.audioInputs(1, "Reference Audios", false),
       ...params.duration([5, 10, 15]),
       ...p.aspectRatio(["adaptive", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "adaptive")
-    }
+    },
+    constraints: hailuo03Constraints
   }
 ]);
 
@@ -6664,7 +6700,6 @@ var { MODELS: MODELS27 } = defineModels("ideogram", [
   {
     id: "ideogram-p-image",
     name: "Ideogram P-Image",
-    release: "preview",
     addedAt: "2026-07-28",
     workflow: "ideogram/p-image/generate",
     buildPayload: buildIdeogramPImagePayload,

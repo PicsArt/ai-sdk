@@ -405,11 +405,14 @@ type ModelInputById = {
         imageUrls: [string, ...string[]];
         resolution?: "4k" | "1080p" | "720p";
         aspectRatio?: "16:9" | "9:16";
+        voiceId: string;
         prompt: string;
     };
     "heygen-video-avatar": {
+        videoId: string;
         resolution?: "4k" | "1080p" | "720p";
         aspectRatio?: "16:9" | "9:16";
+        voiceId: string;
         prompt: string;
     };
     "hunyuan-v3": {
@@ -1299,6 +1302,7 @@ type ModelInputById = {
     };
     "sora-2-extend": {
         prompt: string;
+        videoId?: string;
         duration?: 4 | 8 | 12 | 16 | 20;
     };
     "sora-2-pro": {

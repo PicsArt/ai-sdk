@@ -133,7 +133,6 @@ export const Happyhorse11T2v = 'happyhorse-1.1-t2v' as const;
 /** HeyGen Talking Photo — heygen (video) */
 export const HeygenTalkingPhoto = 'heygen-talking-photo' as const;
 /** HeyGen Video Avatar — heygen (video) */
-/** @deprecated This model is currently unavailable (disabled). */
 export const HeygenVideoAvatar = 'heygen-video-avatar' as const;
 /** Hunyuan V3 — hunyuan (image) */
 export const HunyuanV3 = 'hunyuan-v3' as const;

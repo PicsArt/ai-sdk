@@ -89,8 +89,12 @@ function buildTypeFields(model: ModelDefinition): string[] {
       fields.push(`${key}${opt}: [string, ...string[]];`);
       continue;
     }
-    // 3. Empty enum → skip the field entirely (nothing to type).
+    // 3. Empty enum → the option list is hydrated at runtime from the vendor
+    //    catalog, so the value is an open-ended id. Typing it as `string` keeps
+    //    the field callable; skipping it made a required param impossible to
+    //    pass — `heygen-video-avatar` lost the `videoId` it exists for.
     if (d.kind === 'enum' && (d as EnumDescriptor<string | number>).options.length === 0) {
+      fields.push(`${key}${opt}: string;`);
       continue;
     }
 

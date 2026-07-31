@@ -86,10 +86,19 @@ for (const m of findPreview) {
 
 // ── disabled/deprecated stay hidden even when their release is requested ──
 const allIds = new Set<string>(catalog.all({ release: RELEASES }).map((m) => m.id));
-for (const id of ['heygen-video-avatar', 'minimax-02-hd', 'kling-elements', 'eleven-voice-remix']) {
+for (const id of ['minimax-02-hd', 'kling-elements', 'eleven-voice-remix']) {
   const m = getModel(id);
   assert(m?.disabled, `${id}: expected disabled: true (test fixture assumption)`);
   assert(!allIds.has(id), `${id}: disabled model must stay hidden even when all releases are requested`);
+}
+
+// ── preview is opt-in, not a hard hide like disabled/deprecated ──
+for (const id of ['heygen-video-avatar']) {
+  const m = getModel(id);
+  assert.strictEqual(releaseOf(m!), 'preview', `${id}: expected release: 'preview'`);
+  assert(!defaultAll.some((x) => x.id === id), `${id}: preview must stay out of the default listing`);
+  assert(previewOnly.some((x) => x.id === id), `${id}: preview must be listed when preview is requested`);
+  assert(allIds.has(id), `${id}: preview must be listed when every release is requested`);
 }
 
 console.log(

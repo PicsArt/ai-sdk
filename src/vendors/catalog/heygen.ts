@@ -72,14 +72,14 @@ export const { MODELS } = defineModels('heygen', [
     id: 'heygen-video-avatar',
     modelId: 'heygen-avatar-iv',
     addedAt: '2026-03-17',
-    // disabled 2026-05-08: backend/catalog mismatch.
-    //   heygen/v1/video/generate uses Avatar IV mode but heygen/v1/avatars/list
-    //   returns 1287 Avatar III avatars (all preview URLs are /avatar/v3/), so
-    //   every avatar from the list is rejected with "This video avatar does not
-    //   support Avatar IV video generation". Talking Photo (i2v) path is
-    //   unaffected. Re-enable once backend exposes an Avatar IV catalog OR
-    //   downgrades the worker to Avatar III mode.
-    disabled: true,
+    // Disabled 2026-05-08 because the avatar list carried no way to tell an
+    // Avatar IV-compatible avatar from an incompatible one, so picks were
+    // rejected at submit. The worker now serves `heygen/v1/avatars/list` from
+    // HeyGen v3 looks filtered by `supported_api_engines`, so every id it offers
+    // is one the engine accepts. Kept at `preview` until that runs on
+    // production — the tag is opt-in, so only stage surfaces asking for it will
+    // list the model.
+    release: 'preview',
     name: 'HeyGen Video Avatar',
     workflow: 'heygen/v1/video/generate',
     buildPayload: buildHeyGenVideoAvatarPayload,

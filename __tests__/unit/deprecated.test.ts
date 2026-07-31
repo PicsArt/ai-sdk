@@ -32,7 +32,7 @@ const DEPRECATED_IDS = [
 // usable" — distinct from `deprecated: true` ("retired, will not come back").
 // Both hide the model from default lists.
 const DISABLED_IDS = [
-  'heygen-video-avatar', 'minimax-02-hd', 'kling-elements', 'eleven-voice-remix',
+  'minimax-02-hd', 'kling-elements', 'eleven-voice-remix',
 ];
 
 // ── Deprecated IDs are marked correctly ───────────────────────────

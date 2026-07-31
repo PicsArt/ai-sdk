@@ -62,8 +62,8 @@ export type ModelInputById = {
   "happyhorse-1.0-video-edit": { prompt: string; resolution?: "720P" | "1080P"; audioSetting?: "auto" | "origin"; videoUrl: string; imageUrls?: string[]; };
   "happyhorse-1.1-r2v": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; resolution?: "720P" | "1080P"; duration?: 5 | 10 | 15; imageUrls: [string, ...string[]]; };
   "happyhorse-1.1-t2v": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; resolution?: "720P" | "1080P"; duration?: 5 | 10 | 15; startFrame?: string; };
-  "heygen-talking-photo": { imageUrls: [string, ...string[]]; resolution?: "4k" | "1080p" | "720p"; aspectRatio?: "16:9" | "9:16"; prompt: string; };
-  "heygen-video-avatar": { resolution?: "4k" | "1080p" | "720p"; aspectRatio?: "16:9" | "9:16"; prompt: string; };
+  "heygen-talking-photo": { imageUrls: [string, ...string[]]; resolution?: "4k" | "1080p" | "720p"; aspectRatio?: "16:9" | "9:16"; voiceId: string; prompt: string; };
+  "heygen-video-avatar": { videoId: string; resolution?: "4k" | "1080p" | "720p"; aspectRatio?: "16:9" | "9:16"; voiceId: string; prompt: string; };
   "hunyuan-v3": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4"; count?: 1 | 2 | 4; negativePrompt?: string; cfgScale?: number; };
   "ideogram-character": { prompt: string; resolution?: "1024x1024" | "1344x768" | "768x1344" | "1152x864" | "864x1152" | "832x1248" | "1280x800"; renderingSpeed?: "TURBO" | "DEFAULT" | "QUALITY"; style?: "AUTO" | "REALISTIC" | "FICTION"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls: [string, ...string[]]; };
   "ideogram-p-image": { prompt: string; resolution?: "2048x2048" | "1440x2880" | "2880x1440" | "1664x2496" | "2496x1664" | "1792x2240" | "2240x1792" | "1440x2560" | "2560x1440" | "1600x2560" | "2560x1600" | "1728x2304" | "2304x1728" | "1296x3168" | "3168x1296" | "1152x2944" | "2944x1152" | "1248x3328" | "3328x1248" | "1280x3072" | "3072x1280" | "1024x3072" | "3072x1024" | "1024x1024" | "896x1120" | "1120x896" | "864x1152" | "1152x864" | "832x1248" | "1248x832" | "800x1280" | "1280x800" | "720x1280" | "1280x720" | "720x1440" | "1440x720"; renderingSpeed?: "very-low" | "low" | "medium" | "high"; };
@@ -187,7 +187,7 @@ export type ModelInputById = {
   "seedream-5.0-lite": { resolution?: "2K" | "3K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; negativePrompt?: string; };
   "seedream-5.0-pro": { resolution?: "1K" | "2K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; imageUrls?: string[]; negativePrompt?: string; };
   "sora-2": { prompt: string; imageUrls?: string[]; aspectRatio?: "16:9" | "9:16"; duration?: 4 | 8 | 12 | 16 | 20; };
-  "sora-2-extend": { prompt: string; duration?: 4 | 8 | 12 | 16 | 20; };
+  "sora-2-extend": { prompt: string; videoId?: string; duration?: 4 | 8 | 12 | 16 | 20; };
   "sora-2-pro": { prompt: string; imageUrls?: string[]; aspectRatio?: "16:9" | "9:16"; resolution?: "720p" | "1024p" | "1080p"; duration?: 4 | 8 | 12 | 16 | 20; };
   "topaz-upscale-image": { imageUrls: [string, ...string[]]; model?: "Standard V2" | "Standard MAX" | "Low Resolution V2" | "High Fidelity V2" | "CGI" | "Text Refine" | "Redefine" | "Recovery" | "Recovery V2" | "Wonder" | "Wonder 3"; };
   "topaz-upscale-video": { videoUrl: string; model?: "Proteus" | "Artemis HQ" | "Artemis MQ" | "Artemis LQ" | "Nyx" | "Nyx Fast" | "Nyx XL" | "Nyx HF" | "Gaia HQ" | "Gaia CG" | "Gaia 2" | "Starlight Precise 1" | "Starlight Precise 2" | "Starlight Precise 2.5" | "Starlight HQ" | "Starlight Mini" | "Starlight Sharp" | "Starlight Fast 1" | "Starlight Fast 2"; };

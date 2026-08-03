@@ -1,8 +1,9 @@
 /**
  * Wan — single source of truth (video + image).
  */
-import type { PayloadBuilder } from '../../core/types.ts';
+import type { Constraint, PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
+import { p } from '../../core/descriptors/presets.ts';
 
 export const buildWanT2VPayload: PayloadBuilder = (ctx) => ({
   prompt: ctx.prompt,
@@ -104,6 +105,38 @@ export const buildWan27VideoEditPayload: PayloadBuilder = (ctx) => {
 // ── Wan 2.7 shared constants ─────────────────────────────────────
 const WAN27_AR = ['16:9', '9:16', '1:1', '4:3', '3:4'];
 const WAN27_RES = ['720P', '1080P'];
+
+// ── Wan 3.0 constraints ──────────────────────────────────────────
+// Schema: "Reference and frame types are mutually exclusive within one
+// request." Start/End frame slots (first_frame/last_frame) cannot be combined
+// with reference images/videos/audios — the backend rejects mixed content.
+const WAN_V3_FRAME_REF_REASON = 'Start/End frames cannot be combined with reference images, videos, or audios';
+const wanV3Constraints: Constraint[] = [
+  // any reference input active → disable frame slots
+  { when: { imageUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    endFrame:   { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+  } },
+  { when: { videoUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    endFrame:   { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+  } },
+  { when: { audioUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    endFrame:   { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+  } },
+  // any frame slot active → disable reference inputs (mirror, blocks inverse order)
+  { when: { startFrame: { exists: true } }, then: {
+    imageUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    videoUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    audioUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+  } },
+  { when: { endFrame: { exists: true } }, then: {
+    imageUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    videoUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    audioUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+  } },
+];
 
 export const { MODELS } = defineModels('wan', [
   // ── Video ─────────────────────────────────────────
@@ -237,6 +270,34 @@ export const { MODELS } = defineModels('wan', [
       ...params.negativePrompt(),
       ...params.videoInput('Source Video'),
       ...params.imageInput(3, 'Reference Images'),
+    },
+  },
+  // ── Wan 3.0 all-in-one Video ─────────────────────────
+  {
+    id: 'wan-3.0-video', name: 'Wan 3.0', modelId: 'wan3.0-video',
+    addedAt: '2026-08-03',
+    // Single all-in-one endpoint — text, image/video/audio references, and
+    // start/end frames. buildPayload registered in wan.payloads.ts.
+    workflow: 'wan/v3/video',
+    estimatedTime: 120,
+    mode: 'video', inputType: 't2v',
+    description: 'Wan 3.0 all-in-one — text, image/video/audio references, and start/end frames with adaptive ratio, intelligent duration, and audio.',
+    features: [feat('Image Input', 'input'), feat('Video Input', 'input'), feat('Audio', 'audio'), feat('Start/End Frame', 'frame'), feat('1080P', 'resolution'), feat('Adaptive Ratio', 'resolution')],
+    constraints: wanV3Constraints,
+    paramConfig: {
+      ...params.prompt(),
+      ...params.duration([5, 10, 15, 30], 5),
+      ...params.resolution(['480P', '720P', '1080P'], '1080P'),
+      ...params.aspectRatio(['16:9', '9:16', '1:1', '4:3', '3:4', 'adaptive']),
+      ...params.generateAudio(true),
+      ...params.startFrame(),
+      ...params.endFrame(),
+      ...params.imageInput(10, 'Reference Images'),
+      ...params.videoInputs(5, 'Reference Videos', false),
+      ...params.audioInputs(5, 'Reference Audios'),
+      ...p.boolean('enableThinking', false, 'Deep Thinking'),
+      ...p.boolean('watermark', false, 'Watermark'),
+      ...p.range('seed', 0, 2147483647, 0, { label: 'Seed' }),
     },
   },
 ]);

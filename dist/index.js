@@ -3094,6 +3094,33 @@ var buildWan27VideoEditPayload = (ctx) => {
 };
 var WAN27_AR = ["16:9", "9:16", "1:1", "4:3", "3:4"];
 var WAN27_RES = ["720P", "1080P"];
+var WAN_V3_FRAME_REF_REASON = "Start/End frames cannot be combined with reference images, videos, or audios";
+var wanV3Constraints = [
+  // any reference input active → disable frame slots
+  { when: { imageUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    endFrame: { disabled: true, reason: WAN_V3_FRAME_REF_REASON }
+  } },
+  { when: { videoUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    endFrame: { disabled: true, reason: WAN_V3_FRAME_REF_REASON }
+  } },
+  { when: { audioUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    endFrame: { disabled: true, reason: WAN_V3_FRAME_REF_REASON }
+  } },
+  // any frame slot active → disable reference inputs (mirror, blocks inverse order)
+  { when: { startFrame: { exists: true } }, then: {
+    imageUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    videoUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    audioUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON }
+  } },
+  { when: { endFrame: { exists: true } }, then: {
+    imageUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    videoUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
+    audioUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON }
+  } }
+];
 var { MODELS: MODELS10 } = defineModels("wan", [
   // ── Video ─────────────────────────────────────────
   {
@@ -3259,8 +3286,70 @@ var { MODELS: MODELS10 } = defineModels("wan", [
       ...params.videoInput("Source Video"),
       ...params.imageInput(3, "Reference Images")
     }
+  },
+  // ── Wan 3.0 all-in-one Video ─────────────────────────
+  {
+    id: "wan-3.0-video",
+    name: "Wan 3.0",
+    modelId: "wan3.0-video",
+    addedAt: "2026-08-03",
+    // Single all-in-one endpoint — text, image/video/audio references, and
+    // start/end frames. buildPayload registered in wan.payloads.ts.
+    workflow: "wan/v3/video",
+    estimatedTime: 120,
+    mode: "video",
+    inputType: "t2v",
+    description: "Wan 3.0 all-in-one \u2014 text, image/video/audio references, and start/end frames with adaptive ratio, intelligent duration, and audio.",
+    features: [feat("Image Input", "input"), feat("Video Input", "input"), feat("Audio", "audio"), feat("Start/End Frame", "frame"), feat("1080P", "resolution"), feat("Adaptive Ratio", "resolution")],
+    constraints: wanV3Constraints,
+    paramConfig: {
+      ...params.prompt(),
+      ...params.duration([5, 10, 15, 30], 5),
+      ...params.resolution(["480P", "720P", "1080P"], "1080P"),
+      ...params.aspectRatio(["16:9", "9:16", "1:1", "4:3", "3:4", "adaptive"]),
+      ...params.generateAudio(true),
+      ...params.startFrame(),
+      ...params.endFrame(),
+      ...params.imageInput(10, "Reference Images"),
+      ...params.videoInputs(5, "Reference Videos", false),
+      ...params.audioInputs(5, "Reference Audios"),
+      ...p.boolean("enableThinking", false, "Deep Thinking"),
+      ...p.boolean("watermark", false, "Watermark"),
+      ...p.range("seed", 0, 2147483647, 0, { label: "Seed" })
+    }
   }
 ]);
+
+// src/vendors/catalog/wan.payloads.ts
+var buildWanV3VideoPayload = (input) => {
+  const media = [];
+  if (input.startFrame) media.push({ type: "first_frame", url: input.startFrame });
+  if (input.endFrame) media.push({ type: "last_frame", url: input.endFrame });
+  if (input.imageUrls?.length) {
+    for (const url of input.imageUrls) media.push({ type: "reference_image", url });
+  }
+  if (input.videoUrls?.length) {
+    for (const url of input.videoUrls) media.push({ type: "reference_video", url });
+  }
+  if (input.audioUrls?.length) {
+    for (const url of input.audioUrls) media.push({ type: "reference_audio", url });
+  }
+  return {
+    model: "wan3.0-video",
+    resolution: input.resolution ?? "1080P",
+    ratio: input.aspectRatio ?? "16:9",
+    duration: input.duration ?? 5,
+    audio: input.generateAudio ?? true,
+    enable_thinking: input.enableThinking ?? false,
+    watermark: input.watermark ?? false,
+    ...input.prompt ? { prompt: input.prompt } : {},
+    ...media.length ? { media } : {},
+    ...input.seed != null ? { seed: input.seed } : {}
+  };
+};
+registerPayloads(MODELS10, {
+  "wan-3.0-video": buildWanV3VideoPayload
+});
 
 // src/vendors/catalog/luma.ts
 var buildLumaRay2Payload = (ctx) => {
@@ -10632,6 +10721,7 @@ var Wan27I2v = "wan-2.7-i2v";
 var Wan27R2v = "wan-2.7-r2v";
 var Wan27T2v = "wan-2.7-t2v";
 var Wan27VideoEdit = "wan-2.7-video-edit";
+var Wan30Video = "wan-3.0-video";
 var Models = {
   AsyncFlashV1,
   BytedanceOmnihumanV15,
@@ -10831,6 +10921,7 @@ var Models = {
   Wan27R2v,
   Wan27T2v,
   Wan27VideoEdit,
+  Wan30Video,
   /** @deprecated Use the `catalog` accessor (`catalog.all()` / `catalog.find({ output, provider })`) instead. */
   list(filter) {
     if (!filter) return [...ALL_MODELS];

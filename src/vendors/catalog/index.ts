@@ -13,6 +13,7 @@ import { MODELS as videographyMODELS } from './videography.ts';
 import { MODELS as hunyuanMODELS } from './hunyuan.ts';
 import { MODELS as hailuoMODELS } from './hailuo.ts';
 import { MODELS as wanMODELS } from './wan.ts';
+import './wan.payloads.ts'; // registers the Wan 3.0 payload builder after model definitions
 import { MODELS as lumaMODELS } from './luma.ts';
 import './luma.payloads.ts'; // registers Ray 3.2 payload builders after model definitions
 import { MODELS as seedanceMODELS } from './seedance.ts';

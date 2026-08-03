@@ -1418,6 +1418,21 @@ type ModelInputById = {
         videoUrl: string;
         imageUrls?: string[];
     };
+    "wan-3.0-video": {
+        prompt: string;
+        duration?: 5 | 10 | 15 | 30;
+        resolution?: "480P" | "720P" | "1080P";
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "adaptive";
+        generateAudio?: boolean;
+        startFrame?: string;
+        endFrame?: string;
+        imageUrls?: string[];
+        videoUrls?: string[];
+        audioUrls?: string[];
+        enableThinking?: boolean;
+        watermark?: boolean;
+        seed?: number;
+    };
 };
 type TypedModelId = keyof ModelInputById;
 type ModelInput<M extends TypedModelId> = ModelInputById[M];
@@ -2355,6 +2370,7 @@ declare const Models: {
     readonly Wan27R2v: "wan-2.7-r2v";
     readonly Wan27T2v: "wan-2.7-t2v";
     readonly Wan27VideoEdit: "wan-2.7-video-edit";
+    readonly Wan30Video: "wan-3.0-video";
     /** @deprecated Use the `catalog` accessor (`catalog.all()` / `catalog.find({ output, provider })`) instead. */
     readonly list: (filter?: ModelFilter) => ModelDefinition[];
     /** @deprecated Use `Model(id).validate(input)` instead. */

@@ -3297,6 +3297,7 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     // start/end frames. buildPayload registered in wan.payloads.ts.
     workflow: "wan/v3/video",
     estimatedTime: 120,
+    release: "preview",
     mode: "video",
     inputType: "t2v",
     description: "Wan 3.0 all-in-one \u2014 text, image/video/audio references, and start/end frames with adaptive ratio, intelligent duration, and audio.",

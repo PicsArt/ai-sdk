@@ -93,9 +93,13 @@ for (const id of ['minimax-02-hd', 'kling-elements', 'eleven-voice-remix']) {
 }
 
 // ── preview is opt-in, not a hard hide like disabled/deprecated ──
-for (const id of ['heygen-video-avatar']) {
-  const m = getModel(id);
-  assert.strictEqual(releaseOf(m!), 'preview', `${id}: expected release: 'preview'`);
+// The ids come from the catalog instead of a literal list, so promoting a model
+// out of preview doesn't leave a stale fixture behind.
+const previewIds = ALL_MODELS
+  .filter((m) => releaseOf(m) === 'preview' && !m.disabled && !m.deprecated)
+  .map((m) => m.id);
+assert(previewIds.length > 0, 'expected at least one preview model in the catalog');
+for (const id of previewIds) {
   assert(!defaultAll.some((x) => x.id === id), `${id}: preview must stay out of the default listing`);
   assert(previewOnly.some((x) => x.id === id), `${id}: preview must be listed when preview is requested`);
   assert(allIds.has(id), `${id}: preview must be listed when every release is requested`);

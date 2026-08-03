@@ -34,6 +34,9 @@ export const DISABLED_TEST_MODELS = new Set<string>([
   'sora-2-extend',
   // Requires a real `voiceId`, but the param is a picker whose default is "".
   'heygen-talking-photo',
+  // Same as above plus `videoId` — the avatar picker is hydrated at runtime from
+  // `heygen/v1/avatars/list`, so its catalog options are empty and the default is "".
+  'heygen-video-avatar',
   // Backend dubbing requires a target language not declared (as required) in paramConfig.
   'eleven-dubbing',
 ]);

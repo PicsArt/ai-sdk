@@ -110,12 +110,15 @@ var require_ModelPricingClient = __commonJS({
     var ModelPricingServerError_1 = require_ModelPricingServerError();
     var ModelPricingUnknownError_1 = require_ModelPricingUnknownError();
     var DEFAULT_REFRESH_INTERVAL_MS = 6e5;
+    var USER_DISCOUNTS_REFRESH_INTERVAL_MS = 3e4;
     var DEFAULT_TIMEOUT_MS = 5e3;
     var ModelPricingClient2 = class {
       constructor(options) {
         var _a;
         this.pricing = null;
+        this.userDiscounts = null;
         this.refreshTimer = null;
+        this.userDiscountsRefreshTimer = null;
         this.defaultHeaders = {
           Accept: "application/json"
         };
@@ -134,11 +137,20 @@ var require_ModelPricingClient = __commonJS({
           const refreshIntervalMs = (_a = this.options.refreshIntervalMs) !== null && _a !== void 0 ? _a : DEFAULT_REFRESH_INTERVAL_MS;
           if (refreshIntervalMs > 0 && this.refreshTimer == null) {
             this.refreshTimer = setInterval(() => {
-              this.loadAll().catch(() => {
+              this.loadPricing().catch(() => {
               });
             }, refreshIntervalMs);
             if (typeof this.refreshTimer.unref === "function") {
               this.refreshTimer.unref();
+            }
+          }
+          if (this.userDiscountsRefreshTimer == null) {
+            this.userDiscountsRefreshTimer = setInterval(() => {
+              this.loadUserDiscounts().catch(() => {
+              });
+            }, USER_DISCOUNTS_REFRESH_INTERVAL_MS);
+            if (typeof this.userDiscountsRefreshTimer.unref === "function") {
+              this.userDiscountsRefreshTimer.unref();
             }
           }
         });
@@ -151,18 +163,34 @@ var require_ModelPricingClient = __commonJS({
           clearInterval(this.refreshTimer);
           this.refreshTimer = null;
         }
+        if (this.userDiscountsRefreshTimer != null) {
+          clearInterval(this.userDiscountsRefreshTimer);
+          this.userDiscountsRefreshTimer = null;
+        }
       }
       /**
        * Returns model pricings matching the given filters from the in-memory cache.
        * Throws if pricing has not been loaded yet — call and await init() first.
        */
       getModelPricing(filters = {}) {
+        var _a, _b, _c, _d, _e;
         if (this.pricing == null) {
           throw new Error("ModelPricingClient: pricing not loaded. Call and await init() before getModelPricing().");
         }
-        return this.applyFilters(this.pricing, filters);
+        const filtered = this.applyFilters(this.pricing, filters);
+        const countryCode = ((_a = filters.countryCode) === null || _a === void 0 ? void 0 : _a.trim()) || void 0;
+        const touchpoint = ((_b = filters.touchpoint) === null || _b === void 0 ? void 0 : _b.trim()) || void 0;
+        const platform = ((_c = filters.platform) === null || _c === void 0 ? void 0 : _c.trim()) || void 0;
+        const packageId = ((_d = filters.packageId) === null || _d === void 0 ? void 0 : _d.trim()) || void 0;
+        const withOverrides = this.applyCreditOverrides(filtered, countryCode, touchpoint, platform, packageId);
+        return this.applyUserDiscounts(withOverrides, ((_e = filters.userId) === null || _e === void 0 ? void 0 : _e.trim()) || void 0);
       }
       loadAll() {
+        return __awaiter(this, void 0, void 0, function* () {
+          yield Promise.all([this.loadPricing(), this.loadUserDiscounts()]);
+        });
+      }
+      loadPricing() {
         return __awaiter(this, void 0, void 0, function* () {
           try {
             const url = `${this.modelPricingApiBaseUrl}/pricing-management/model-pricing`;
@@ -177,11 +205,74 @@ var require_ModelPricingClient = __commonJS({
           }
         });
       }
+      loadUserDiscounts() {
+        return __awaiter(this, void 0, void 0, function* () {
+          try {
+            const url = `${this.modelPricingApiBaseUrl}/pricing-management/user-discounts/public`;
+            const response = yield this._fetch(url, {
+              method: "GET",
+              signal: AbortSignal.timeout(this.options.timeoutMs)
+            });
+            const data = yield this.toSuccessResponse(response, "getUserDiscounts");
+            this.userDiscounts = this.indexUserDiscounts(data.response);
+          } catch (error) {
+            console.error(`ModelPricingClient: failed to load user discounts - ${error.message}`);
+            if (this.userDiscounts == null) {
+              this.userDiscounts = /* @__PURE__ */ new Map();
+            }
+          }
+        });
+      }
+      indexUserDiscounts(discounts) {
+        const index = /* @__PURE__ */ new Map();
+        for (const discount of discounts) {
+          let byModel = index.get(discount.userId);
+          if (byModel == null) {
+            byModel = /* @__PURE__ */ new Map();
+            index.set(discount.userId, byModel);
+          }
+          const list = byModel.get(discount.modelId);
+          if (list == null)
+            byModel.set(discount.modelId, [discount]);
+          else
+            list.push(discount);
+        }
+        return index;
+      }
+      applyUserDiscounts(items, userId) {
+        var _a;
+        if (userId == null)
+          return items;
+        const byModel = (_a = this.userDiscounts) === null || _a === void 0 ? void 0 : _a.get(userId);
+        if (byModel == null || byModel.size === 0)
+          return items;
+        const now = Date.now();
+        return items.map((item) => {
+          const discounts = byModel.get(item.metadata.modelId);
+          if (discounts == null || discounts.length === 0)
+            return item;
+          let bestPercent = 0;
+          for (const discount of discounts) {
+            const expiresAt = Date.parse(discount.expirationDate);
+            const active = Number.isNaN(expiresAt) || expiresAt >= now;
+            if (active && discount.discountPercent > bestPercent) {
+              bestPercent = discount.discountPercent;
+            }
+          }
+          if (bestPercent <= 0)
+            return item;
+          const pct = Math.min(bestPercent, 100);
+          const discounted = Math.round(item.credits * (1 - pct / 100));
+          return Object.assign(Object.assign({}, item), { credits: discounted, originalCredits: item.credits });
+        });
+      }
       applyFilters(items, filters) {
         return items.filter((item) => {
           if (filters.vendor != null && item.metadata.vendor !== filters.vendor)
             return false;
           if (filters.modelId != null && item.metadata.modelId !== filters.modelId)
+            return false;
+          if (filters.operationId != null && item.operationId !== filters.operationId)
             return false;
           if (filters.useCase != null && item.metadata.useCase !== filters.useCase)
             return false;
@@ -190,6 +281,31 @@ var require_ModelPricingClient = __commonJS({
           if (filters.audio != null && item.metadata.audio !== filters.audio)
             return false;
           return true;
+        });
+      }
+      applyCreditOverrides(items, countryCode, touchpoint, platform, packageId) {
+        if (countryCode == null && touchpoint == null && platform == null && packageId == null)
+          return items;
+        console.log(`Applying credit overrides for countryCode: ${countryCode}, touchpoint: ${touchpoint}, platform: ${platform} and packageId: ${packageId}`);
+        return items.map((item) => {
+          var _a, _b, _c;
+          if (!((_a = item.creditOverrides) === null || _a === void 0 ? void 0 : _a.length))
+            return item;
+          let matchedCredits;
+          for (const co of item.creditOverrides) {
+            const countryMatch = co.countries.length === 0 || countryCode != null && co.countries.some((c) => c.toLowerCase() === countryCode.toLowerCase());
+            const touchpointMatch = co.touchpoints.length === 0 || touchpoint != null && co.touchpoints.some((t) => t.toLowerCase() === touchpoint.toLowerCase());
+            const platforms = (_b = co.platforms) !== null && _b !== void 0 ? _b : [];
+            const platformMatch = platforms.length === 0 || platform != null && platforms.some((p2) => p2.toLowerCase() === platform.toLowerCase());
+            const packageIds = (_c = co.packageIds) !== null && _c !== void 0 ? _c : [];
+            const packageMatch = packageIds.length === 0 || packageId != null && packageIds.some((p2) => p2.toLowerCase() === packageId.toLowerCase());
+            if (countryMatch && touchpointMatch && platformMatch && packageMatch) {
+              matchedCredits = co.credits;
+            }
+          }
+          if (matchedCredits == null)
+            return item;
+          return Object.assign(Object.assign({}, item), { credits: matchedCredits });
         });
       }
       toSuccessResponse(response, actionName) {
@@ -258,6 +374,7 @@ var require_types = __commonJS({
       UseCase2["TextToVideo"] = "text-to-video";
       UseCase2["ImageToVideo"] = "image-to-video";
       UseCase2["VideoToVideo"] = "video-to-video";
+      UseCase2["VideoToImage"] = "video-to-image";
       UseCase2["TextToSpeech"] = "text-to-speech";
       UseCase2["TextToAudio"] = "text-to-audio";
       UseCase2["SpeechToText"] = "speech-to-text";
@@ -279,9 +396,16 @@ var require_types = __commonJS({
       PricingUnit2["InputTokens"] = "input_tokens";
       PricingUnit2["InputTextTokens"] = "input_text_tokens";
       PricingUnit2["InputCachedTokens"] = "input_cached_tokens";
+      PricingUnit2["CacheWrite5mTokens"] = "cache_write_5m_tokens";
+      PricingUnit2["CacheWrite1hTokens"] = "cache_write_1h_tokens";
+      PricingUnit2["InputImageTokens"] = "input_image_tokens";
       PricingUnit2["OutputImageTokens"] = "output_image_tokens";
       PricingUnit2["OutputAudioTokens"] = "output_audio_tokens";
       PricingUnit2["OutputTextTokens"] = "output_text_tokens";
+      PricingUnit2["InputMegapixel"] = "input_megapixel";
+      PricingUnit2["OutputMegapixel"] = "output_megapixel";
+      PricingUnit2["OutputMegapixelAdditional"] = "output_megapixel_additional";
+      PricingUnit2["ThousandOutputVideoTokens"] = "1k_output_video_tokens";
     })(PricingUnit || (exports.PricingUnit = PricingUnit = {}));
   }
 });

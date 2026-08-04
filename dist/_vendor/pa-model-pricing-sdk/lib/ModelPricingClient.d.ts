@@ -3,7 +3,9 @@ export declare class ModelPricingClient {
     private readonly options;
     private readonly modelPricingApiBaseUrl;
     private pricing;
+    private userDiscounts;
     private refreshTimer;
+    private userDiscountsRefreshTimer;
     private readonly defaultHeaders;
     constructor(options: ModelPricingClientOptions);
     /**
@@ -21,7 +23,12 @@ export declare class ModelPricingClient {
      */
     getModelPricing(filters?: ModelPricingFilters): ModelPricing[];
     private loadAll;
+    private loadPricing;
+    private loadUserDiscounts;
+    private indexUserDiscounts;
+    private applyUserDiscounts;
     private applyFilters;
+    private applyCreditOverrides;
     private toSuccessResponse;
     private throwIfError;
     private wrapError;

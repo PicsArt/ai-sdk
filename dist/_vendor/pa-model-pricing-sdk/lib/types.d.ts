@@ -4,6 +4,7 @@ export declare enum UseCase {
     TextToVideo = "text-to-video",
     ImageToVideo = "image-to-video",
     VideoToVideo = "video-to-video",
+    VideoToImage = "video-to-image",
     TextToSpeech = "text-to-speech",
     TextToAudio = "text-to-audio",
     SpeechToText = "speech-to-text",
@@ -24,16 +25,29 @@ export declare enum PricingUnit {
     InputTokens = "input_tokens",
     InputTextTokens = "input_text_tokens",
     InputCachedTokens = "input_cached_tokens",
+    CacheWrite5mTokens = "cache_write_5m_tokens",
+    CacheWrite1hTokens = "cache_write_1h_tokens",
+    InputImageTokens = "input_image_tokens",
     OutputImageTokens = "output_image_tokens",
     OutputAudioTokens = "output_audio_tokens",
-    OutputTextTokens = "output_text_tokens"
+    OutputTextTokens = "output_text_tokens",
+    InputMegapixel = "input_megapixel",
+    OutputMegapixel = "output_megapixel",
+    OutputMegapixelAdditional = "output_megapixel_additional",
+    ThousandOutputVideoTokens = "1k_output_video_tokens"
 }
 export interface ModelPricingFilters {
     vendor?: string;
     modelId?: string;
+    operationId?: string;
     useCase?: UseCase;
     quality?: string;
     audio?: boolean;
+    countryCode?: string;
+    touchpoint?: string;
+    platform?: string;
+    packageId?: string;
+    userId?: string;
 }
 export interface ModelPricingMetadata {
     vendor: string;
@@ -51,21 +65,60 @@ export interface VendorCostEntry {
     unit: PricingUnit;
     skus: SkuEntry[];
 }
+export interface CreditOverride {
+    countries: string[];
+    touchpoints: string[];
+    /** Optional: older overrides created before platform targeting have no platforms. */
+    platforms?: string[];
+    /** Optional: older overrides created before package targeting have no packageIds. */
+    packageIds?: string[];
+    credits: number;
+    startDate: string;
+    endDate: string;
+}
+export interface MinTier {
+    name: string;
+    accessLevel: number;
+}
 export interface ModelPricing {
     id: string;
     operationId: string;
     metadata: ModelPricingMetadata;
     vendorCosts: VendorCostEntry[];
     unit: PricingUnit;
+    /** Credits the user pays — already discounted when a user discount applies. */
     credits: number;
+    /**
+     * The original (pre-discount) credits, present only when a discount was
+     * applied. On the frontend the service fills both fields (userId travels via
+     * the access token in headers); on the backend the SDK fills them when
+     * getModelPricing is called with a userId.
+     */
+    originalCredits?: number;
     costPerUnit: number;
     legacy: boolean;
+    /** Minimum subscription tier required to use this model, when one is set. */
+    minTier?: MinTier;
+    creditOverrides: CreditOverride[];
     created: string;
     updated: string;
 }
 export interface ModelPricingListResponse {
     status: string;
     response: ModelPricing[];
+}
+export interface UserDiscount {
+    id: string;
+    userId: string;
+    modelId: string;
+    expirationDate: string;
+    discountPercent: number;
+    created: string;
+    updated: string;
+}
+export interface UserDiscountListResponse {
+    status: string;
+    response: UserDiscount[];
 }
 export interface ModelPricingClientOptions {
     /** Base URL of the model pricing service. */

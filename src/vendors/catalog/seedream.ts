@@ -19,6 +19,7 @@ function buildSeedreamV2(modelId: string): PayloadBuilder {
 
 export const buildSeedream40Payload: PayloadBuilder = buildSeedreamV2('seedream_4_0');
 export const buildSeedream45Payload: PayloadBuilder = buildSeedreamV2('seedream_4_5');
+export const buildSeedream47Payload: PayloadBuilder = buildSeedreamV2('seedream_4_7');
 export const buildSeedream50LitePayload: PayloadBuilder = buildSeedreamV2('seedream_5_0_lite');
 export const buildSeedream50ProPayload: PayloadBuilder = buildSeedreamV2('seedream_5_0_pro');
 
@@ -64,6 +65,19 @@ export const { MODELS } = defineModels('seedream', [
     features: [feat('Multi-Image Input', 'input'), feat('3K', 'resolution')],
     paramConfig: {
       ...params.resolution(['2K', '3K']),
+      ...seedreamV2Params,
+    },
+  },
+  {
+    id: 'seedream-4.7', name: 'Seedream 4.7', modelId: 'seedream_4_7',
+    addedAt: '2026-08-06',
+    workflow: 'seedream', buildPayload: buildSeedream47Payload,
+    estimatedTime: { '1K': 12, '2K': 21, '4K': 58 },
+    mode: 'image', inputType: 't2i',
+    description: 'Reliable all-purpose generation with readable text overlay.',
+    features: [feat('Multi-Image Input', 'input'), feat('4K', 'resolution')],
+    paramConfig: {
+      ...params.resolution(['1K', '2K', '4K']),
       ...seedreamV2Params,
     },
   },

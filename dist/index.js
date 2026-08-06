@@ -3968,9 +3968,171 @@ var buildSeedance20VideoExtendPayloadFor = (modelAlias) => (ctx) => ({
   resolution: ctx.resolution ?? "720p",
   generate_audio: ctx.generateAudio ?? false
 });
+var seedance25Constraints = [
+  ...seedance20Constraints.slice(1),
+  {
+    when: { startFrame: { exists: false } },
+    then: {
+      endFrame: {
+        disabled: true,
+        reason: "End frame needs a start frame \u2014 a last frame on its own is rejected."
+      }
+    }
+  }
+];
+var buildSeedance25Payload = (ctx) => {
+  const refImages = ctx.imageUrls ?? [];
+  const refVideos = ctx.videoUrls ?? [];
+  const refAudios = ctx.audioUrls ?? [];
+  return {
+    model: "seedance_2_5",
+    content: [
+      ...ctx.startFrame ? [{ type: "image_url", image_url: { url: ctx.startFrame }, role: "first_frame" }] : [],
+      ...refImages.slice(0, 30).map((url) => ({
+        type: "image_url",
+        image_url: { url },
+        role: "reference_image"
+      })),
+      ...refVideos.slice(0, 10).map((url) => ({
+        type: "video_url",
+        video_url: { url },
+        role: "reference_video"
+      })),
+      ...refAudios.slice(0, 10).map((url) => ({
+        type: "audio_url",
+        audio_url: { url },
+        role: "reference_audio"
+      })),
+      ...ctx.endFrame ? [{ type: "image_url", image_url: { url: ctx.endFrame }, role: "last_frame" }] : [],
+      { type: "text", text: ctx.prompt }
+    ],
+    ratio: ctx.aspectRatio ?? "16:9",
+    duration: ctx.duration ?? 5,
+    resolution: ctx.resolution ?? "720p",
+    generate_audio: ctx.generateAudio ?? false,
+    output_format: ctx.outputFormat ?? "mp4",
+    ...ctx.returnLastFrame ? { return_last_frame: true } : {}
+  };
+};
+var buildSeedance25VideoEditPayload = (ctx) => ({
+  model: "seedance_2_5",
+  content: [
+    { type: "text", text: ctx.prompt },
+    { type: "video_url", video_url: { url: ctx.videoUrl }, role: "reference_video" },
+    ...(ctx.imageUrls ?? []).slice(0, 30).map((url) => ({
+      type: "image_url",
+      image_url: { url },
+      role: "reference_image"
+    }))
+  ],
+  ratio: ctx.aspectRatio ?? "16:9",
+  duration: ctx.duration ?? 5,
+  resolution: ctx.resolution ?? "720p",
+  generate_audio: ctx.generateAudio ?? false,
+  output_format: ctx.outputFormat ?? "mp4",
+  ...ctx.returnLastFrame ? { return_last_frame: true } : {}
+});
+var buildSeedance25VideoExtendPayload = (ctx) => ({
+  model: "seedance_2_5",
+  content: [
+    { type: "text", text: ctx.prompt },
+    ...(ctx.videoUrls ?? []).slice(0, 10).map((url) => ({
+      type: "video_url",
+      video_url: { url },
+      role: "reference_video"
+    }))
+  ],
+  ratio: ctx.aspectRatio ?? "adaptive",
+  duration: ctx.duration ?? 15,
+  resolution: ctx.resolution ?? "720p",
+  generate_audio: ctx.generateAudio ?? false,
+  output_format: ctx.outputFormat ?? "mp4"
+});
 var SEEDANCE_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"];
 var SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+var SEEDANCE_25_DURATIONS = [4, 5, 6, 8, 10, 12, 15, 20, 25, 30];
 var { MODELS: MODELS12 } = defineModels("seedance", [
+  {
+    id: "seedance-2.5",
+    name: "Seedance 2.5",
+    modelId: "seedance-2.5",
+    addedAt: "2026-08-06",
+    workflow: "seedance",
+    buildPayload: buildSeedance25Payload,
+    constraints: seedance25Constraints,
+    estimatedTime: 20,
+    mode: "video",
+    inputType: "t2v",
+    release: "preview",
+    badge: ["new", "premium", "hot"],
+    description: "Latest cinematic video with audio, multi-reference input, and mp4/mov output. Up to 30s.",
+    features: [feat("Reference Image", "frame"), feat("Start/End Frame", "frame"), feat("Audio", "audio"), feat("720p", "resolution"), feat("4-30 sec", "duration")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(["480p", "720p"], "720p"),
+      ...params.duration(SEEDANCE_25_DURATIONS, 5),
+      ...params.generateAudio(false),
+      ...params.returnLastFrame(),
+      ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
+      // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
+      ...params.imageInput(30, "Reference Images", false, "reference", SEEDANCE_MIN_PIXELS),
+      ...params.videoInputs(10, "Reference Videos", false, SEEDANCE_MIN_PIXELS),
+      ...params.audioInputs(10, "Reference Audios"),
+      ...params.startFrame(),
+      ...params.endFrame()
+    }
+  },
+  {
+    id: "seedance-2.5-video-edit",
+    name: "Seedance 2.5 Video Edit",
+    modelId: "seedance-2.5",
+    addedAt: "2026-08-06",
+    workflow: "seedance",
+    buildPayload: buildSeedance25VideoEditPayload,
+    estimatedTime: 60,
+    mode: "video",
+    inputType: "v2v",
+    release: "preview",
+    badge: ["new", "premium", "hot"],
+    description: "Edit video \u2014 replace subjects, add or remove objects, restyle scenes with reference images.",
+    features: [feat("Video Input", "input"), feat("Multi-Image Input", "input"), feat("Audio", "audio"), feat("720p", "resolution"), feat("4-30 sec", "duration")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(["480p", "720p"], "720p"),
+      ...params.duration(SEEDANCE_25_DURATIONS, 5),
+      ...params.generateAudio(false),
+      ...params.returnLastFrame(),
+      ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
+      ...params.videoInput("Source Video"),
+      ...params.imageInput(30, "Reference Images")
+    }
+  },
+  {
+    id: "seedance-2.5-video-extend",
+    name: "Seedance 2.5 Video Extend",
+    modelId: "seedance-2.5",
+    addedAt: "2026-08-06",
+    workflow: "seedance",
+    buildPayload: buildSeedance25VideoExtendPayload,
+    estimatedTime: 200,
+    mode: "video",
+    inputType: "v2v",
+    release: "preview",
+    badge: ["new", "premium", "hot"],
+    description: "Stitch up to 10 clips into one continuous, extended video.",
+    features: [feat("Multi-Video Input", "input"), feat("Audio", "audio"), feat("720p", "resolution"), feat("4-30 sec", "duration")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(["480p", "720p"], "720p"),
+      ...params.duration(SEEDANCE_25_DURATIONS, 15),
+      ...params.generateAudio(false),
+      ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
+      ...params.videoInputs(10, "Source Videos", true)
+    }
+  },
   {
     id: "seedance-2.0",
     name: "Seedance 2.0",
@@ -4354,6 +4516,7 @@ function buildSeedreamV2(modelId) {
 }
 var buildSeedream40Payload = buildSeedreamV2("seedream_4_0");
 var buildSeedream45Payload = buildSeedreamV2("seedream_4_5");
+var buildSeedream47Payload = buildSeedreamV2("seedream_4_7");
 var buildSeedream50LitePayload = buildSeedreamV2("seedream_5_0_lite");
 var buildSeedream50ProPayload = buildSeedreamV2("seedream_5_0_pro");
 var seedreamV2Params = {
@@ -4407,6 +4570,23 @@ var { MODELS: MODELS14 } = defineModels("seedream", [
     features: [feat("Multi-Image Input", "input"), feat("3K", "resolution")],
     paramConfig: {
       ...params.resolution(["2K", "3K"]),
+      ...seedreamV2Params
+    }
+  },
+  {
+    id: "seedream-4.7",
+    name: "Seedream 4.7",
+    modelId: "seedream_4_7",
+    addedAt: "2026-08-06",
+    workflow: "seedream",
+    buildPayload: buildSeedream47Payload,
+    estimatedTime: { "1K": 12, "2K": 21, "4K": 58 },
+    mode: "image",
+    inputType: "t2i",
+    description: "Reliable all-purpose generation with readable text overlay.",
+    features: [feat("Multi-Image Input", "input"), feat("4K", "resolution")],
+    paramConfig: {
+      ...params.resolution(["1K", "2K", "4K"]),
       ...seedreamV2Params
     }
   },
@@ -5166,6 +5346,7 @@ var buildGrokTTSPayload = (ctx) => ({
   language: ctx.language ?? "auto",
   voice_id: ctx.voiceId ?? DEFAULT_GROK_VOICE_ID
 });
+var GROK_VIDEO_PROMPT_MAX = 4096;
 var GROK_VIDEO_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "3:2", "2:3"];
 var GROK_IMAGE_AR = ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "2:1", "1:2", "19.5:9", "9:19.5", "20:9", "9:20"];
 var GROK_DURATIONS = [3, 5, 6, 8, 10, 12, 15];
@@ -5189,7 +5370,7 @@ var { MODELS: MODELS17 } = defineModels("grok", [
     description: "Fastest generation pipeline \u2014 720p with audio in seconds, up to 15s.",
     features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("Audio", "audio"), feat("720p", "resolution"), feat("15 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_VIDEO_PROMPT_MAX }),
       ...params.aspectRatio(GROK_VIDEO_AR),
       ...params.resolution(GROK_VIDEO_RESOLUTIONS, "720p"),
       ...params.duration(GROK_DURATIONS, 6),
@@ -5211,7 +5392,7 @@ var { MODELS: MODELS17 } = defineModels("grok", [
     description: "Next-gen Grok video \u2014 faster, higher fidelity, up to 15s with audio.",
     features: [feat("Image Input", "input"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("15 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_VIDEO_PROMPT_MAX }),
       ...params.aspectRatio(GROK_VIDEO_AR),
       ...params.resolution(GROK_VIDEO_RESOLUTIONS_15, "720p"),
       ...params.duration(GROK_DURATIONS, 8),
@@ -5231,7 +5412,7 @@ var { MODELS: MODELS17 } = defineModels("grok", [
     description: "Restyle or remix an existing video with a new prompt direction.",
     features: [feat("Video Input", "input"), feat("Up to 8s", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_VIDEO_PROMPT_MAX }),
       ...params.videoInput("Source Video", "reference", true, 8)
     }
   },
@@ -5248,7 +5429,7 @@ var { MODELS: MODELS17 } = defineModels("grok", [
     description: "Extend an existing video forward with a new prompt \u2014 up to 10 seconds.",
     features: [feat("Video Input", "input"), feat("Up to 10s", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_VIDEO_PROMPT_MAX }),
       ...params.duration([3, 5, 6, 8, 10], 6),
       ...params.videoInput("Source Video")
     }
@@ -5823,6 +6004,11 @@ var fluxKontextBase = {
   mode: "image",
   inputType: "t2i"
 };
+var flux3VideoConstraints = [
+  { when: { draft: { is: true } }, then: {
+    resolution: { allowed: ["hd"], reason: "Draft mode only supports HD resolution." }
+  } }
+];
 var { MODELS: MODELS21 } = defineModels("flux", [
   {
     ...fluxV2Base,
@@ -5911,52 +6097,39 @@ var { MODELS: MODELS21 } = defineModels("flux", [
     }
   },
   {
-    // Single workflow `flux/v1/video` handles t2v plus every conditioning
-    // mode (i2v via start frame, morph via start/end frame, reference images,
-    // reference video, video continuation) through optional inputs — no
+    // Single workflow `flux/v1/video` derives its mode from the input it's
+    // given: none → t2v, keyframe images → i2v, a start video → v2v. No
     // editWorkflow needed. Payload assembly lives in flux.payloads.ts.
     id: "flux-3-video",
     name: "Flux 3 Video",
     workflow: "flux/v1/video",
     mode: "video",
     inputType: "t2v",
-    release: "preview",
     addedAt: "2026-07-27",
     estimatedTime: 120,
-    description: "Text-to-video with synchronized audio, plus image and video conditioning (continuation, references, first/last frame).",
+    constraints: flux3VideoConstraints,
+    description: "Text-to-video with synchronized audio, plus image-to-video (animate up to 10 images) and video continuation.",
     features: [
       feat("Image & Video Input", "input"),
-      feat("Start/End Frame", "frame"),
       feat("Audio", "audio"),
       feat("Up to 20s", "duration"),
-      feat("720p", "resolution")
+      feat("1080p", "resolution")
     ],
     paramConfig: {
       ...params.prompt(),
-      // Checkpoint: `high` (default, full conditioning + draft) vs `optimized`
-      // (faster, text-to-video only). Sent as the wire `model` field.
-      ...p.enum("model", [
-        { id: "flux-3-preview-high", label: "High" },
-        { id: "flux-3-preview-optimized", label: "Optimized" }
-      ], "flux-3-preview-high", { label: "Model" }),
-      ...params.aspectRatio(["auto", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16", "9:21"], "auto"),
-      ...params.resolution(["480p", "720p"], "720p"),
-      // 'auto' lets the model fit length; an explicit whole number is required
-      // for a two-image (start+end) morph.
+      ...params.aspectRatio(["auto", "21:9", "2:1", "16:9", "4:3", "1:1", "3:4", "9:16"], "auto"),
+      ...params.resolution(["hd", "fhd"], "hd"),
+      // 'auto' lets the model fit length; or a whole number of seconds (5–20).
       ...p.enum("duration", ["auto", "5", "10", "15", "20"], "auto", { label: "Duration" }),
-      // startFrame → keyframe @0 (i2v); endFrame → keyframe @duration×24 (morph).
-      ...params.startFrame("Start Frame"),
-      ...params.endFrame("End Frame"),
-      // referenceImages (ir2v): who/what appears, never shown on screen.
-      ...params.imageInput(10, "Reference Images", false, "reference"),
-      // startVideo (f2v): continue from a clip's final frames.
+      // keyframes (i2v): 1–10 images to animate. Providing these selects i2v mode.
+      ...params.imageInput(10, "Images", false, "asset"),
+      // startVideo (v2v): continue from a clip's final frames.
       ...params.videoInput("Start Video", "asset", false, 15),
-      // referenceVideo (vr2v): carry subjects into a brand-new clip.
-      ...params.videoInputs(1, "Reference Video", false),
       ...params.generateAudio(true),
-      ...p.boolean("grounding", true, "Grounding"),
-      ...p.range("seed", 0, 4294967295, 0, { label: "Seed" }),
-      ...p.text("version", { label: "Version", placeholder: "latest" })
+      // Moderation level: 0 (strict) … 4 (permissive).
+      ...p.range("safetyTolerance", 0, 4, 2, { label: "Safety Tolerance" }),
+      // draft: fast low-step preview.
+      ...p.boolean("draft", false, "Draft")
     }
   }
 ]);
@@ -5964,29 +6137,19 @@ var { MODELS: MODELS21 } = defineModels("flux", [
 // src/vendors/catalog/flux.payloads.ts
 var buildFlux3VideoPayload = (input) => {
   const duration = input.duration && input.duration !== "auto" ? Number(input.duration) : "auto";
-  const keyframes = [];
-  if (input.startFrame) keyframes.push({ imageUrl: input.startFrame, frameIndex: 0 });
-  if (input.endFrame && typeof duration === "number") {
-    keyframes.push({ imageUrl: input.endFrame, frameIndex: duration * 24 });
-  }
   return {
     prompt: input.prompt,
-    model: input.model ?? "flux-3-preview-high",
     aspectRatio: input.aspectRatio ?? "auto",
-    resolution: input.resolution ?? "720p",
+    resolution: input.resolution ?? "hd",
     duration,
     generateAudio: input.generateAudio ?? true,
-    grounding: input.grounding ?? true,
-    ...keyframes.length ? { keyframes } : {},
-    // referenceImages (ir2v) — reference images that define who/what appears.
-    ...input.imageUrls?.length ? { referenceImages: input.imageUrls } : {},
-    // startVideo (f2v) — continue from a clip's final frames.
+    safetyTolerance: input.safetyTolerance ?? 2,
+    // keyframes (i2v): 1–10 images to animate.
+    ...input.imageUrls?.length ? { keyframes: input.imageUrls } : {},
+    // startVideo (v2v): continue from a clip's final frames.
     ...input.videoUrl ? { startVideo: input.videoUrl } : {},
-    // referenceVideo (vr2v) — carry a clip's subjects into a brand-new video.
-    ...input.videoUrls?.length ? { referenceVideo: input.videoUrls[0] } : {},
-    // seed omitted when unset → vendor randomizes.
-    ...input.seed != null ? { seed: input.seed } : {},
-    ...input.version ? { version: input.version } : {}
+    // draft: fast low-step preview.
+    ...input.draft ? { draft: input.draft } : {}
   };
 };
 registerPayloads(MODELS21, {
@@ -10824,9 +10987,13 @@ var Seedance20MiniVideoEdit = "seedance-2.0-mini-video-edit";
 var Seedance20MiniVideoExtend = "seedance-2.0-mini-video-extend";
 var Seedance20VideoEdit = "seedance-2.0-video-edit";
 var Seedance20VideoExtend = "seedance-2.0-video-extend";
+var Seedance25 = "seedance-2.5";
+var Seedance25VideoEdit = "seedance-2.5-video-edit";
+var Seedance25VideoExtend = "seedance-2.5-video-extend";
 var SeedanceI2v = "seedance-i2v";
 var Seedream40 = "seedream-4.0";
 var Seedream45 = "seedream-4.5";
+var Seedream47 = "seedream-4.7";
 var Seedream50Lite = "seedream-5.0-lite";
 var Seedream50Pro = "seedream-5.0-pro";
 var Sora2 = "sora-2";
@@ -11024,9 +11191,13 @@ var Models = {
   Seedance20MiniVideoExtend,
   Seedance20VideoEdit,
   Seedance20VideoExtend,
+  Seedance25,
+  Seedance25VideoEdit,
+  Seedance25VideoExtend,
   SeedanceI2v,
   Seedream40,
   Seedream45,
+  Seedream47,
   Seedream50Lite,
   Seedream50Pro,
   Sora2,

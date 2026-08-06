@@ -98,6 +98,19 @@ export const buildGrokTTSPayload: PayloadBuilder = (ctx) => ({
   voice_id: ctx.voiceId ?? DEFAULT_GROK_VOICE_ID,
 });
 
+/**
+ * Every xAI videos endpoint (generations, edits, extensions) caps the prompt at
+ * 4096, and none of the video models declared a limit — over-long prompts were
+ * rejected by the vendor only after the job was submitted ("Prompt length
+ * exceeds the maximum allowed length of 4096"). Verified against the live
+ * backend on 2026-08-06 by boundary-probing each workflow.
+ *
+ * Note: xAI measures this in UTF-8 bytes, not characters, so a prompt under
+ * 4096 characters can still be rejected if it contains multibyte text. This cap
+ * catches the ASCII case only; the byte-size gap is tracked separately.
+ */
+const GROK_VIDEO_PROMPT_MAX = 4096;
+
 const GROK_VIDEO_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '3:2', '2:3'];
 const GROK_IMAGE_AR = ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '2:1', '1:2', '19.5:9', '9:19.5', '20:9', '9:20'];
 const GROK_DURATIONS = [3, 5, 6, 8, 10, 12, 15];
@@ -117,7 +130,7 @@ export const { MODELS } = defineModels('grok', [
     description: 'Fastest generation pipeline — 720p with audio in seconds, up to 15s.',
     features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('Audio', 'audio'), feat('720p', 'resolution'), feat('15 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_VIDEO_PROMPT_MAX }),
       ...params.aspectRatio(GROK_VIDEO_AR),
       ...params.resolution(GROK_VIDEO_RESOLUTIONS, '720p'),
       ...params.duration(GROK_DURATIONS, 6),
@@ -134,7 +147,7 @@ export const { MODELS } = defineModels('grok', [
     description: 'Next-gen Grok video — faster, higher fidelity, up to 15s with audio.',
     features: [feat('Image Input', 'input'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('15 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_VIDEO_PROMPT_MAX }),
       ...params.aspectRatio(GROK_VIDEO_AR),
       ...params.resolution(GROK_VIDEO_RESOLUTIONS_15, '720p'),
       ...params.duration(GROK_DURATIONS, 8),
@@ -150,7 +163,7 @@ export const { MODELS } = defineModels('grok', [
     description: 'Restyle or remix an existing video with a new prompt direction.',
     features: [feat('Video Input', 'input'), feat('Up to 8s', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_VIDEO_PROMPT_MAX }),
       ...params.videoInput('Source Video', 'reference', true, 8),
     },
   },
@@ -163,7 +176,7 @@ export const { MODELS } = defineModels('grok', [
     description: 'Extend an existing video forward with a new prompt — up to 10 seconds.',
     features: [feat('Video Input', 'input'), feat('Up to 10s', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_VIDEO_PROMPT_MAX }),
       ...params.duration([3, 5, 6, 8, 10], 6),
       ...params.videoInput('Source Video'),
     },

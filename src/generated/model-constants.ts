@@ -386,6 +386,12 @@ export const Seedance20MiniVideoExtend = 'seedance-2.0-mini-video-extend' as con
 export const Seedance20VideoEdit = 'seedance-2.0-video-edit' as const;
 /** Seedance 2.0 Video Extend — seedance (video) */
 export const Seedance20VideoExtend = 'seedance-2.0-video-extend' as const;
+/** Seedance 2.5 — seedance (video) */
+export const Seedance25 = 'seedance-2.5' as const;
+/** Seedance 2.5 Video Edit — seedance (video) */
+export const Seedance25VideoEdit = 'seedance-2.5-video-edit' as const;
+/** Seedance 2.5 Video Extend — seedance (video) */
+export const Seedance25VideoExtend = 'seedance-2.5-video-extend' as const;
 /** Seedance I2V — seedance (video) */
 /** @deprecated This model is retired (deprecated). */
 export const SeedanceI2v = 'seedance-i2v' as const;
@@ -394,6 +400,8 @@ export const SeedanceI2v = 'seedance-i2v' as const;
 export const Seedream40 = 'seedream-4.0' as const;
 /** Seedream 4.5 — seedream (image) */
 export const Seedream45 = 'seedream-4.5' as const;
+/** Seedream 4.7 — seedream (image) */
+export const Seedream47 = 'seedream-4.7' as const;
 /** Seedream 5.0 Lite — seedream (image) */
 export const Seedream50Lite = 'seedream-5.0-lite' as const;
 /** Seedream 5.0 Pro — seedream (image) */
@@ -623,9 +631,13 @@ export const Models = {
   Seedance20MiniVideoExtend,
   Seedance20VideoEdit,
   Seedance20VideoExtend,
+  Seedance25,
+  Seedance25VideoEdit,
+  Seedance25VideoExtend,
   SeedanceI2v,
   Seedream40,
   Seedream45,
+  Seedream47,
   Seedream50Lite,
   Seedream50Pro,
   Sora2,

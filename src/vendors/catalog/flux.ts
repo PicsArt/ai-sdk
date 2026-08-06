@@ -1,7 +1,7 @@
 /**
  * Flux — single source of truth.
  */
-import type { PayloadBuilder } from '../../core/types.ts';
+import type { Constraint, PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 import { resolveImageSize } from '../../core/helpers.ts';
@@ -95,6 +95,14 @@ const fluxKontextBase = {
   inputType: 't2i' as const,
 };
 
+/** Flux 3 Video: draft (fast low-step) mode renders at HD only — the vendor
+ *  rejects `fhd` while `draft` is enabled. */
+const flux3VideoConstraints: Constraint[] = [
+  { when: { draft: { is: true } }, then: {
+    resolution: { allowed: ['hd'], reason: 'Draft mode only supports HD resolution.' },
+  } },
+];
+
 // ── Model definitions ───────────────────────────────────────────────
 
 export const { MODELS } = defineModels('flux', [
@@ -175,50 +183,37 @@ export const { MODELS } = defineModels('flux', [
     },
   },
   {
-    // Single workflow `flux/v1/video` handles t2v plus every conditioning
-    // mode (i2v via start frame, morph via start/end frame, reference images,
-    // reference video, video continuation) through optional inputs — no
+    // Single workflow `flux/v1/video` derives its mode from the input it's
+    // given: none → t2v, keyframe images → i2v, a start video → v2v. No
     // editWorkflow needed. Payload assembly lives in flux.payloads.ts.
     id: 'flux-3-video', name: 'Flux 3 Video',
     workflow: 'flux/v1/video',
     mode: 'video', inputType: 't2v',
-    release: 'preview',
     addedAt: '2026-07-27',
     estimatedTime: 120,
-    description: 'Text-to-video with synchronized audio, plus image and video conditioning (continuation, references, first/last frame).',
+    constraints: flux3VideoConstraints,
+    description: 'Text-to-video with synchronized audio, plus image-to-video (animate up to 10 images) and video continuation.',
     features: [
       feat('Image & Video Input', 'input'),
-      feat('Start/End Frame', 'frame'),
       feat('Audio', 'audio'),
       feat('Up to 20s', 'duration'),
-      feat('720p', 'resolution'),
+      feat('1080p', 'resolution'),
     ],
     paramConfig: {
       ...params.prompt(),
-      // Checkpoint: `high` (default, full conditioning + draft) vs `optimized`
-      // (faster, text-to-video only). Sent as the wire `model` field.
-      ...p.enum('model', [
-        { id: 'flux-3-preview-high', label: 'High' },
-        { id: 'flux-3-preview-optimized', label: 'Optimized' },
-      ], 'flux-3-preview-high', { label: 'Model' }),
-      ...params.aspectRatio(['auto', '21:9', '16:9', '4:3', '1:1', '3:4', '9:16', '9:21'], 'auto'),
-      ...params.resolution(['480p', '720p'], '720p'),
-      // 'auto' lets the model fit length; an explicit whole number is required
-      // for a two-image (start+end) morph.
+      ...params.aspectRatio(['auto', '21:9', '2:1', '16:9', '4:3', '1:1', '3:4', '9:16'], 'auto'),
+      ...params.resolution(['hd', 'fhd'], 'hd'),
+      // 'auto' lets the model fit length; or a whole number of seconds (5–20).
       ...p.enum('duration', ['auto', '5', '10', '15', '20'], 'auto', { label: 'Duration' }),
-      // startFrame → keyframe @0 (i2v); endFrame → keyframe @duration×24 (morph).
-      ...params.startFrame('Start Frame'),
-      ...params.endFrame('End Frame'),
-      // referenceImages (ir2v): who/what appears, never shown on screen.
-      ...params.imageInput(10, 'Reference Images', false, 'reference'),
-      // startVideo (f2v): continue from a clip's final frames.
+      // keyframes (i2v): 1–10 images to animate. Providing these selects i2v mode.
+      ...params.imageInput(10, 'Images', false, 'asset'),
+      // startVideo (v2v): continue from a clip's final frames.
       ...params.videoInput('Start Video', 'asset', false, 15),
-      // referenceVideo (vr2v): carry subjects into a brand-new clip.
-      ...params.videoInputs(1, 'Reference Video', false),
       ...params.generateAudio(true),
-      ...p.boolean('grounding', true, 'Grounding'),
-      ...p.range('seed', 0, 4294967295, 0, { label: 'Seed' }),
-      ...p.text('version', { label: 'Version', placeholder: 'latest' }),
+      // Moderation level: 0 (strict) … 4 (permissive).
+      ...p.range('safetyTolerance', 0, 4, 2, { label: 'Safety Tolerance' }),
+      // draft: fast low-step preview.
+      ...p.boolean('draft', false, 'Draft'),
     },
   },
 ]);

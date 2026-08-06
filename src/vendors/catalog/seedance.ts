@@ -10,6 +10,7 @@
  */
 import type { Constraint, PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
+import { p } from '../../core/descriptors/presets.ts'; // p for output_format enum, not exposed via params.*
 
 /** Seedance 2.0 / 2.0 Fast constraints:
  *  - audio-only content rejected by backend (need at least one image or video role)
@@ -195,10 +196,188 @@ export const buildSeedance20VideoExtendPayloadFor =
     generate_audio: ctx.generateAudio ?? false,
   });
 
+/** Seedance 2.5 — same v2 request shape as 2.0, with three differences:
+ *  - audio-only input IS allowed (2.5 lifts the "need an image or video" rule),
+ *    so we reuse the 2.0 constraints minus the leading audio-only block.
+ *  - wider content limits (30 images / 10 videos / 10 audios).
+ *  - new `output_format` (mp4/mov) parameter, sent on every 2.5 flow.
+ *  Resolution is capped at 480p/720p (no 1080p, no 4k).
+ *  The trailing rule enforces last_frame pairing: the vendor rejects a
+ *  last_frame supplied on its own, and refs are already mutually exclusive
+ *  with endFrame above, so endFrame is only valid alongside a startFrame. */
+const seedance25Constraints: Constraint[] = [
+  ...seedance20Constraints.slice(1),
+  {
+    when: { startFrame: { exists: false } },
+    then: {
+      endFrame: {
+        disabled: true,
+        reason: 'End frame needs a start frame — a last frame on its own is rejected.',
+      },
+    },
+  },
+];
+
+/** Seedance 2.5 — text-to-video / image-to-video / multimodal refs.
+ *  Mirrors buildSeedance20PayloadFor but hardcodes the 2.5 alias, lifts the
+ *  reference caps to 30/10/10, and always sends `output_format`. */
+export const buildSeedance25Payload: PayloadBuilder = (ctx) => {
+  const refImages = ctx.imageUrls ?? [];
+  const refVideos = ctx.videoUrls ?? [];
+  const refAudios = ctx.audioUrls ?? [];
+
+  return {
+    model: 'seedance_2_5',
+    content: [
+      ...(ctx.startFrame
+        ? [{ type: 'image_url', image_url: { url: ctx.startFrame }, role: 'first_frame' }]
+        : []),
+      ...refImages.slice(0, 30).map((url) => ({
+        type: 'image_url',
+        image_url: { url },
+        role: 'reference_image',
+      })),
+      ...refVideos.slice(0, 10).map((url) => ({
+        type: 'video_url',
+        video_url: { url },
+        role: 'reference_video',
+      })),
+      ...refAudios.slice(0, 10).map((url) => ({
+        type: 'audio_url',
+        audio_url: { url },
+        role: 'reference_audio',
+      })),
+      ...(ctx.endFrame
+        ? [{ type: 'image_url', image_url: { url: ctx.endFrame }, role: 'last_frame' }]
+        : []),
+      { type: 'text', text: ctx.prompt },
+    ],
+    ratio: ctx.aspectRatio ?? '16:9',
+    duration: ctx.duration ?? 5,
+    resolution: ctx.resolution ?? '720p',
+    generate_audio: ctx.generateAudio ?? false,
+    output_format: ctx.outputFormat ?? 'mp4',
+    ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
+  };
+};
+
+/** Seedance 2.5 — video edit. Required reference_video + up to 30 reference images.
+ *  Worker routes to `video-to-video.*` toolId (content includes video_url). */
+export const buildSeedance25VideoEditPayload: PayloadBuilder = (ctx) => ({
+  model: 'seedance_2_5',
+  content: [
+    { type: 'text', text: ctx.prompt },
+    { type: 'video_url', video_url: { url: ctx.videoUrl }, role: 'reference_video' },
+    ...(ctx.imageUrls ?? []).slice(0, 30).map((url) => ({
+      type: 'image_url',
+      image_url: { url },
+      role: 'reference_image',
+    })),
+  ],
+  ratio: ctx.aspectRatio ?? '16:9',
+  duration: ctx.duration ?? 5,
+  resolution: ctx.resolution ?? '720p',
+  generate_audio: ctx.generateAudio ?? false,
+  output_format: ctx.outputFormat ?? 'mp4',
+  ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
+});
+
+/** Seedance 2.5 — video extend / multi-clip stitching (up to 10 reference videos).
+ *  Worker routes to `video-to-video.*` toolId (content includes video_url roles). */
+export const buildSeedance25VideoExtendPayload: PayloadBuilder = (ctx) => ({
+  model: 'seedance_2_5',
+  content: [
+    { type: 'text', text: ctx.prompt },
+    ...(ctx.videoUrls ?? []).slice(0, 10).map((url) => ({
+      type: 'video_url',
+      video_url: { url },
+      role: 'reference_video',
+    })),
+  ],
+  ratio: ctx.aspectRatio ?? 'adaptive',
+  duration: ctx.duration ?? 15,
+  resolution: ctx.resolution ?? '720p',
+  generate_audio: ctx.generateAudio ?? false,
+  output_format: ctx.outputFormat ?? 'mp4',
+});
+
 const SEEDANCE_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', 'adaptive'];
 const SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+const SEEDANCE_25_DURATIONS = [4, 5, 6, 8, 10, 12, 15, 20, 25, 30];
 
 export const { MODELS } = defineModels('seedance', [
+  {
+    id: 'seedance-2.5', name: 'Seedance 2.5', modelId: 'seedance-2.5',
+    addedAt: '2026-08-06',
+    workflow: 'seedance',
+    buildPayload: buildSeedance25Payload,
+    constraints: seedance25Constraints,
+    estimatedTime: 20,
+    mode: 'video', inputType: 't2v',
+    release: 'preview',
+    badge: ['new', 'premium', 'hot'],
+    description: 'Latest cinematic video with audio, multi-reference input, and mp4/mov output. Up to 30s.',
+    features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('720p', 'resolution'), feat('4-30 sec', 'duration')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(['480p', '720p'], '720p'),
+      ...params.duration(SEEDANCE_25_DURATIONS, 5),
+      ...params.generateAudio(false),
+      ...params.returnLastFrame(),
+      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
+      ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_MIN_PIXELS),
+      ...params.videoInputs(10, 'Reference Videos', false, SEEDANCE_MIN_PIXELS),
+      ...params.audioInputs(10, 'Reference Audios'),
+      ...params.startFrame(),
+      ...params.endFrame(),
+    },
+  },
+  {
+    id: 'seedance-2.5-video-edit', name: 'Seedance 2.5 Video Edit', modelId: 'seedance-2.5',
+    addedAt: '2026-08-06',
+    workflow: 'seedance',
+    buildPayload: buildSeedance25VideoEditPayload,
+    estimatedTime: 60,
+    mode: 'video', inputType: 'v2v',
+    release: 'preview',
+    badge: ['new', 'premium', 'hot'],
+    description: 'Edit video — replace subjects, add or remove objects, restyle scenes with reference images.',
+    features: [feat('Video Input', 'input'), feat('Multi-Image Input', 'input'), feat('Audio', 'audio'), feat('720p', 'resolution'), feat('4-30 sec', 'duration')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(['480p', '720p'], '720p'),
+      ...params.duration(SEEDANCE_25_DURATIONS, 5),
+      ...params.generateAudio(false),
+      ...params.returnLastFrame(),
+      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      ...params.videoInput('Source Video'),
+      ...params.imageInput(30, 'Reference Images'),
+    },
+  },
+  {
+    id: 'seedance-2.5-video-extend', name: 'Seedance 2.5 Video Extend', modelId: 'seedance-2.5',
+    addedAt: '2026-08-06',
+    workflow: 'seedance',
+    buildPayload: buildSeedance25VideoExtendPayload,
+    estimatedTime: 200,
+    mode: 'video', inputType: 'v2v',
+    release: 'preview',
+    badge: ['new', 'premium', 'hot'],
+    description: 'Stitch up to 10 clips into one continuous, extended video.',
+    features: [feat('Multi-Video Input', 'input'), feat('Audio', 'audio'), feat('720p', 'resolution'), feat('4-30 sec', 'duration')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(['480p', '720p'], '720p'),
+      ...params.duration(SEEDANCE_25_DURATIONS, 15),
+      ...params.generateAudio(false),
+      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      ...params.videoInputs(10, 'Source Videos', true),
+    },
+  },
   {
     id: 'seedance-2.0', name: 'Seedance 2.0', modelId: 'seedance-2.0',
     addedAt: '2026-05-27',

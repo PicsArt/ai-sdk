@@ -171,19 +171,14 @@ type ModelInputById = {
     };
     "flux-3-video": {
         prompt: string;
-        model?: "flux-3-preview-high" | "flux-3-preview-optimized";
-        aspectRatio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "9:21";
-        resolution?: "480p" | "720p";
+        aspectRatio?: "auto" | "21:9" | "2:1" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
+        resolution?: "hd" | "fhd";
         duration?: "auto" | "5" | "10" | "15" | "20";
-        startFrame?: string;
-        endFrame?: string;
         imageUrls?: string[];
         videoUrl?: string;
-        videoUrls?: string[];
         generateAudio?: boolean;
-        grounding?: boolean;
-        seed?: number;
-        version?: string;
+        safetyTolerance?: number;
+        draft?: boolean;
     };
     "flux-kontext-max": {
         prompt: string;
@@ -1256,6 +1251,40 @@ type ModelInputById = {
         generateAudio?: boolean;
         videoUrls: [string, ...string[]];
     };
+    "seedance-2.5": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
+        resolution?: "480p" | "720p";
+        duration?: 4 | 5 | 6 | 8 | 10 | 12 | 15 | 20 | 25 | 30;
+        generateAudio?: boolean;
+        returnLastFrame?: boolean;
+        outputFormat?: "mp4" | "mov";
+        imageUrls?: string[];
+        videoUrls?: string[];
+        audioUrls?: string[];
+        startFrame?: string;
+        endFrame?: string;
+    };
+    "seedance-2.5-video-edit": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
+        resolution?: "480p" | "720p";
+        duration?: 4 | 5 | 6 | 8 | 10 | 12 | 15 | 20 | 25 | 30;
+        generateAudio?: boolean;
+        returnLastFrame?: boolean;
+        outputFormat?: "mp4" | "mov";
+        videoUrl: string;
+        imageUrls?: string[];
+    };
+    "seedance-2.5-video-extend": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
+        resolution?: "480p" | "720p";
+        duration?: 4 | 5 | 6 | 8 | 10 | 12 | 15 | 20 | 25 | 30;
+        generateAudio?: boolean;
+        outputFormat?: "mp4" | "mov";
+        videoUrls: [string, ...string[]];
+    };
     "seedance-i2v": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
@@ -1273,6 +1302,14 @@ type ModelInputById = {
     };
     "seedream-4.5": {
         resolution?: "2K" | "4K";
+        prompt: string;
+        aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9";
+        count?: 1 | 2 | 4 | 6 | 8 | 10;
+        imageUrls?: string[];
+        negativePrompt?: string;
+    };
+    "seedream-4.7": {
+        resolution?: "1K" | "2K" | "4K";
         prompt: string;
         aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9";
         count?: 1 | 2 | 4 | 6 | 8 | 10;
@@ -2348,9 +2385,13 @@ declare const Models: {
     readonly Seedance20MiniVideoExtend: "seedance-2.0-mini-video-extend";
     readonly Seedance20VideoEdit: "seedance-2.0-video-edit";
     readonly Seedance20VideoExtend: "seedance-2.0-video-extend";
+    readonly Seedance25: "seedance-2.5";
+    readonly Seedance25VideoEdit: "seedance-2.5-video-edit";
+    readonly Seedance25VideoExtend: "seedance-2.5-video-extend";
     readonly SeedanceI2v: "seedance-i2v";
     readonly Seedream40: "seedream-4.0";
     readonly Seedream45: "seedream-4.5";
+    readonly Seedream47: "seedream-4.7";
     readonly Seedream50Lite: "seedream-5.0-lite";
     readonly Seedream50Pro: "seedream-5.0-pro";
     readonly Sora2: "sora-2";

@@ -22,24 +22,21 @@
  *
  * They are billed separately (the worker resolves pricing per model id).
  */
-import type { Constraint, VoiceOption } from '../../core/types.ts';
-import {
-  SEEDAUDIO_VOICES,
-  SEEDAUDIO_EN_ZH_VOICES,
-  SEEDAUDIO_DEFAULT_VOICE_ID,
-} from '../../core/voices.ts';
+import type { Constraint } from '../../core/types.ts';
+import { SEEDAUDIO_DEFAULT_VOICE_ID } from '../../core/voices.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 
 const REF_MUTEX_REASON = 'A named voice and audio/image references cannot be combined.';
 
 /** Shared inputs and output knobs — identical across both variants. */
-const seedAudioParams = (voices: readonly VoiceOption[]) => ({
+const seedAudioParams = (catalogModelId: string) => ({
   ...params.prompt({ maxLength: 3000 }),
   // Voice: a named BytePlus voice (default), OR clone from up to 3 reference
   // audios, OR one image reference. The three are mutually exclusive; the
   // payload builder prioritizes an uploaded reference over the named voice.
-  ...params.voiceId(voices, SEEDAUDIO_DEFAULT_VOICE_ID),
+  ...params.voiceId([], SEEDAUDIO_DEFAULT_VOICE_ID,
+    { catalog: { workflow: 'bytedance/v1/catalog/voices', modelId: catalogModelId } }),
   ...params.audioInputs(3, 'Reference Audios'),
   ...params.imageInput(1, 'Reference Image', false),
   // Output audio configuration (nested under `audio_config` at the wire).
@@ -78,7 +75,7 @@ export const { MODELS } = defineModels('seedaudio', [
       feat('Voice Cloning', 'characteristic'),
       feat('Reference Audio', 'audio'),
     ],
-    paramConfig: seedAudioParams(SEEDAUDIO_VOICES),
+    paramConfig: seedAudioParams('seed-audio-1.0-multilingual'),
     constraints: refMutexConstraints,
   },
   {
@@ -89,7 +86,7 @@ export const { MODELS } = defineModels('seedaudio', [
     mode: 'audio', inputType: 'tts',
     description: 'Synthesize natural English or Chinese speech — pick a named voice or clone one from a reference audio.',
     features: [feat('Voice Cloning', 'characteristic'), feat('Reference Audio', 'audio')],
-    paramConfig: seedAudioParams(SEEDAUDIO_EN_ZH_VOICES),
+    paramConfig: seedAudioParams('seed-audio-1.0'),
     constraints: refMutexConstraints,
   },
 ]);

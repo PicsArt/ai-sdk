@@ -1,9 +1,8 @@
 /**
- * OpenAI — single source of truth (image + audio).
+ * OpenAI — single source of truth (image).
  */
 import type { Constraint, PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
-import { OPENAI_VOICES, OPENAI_DEFAULT_VOICE_ID } from '../../core/voices.ts';
 import { p } from '../../core/descriptors/presets.ts';
 
 // ── Payload builders ────────────────────────────────────────────────
@@ -129,16 +128,6 @@ const gptImageBgConstraints: Constraint[] = [
   },
 ];
 
-export const buildOpenAITTSPayload: PayloadBuilder = (ctx) => ({
-  prompt: ctx.prompt,
-  voice: ctx.voiceId ?? 'alloy',
-});
-
-const ttsParamConfig = {
-  ...params.prompt({ maxLength: 4096 }),
-  ...params.voiceId(OPENAI_VOICES, OPENAI_DEFAULT_VOICE_ID),
-};
-
 export const { MODELS } = defineModels('openai', [
   // ── Image ─────────────────────────────────────────
   {
@@ -202,28 +191,5 @@ export const { MODELS } = defineModels('openai', [
       ...params.imageInput(5, 'Source Images'),
     },
     constraints: gptImageBgConstraints,
-  },
-  // ── Audio ──────────────────────────────────────────
-  {
-    id: 'openai-tts-1', name: 'OpenAI TTS-1', modelId: 'tts-1',
-    addedAt: '2026-02-15',
-    workflow: 'openai/tts/v1',
-    buildPayload: (ctx) => ({ ...buildOpenAITTSPayload(ctx), model: 'tts-1' }),
-    estimatedTime: 15,
-    mode: 'audio', inputType: 'tts', deprecated: true,
-    description: 'Fast and affordable text-to-speech with natural voice output.',
-    features: [feat('Fast', 'characteristic'), feat('11 Voices', 'characteristic')],
-    paramConfig: ttsParamConfig,
-  },
-  {
-    id: 'openai-tts-1-hd', name: 'OpenAI TTS-1 HD', modelId: 'tts-1-hd',
-    addedAt: '2026-02-15',
-    workflow: 'openai/tts/v1',
-    buildPayload: (ctx) => ({ ...buildOpenAITTSPayload(ctx), model: 'tts-1-hd' }),
-    estimatedTime: 15,
-    mode: 'audio', inputType: 'tts', deprecated: true,
-    description: 'High-definition text-to-speech with richer, more natural audio quality.',
-    features: [feat('HD Quality', 'quality'), feat('11 Voices', 'characteristic')],
-    paramConfig: ttsParamConfig,
   },
 ]);

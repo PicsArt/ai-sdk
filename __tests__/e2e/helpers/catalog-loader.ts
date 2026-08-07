@@ -35,7 +35,8 @@ export const DISABLED_TEST_MODELS = new Set<string>([
   // Requires a real `voiceId`, but the param is a picker whose default is "".
   'heygen-talking-photo',
   // Same as above plus `videoId` — the avatar picker is hydrated at runtime from
-  // `heygen/v1/avatars/list`, so its catalog options are empty and the default is "".
+  // `heygen/v1/catalog/avatars` (via ai.catalogs), so its bundled options are
+  // empty and the default is "".
   'heygen-video-avatar',
   // Backend dubbing requires a target language not declared (as required) in paramConfig.
   'eleven-dubbing',
@@ -108,6 +109,7 @@ function buildDefaultContext(model: ModelDefinition): Record<string, unknown> {
     const d = entry.descriptor;
     switch (d.kind) {
       case 'enum':
+      case 'catalog':
       case 'range':
       case 'boolean':
         ctx[key] = d.default;

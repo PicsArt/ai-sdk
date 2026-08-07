@@ -3,7 +3,7 @@
  */
 import type { PayloadBuilder } from '../../core/types.ts';
 import type { ModelParams } from '../../core/descriptors/types.ts';
-import { GEMINI_VOICES, GEMINI_DEFAULT_VOICE_ID } from '../../core/voices.ts';
+import { GEMINI_DEFAULT_VOICE_ID } from '../../core/voices.ts';
 import { p } from '../../core/descriptors/presets.ts';
 import { defineModels, feat, params } from '../define.ts';
 
@@ -260,7 +260,7 @@ export const { MODELS } = defineModels('google', [
       // 6,000 boundary-verified against the live gemini/v1/audios worker
       // (accepts >5,000; see scripts/api-tests/audio-charlimit-boundary-probe.mjs).
       ...params.prompt({ maxLength: 6000 }),
-      ...params.voiceId(GEMINI_VOICES, GEMINI_DEFAULT_VOICE_ID),
+      ...params.voiceId([], GEMINI_DEFAULT_VOICE_ID, { catalog: { workflow: 'gemini/v1/catalog/voices' } }),
     },
   },
   {
@@ -278,7 +278,7 @@ export const { MODELS } = defineModels('google', [
       // 6,000 boundary-verified against the live gemini/v1/audios worker
       // (accepts >5,000; see scripts/api-tests/audio-charlimit-boundary-probe.mjs).
       ...params.prompt({ maxLength: 6000 }),
-      ...params.voiceId(GEMINI_VOICES, GEMINI_DEFAULT_VOICE_ID),
+      ...params.voiceId([], GEMINI_DEFAULT_VOICE_ID, { catalog: { workflow: 'gemini/v1/catalog/voices' } }),
     },
   },
   // ── Video ─────────────────────────────────────────────────────────

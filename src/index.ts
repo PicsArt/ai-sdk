@@ -47,6 +47,18 @@ export type {
   AvatarOption,
   ParamOption,
 } from './core/types.ts';
+
+// ── Voice/avatar catalogs (platform catalog tasks) ──────────────────
+export type {
+  CatalogItem,
+  CatalogPreview,
+  CatalogQuery,
+  CatalogResult,
+  CatalogKind,
+  CatalogSource,
+} from './core/catalogs.ts';
+export { toVoiceOption, toAvatarOption } from './core/catalogs.ts';
+export type { CatalogsClient, CatalogPage, CatalogPageOptions, CatalogsOptions } from './client/index.ts';
 export type { TypedModelId, ModelInput, ModelInputById, TextModelId, TextModelInputById } from './generated/model-input-types.ts';
 export type { MediaModelId } from './client/index.ts';
 
@@ -59,12 +71,14 @@ export type {
   ModelParams,
   EnumDescriptor,
   EnumOption,
+  CatalogDescriptor,
   RangeDescriptor,
   BooleanDescriptor,
   TextDescriptor,
   FileDescriptor,
   ObjectDescriptor,
   EnumEntry,
+  CatalogEntry,
   RangeEntry,
   BooleanEntry,
   TextEntry,

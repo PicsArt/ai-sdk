@@ -8,7 +8,7 @@
  *       https://docs.x.ai/docs/api-reference#text-to-speech
  */
 import type { PayloadBuilder } from '../../core/types.ts';
-import { GROK_VOICES, DEFAULT_GROK_VOICE_ID } from '../../core/voices.ts';
+import { DEFAULT_GROK_VOICE_ID } from '../../core/voices.ts';
 import { defineModels, feat, params } from '../define.ts';
 
 // ── Payload builders ────────────────────────────────────────────────
@@ -232,7 +232,7 @@ export const { MODELS } = defineModels('grok', [
     paramConfig: {
       ...params.language(true),
       ...params.prompt({ maxLength: 15000 }),
-      ...params.voiceId(GROK_VOICES, DEFAULT_GROK_VOICE_ID),
+      ...params.voiceId([], DEFAULT_GROK_VOICE_ID, { catalog: { workflow: 'x-ai/v1/catalog/voices' } }),
     },
   },
 ]);

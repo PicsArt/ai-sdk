@@ -6,8 +6,9 @@
  * 2. Video Avatar (t2v) — generate video using a stock HeyGen avatar
  *
  * Both use the `heygen/v1/video/generate` pluggable workflow.
- * Avatar and voice lists are fetched dynamically at runtime from
- * `heygen/v1/avatars/list` and `heygen/v1/voices/list`.
+ * Avatar and voice lists are served at runtime by the platform catalog tasks
+ * `heygen/v1/catalog/avatars` and `heygen/v1/catalog/voices` — load them via
+ * `ai.catalogs.avatars('heygen-video-avatar')` / `ai.catalogs.voices(...)`.
  */
 import type { PayloadBuilder, VoiceOption, AvatarOption } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
@@ -36,7 +37,10 @@ export const buildHeyGenVideoAvatarPayload: PayloadBuilder = (ctx) => ({
 
 /** Voice options are loaded dynamically — empty array signals runtime fetch. */
 const dynamicVoiceConfig = {
-  ...params.voiceId([] as VoiceOption[], '', { required: true }),
+  ...params.voiceId([] as VoiceOption[], '', {
+    required: true,
+    catalog: { workflow: 'heygen/v1/catalog/voices' },
+  }),
 };
 
 // ── Model definitions ───────────────────────────────────────────────
@@ -85,7 +89,10 @@ export const { MODELS } = defineModels('heygen', [
       feat('Lip Sync', 'characteristic'),
     ],
     paramConfig: {
-      ...params.videoId([] as AvatarOption[], '', { required: true }),
+      ...params.videoId([] as AvatarOption[], '', {
+        required: true,
+        catalog: { workflow: 'heygen/v1/catalog/avatars' },
+      }),
       ...params.resolution(['4k', '1080p', '720p'], '720p'),
       ...params.aspectRatio(['16:9', '9:16']),
       ...dynamicVoiceConfig,

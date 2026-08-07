@@ -9,6 +9,7 @@ import type {
 import type { TypedModelId, ModelInputById, TextModelId, TextModelInputById } from '../generated/model-input-types.ts';
 import type { DriveFolder, DriveSaveResult, PayloadDriveOptions, DriveClient } from './drive.ts';
 import type { ApisClient } from './apis.ts';
+import type { CatalogsClient, CatalogsOptions } from './catalogs.ts';
 
 // Re-export for public API — users need these to type stored job handles + custom transports
 export type { WorkflowJobHandle, SdkTransport };
@@ -65,6 +66,11 @@ export interface ClientConfig {
   apiUrl: string;
   /** Enable Drive integration — auto-save generations to a Drive folder. */
   drive?: DriveConfig;
+  /**
+   * Voice/avatar catalog behavior. `{ preload: true }` loads the first page
+   * of every catalog-bound param in the background at client creation.
+   */
+  catalogs?: CatalogsOptions;
 }
 
 // ── Result types ─────────────────────────────────────────────────────
@@ -154,6 +160,12 @@ export interface AiClient {
    * See {@link ApisClient}.
    */
   apis: ApisClient;
+
+  /**
+   * Voice/avatar catalogs served by the platform catalog tasks — fetch,
+   * ttl-cache, and hydrate model params. See {@link CatalogsClient}.
+   */
+  catalogs: CatalogsClient;
 
   /** Drive operations. Only available when drive config is provided. */
   drive: DriveClient | undefined;

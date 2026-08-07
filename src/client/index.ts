@@ -17,10 +17,12 @@ import { buildTransport, isClientConfig, resolveFetch } from './transport.ts';
 import { prepareRequest, parseResult, parseTextResult } from './prepare.ts';
 import { createDriveClient, buildFilename, buildGenerationAttributes } from './drive.ts';
 import { createApis } from './apis.ts';
+import { createCatalogs } from './catalogs.ts';
 
 // ── Re-export types for the public API ──
 export type { ClientConfig, AuthenticatedFetch, SdkTransport, GenerateResult, GenerateResultItem, GenerateTextResult, GenerateOptions, WorkflowJobHandle, AiClient, MediaModelId } from './types.ts';
 export type { ApiResponse, ApiRunOptions, ApiSchemas, ApisClient } from './apis.ts';
+export type { CatalogsClient, CatalogPage, CatalogPageOptions, CatalogsOptions } from './catalogs.ts';
 export { ExecutionMode as ApiRunMode } from '@picsart/workflows-client';
 export type { DriveConfig, AppType, AppIdentity } from './types.ts';
 export type { DriveMediaItem, DriveFileDetails, ListOptions, MediaTypeFilter, SaveParams, UserReaction, GenerationFile, DriveFile, SdkPayload, DriveAttributes, DriveFolder, DriveSaveResult, PayloadDriveOptions, PayloadDriveFolderOptions, DriveClient } from './drive.ts';
@@ -53,6 +55,9 @@ export function createClient(config: ClientConfig | SdkTransport) {
 
   // ai.apis — direct, low-level access to the Picsart model APIs.
   const apis = createApis(isConfig ? config : null);
+
+  // ai.catalogs — voice/avatar catalogs served by the platform catalog tasks.
+  const catalogs = createCatalogs(transport, isConfig ? config.catalogs : undefined);
 
   // Drive client — only created when drive config is provided
   const driveConfig = isConfig ? config.drive : undefined;
@@ -279,6 +284,11 @@ export function createClient(config: ClientConfig | SdkTransport) {
 
     /** Direct, low-level access to the Picsart model APIs. See `./apis.ts`. */
     apis,
+
+    // ── Catalogs (voices / avatars) ──────────────────────────────────
+
+    /** Voice/avatar catalogs — fetch, ttl-cache, hydrate model params. See `./catalogs.ts`. */
+    catalogs,
 
     // ── Drive ────────────────────────────────────────────────────────
 

@@ -58,7 +58,7 @@ type WorkflowSubscribeOptions = WorkflowPollOptions;
 type ModelInputById = {
     "async-flash-v1": {
         prompt: string;
-        voiceId?: "cca0e076-94b9-4c6d-86b7-546168f11174" | "f493c663-b272-493e-8b78-72d2262a2a8d" | "317bf805-4b42-417b-9474-10807e2f67c9" | "3950360d-4810-4c65-a0b8-eb5b4b3b4231" | "a6268eaf-976d-4d44-871d-57e1d58002c7" | "84905ece-2420-47b5-b3d6-964e62200c73" | "a44e2f09-6897-4e1e-8573-631207c53f6d" | "8f7ad606-26df-400a-8336-e7162a977be7" | "c8dab279-6c67-468c-977d-ce4081fa3936" | "054c9aed-4786-4fa5-a317-09abd199e21f" | "ef932845-cfe9-4748-a123-454664076938" | "cfc8833a-dc45-40e9-9279-57cad23e3c09" | "5d20dd0a-a781-43ea-b06c-56892a691715" | "46ffc709-542b-409c-a8a9-aa5d3e0e1cfc" | "e5a67eaf-6e5a-4488-9fb9-4806bd7fea54" | "c01e9ac9-dc1b-4263-9b70-091f919c05f4" | "d7eb91fb-c2a7-45fd-b65a-80b8b499be7f" | "3f1e185f-6e91-4253-b94a-d8b53f6214be" | "8288f28a-a3f4-4792-a26e-d762fc2263b9" | "854eef1c-9aae-41ae-8849-2a32b9b349bb" | "a5e830d5-e543-4250-9724-a24c452fa248" | "15a92057-54a7-4bb8-979c-38f44581fb8c" | "f57e9942-4d9e-4b05-8a0c-585359eef0dd" | "965d9bd7-9e95-4cdd-a798-80a5233705bd" | "66254e55-d74a-4b23-a12a-cccdd14a25a0" | "8bab777e-1a1e-43d8-915d-eaafcb446e9d" | "2d83227c-1abf-47c0-902d-f82448bdc598" | "4a7876f0-5fb4-4ed8-a104-890bc30d9832" | "f7f4fee8-845b-49d2-be7e-6ff7c8706b55" | "b355a1d2-f989-4e62-a997-5de0bb2aa841" | "ee89b03c-5275-488a-b5d2-ca5ca364e857" | "fb9cc041-75e5-4ac5-ae7f-c763f1e54797" | "c81384a9-3dce-48d2-bb5b-b0875f2db37e" | "9e5001fa-5367-4f6d-a079-6bfc0ddbff69" | "17486b3b-2ffb-43e7-9d81-3ed3d147a497" | "44523faf-3c13-469e-961e-eb7c5496cb90" | "350bf05c-7858-49c1-859e-ef1e657d43f2" | "8788ac4f-2156-40ce-8030-7a9a0a9b9161" | "348aff4f-dff7-4871-81d5-fc31c3d90ef6" | "b976d8b2-e1f8-4c22-b6ba-87ce392f0f01" | "0aef6559-9098-4860-8224-13e038ab3aef" | "1e5d72bd-4a36-4abe-9b57-15dfc2b3841c" | "20180bd3-4f7a-4d83-9599-9a40c282ef04" | "66318ebc-62a9-437a-989a-9bd148ec829a" | "dfa6d420-4742-452f-b2fb-5d7ba0c3852e" | "9e9a769b-a283-4b03-93a5-bee4a5bd62bc" | "2808aed4-85d9-4b61-87d9-daefdaad29af" | "d8acc796-5d2c-475c-ae8e-2f1c8158490c" | "059fee9c-51a5-4db9-8c8c-1ff1ede29cf1" | "6d891f84-452e-4412-a72a-f00eea0f1fd7" | "6112718a-871e-46f6-abb3-d0cdd1f4368a" | "544ba1a4-4a04-4b93-9aaf-fadb09fed104" | "9f5d9d57-b7bb-4ee3-b627-d7402ed00d15" | "721d6b30-7601-4643-9447-6de1be2bd92e" | "f161bd60-c617-44b0-8275-7f879c96e86c" | "610df5e1-2fa1-42e8-8dcd-988d2ec2d8f3" | "3f38104f-9327-4554-873d-7f092caf1256" | "07c10ae2-0007-4551-841d-f8dcbee53433" | "5f41badd-5f53-4460-a5b2-63dda5503490" | "a8915cb1-a587-4313-841a-ddc74ff17050" | "3010fa3f-897a-41e7-a426-a06f29f61f78" | "8abd608c-b8d3-4193-8d54-9976911a337c" | "43064fb0-6723-4f2c-a311-eaf6a5d2f0e5" | "adf91049-3cab-4e62-b40c-be00fe34e0e6" | "04da033a-8919-4553-8fc5-eb6869e0c0e1" | "9f2e03d7-714d-48a5-a0e7-58c2b7efad23" | "c1820aa0-467e-4b13-8f73-418f950dba51" | "befbed31-f461-4bdc-8900-fe786fbeffc3" | "d7979182-36b7-4ae5-8284-1962050da404" | "0e8463d7-5e80-47bf-b900-3bbf4e3e564a" | "b0641d1a-e342-41d0-8a56-63781d487ca3" | "34123cc6-9377-4a13-8b4c-ed274cbe317a" | "4c71b60f-357f-4569-9867-cd1ce4ff58c8" | "d1a08ee2-2706-4743-898c-882238036c81" | "c6db469b-929f-4066-896c-165f60d09162" | "be6bbe5d-5f45-4ad8-bec9-ed6a7cdf5311" | "aa40e5b8-af38-4f88-ab43-1fd5ca9749c6" | "7cd2e6c8-a8f8-4115-a757-9397c0127e50" | "7a3ef29d-8962-4722-adfb-fda21e0d821e" | "13616e5f-6fda-4247-b548-8821cb71fb54" | "041937f9-3a23-4eef-a206-7c1656243825" | "fb8c1498-1d6b-446c-891e-163a79e6d817" | "f912f511-6b44-46dd-bd40-be3031201561" | "f5b7eb43-2365-410a-95e0-beb92768809c" | "f26d400a-a7ff-4522-b098-485b2f34b123" | "f26c8c45-049e-46c7-a6bd-b217d9255d3e" | "ec82ea24-3249-4981-a28f-65a78d2a2cd0" | "ec4f77d4-60fa-4707-a094-ad18fdfbaa97" | "e8490197-0f00-4089-8b7f-e32f331a6edf" | "e7e88155-71c0-4e51-a3b4-8022468f7eca" | "e590a00d-1925-4759-aea8-21e3beabafac" | "e4db0c1b-f72d-494c-baa8-43c44d5765b6" | "e486f733-9769-4f8a-a8e2-d39e4e3eab81" | "e0f39dc4-f691-4e78-bba5-5c636692cc04" | "e098922a-9410-4d96-8e3c-402e26f7160b" | "df05515b-b647-4b60-9387-b0642c51b235" | "dd063dd5-c566-437e-b82a-a4f98eae1f38" | "dbf08c3e-d33a-4afb-bdb3-0f024a687d19" | "db21e50c-9c85-4177-9bb2-9bf177890e44" | "d7114790-534e-4007-b80d-6d176230553c";
+        voiceId?: string;
         container?: "mp3" | "wav" | "raw";
         sampleRate?: number;
         encoding?: "pcm_s16le" | "pcm_f32le";
@@ -107,7 +107,7 @@ type ModelInputById = {
     };
     "eleven-multilingual-sts-v2": {
         audioUrl: string;
-        voiceId?: "JBFqnCBsd6RMkjVDRZzb" | "EkK5I93UQWFDigLMpZcX" | "RILOU7YmBhvwJGDGjNmP" | "Z3R5wn05IrDiVCyEkUrK" | "NNl6r8mD7vthiJatiJt1" | "Bj9UqZbhQsanLzgalpEG" | "exsUS4vynmxd379XN4yO" | "BpjGufoPiobT79j2vtj4" | "kdmDKE6EkgrWrrykO9Qt" | "1SM7GgM6IMuvQlz2BwM3" | "ouL9IsyrSnUkCmfnD02u" | "5l5f8iK3YPeGga21rQIX" | "scOwDtmlUjD3prqpp97I" | "19STyYD15bswVz51nqLf" | "BZgkqPqms7Kj9ulSkVzn" | "wo6udizrrtpIxWGp2qJk" | "yjJ45q8TVCrtMhEKurxY" | "gU0LNdkMOQCOrPrwtbee" | "DGzg6RaUqxGRTHSBjfgF" | "x70vRnQBMBu4FAYhjJbO";
+        voiceId?: string;
         language?: string;
         accent?: string;
         removeBackgroundNoise?: boolean;
@@ -116,18 +116,18 @@ type ModelInputById = {
         language?: string;
         accent?: string;
         prompt: string;
-        voiceId?: "JBFqnCBsd6RMkjVDRZzb" | "EkK5I93UQWFDigLMpZcX" | "RILOU7YmBhvwJGDGjNmP" | "Z3R5wn05IrDiVCyEkUrK" | "NNl6r8mD7vthiJatiJt1" | "Bj9UqZbhQsanLzgalpEG" | "exsUS4vynmxd379XN4yO" | "BpjGufoPiobT79j2vtj4" | "kdmDKE6EkgrWrrykO9Qt" | "1SM7GgM6IMuvQlz2BwM3" | "ouL9IsyrSnUkCmfnD02u" | "5l5f8iK3YPeGga21rQIX" | "scOwDtmlUjD3prqpp97I" | "19STyYD15bswVz51nqLf" | "BZgkqPqms7Kj9ulSkVzn" | "wo6udizrrtpIxWGp2qJk" | "yjJ45q8TVCrtMhEKurxY" | "gU0LNdkMOQCOrPrwtbee" | "DGzg6RaUqxGRTHSBjfgF" | "x70vRnQBMBu4FAYhjJbO";
+        voiceId?: string;
     };
     "eleven-sts-v2": {
         audioUrl: string;
-        voiceId?: "JBFqnCBsd6RMkjVDRZzb" | "EkK5I93UQWFDigLMpZcX" | "RILOU7YmBhvwJGDGjNmP" | "Z3R5wn05IrDiVCyEkUrK" | "NNl6r8mD7vthiJatiJt1" | "Bj9UqZbhQsanLzgalpEG" | "exsUS4vynmxd379XN4yO" | "BpjGufoPiobT79j2vtj4" | "kdmDKE6EkgrWrrykO9Qt" | "1SM7GgM6IMuvQlz2BwM3" | "ouL9IsyrSnUkCmfnD02u" | "5l5f8iK3YPeGga21rQIX" | "scOwDtmlUjD3prqpp97I" | "19STyYD15bswVz51nqLf" | "BZgkqPqms7Kj9ulSkVzn" | "wo6udizrrtpIxWGp2qJk" | "yjJ45q8TVCrtMhEKurxY" | "gU0LNdkMOQCOrPrwtbee" | "DGzg6RaUqxGRTHSBjfgF" | "x70vRnQBMBu4FAYhjJbO";
+        voiceId?: string;
         removeBackgroundNoise?: boolean;
     };
     "eleven-v3": {
         language?: string;
         accent?: string;
         prompt: string;
-        voiceId?: "JBFqnCBsd6RMkjVDRZzb" | "EkK5I93UQWFDigLMpZcX" | "RILOU7YmBhvwJGDGjNmP" | "Z3R5wn05IrDiVCyEkUrK" | "NNl6r8mD7vthiJatiJt1" | "Bj9UqZbhQsanLzgalpEG" | "exsUS4vynmxd379XN4yO" | "BpjGufoPiobT79j2vtj4" | "kdmDKE6EkgrWrrykO9Qt" | "1SM7GgM6IMuvQlz2BwM3" | "ouL9IsyrSnUkCmfnD02u" | "5l5f8iK3YPeGga21rQIX" | "scOwDtmlUjD3prqpp97I" | "19STyYD15bswVz51nqLf" | "BZgkqPqms7Kj9ulSkVzn" | "wo6udizrrtpIxWGp2qJk" | "yjJ45q8TVCrtMhEKurxY" | "gU0LNdkMOQCOrPrwtbee" | "DGzg6RaUqxGRTHSBjfgF" | "x70vRnQBMBu4FAYhjJbO";
+        voiceId?: string;
     };
     "eleven-voice-create": {
         prompt: string;
@@ -139,7 +139,7 @@ type ModelInputById = {
         prompt: string;
     };
     "eleven-voice-remix": {
-        voiceId?: "JBFqnCBsd6RMkjVDRZzb" | "EkK5I93UQWFDigLMpZcX" | "RILOU7YmBhvwJGDGjNmP" | "Z3R5wn05IrDiVCyEkUrK" | "NNl6r8mD7vthiJatiJt1" | "Bj9UqZbhQsanLzgalpEG" | "exsUS4vynmxd379XN4yO" | "BpjGufoPiobT79j2vtj4" | "kdmDKE6EkgrWrrykO9Qt" | "1SM7GgM6IMuvQlz2BwM3" | "ouL9IsyrSnUkCmfnD02u" | "5l5f8iK3YPeGga21rQIX" | "scOwDtmlUjD3prqpp97I" | "19STyYD15bswVz51nqLf" | "BZgkqPqms7Kj9ulSkVzn" | "wo6udizrrtpIxWGp2qJk" | "yjJ45q8TVCrtMhEKurxY" | "gU0LNdkMOQCOrPrwtbee" | "DGzg6RaUqxGRTHSBjfgF" | "x70vRnQBMBu4FAYhjJbO";
+        voiceId?: string;
         prompt: string;
     };
     "elevenlabs-music-v2": {
@@ -202,13 +202,13 @@ type ModelInputById = {
         language?: string;
         accent?: string;
         prompt: string;
-        voiceId?: "Aoede" | "Charon" | "Fenrir" | "Kore" | "Leda" | "Orus" | "Puck" | "Zephyr" | "Achernar" | "Achird" | "Algenib" | "Algieba" | "Alnilam" | "Autonoe" | "Despina" | "Enceladus" | "Erinome" | "Gacrux" | "Iapetus" | "Laomedeia" | "Pulcherrima" | "Rasalgethi" | "Sadachbia" | "Sadaltager" | "Schedar" | "Sulafat" | "Umbriel" | "Vindemiatrix" | "Zubenelgenubi";
+        voiceId?: string;
     };
     "gemini-2.5-pro-tts": {
         language?: string;
         accent?: string;
         prompt: string;
-        voiceId?: "Aoede" | "Charon" | "Fenrir" | "Kore" | "Leda" | "Orus" | "Puck" | "Zephyr" | "Achernar" | "Achird" | "Algenib" | "Algieba" | "Alnilam" | "Autonoe" | "Despina" | "Enceladus" | "Erinome" | "Gacrux" | "Iapetus" | "Laomedeia" | "Pulcherrima" | "Rasalgethi" | "Sadachbia" | "Sadaltager" | "Schedar" | "Sulafat" | "Umbriel" | "Vindemiatrix" | "Zubenelgenubi";
+        voiceId?: string;
     };
     "gemini-3-pro": {
         prompt: string;
@@ -327,7 +327,7 @@ type ModelInputById = {
         language?: string;
         accent?: string;
         prompt: string;
-        voiceId?: "eve" | "ara" | "rex" | "sal" | "leo";
+        voiceId?: string;
     };
     "hailuo-03": {
         prompt: string;
@@ -793,14 +793,6 @@ type ModelInputById = {
         isInstrumental?: boolean;
         outputFormat?: "url" | "hex";
     };
-    "openai-tts-1": {
-        prompt: string;
-        voiceId?: "alloy" | "ash" | "ballad" | "coral" | "echo" | "fable" | "nova" | "onyx" | "sage" | "shimmer" | "verse";
-    };
-    "openai-tts-1-hd": {
-        prompt: string;
-        voiceId?: "alloy" | "ash" | "ballad" | "coral" | "echo" | "fable" | "nova" | "onyx" | "sage" | "shimmer" | "verse";
-    };
     "ovi": {
         prompt: string;
         size?: "9:16" | "16:9" | "1:1" | "9:16+" | "16:9+" | "2:5" | "5:2";
@@ -1099,7 +1091,7 @@ type ModelInputById = {
     };
     "runway-avatar-video": {
         style?: "game-character" | "music-superstar" | "game-character-man" | "cat-character" | "influencer" | "tennis-coach" | "human-resource" | "fashion-designer" | "cooking-teacher";
-        voiceId?: "victoria" | "vincent" | "clara" | "drew" | "skye" | "max" | "morgan" | "felix" | "mia" | "marcus" | "summer" | "ruby" | "aurora" | "jasper" | "leo" | "adrian" | "nina" | "emma" | "blake" | "david" | "maya" | "nathan" | "sam" | "georgia" | "petra" | "adam" | "zach" | "violet" | "roman" | "luna";
+        voiceId?: string;
         prompt?: string;
         audioUrl?: string;
     };
@@ -1127,7 +1119,7 @@ type ModelInputById = {
     };
     "seed-audio-1.0": {
         prompt: string;
-        voiceId?: "zh_female_vv_uranus_bigtts" | "zh_female_xiaohe_uranus_bigtts" | "en_female_stokie_uranus_bigtts" | "en_female_dacey_uranus_bigtts" | "en_male_tim_uranus_bigtts" | "zh_male_m191_uranus_bigtts" | "zh_male_taocheng_uranus_bigtts" | "zh_male_sophie_uranus_bigtts" | "zh_female_yingyujiaoxue_uranus_bigtts" | "zh_male_dayi_uranus_bigtts" | "zh_female_mizai_uranus_bigtts" | "zh_female_jitangnv_uranus_bigtts" | "zh_female_meilinvyou_uranus_bigtts" | "zh_female_liuchangnv_uranus_bigtts" | "zh_male_ruyayichen_uranus_bigtts" | "zh_female_cancan_uranus_bigtts" | "zh_female_tianmeixiaoyuan_uranus_bigtts" | "zh_female_tianmeitaozi_uranus_bigtts" | "zh_female_shuangkuaisisi_uranus_bigtts" | "zh_female_peiqi_uranus_bigtts" | "zh_female_xiaoxue_uranus_bigtts" | "zh_female_yuanqi_uranus_bigtts" | "zh_female_kefunvsheng_uranus_bigtts" | "zh_male_shaonianzixin_uranus_bigtts" | "zh_female_linjianvhai_uranus_bigtts" | "zh_female_kiwi_uranus_bigtts" | "zh_female_sajiaoxuemei_uranus_bigtts" | "zh_male_liufei_uranus_bigtts" | "zh_female_qingxinnvsheng_uranus_bigtts" | "zh_male_sunwukong_uranus_bigtts" | "en_male_adam-imitation_uranus_bigtts" | "en_male_alberto_uranus_bigtts" | "en_male_alex_uranus_bigtts" | "en_female_allison_uranus_bigtts" | "en_female_authoritative-british_uranus_bigtts" | "en_female_authoritative-informative_uranus_bigtts" | "en_male_bill-jones_uranus_bigtts" | "en_male_bill_jones_corey_uranus_bigtts" | "en_male_brad_pitt_p1_uranus_bigtts" | "en_female_brittney_uranus_bigtts" | "en_female_brittney_pimintel_uranus_bigtts" | "en_male_bruce_uranus_bigtts" | "en_male_chandler_p1_uranus_bigtts" | "en_male_cowboy-bob_uranus_bigtts" | "en_male_cowboy_john_b_uranus_bigtts" | "en_male_david_uranus_bigtts" | "en_male_deep-voice_uranus_bigtts" | "en_male_diyuwenrounan_uranus_bigtts" | "en_male_evil-guy-oxley_uranus_bigtts" | "en_male_excited-male-voice_uranus_bigtts" | "en_male_father-christmas_uranus_bigtts" | "en_female_female_tutor_ms-jenny_uranus_bigtts" | "en_male_fernando-martinez_uranus_bigtts" | "en_male_godfather_uranus_bigtts" | "en_male_gollum_uranus_bigtts" | "en_male_hades_uranus_bigtts" | "en_female_hayley_uranus_bigtts" | "en_male_jamie_uranus_bigtts" | "en_female_jane_uranus_bigtts" | "en_female_jenny_uranus_bigtts" | "en_male_jidongchuanjiaoshi_uranus_bigtts" | "en_male_jimmy_uranus_bigtts" | "en_female_joanne_uranus_bigtts" | "en_male_joker_uranus_bigtts" | "en_male_josh_uranus_bigtts" | "en_male_josh_coery_uranus_bigtts" | "en_male_kevin_uranus_bigtts" | "en_male_knightley_uranus_bigtts" | "en_female_lana_del_rey_kelley_d_p1_uranus_bigtts" | "en_female_lana_del_rey_parky_s_p1_uranus_bigtts" | "en_male_marcus_uranus_bigtts" | "en_female_mel_uranus_bigtts" | "en_male_michael_uranus_bigtts" | "en_male_michael-mouse_uranus_bigtts" | "en_male_michael_kevin_uranus_bigtts" | "en_male_motivational-coach_uranus_bigtts" | "en_female_myra_uranus_bigtts" | "en_female_myra_cmb_uranus_bigtts" | "en_female_nadia_uranus_bigtts" | "en_female_natasha_uranus_bigtts" | "en_female_pleasant-female_uranus_bigtts" | "en_female_rachel_p1_uranus_bigtts" | "en_male_ronald_uranus_bigtts" | "en_male_russell_uranus_bigtts" | "en_female_scarlet_p1_uranus_bigtts" | "en_female_sharron_uranus_bigtts" | "en_male_simba_p1_uranus_bigtts" | "en_female_skye_uranus_bigtts" | "en_male_tom_hiddleston_p1_uranus_bigtts" | "en_male_valentino_uranus_bigtts" | "en_male_valentino_corey_uranus_bigtts" | "en_female_wenrouzhishijieshuonv_uranus_bigtts" | "en_female_xinwenjieshuonv_uranus_bigtts" | "en_male_yangguangjieshuonan_uranus_bigtts" | "en_female_zendaya_p1_uranus_bigtts";
+        voiceId?: string;
         audioUrls?: string[];
         imageUrls?: string[];
         format?: "wav" | "mp3" | "pcm" | "ogg_opus";
@@ -1139,7 +1131,7 @@ type ModelInputById = {
     };
     "seed-audio-1.0-multilingual": {
         prompt: string;
-        voiceId?: "zh_female_vv_uranus_bigtts" | "zh_female_xiaohe_uranus_bigtts" | "en_female_stokie_uranus_bigtts" | "en_female_dacey_uranus_bigtts" | "en_male_tim_uranus_bigtts" | "zh_male_m191_uranus_bigtts" | "zh_male_taocheng_uranus_bigtts" | "zh_male_sophie_uranus_bigtts" | "zh_female_yingyujiaoxue_uranus_bigtts" | "zh_male_dayi_uranus_bigtts" | "zh_female_mizai_uranus_bigtts" | "zh_female_jitangnv_uranus_bigtts" | "zh_female_meilinvyou_uranus_bigtts" | "zh_female_liuchangnv_uranus_bigtts" | "zh_male_ruyayichen_uranus_bigtts" | "zh_female_cancan_uranus_bigtts" | "zh_female_tianmeixiaoyuan_uranus_bigtts" | "zh_female_tianmeitaozi_uranus_bigtts" | "zh_female_shuangkuaisisi_uranus_bigtts" | "zh_female_peiqi_uranus_bigtts" | "zh_female_xiaoxue_uranus_bigtts" | "zh_female_yuanqi_uranus_bigtts" | "zh_female_kefunvsheng_uranus_bigtts" | "zh_male_shaonianzixin_uranus_bigtts" | "zh_female_linjianvhai_uranus_bigtts" | "zh_female_kiwi_uranus_bigtts" | "zh_female_sajiaoxuemei_uranus_bigtts" | "zh_male_liufei_uranus_bigtts" | "zh_female_qingxinnvsheng_uranus_bigtts" | "zh_male_sunwukong_uranus_bigtts" | "en_male_adam-imitation_uranus_bigtts" | "en_male_alberto_uranus_bigtts" | "en_male_alex_uranus_bigtts" | "en_female_allison_uranus_bigtts" | "en_female_authoritative-british_uranus_bigtts" | "en_female_authoritative-informative_uranus_bigtts" | "en_male_bill-jones_uranus_bigtts" | "en_male_bill_jones_corey_uranus_bigtts" | "en_male_brad_pitt_p1_uranus_bigtts" | "en_female_brittney_uranus_bigtts" | "en_female_brittney_pimintel_uranus_bigtts" | "en_male_bruce_uranus_bigtts" | "en_male_chandler_p1_uranus_bigtts" | "en_male_cowboy-bob_uranus_bigtts" | "en_male_cowboy_john_b_uranus_bigtts" | "en_male_david_uranus_bigtts" | "en_male_deep-voice_uranus_bigtts" | "en_male_diyuwenrounan_uranus_bigtts" | "en_male_evil-guy-oxley_uranus_bigtts" | "en_male_excited-male-voice_uranus_bigtts" | "en_male_father-christmas_uranus_bigtts" | "en_female_female_tutor_ms-jenny_uranus_bigtts" | "en_male_fernando-martinez_uranus_bigtts" | "en_male_godfather_uranus_bigtts" | "en_male_gollum_uranus_bigtts" | "en_male_hades_uranus_bigtts" | "en_female_hayley_uranus_bigtts" | "en_male_jamie_uranus_bigtts" | "en_female_jane_uranus_bigtts" | "en_female_jenny_uranus_bigtts" | "en_male_jidongchuanjiaoshi_uranus_bigtts" | "en_male_jimmy_uranus_bigtts" | "en_female_joanne_uranus_bigtts" | "en_male_joker_uranus_bigtts" | "en_male_josh_uranus_bigtts" | "en_male_josh_coery_uranus_bigtts" | "en_male_kevin_uranus_bigtts" | "en_male_knightley_uranus_bigtts" | "en_female_lana_del_rey_kelley_d_p1_uranus_bigtts" | "en_female_lana_del_rey_parky_s_p1_uranus_bigtts" | "en_male_marcus_uranus_bigtts" | "en_female_mel_uranus_bigtts" | "en_male_michael_uranus_bigtts" | "en_male_michael-mouse_uranus_bigtts" | "en_male_michael_kevin_uranus_bigtts" | "en_male_motivational-coach_uranus_bigtts" | "en_female_myra_uranus_bigtts" | "en_female_myra_cmb_uranus_bigtts" | "en_female_nadia_uranus_bigtts" | "en_female_natasha_uranus_bigtts" | "en_female_pleasant-female_uranus_bigtts" | "en_female_rachel_p1_uranus_bigtts" | "en_male_ronald_uranus_bigtts" | "en_male_russell_uranus_bigtts" | "en_female_scarlet_p1_uranus_bigtts" | "en_female_sharron_uranus_bigtts" | "en_male_simba_p1_uranus_bigtts" | "en_female_skye_uranus_bigtts" | "en_male_tom_hiddleston_p1_uranus_bigtts" | "en_male_valentino_uranus_bigtts" | "en_male_valentino_corey_uranus_bigtts" | "en_female_wenrouzhishijieshuonv_uranus_bigtts" | "en_female_xinwenjieshuonv_uranus_bigtts" | "en_male_yangguangjieshuonan_uranus_bigtts" | "en_female_zendaya_p1_uranus_bigtts" | "de_male_seven_uranus_bigtts" | "jp_female_minimi_uranus_bigtts" | "fr_male_usseau_uranus_bigtts" | "es_male_felipe_uranus_bigtts" | "id_male_han_uranus_bigtts" | "pt_male_martins_uranus_bigtts" | "it_male_enzo_uranus_bigtts" | "kr_male_shane_uranus_bigtts" | "ja_female_bv024_uranus_bigtts" | "ja_female_bv520_uranus_bigtts" | "ja_female_bv521_uranus_bigtts" | "ja_female_bv522_uranus_bigtts" | "ja_female_bv523_uranus_bigtts" | "ja_male_bv524_uranus_bigtts" | "ja_female_minimi_uranus_bigtts" | "ja_female_shirou_uranus_bigtts" | "de_female_bv081_uranus_bigtts" | "de_male_sven_uranus_bigtts" | "es_female_bv084_uranus_bigtts" | "es_male_dani_uranus_bigtts" | "es_male_guillem_uranus_bigtts" | "es_female_ht_mx_f6_uranus_bigtts" | "mx_female_bv065_uranus_bigtts" | "mx_male_bv165dialogue_uranus_bigtts" | "mx_male_bv165narrator_uranus_bigtts" | "mx_female_bv166dialogue_uranus_bigtts" | "mx_female_bv166emotion_uranus_bigtts" | "mx_female_bv166narrator_uranus_bigtts" | "mx_male_felipe_uranus_bigtts" | "mx_male_ht_mx_m012_uranus_bigtts" | "mx_female_leslie_uranus_bigtts" | "mx_male_marcelo_uranus_bigtts" | "fr_female_fr_bv078_uranus_bigtts" | "fr_female_fr_f47_uranus_bigtts" | "fr_male_fr_m29_uranus_bigtts" | "id_male_bv160_uranus_bigtts" | "id_male_bv160dialogue_uranus_bigtts" | "id_male_bv160narration_uranus_bigtts" | "id_female_bv161_uranus_bigtts" | "id_female_bv161dialogue_uranus_bigtts" | "id_female_bv161narration_uranus_bigtts" | "id_female_bv164_uranus_bigtts" | "id_male_bv164dialogue_uranus_bigtts" | "id_male_bv164narration_uranus_bigtts" | "id_female_f20_uranus_bigtts" | "id_male_m08_uranus_bigtts" | "id_female_phulia_uranus_bigtts" | "pt_male_bv172_uranus_bigtts" | "pt_male_bv172dialogue_uranus_bigtts" | "pt_male_bv172emotion_uranus_bigtts" | "pt_male_bv172narrator_uranus_bigtts" | "pt_female_bv173_uranus_bigtts" | "pt_female_bv173dialogue_uranus_bigtts" | "pt_female_bv173emotion_uranus_bigtts" | "pt_female_bv173narrator_uranus_bigtts" | "pt_female_bv530_uranus_bigtts" | "pt_male_bv531_uranus_bigtts" | "pt_female_mari_uranus_bigtts" | "pt_male_rael_uranus_bigtts" | "ar_female_dina_uranus_bigtts" | "ar_female_fatma_uranus_bigtts" | "ar_male_youssef_uranus_bigtts" | "tl_female_annika_uranus_bigtts" | "tl_male_ed_uranus_bigtts" | "tl_female_hervie_uranus_bigtts" | "ko_male_bv545_uranus_bigtts" | "ko_female_bv546_uranus_bigtts" | "ko_male_m03_uranus_bigtts" | "ko_male_shane_uranus_bigtts" | "ms_male_ham_uranus_bigtts" | "ms_male_naim_uranus_bigtts" | "ru_female_af07_uranus_bigtts" | "ru_female_irinae_uranus_bigtts" | "ru_male_pavel_uranus_bigtts" | "ru_female_sophie_uranus_bigtts" | "ru_male_vlad_uranus_bigtts" | "th_female_bv568_angry_uranus_bigtts" | "th_female_bv568_fear_uranus_bigtts" | "th_female_bv568_happy_uranus_bigtts" | "th_female_bv568_hate_uranus_bigtts" | "th_female_bv568_neutral_uranus_bigtts" | "th_female_bv568_sad_uranus_bigtts" | "th_female_bv568_suprise_uranus_bigtts" | "vi_female_hong_uranus_bigtts" | "vi_female_ling_uranus_bigtts" | "vi_female_linh_uranus_bigtts" | "vi_female_partner_uranus_bigtts" | "vi_female_ruan_uranus_bigtts" | "vi_female_wu_uranus_bigtts" | "vi_male_wumg_uranus_bigtts";
+        voiceId?: string;
         audioUrls?: string[];
         imageUrls?: string[];
         format?: "wav" | "mp3" | "pcm" | "ogg_opus";
@@ -1641,144 +1633,6 @@ interface ApisClient {
     run<W extends string = string>(api: W, payload: W extends keyof ApiSchemas ? ApiSchemas[W]['params'] : Record<string, unknown>, options?: ApiRunOptions): Promise<ApiResponse<W extends keyof ApiSchemas ? ApiSchemas[W]['result'] : unknown>>;
 }
 
-/** A fetch-like function that handles authentication (headers, cookies, etc.). */
-type AuthenticatedFetch = (url: string, init?: RequestInit) => Promise<Response>;
-/** Drive configuration — enables auto-saving generations to Picsart Drive. */
-interface DriveConfig {
-    /** Root folder name in Drive. All generations save here. */
-    folder: string;
-}
-/**
- * Whether the embedding app is a native client or a miniapp. Set backend-side
- * during save; surfaced read-only via `getGeneration`.
- */
-type AppType = 'native' | 'miniapp';
-/**
- * App identity (appId + appType).
- * TODO(backend-autosave): temporary — the backend will stamp appId/appType on
- * save. Until then apps may pass this so it's persisted client-side.
- */
-interface AppIdentity {
-    id: string;
-    type: AppType;
-}
-/**
- * Simple client config — pass the API base URL plus one auth source, and the
- * SDK handles the rest. The SDK knows the Picsart API endpoints and response
- * shapes internally.
- *
- * Provide exactly one of:
- * - `fetch` — your own authenticated fetch (you add headers/cookies), or
- * - `apiKey` — the SDK builds a fetch that sends `Authorization: Bearer <apiKey>`.
- */
-interface ClientConfig {
-    /**
-     * Authenticated fetch function. The SDK calls this for all HTTP requests.
-     * Provide this or `apiKey`. Takes precedence over `apiKey` when both are set.
-     */
-    fetch?: AuthenticatedFetch;
-    /**
-     * Picsart API key. When `fetch` is not provided, the SDK builds an
-     * authenticated fetch that sends `Authorization: Bearer <apiKey>` on every
-     * request (a leading `Bearer ` is stripped if present).
-     */
-    apiKey?: string;
-    /** API base URL (e.g. 'https://api.picsart.com'). */
-    apiUrl: string;
-    /** Enable Drive integration — auto-save generations to a Drive folder. */
-    drive?: DriveConfig;
-}
-interface GenerateResultItem {
-    url: string;
-    metadata?: Record<string, unknown>;
-}
-interface GenerateResult {
-    /** Primary result URL (convenience shortcut for results[0].url). */
-    url: string;
-    /** All result items — single item for normal models, multiple for explore/multi-result models. */
-    results: GenerateResultItem[];
-    /** Model ID that produced this result. */
-    model: string;
-    /** Job handle for status tracking. */
-    handle: WorkflowJobHandle;
-    /** Raw parsed output for advanced consumers. */
-    raw: unknown;
-    /** Present when Drive is enabled and the file was saved. */
-    drive?: DriveSaveResult;
-}
-/** Result of a text-generation (LLM) model. */
-interface GenerateTextResult {
-    /** Generated text. */
-    text: string;
-    /** Model ID that produced this result. */
-    model: string;
-    /** Job handle for status tracking. */
-    handle: WorkflowJobHandle;
-    /** Raw parsed output — carries usage, finish reason, thinking trace, etc. */
-    raw: unknown;
-}
-/** Options for individual generate() / submit() calls. */
-interface GenerateOptions {
-    signal?: AbortSignal;
-    /** Save to a specific subfolder instead of the root (legacy — used by SDK DriveConfig). */
-    folder?: DriveFolder;
-    /** Save result to Picsart Drive via backend. Injected into the workflow payload. */
-    drive?: PayloadDriveOptions;
-    /**
-     * App identity stamped onto the saved generation (appId/appType).
-     * TODO(backend-autosave): temporary — remove once the backend stamps these.
-     */
-    app?: AppIdentity;
-}
-/** Non-text (image/video/audio) model IDs — the media generation surface. */
-type MediaModelId = Exclude<TypedModelId, TextModelId>;
-/** AI SDK client with type-safe, model-aware method signatures. */
-interface AiClient {
-    /** Generate content using a media model. Text/LLM models use generateText(). */
-    generate<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<GenerateResult>;
-    /** Generate text using an LLM model. Returns the generated text plus the raw response. */
-    generateText<M extends TextModelId>(model: M, params: TextModelInputById[M], options?: GenerateOptions): Promise<GenerateTextResult>;
-    /** Get exact credit cost for a model with specific parameters. */
-    getCredits<M extends TypedModelId>(model: M, params: ModelInputById[M]): Promise<number | null>;
-    /** Submit a generation job and get a handle back. Media models only. */
-    submit<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<WorkflowJobHandle>;
-    /** Check the current status of a submitted job. */
-    status(handle: WorkflowJobHandle, signal?: AbortSignal): Promise<WorkflowStatusResult<unknown>>;
-    /** Poll a submitted job until it completes and return the parsed result. Media models only. */
-    result(handle: WorkflowJobHandle, model: MediaModelId, options?: WorkflowPollOptions): Promise<GenerateResult>;
-    /** Subscribe to live status updates for a submitted job. */
-    subscribe(handle: WorkflowJobHandle, options?: WorkflowSubscribeOptions): AsyncGenerator<WorkflowStatusResult<unknown>, WorkflowStatusResult<unknown>, void>;
-    /** Build the vendor-specific payload for a model without submitting. */
-    buildPayload<M extends TypedModelId>(model: M, params: ModelInputById[M]): Record<string, unknown>;
-    /** @deprecated Use `apis.run()` instead. Run a raw workflow (not tied to a model). */
-    runWorkflow<TResult = unknown>(workflow: string, payload: Record<string, unknown>, options?: WorkflowRunOptions): Promise<TResult>;
-    /**
-     * Direct, low-level access to the Picsart model APIs — run any API by name.
-     * See {@link ApisClient}.
-     */
-    apis: ApisClient;
-    /** Drive operations. Only available when drive config is provided. */
-    drive: DriveClient | undefined;
-}
-
-/**
- * Create an AI SDK client.
- *
- * @example Simple — pass an authenticated fetch:
- * ```ts
- * const ai = createClient({ fetch: myAuthenticatedFetch });
- * ```
- *
- * @example With Drive — auto-save generations:
- * ```ts
- * const ai = createClient({
- *   fetch: myAuthenticatedFetch,
- *   drive: { folder: 'AI Playground' },
- * });
- * ```
- */
-declare function createClient(config: ClientConfig | SdkTransport): AiClient;
-
 interface ParamSchema {
     type: 'string' | 'number' | 'boolean' | 'file';
     enum?: (string | number)[];
@@ -1809,6 +1663,19 @@ interface EnumDescriptor<T extends string | number = string> {
     valueType: 'string' | 'number';
     options: Array<EnumOption<T>>;
     default: T;
+}
+/**
+ * Free-string id served by a platform catalog task (voices/avatars). The id
+ * space is open-ended — the live catalog is the source of truth — so the value
+ * is validated only by type, never by membership. `source` says which task
+ * serves the options; the entry's `catalogOptions` carries the seed (and,
+ * after `ai.catalogs.voices/avatars`, the live list).
+ */
+interface CatalogDescriptor {
+    kind: 'catalog';
+    /** Platform catalog task that serves this param's live options. */
+    source: CatalogSource;
+    default: string;
 }
 interface RangeDescriptor {
     kind: 'range';
@@ -1867,7 +1734,7 @@ interface ObjectDescriptor {
         max?: number;
     };
 }
-type ParamDescriptor = EnumDescriptor<string> | EnumDescriptor<number> | RangeDescriptor | BooleanDescriptor | TextDescriptor | FileDescriptor | ObjectDescriptor;
+type ParamDescriptor = EnumDescriptor<string> | EnumDescriptor<number> | CatalogDescriptor | RangeDescriptor | BooleanDescriptor | TextDescriptor | FileDescriptor | ObjectDescriptor;
 interface ParamEntry {
     label?: string;
     required?: boolean;
@@ -1894,6 +1761,7 @@ interface EntryMeta {
     disabledReason?: string;
 }
 type EnumEntry = EntryMeta & EnumDescriptor<string | number>;
+type CatalogEntry = EntryMeta & CatalogDescriptor;
 type RangeEntry = EntryMeta & RangeDescriptor;
 type BooleanEntry = EntryMeta & BooleanDescriptor;
 type TextEntry = EntryMeta & TextDescriptor;
@@ -1928,6 +1796,8 @@ interface ModelParamsAccessor {
     hasParam(key: string): boolean;
     all(): FlatParamEntry[];
     enum(key: string): EnumEntry | undefined;
+    /** Catalog params (`kind: 'catalog'`) — free-string ids; options live in `catalogOptions`. */
+    catalog(key: string): CatalogEntry | undefined;
     range(key: string): RangeEntry | undefined;
     boolean(key: string): BooleanEntry | undefined;
     text(key: string): TextEntry | undefined;
@@ -2195,6 +2065,259 @@ interface ModelDefinition {
 }
 
 /**
+ * Voice/avatar catalogs — the standard format served by the platform
+ * `<vendor>/v1/catalog/<voices|avatars>` tasks, plus the in-memory hydration
+ * registry that lets runtime-fetched catalogs back the descriptor system.
+ *
+ * The wire types mirror the shared backend contract (`@picsart/pa-genai-common`);
+ * the SDK owns its own copy so it carries no backend dependency.
+ */
+
+interface CatalogPreview {
+    imageUrl?: string;
+    videoUrl?: string;
+    audioUrl?: string;
+}
+interface CatalogItem {
+    /** Vendor-native id, sent back verbatim on generate (voiceId / videoId). */
+    id: string;
+    name: string;
+    description?: string;
+    /** Facets for filtering: gender, language, age, accent, tone, … */
+    tags: string[];
+    preview?: CatalogPreview;
+    /** Vendor extras, e.g. `defaultVoiceId` on HeyGen avatars. */
+    meta?: Record<string, unknown>;
+}
+interface CatalogQuery {
+    /** Worker-side filter (e.g. the seed-audio model variant on bytedance). */
+    modelId?: string;
+    /** Opaque cursor from a previous page. */
+    cursor?: string;
+    /** Page size. Every catalog task accepts up to 100. */
+    limit?: number;
+}
+interface CatalogResult {
+    items: CatalogItem[];
+    /** Crawl date or curation stamp identifying the snapshot. */
+    version: string;
+    /** How long the caller may cache this response. */
+    ttlSeconds: number;
+    /** `null` when the list is complete. */
+    nextCursor: string | null;
+}
+type CatalogKind = 'voices' | 'avatars';
+/** Binds a param's options to a platform catalog task. */
+interface CatalogSource {
+    /** Catalog workflow name, e.g. `heygen/v1/catalog/voices`. */
+    workflow: string;
+    /** Worker-side filter passed on fetch. */
+    modelId?: string;
+}
+declare function toVoiceOption(item: CatalogItem, provider: Provider): VoiceOption;
+declare function toAvatarOption(item: CatalogItem, provider: Provider): AvatarOption;
+
+/**
+ * ai.catalogs — runtime access to the platform voice/avatar catalog tasks
+ * (`<vendor>/v1/catalog/<voices|avatars>`).
+ *
+ * Loading is page-by-page: each call fetches ONE page (UI loads more on
+ * scroll/pagination via `nextCursor`). Pages are cached per the `ttlSeconds`
+ * the platform returns, concurrent fetches of the same page collapse, and
+ * every fetched page is appended to the options installed on the model so
+ * `Model(id).params()` (and every picker built on it) sees what has been
+ * loaded so far. With `createClient({ catalogs: { preload: true } })` the
+ * first page of every bound catalog loads in the background at client
+ * creation.
+ */
+
+/** Model id with autocomplete that still accepts arbitrary strings. */
+type ModelId = TypedModelId | (string & {});
+/** One fetched page. Pass `nextCursor` back to load the next one. */
+interface CatalogPage {
+    items: CatalogItem[];
+    /** `null` when the list is complete. */
+    nextCursor: string | null;
+}
+interface CatalogPageOptions {
+    /** Cursor from the previous page's `nextCursor`; omit for the first page. */
+    cursor?: string;
+    /** Page size, 1..100. Defaults to 100. */
+    limit?: number;
+    /** Drop everything cached for this catalog and refetch from the first page. */
+    forceRefresh?: boolean;
+    /**
+     * Cancels this caller's wait only. A fetch shared with other callers keeps
+     * running so its result can still be cached for them.
+     */
+    signal?: AbortSignal;
+}
+interface CatalogsClient {
+    /**
+     * One page of the model's voice catalog. Fetched pages accumulate into the
+     * model's `voiceId` options, so pickers see everything loaded so far.
+     */
+    voices(model: ModelId, options?: CatalogPageOptions): Promise<CatalogPage>;
+    /** One page of the model's avatar catalog — same semantics, for `videoId`. */
+    avatars(model: ModelId, options?: CatalogPageOptions): Promise<CatalogPage>;
+}
+interface CatalogsOptions {
+    /**
+     * Load the first page of every catalog-bound param in the background at
+     * client creation, so pickers open with data before any explicit call.
+     */
+    preload?: boolean;
+}
+
+/** A fetch-like function that handles authentication (headers, cookies, etc.). */
+type AuthenticatedFetch = (url: string, init?: RequestInit) => Promise<Response>;
+/** Drive configuration — enables auto-saving generations to Picsart Drive. */
+interface DriveConfig {
+    /** Root folder name in Drive. All generations save here. */
+    folder: string;
+}
+/**
+ * Whether the embedding app is a native client or a miniapp. Set backend-side
+ * during save; surfaced read-only via `getGeneration`.
+ */
+type AppType = 'native' | 'miniapp';
+/**
+ * App identity (appId + appType).
+ * TODO(backend-autosave): temporary — the backend will stamp appId/appType on
+ * save. Until then apps may pass this so it's persisted client-side.
+ */
+interface AppIdentity {
+    id: string;
+    type: AppType;
+}
+/**
+ * Simple client config — pass the API base URL plus one auth source, and the
+ * SDK handles the rest. The SDK knows the Picsart API endpoints and response
+ * shapes internally.
+ *
+ * Provide exactly one of:
+ * - `fetch` — your own authenticated fetch (you add headers/cookies), or
+ * - `apiKey` — the SDK builds a fetch that sends `Authorization: Bearer <apiKey>`.
+ */
+interface ClientConfig {
+    /**
+     * Authenticated fetch function. The SDK calls this for all HTTP requests.
+     * Provide this or `apiKey`. Takes precedence over `apiKey` when both are set.
+     */
+    fetch?: AuthenticatedFetch;
+    /**
+     * Picsart API key. When `fetch` is not provided, the SDK builds an
+     * authenticated fetch that sends `Authorization: Bearer <apiKey>` on every
+     * request (a leading `Bearer ` is stripped if present).
+     */
+    apiKey?: string;
+    /** API base URL (e.g. 'https://api.picsart.com'). */
+    apiUrl: string;
+    /** Enable Drive integration — auto-save generations to a Drive folder. */
+    drive?: DriveConfig;
+    /**
+     * Voice/avatar catalog behavior. `{ preload: true }` loads the first page
+     * of every catalog-bound param in the background at client creation.
+     */
+    catalogs?: CatalogsOptions;
+}
+interface GenerateResultItem {
+    url: string;
+    metadata?: Record<string, unknown>;
+}
+interface GenerateResult {
+    /** Primary result URL (convenience shortcut for results[0].url). */
+    url: string;
+    /** All result items — single item for normal models, multiple for explore/multi-result models. */
+    results: GenerateResultItem[];
+    /** Model ID that produced this result. */
+    model: string;
+    /** Job handle for status tracking. */
+    handle: WorkflowJobHandle;
+    /** Raw parsed output for advanced consumers. */
+    raw: unknown;
+    /** Present when Drive is enabled and the file was saved. */
+    drive?: DriveSaveResult;
+}
+/** Result of a text-generation (LLM) model. */
+interface GenerateTextResult {
+    /** Generated text. */
+    text: string;
+    /** Model ID that produced this result. */
+    model: string;
+    /** Job handle for status tracking. */
+    handle: WorkflowJobHandle;
+    /** Raw parsed output — carries usage, finish reason, thinking trace, etc. */
+    raw: unknown;
+}
+/** Options for individual generate() / submit() calls. */
+interface GenerateOptions {
+    signal?: AbortSignal;
+    /** Save to a specific subfolder instead of the root (legacy — used by SDK DriveConfig). */
+    folder?: DriveFolder;
+    /** Save result to Picsart Drive via backend. Injected into the workflow payload. */
+    drive?: PayloadDriveOptions;
+    /**
+     * App identity stamped onto the saved generation (appId/appType).
+     * TODO(backend-autosave): temporary — remove once the backend stamps these.
+     */
+    app?: AppIdentity;
+}
+/** Non-text (image/video/audio) model IDs — the media generation surface. */
+type MediaModelId = Exclude<TypedModelId, TextModelId>;
+/** AI SDK client with type-safe, model-aware method signatures. */
+interface AiClient {
+    /** Generate content using a media model. Text/LLM models use generateText(). */
+    generate<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<GenerateResult>;
+    /** Generate text using an LLM model. Returns the generated text plus the raw response. */
+    generateText<M extends TextModelId>(model: M, params: TextModelInputById[M], options?: GenerateOptions): Promise<GenerateTextResult>;
+    /** Get exact credit cost for a model with specific parameters. */
+    getCredits<M extends TypedModelId>(model: M, params: ModelInputById[M]): Promise<number | null>;
+    /** Submit a generation job and get a handle back. Media models only. */
+    submit<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<WorkflowJobHandle>;
+    /** Check the current status of a submitted job. */
+    status(handle: WorkflowJobHandle, signal?: AbortSignal): Promise<WorkflowStatusResult<unknown>>;
+    /** Poll a submitted job until it completes and return the parsed result. Media models only. */
+    result(handle: WorkflowJobHandle, model: MediaModelId, options?: WorkflowPollOptions): Promise<GenerateResult>;
+    /** Subscribe to live status updates for a submitted job. */
+    subscribe(handle: WorkflowJobHandle, options?: WorkflowSubscribeOptions): AsyncGenerator<WorkflowStatusResult<unknown>, WorkflowStatusResult<unknown>, void>;
+    /** Build the vendor-specific payload for a model without submitting. */
+    buildPayload<M extends TypedModelId>(model: M, params: ModelInputById[M]): Record<string, unknown>;
+    /** @deprecated Use `apis.run()` instead. Run a raw workflow (not tied to a model). */
+    runWorkflow<TResult = unknown>(workflow: string, payload: Record<string, unknown>, options?: WorkflowRunOptions): Promise<TResult>;
+    /**
+     * Direct, low-level access to the Picsart model APIs — run any API by name.
+     * See {@link ApisClient}.
+     */
+    apis: ApisClient;
+    /**
+     * Voice/avatar catalogs served by the platform catalog tasks — fetch,
+     * ttl-cache, and hydrate model params. See {@link CatalogsClient}.
+     */
+    catalogs: CatalogsClient;
+    /** Drive operations. Only available when drive config is provided. */
+    drive: DriveClient | undefined;
+}
+
+/**
+ * Create an AI SDK client.
+ *
+ * @example Simple — pass an authenticated fetch:
+ * ```ts
+ * const ai = createClient({ fetch: myAuthenticatedFetch });
+ * ```
+ *
+ * @example With Drive — auto-save generations:
+ * ```ts
+ * const ai = createClient({
+ *   fetch: myAuthenticatedFetch,
+ *   drive: { folder: 'AI Playground' },
+ * });
+ * ```
+ */
+declare function createClient(config: ClientConfig | SdkTransport): AiClient;
+
+/**
  * Typed Models constants and namespace.
  * Regenerate with: npm run build:model-constants
  */
@@ -2316,8 +2439,6 @@ declare const Models: {
     readonly Lyria3Pro: "lyria-3-pro";
     readonly Minimax02Hd: "minimax-02-hd";
     readonly MinimaxMusicV2: "minimax-music-v2";
-    readonly OpenaiTts1: "openai-tts-1";
-    readonly OpenaiTts1Hd: "openai-tts-1-hd";
     readonly Ovi: "ovi";
     readonly PicsartChangeBg: "picsart-change-bg";
     readonly PicsartEnhance: "picsart-enhance";
@@ -2428,7 +2549,15 @@ declare const Models: {
     readonly hasParam: (id: string, key: string) => boolean;
 };
 
-declare function getVoiceById(id: string, extra?: VoiceOption[]): VoiceOption | undefined;
+/**
+ * Default voice ids for the catalog-bound TTS params. The voice LISTS are not
+ * bundled: options come from the platform catalog tasks at runtime
+ * (`ai.catalogs.voices`) — the workers cache them and answer fast.
+ */
+
+declare function getVoiceById(id: string): VoiceOption | undefined;
+/** @deprecated Load the model's catalog instead (`ai.catalogs.voices(modelId)`) — loaded voices are searched automatically. */
+declare function getVoiceById(id: string, extra: VoiceOption[] | undefined): VoiceOption | undefined;
 
 /**
  * Pricing internals — owns the ModelPricingClient, the per-model cache, and
@@ -2553,4 +2682,4 @@ declare const findModel: (ref: string) => ModelDefinition | undefined;
 /** Effect scenes that require two input images (e.g. hugs, kisses, swaps). */
 declare const KLING_DUAL_IMAGE_EFFECTS: ReadonlySet<string>;
 
-export { ALL_MODELS, type AiClient, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type ClientConfig, type CreditRange, type CreditRangeContext, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf };
+export { ALL_MODELS, type AiClient, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogKind, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };

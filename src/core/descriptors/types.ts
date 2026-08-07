@@ -21,6 +21,20 @@ export interface EnumDescriptor<T extends string | number = string> {
   default: T;
 }
 
+/**
+ * Free-string id served by a platform catalog task (voices/avatars). The id
+ * space is open-ended — the live catalog is the source of truth — so the value
+ * is validated only by type, never by membership. `source` says which task
+ * serves the options; the entry's `catalogOptions` carries the seed (and,
+ * after `ai.catalogs.voices/avatars`, the live list).
+ */
+export interface CatalogDescriptor {
+  kind: 'catalog';
+  /** Platform catalog task that serves this param's live options. */
+  source: CatalogSource;
+  default: string;
+}
+
 export interface RangeDescriptor {
   kind: 'range';
   min: number;
@@ -80,6 +94,7 @@ export interface ObjectDescriptor {
 export type ParamDescriptor =
   | EnumDescriptor<string>
   | EnumDescriptor<number>
+  | CatalogDescriptor
   | RangeDescriptor
   | BooleanDescriptor
   | TextDescriptor
@@ -119,6 +134,7 @@ export interface EntryMeta {
 }
 
 export type EnumEntry = EntryMeta & EnumDescriptor<string | number>;
+export type CatalogEntry = EntryMeta & CatalogDescriptor;
 export type RangeEntry = EntryMeta & RangeDescriptor;
 export type BooleanEntry = EntryMeta & BooleanDescriptor;
 export type TextEntry = EntryMeta & TextDescriptor;
@@ -132,6 +148,7 @@ export type FlatParamEntry = EntryMeta & ParamDescriptor & { key: string };
 
 import type { GenerationMode, InputType, ModelFeature, BadgeType, Provider, GenerationContext, ReleaseTag } from '../types.ts';
 import type { ModelParamSchema } from '../schema.ts';
+import type { CatalogSource } from '../catalogs.ts';
 
 /** Provider metadata. */
 export interface ProviderInfo {
@@ -161,6 +178,8 @@ export interface ModelParamsAccessor {
 
   // Kind-narrowed accessors
   enum(key: string): EnumEntry | undefined;
+  /** Catalog params (`kind: 'catalog'`) — free-string ids; options live in `catalogOptions`. */
+  catalog(key: string): CatalogEntry | undefined;
   range(key: string): RangeEntry | undefined;
   boolean(key: string): BooleanEntry | undefined;
   text(key: string): TextEntry | undefined;

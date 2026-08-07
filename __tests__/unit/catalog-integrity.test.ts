@@ -60,7 +60,7 @@ const enabled = ALL_MODELS.filter((m) => !m.disabled && !m.deprecated);
 
 // ── 4. paramConfig entries use valid descriptor kinds ─────────────
 {
-  const validKinds = new Set(['enum', 'range', 'boolean', 'text', 'file', 'object']);
+  const validKinds = new Set(['enum', 'catalog', 'range', 'boolean', 'text', 'file', 'object']);
   const invalid: string[] = [];
   for (const m of enabled) {
     for (const [key, entry] of Object.entries(m.paramConfig)) {

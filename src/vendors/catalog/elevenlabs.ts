@@ -2,7 +2,7 @@
  * ElevenLabs — single source of truth.
  */
 import type { PayloadBuilder } from '../../core/types.ts';
-import { ELEVENLABS_VOICES, DEFAULT_VOICE_ID } from '../../core/voices.ts';
+import { DEFAULT_VOICE_ID } from '../../core/voices.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 
@@ -72,7 +72,7 @@ export const buildElevenLabsVoiceDesignPayload: PayloadBuilder = (ctx) => ({
 const ttsParamConfig = (promptMaxLength: number) => ({
   ...params.language(true),
   ...params.prompt({ maxLength: promptMaxLength }),
-  ...params.voiceId(ELEVENLABS_VOICES, DEFAULT_VOICE_ID),
+  ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: 'elevenlabs/v1/catalog/voices' } }),
 });
 
 export const { MODELS } = defineModels('elevenlabs', [
@@ -141,7 +141,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     features: [feat('Voice Changer', 'characteristic'), feat('Emotion Preserved', 'characteristic')],
     paramConfig: {
       ...params.audioInput('Speech Audio', true),
-      ...params.voiceId(ELEVENLABS_VOICES, DEFAULT_VOICE_ID),
+      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: 'elevenlabs/v1/catalog/voices' } }),
       ...p.boolean('removeBackgroundNoise', false, 'Remove Background Noise'),
     },
   },
@@ -156,7 +156,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     features: [feat('Voice Changer', 'characteristic'), feat('Multilingual', 'characteristic'), feat('29 Languages', 'characteristic')],
     paramConfig: {
       ...params.audioInput('Speech Audio', true),
-      ...params.voiceId(ELEVENLABS_VOICES, DEFAULT_VOICE_ID),
+      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: 'elevenlabs/v1/catalog/voices' } }),
       ...params.language(true),
       ...p.boolean('removeBackgroundNoise', false, 'Remove Background Noise'),
     },
@@ -198,7 +198,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     description: 'Remix voice characteristics by describing the desired vocal style.',
     features: [feat('Voice Design', 'characteristic'), feat('Remix', 'characteristic')],
     paramConfig: {
-      ...params.voiceId(ELEVENLABS_VOICES, DEFAULT_VOICE_ID),
+      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: 'elevenlabs/v1/catalog/voices' } }),
       ...params.prompt({ maxLength: 1000 }),
     },
   },

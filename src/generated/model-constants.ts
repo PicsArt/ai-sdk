@@ -242,12 +242,6 @@ export const Lyria3Pro = 'lyria-3-pro' as const;
 export const Minimax02Hd = 'minimax-02-hd' as const;
 /** MiniMax Music v2 — minimax (audio) */
 export const MinimaxMusicV2 = 'minimax-music-v2' as const;
-/** OpenAI TTS-1 — openai (audio) */
-/** @deprecated This model is retired (deprecated). */
-export const OpenaiTts1 = 'openai-tts-1' as const;
-/** OpenAI TTS-1 HD — openai (audio) */
-/** @deprecated This model is retired (deprecated). */
-export const OpenaiTts1Hd = 'openai-tts-1-hd' as const;
 /** OVI — ovi (video) */
 export const Ovi = 'ovi' as const;
 /** Picsart Change Background — picsart (image) */
@@ -563,8 +557,6 @@ export const Models = {
   Lyria3Pro,
   Minimax02Hd,
   MinimaxMusicV2,
-  OpenaiTts1,
-  OpenaiTts1Hd,
   Ovi,
   PicsartChangeBg,
   PicsartEnhance,

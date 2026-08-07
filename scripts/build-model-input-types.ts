@@ -49,6 +49,9 @@ function typeFromDescriptor(d: ParamDescriptor): string {
       return 'boolean';
     case 'text':
       return 'string';
+    // Catalog ids are open-ended — the live catalog is the source of truth.
+    case 'catalog':
+      return 'string';
     case 'file': {
       const fd = d as FileDescriptor;
       return fd.array != null ? 'string[]' : 'string';

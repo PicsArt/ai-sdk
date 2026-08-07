@@ -49,8 +49,6 @@ export function validateDescriptor(
       const ids = (d as EnumDescriptor<string | number>).options.map(
         (o) => o.id,
       );
-      // Empty options = runtime-hydrated catalog; live catalog is the source of truth.
-      if (ids.length === 0) break;
       if (!ids.includes(val as string | number)) {
         throw new Error(
           `"${key}" must be one of: ${ids.join(', ')}`,
@@ -58,6 +56,13 @@ export function validateDescriptor(
       }
       break;
     }
+    case 'catalog':
+      // Open-ended id — the live catalog is the source of truth, so only the
+      // type is checked here; the platform validates the id for real.
+      if (typeof val !== 'string') {
+        throw new Error(`"${key}" must be a string`);
+      }
+      break;
     case 'range':
       if (typeof val !== 'number' || Number.isNaN(val)) {
         throw new Error(`"${key}" must be a number`);
@@ -180,6 +185,13 @@ export function descriptorsToSchema(params: ModelParams): ModelParamSchema {
           label: entry.label,
         };
         break;
+      case 'catalog':
+        schema[key] = {
+          type: 'string',
+          default: d.default,
+          label: entry.label,
+        };
+        break;
       case 'file':
         schema[key] = {
           type: 'file',
@@ -242,6 +254,10 @@ export function transferValues(
         }
         break;
       }
+      case 'catalog':
+        // Whether the previous id is valid for THIS model's catalog isn't
+        // checkable on switch, so it resets to the target model's default.
+        break;
       case 'range':
         if (typeof prevVal === 'number') {
           ctx[key] = Math.min(Math.max(prevVal, d.min), d.max);

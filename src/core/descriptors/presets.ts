@@ -6,6 +6,7 @@
  */
 
 import type { EnumDescriptor, EnumOption, ModelParams } from './types.ts';
+import type { CatalogSource } from '../catalogs.ts';
 
 export const p = {
   aspectRatio(
@@ -326,19 +327,23 @@ export const p = {
   voiceId(
     options: ReadonlyArray<{ id: string; name?: string }>,
     def: string,
-    opts?: { required?: boolean },
+    opts?: { required?: boolean; catalog?: CatalogSource },
   ): ModelParams {
     return {
       voiceId: {
         label: 'Voice',
         required: opts?.required,
         catalogOptions: options,
-        descriptor: {
-          kind: 'enum',
-          valueType: 'string',
-          options: options.map((o) => ({ id: o.id, label: o.name ?? o.id })),
-          default: def,
-        },
+        // Catalog-bound ids are free strings (the live catalog is the source
+        // of truth); only unbound voice lists stay closed enums.
+        descriptor: opts?.catalog
+          ? { kind: 'catalog', source: opts.catalog, default: def }
+          : {
+              kind: 'enum',
+              valueType: 'string',
+              options: options.map((o) => ({ id: o.id, label: o.name ?? o.id })),
+              default: def,
+            },
       },
     };
   },
@@ -346,19 +351,21 @@ export const p = {
   videoId(
     options: Array<{ id: string; name?: string }>,
     def: string,
-    opts?: { required?: boolean },
+    opts?: { required?: boolean; catalog?: CatalogSource },
   ): ModelParams {
     return {
       videoId: {
         label: 'Avatar',
         required: opts?.required,
         catalogOptions: options,
-        descriptor: {
-          kind: 'enum',
-          valueType: 'string',
-          options: options.map((o) => ({ id: o.id, label: o.name ?? o.id })),
-          default: def,
-        },
+        descriptor: opts?.catalog
+          ? { kind: 'catalog', source: opts.catalog, default: def }
+          : {
+              kind: 'enum',
+              valueType: 'string',
+              options: options.map((o) => ({ id: o.id, label: o.name ?? o.id })),
+              default: def,
+            },
       },
     };
   },

@@ -5,7 +5,7 @@
  * transform (nested voice / output_format assembly, hardcoded model_id) lives
  * in the sibling async-ai.payloads.ts.
  */
-import { ASYNC_VOICES, ASYNC_DEFAULT_VOICE_ID } from '../../core/voices.ts';
+import { ASYNC_DEFAULT_VOICE_ID } from '../../core/voices.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 
@@ -20,7 +20,7 @@ export const { MODELS } = defineModels('async', [
     features: [feat('Text to Speech', 'characteristic'), feat('Fast', 'characteristic')],
     paramConfig: {
       ...params.prompt(),
-      ...params.voiceId(ASYNC_VOICES, ASYNC_DEFAULT_VOICE_ID),
+      ...params.voiceId([], ASYNC_DEFAULT_VOICE_ID, { catalog: { workflow: 'async-ai/v1/catalog/voices' } }),
       ...p.enum('container', ['mp3', 'wav', 'raw'], 'mp3', { label: 'Audio Format' }),
       ...p.range('sampleRate', 8000, 48000, 24000, { label: 'Sample Rate' }),
       // encoding ignored when container is mp3

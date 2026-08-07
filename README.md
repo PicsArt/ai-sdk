@@ -144,6 +144,34 @@ catalog.find({ output: 'text' })
 image/video model throws, and `generate()` throws on a text model — use the matching
 method for each.
 
+## Voice & Avatar Catalogs
+
+Models with catalog-backed params (voices, avatars) serve their option lists
+from platform catalog tasks (`<vendor>/v1/catalog/<voices|avatars>`) — nothing
+is bundled; the workers cache the lists and answer fast. Fetch them via
+`ai.catalogs`:
+
+```typescript
+// One page at a time — load more on scroll/pagination via nextCursor
+const page = await ai.catalogs.voices('heygen-video-avatar')
+// page: { items: CatalogItem[], nextCursor: string | null }
+const more = await ai.catalogs.voices('heygen-video-avatar', { cursor: page.nextCursor! })
+
+// Optional: preload the first page of every bound catalog at client creation
+const ai = createClient({ apiKey, catalogs: { preload: true } })
+
+// Fetched pages accumulate into the model's options, so existing accessors
+// (and every picker built on them) see everything loaded so far:
+Model('heygen-video-avatar').params().catalog('videoId')?.catalogOptions
+```
+
+`CatalogItem` is the standard shape across all vendors:
+`{ id, name, description?, tags, preview? { imageUrl | videoUrl | audioUrl }, meta? }` —
+`id` is sent back verbatim as `voiceId` / `videoId` on generate. Validation
+never requires hydration: catalog-bound params accept any id and the platform
+validates for real. Migrating from self-fetched catalogs? See
+`docs/DYNAMIC-CATALOGS-MIGRATION.md` at the pa-gen-ai-sdk repo root.
+
 ## Advanced Lifecycle
 
 For progress tracking, cancellation, and job recovery:

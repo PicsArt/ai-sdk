@@ -11,13 +11,6 @@ const RUNWAY_AVATAR_PRESETS = [
   'Influencer', 'Tennis Coach', 'Human Resource', 'Fashion Designer', 'Cooking Teacher',
 ].map(name => ({ id: name.toLowerCase().replace(/ /g, '-'), label: name }));
 
-const RUNWAY_VOICE_PRESETS = [
-  'Victoria', 'Vincent', 'Clara', 'Drew', 'Skye', 'Max', 'Morgan', 'Felix',
-  'Mia', 'Marcus', 'Summer', 'Ruby', 'Aurora', 'Jasper', 'Leo', 'Adrian',
-  'Nina', 'Emma', 'Blake', 'David', 'Maya', 'Nathan', 'Sam', 'Georgia',
-  'Petra', 'Adam', 'Zach', 'Violet', 'Roman', 'Luna',
-].map(name => ({ id: name.toLowerCase(), name, description: '', tags: [] as string[], provider: 'runway' as const }));
-
 // ── Ratio maps ──────────────────────────────────────────────────────
 
 /**
@@ -134,7 +127,7 @@ export const { MODELS } = defineModels('runway', [
     features: [feat('Audio Input', 'audio')],
     paramConfig: {
       ...params.style(RUNWAY_AVATAR_PRESETS, 'game-character'),
-      ...params.voiceId(RUNWAY_VOICE_PRESETS, 'victoria'),
+      ...params.voiceId([], 'victoria', { catalog: { workflow: 'runway/v1/catalog/voices' } }),
       ...params.prompt({ maxLength: 1500, placeholder: 'Write the script your avatar will speak...', required: false }),
       ...params.audioInput('Audio Track'),
     },

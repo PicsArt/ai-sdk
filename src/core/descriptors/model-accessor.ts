@@ -19,8 +19,10 @@ import type { NormalizedRestriction } from '../constraints.ts';
 import type { TypedModelId } from '../../generated/model-input-types.ts';
 import type {
   ParamDescriptor,
+  ParamEntry,
   EntryMeta,
   EnumEntry,
+  CatalogEntry,
   RangeEntry,
   BooleanEntry,
   TextEntry,
@@ -37,6 +39,7 @@ import type {
   ValidationResult,
 } from './types.ts';
 import { extractDefaults, descriptorsToSchema, transferValues, validateAll } from './utils.ts';
+import { getHydratedCatalog } from '../catalogs.ts';
 import { resolveModel } from '../resolve.ts';
 import { ALL_MODELS } from '../../vendors/catalog/index.ts';
 import {
@@ -47,6 +50,17 @@ import {
 } from './pricing.ts';
 
 // ── ModelParamsAccessor implementation ──────────────────────────────
+
+/**
+ * Merge the loaded catalog's rich options into a flattened catalog entry.
+ * No-op until `ai.catalogs` has installed the catalog for the entry's source.
+ */
+function withHydration<T extends EntryMeta>(entry: ParamEntry, flat: T): T {
+  if (entry.descriptor.kind !== 'catalog') return flat;
+  const hydrated = getHydratedCatalog(entry.descriptor.source);
+  if (!hydrated) return flat;
+  return { ...flat, catalogOptions: hydrated.catalogOptions } as T;
+}
 
 class ModelParamsAccessorImpl implements ModelParamsAccessor {
   private readonly def: ModelDefinition;
@@ -59,7 +73,7 @@ class ModelParamsAccessorImpl implements ModelParamsAccessor {
     const entry = this.def.paramConfig[key];
     if (!entry) return undefined;
     const { descriptor, ...meta } = entry;
-    return { ...meta, ...descriptor };
+    return withHydration(entry, { ...meta, ...descriptor });
   }
 
   hasParam(key: string): boolean {
@@ -68,12 +82,16 @@ class ModelParamsAccessorImpl implements ModelParamsAccessor {
 
   all(): FlatParamEntry[] {
     return Object.entries(this.def.paramConfig).map(
-      ([key, { descriptor, ...meta }]) => ({ key, ...meta, ...descriptor }),
+      ([key, entry]) => {
+        const { descriptor, ...meta } = entry;
+        return withHydration(entry, { key, ...meta, ...descriptor });
+      },
     );
   }
 
   // Kind-narrowed accessors
   enum(key: string): EnumEntry | undefined { return this.narrow(key, 'enum'); }
+  catalog(key: string): CatalogEntry | undefined { return this.narrow(key, 'catalog'); }
   range(key: string): RangeEntry | undefined { return this.narrow(key, 'range'); }
   boolean(key: string): BooleanEntry | undefined { return this.narrow(key, 'boolean'); }
   text(key: string): TextEntry | undefined { return this.narrow(key, 'text'); }
@@ -140,6 +158,7 @@ class ConstrainedParamsAccessor implements ModelParamsAccessor {
   // ── Decorated accessors ──────────────────────────────────────────
 
   enum(key: string): EnumEntry | undefined { return this.applyEnum(key, this.inner.enum(key)); }
+  catalog(key: string): CatalogEntry | undefined { return this.applyEntry(key, this.inner.catalog(key)); }
   range(key: string): RangeEntry | undefined { return this.applyEntry(key, this.inner.range(key)); }
   boolean(key: string): BooleanEntry | undefined { return this.applyEntry(key, this.inner.boolean(key)); }
   text(key: string): TextEntry | undefined { return this.applyEntry(key, this.inner.text(key)); }

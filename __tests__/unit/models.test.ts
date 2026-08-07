@@ -53,9 +53,7 @@ assert.strictEqual(fluxDef.providerLabel, 'F');
 
 // ── getVoiceById() ──────────────────────────────────────────────────
 
-const voice = getVoiceById('alloy');
-assert(voice, 'should find alloy voice');
-assert.strictEqual(voice!.name, 'Alloy');
+// Voice lists are not bundled — getVoiceById resolves only loaded catalogs.
 assert.strictEqual(getVoiceById('nonexistent'), undefined);
 
 console.log('\u2713 models.test.ts \u2014 all passed');

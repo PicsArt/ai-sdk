@@ -3968,6 +3968,7 @@ var buildSeedance20VideoExtendPayloadFor = (modelAlias) => (ctx) => ({
   resolution: ctx.resolution ?? "720p",
   generate_audio: ctx.generateAudio ?? false
 });
+var SEEDANCE_25_FRAME_ADAPTIVE_REASON = "First/Last Frame mode requires an adaptive aspect ratio \u2014 the vendor rejects any fixed ratio.";
 var seedance25Constraints = [
   ...seedance20Constraints.slice(1),
   {
@@ -3978,12 +3979,23 @@ var seedance25Constraints = [
         reason: "End frame needs a start frame \u2014 a last frame on its own is rejected."
       }
     }
+  },
+  // First/Last Frame mode: aspect ratio is locked to 'adaptive' (vendor errors
+  // on any fixed ratio when a first_frame/last_frame is supplied).
+  {
+    when: { startFrame: { exists: true } },
+    then: { aspectRatio: { allowed: ["adaptive"], reason: SEEDANCE_25_FRAME_ADAPTIVE_REASON } }
+  },
+  {
+    when: { endFrame: { exists: true } },
+    then: { aspectRatio: { allowed: ["adaptive"], reason: SEEDANCE_25_FRAME_ADAPTIVE_REASON } }
   }
 ];
 var buildSeedance25Payload = (ctx) => {
   const refImages = ctx.imageUrls ?? [];
   const refVideos = ctx.videoUrls ?? [];
   const refAudios = ctx.audioUrls ?? [];
+  const usesFrame = Boolean(ctx.startFrame || ctx.endFrame);
   return {
     model: "seedance_2_5",
     content: [
@@ -4006,7 +4018,7 @@ var buildSeedance25Payload = (ctx) => {
       ...ctx.endFrame ? [{ type: "image_url", image_url: { url: ctx.endFrame }, role: "last_frame" }] : [],
       { type: "text", text: ctx.prompt }
     ],
-    ratio: ctx.aspectRatio ?? "16:9",
+    ratio: usesFrame ? "adaptive" : ctx.aspectRatio ?? "16:9",
     duration: ctx.duration ?? 5,
     resolution: ctx.resolution ?? "720p",
     generate_audio: ctx.generateAudio ?? false,
@@ -4025,8 +4037,8 @@ var buildSeedance25VideoEditPayload = (ctx) => ({
       role: "reference_image"
     }))
   ],
-  ratio: ctx.aspectRatio ?? "16:9",
-  duration: ctx.duration ?? 5,
+  ratio: "adaptive",
+  duration: -1,
   resolution: ctx.resolution ?? "720p",
   generate_audio: ctx.generateAudio ?? false,
   output_format: ctx.outputFormat ?? "mp4",
@@ -4042,7 +4054,7 @@ var buildSeedance25VideoExtendPayload = (ctx) => ({
       role: "reference_video"
     }))
   ],
-  ratio: ctx.aspectRatio ?? "adaptive",
+  ratio: "adaptive",
   duration: ctx.duration ?? 15,
   resolution: ctx.resolution ?? "720p",
   generate_audio: ctx.generateAudio ?? false,
@@ -4096,12 +4108,13 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     release: "preview",
     badge: ["new", "premium", "hot"],
     description: "Edit video \u2014 replace subjects, add or remove objects, restyle scenes with reference images.",
-    features: [feat("Video Input", "input"), feat("Multi-Image Input", "input"), feat("Audio", "audio"), feat("720p", "resolution"), feat("4-30 sec", "duration")],
+    features: [feat("Video Input", "input"), feat("Multi-Image Input", "input"), feat("Audio", "audio"), feat("720p", "resolution"), feat("Source length", "duration")],
     paramConfig: {
       ...params.prompt(),
-      ...params.aspectRatio(SEEDANCE_AR),
+      // Editing mode: aspect ratio is fixed to 'adaptive' and duration is
+      // source-driven ('-1'), so neither is user-selectable (vendor rule).
+      ...params.aspectRatio(["adaptive"]),
       ...params.resolution(["480p", "720p"], "720p"),
-      ...params.duration(SEEDANCE_25_DURATIONS, 5),
       ...params.generateAudio(false),
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
@@ -4125,7 +4138,9 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     features: [feat("Multi-Video Input", "input"), feat("Audio", "audio"), feat("720p", "resolution"), feat("4-30 sec", "duration")],
     paramConfig: {
       ...params.prompt(),
-      ...params.aspectRatio(SEEDANCE_AR),
+      // Extension mode: aspect ratio is locked to 'adaptive' (vendor rule);
+      // duration stays user-selectable.
+      ...params.aspectRatio(["adaptive"]),
       ...params.resolution(["480p", "720p"], "720p"),
       ...params.duration(SEEDANCE_25_DURATIONS, 15),
       ...params.generateAudio(false),

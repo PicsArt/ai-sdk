@@ -3946,7 +3946,7 @@ var buildSeedance20PayloadFor = (modelAlias) => (ctx) => {
     ratio: ctx.aspectRatio ?? "16:9",
     duration: ctx.duration ?? 10,
     resolution: ctx.resolution ?? "720p",
-    generate_audio: ctx.generateAudio ?? false,
+    generate_audio: ctx.generateAudio ?? true,
     ...ctx.returnLastFrame ? { return_last_frame: true } : {}
   };
 };
@@ -3964,7 +3964,7 @@ var buildSeedance20VideoEditPayloadFor = (modelAlias) => (ctx) => ({
   ratio: ctx.aspectRatio ?? "16:9",
   duration: ctx.duration ?? 5,
   resolution: ctx.resolution ?? "720p",
-  generate_audio: ctx.generateAudio ?? false,
+  generate_audio: ctx.generateAudio ?? true,
   ...ctx.returnLastFrame ? { return_last_frame: true } : {}
 });
 var buildSeedance20VideoExtendPayloadFor = (modelAlias) => (ctx) => ({
@@ -3980,7 +3980,7 @@ var buildSeedance20VideoExtendPayloadFor = (modelAlias) => (ctx) => ({
   ratio: ctx.aspectRatio ?? "adaptive",
   duration: ctx.duration ?? 15,
   resolution: ctx.resolution ?? "720p",
-  generate_audio: ctx.generateAudio ?? false
+  generate_audio: ctx.generateAudio ?? true
 });
 var SEEDANCE_25_FRAME_ADAPTIVE_REASON = "First/Last Frame mode requires an adaptive aspect ratio \u2014 the vendor rejects any fixed ratio.";
 var seedance25Constraints = [
@@ -4035,7 +4035,7 @@ var buildSeedance25Payload = (ctx) => {
     ratio: usesFrame ? "adaptive" : ctx.aspectRatio ?? "16:9",
     duration: ctx.duration ?? 5,
     resolution: ctx.resolution ?? "720p",
-    generate_audio: ctx.generateAudio ?? false,
+    generate_audio: ctx.generateAudio ?? true,
     output_format: ctx.outputFormat ?? "mp4",
     ...ctx.returnLastFrame ? { return_last_frame: true } : {}
   };
@@ -4054,7 +4054,7 @@ var buildSeedance25VideoEditPayload = (ctx) => ({
   ratio: "adaptive",
   duration: -1,
   resolution: ctx.resolution ?? "720p",
-  generate_audio: ctx.generateAudio ?? false,
+  generate_audio: ctx.generateAudio ?? true,
   output_format: ctx.outputFormat ?? "mp4",
   ...ctx.returnLastFrame ? { return_last_frame: true } : {}
 });
@@ -4071,7 +4071,7 @@ var buildSeedance25VideoExtendPayload = (ctx) => ({
   ratio: "adaptive",
   duration: ctx.duration ?? 15,
   resolution: ctx.resolution ?? "720p",
-  generate_audio: ctx.generateAudio ?? false,
+  generate_audio: ctx.generateAudio ?? true,
   output_format: ctx.outputFormat ?? "mp4"
 });
 var SEEDANCE_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"];
@@ -4097,7 +4097,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p"], "720p"),
       ...params.duration(SEEDANCE_25_DURATIONS, 5),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
@@ -4127,7 +4127,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       // source-driven ('-1'), so neither is user-selectable (vendor rule).
       ...params.aspectRatio(["adaptive"]),
       ...params.resolution(["480p", "720p"], "720p"),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
       ...params.videoInput("Source Video"),
@@ -4154,7 +4154,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.aspectRatio(["adaptive"]),
       ...params.resolution(["480p", "720p"], "720p"),
       ...params.duration(SEEDANCE_25_DURATIONS, 15),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
       ...params.videoInputs(10, "Source Videos", true)
     }
@@ -4178,7 +4178,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p", "1080p", "4k"], "720p"),
       ...params.duration(SEEDANCE_V2_DURATIONS, 10),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
@@ -4208,7 +4208,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p"], "720p"),
       ...params.duration(SEEDANCE_V2_DURATIONS, 10),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
@@ -4238,7 +4238,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p"], "720p"),
       ...params.duration(SEEDANCE_V2_DURATIONS, 10),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
@@ -4267,7 +4267,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p", "1080p", "4k"], "720p"),
       ...params.duration(SEEDANCE_V2_DURATIONS, 5),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...params.videoInput("Source Video"),
       ...params.imageInput(9, "Reference Images")
@@ -4291,7 +4291,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p"], "720p"),
       ...params.duration(SEEDANCE_V2_DURATIONS, 5),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...params.videoInput("Source Video"),
       ...params.imageInput(9, "Reference Images")
@@ -4315,7 +4315,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p"], "720p"),
       ...params.duration(SEEDANCE_V2_DURATIONS, 5),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...params.videoInput("Source Video"),
       ...params.imageInput(9, "Reference Images")
@@ -4339,7 +4339,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p", "1080p", "4k"], "720p"),
       ...params.duration(SEEDANCE_V2_DURATIONS, 15),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.videoInputs(3, "Source Videos", true)
     }
   },
@@ -4361,7 +4361,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p"], "720p"),
       ...params.duration(SEEDANCE_V2_DURATIONS, 15),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.videoInputs(3, "Source Videos", true)
     }
   },
@@ -4383,7 +4383,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p"], "720p"),
       ...params.duration(SEEDANCE_V2_DURATIONS, 15),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.videoInputs(3, "Source Videos", true)
     }
   },

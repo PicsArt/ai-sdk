@@ -166,6 +166,8 @@ export interface ModelMeta {
   readonly features: ModelFeature[];
   readonly badges: BadgeType[];
   readonly provider: ProviderInfo;
+  /** ISO YYYY-MM-DD date the model was added to the catalog, or null if unknown. */
+  readonly addedAt: string | null;
   /** Release / availability tier. Absent on the definition ⇒ `'production'`. */
   readonly release: ReleaseTag;
 }
@@ -212,12 +214,30 @@ export interface CreditRange {
   max: number;
   /** Pricing unit (e.g. 'generation', 'second', 'megapixel'). Set when all matched entries share a unit. */
   unit?: string;
+  /** Per-tier breakdown behind the range — one entry per pricing row (quality /
+   *  audio / token-type variant). Reflects the entries the range summarizes
+   *  (all tiers, or the ctx-filtered subset). */
+  tiers: CreditTier[];
 }
 
 /** Optional context to narrow the credit range by resolution / audio. */
 export interface CreditRangeContext {
   resolution?: string;
   generateAudio?: boolean;
+}
+
+/** A single pricing tier for a model — one row of its rate table. */
+export interface CreditTier {
+  /** Credits charged per `unit`. */
+  credits: number;
+  /** Billing unit (e.g. 'generation', 'second', 'megapixel', 'output_text_tokens'). */
+  unit: string;
+  /** Quality/resolution variant this rate applies to, when priced by quality. */
+  quality?: string;
+  /** Whether this rate is for audio-enabled generation. */
+  audio?: boolean;
+  /** Use case this rate applies to (e.g. 'text-to-video'). */
+  useCase?: string;
 }
 
 /** Top-level model accessor with grouped sub-accessors. */
@@ -237,10 +257,11 @@ export interface ModelDescriptor {
   /** Validate generation input against this model's params. Returns
    *  `{ valid: true }` or `{ valid: false, errors }` — never throws. */
   validate(input: unknown): ValidationResult;
-  /** Get the credit range for this model. Pass context to narrow by
-   *  resolution/audio. Returns the per-unit range — callers with time-based
-   *  parameters should scale by the value themselves (e.g. multiply by
-   *  duration when range.unit === 'second'). Returns null if pricing is not loaded. */
+  /** Get the credit range for this model, plus the per-tier breakdown in
+   *  `.tiers`. Pass context to narrow by resolution/audio. Returns the per-unit
+   *  range — callers with time-based parameters should scale by the value
+   *  themselves (e.g. multiply by duration when range.unit === 'second').
+   *  Returns null if pricing is not loaded or the model has no entry. */
   getCreditsInfo(ctx?: CreditRangeContext): CreditRange | null;
   /** Workflow identifiers for this model. */
   readonly api: {

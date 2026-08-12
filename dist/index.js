@@ -3436,7 +3436,6 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     // start/end frames. buildPayload registered in wan.payloads.ts.
     workflow: "wan/v3/video",
     estimatedTime: 120,
-    release: "preview",
     mode: "video",
     inputType: "t2v",
     description: "Wan 3.0 all-in-one \u2014 text, image/video/audio references, and start/end frames with adaptive ratio, intelligent duration, and audio.",
@@ -10148,7 +10147,14 @@ function getCreditsForModel(modelId, ctx) {
     if (e.credits > max) max = e.credits;
     if (e.unit !== unit) unit = void 0;
   }
-  return unit ? { min, max, unit } : { min, max };
+  const tiers = entries.map((e) => ({
+    credits: e.credits,
+    unit: e.unit,
+    quality: e.metadata.quality || void 0,
+    audio: e.metadata.audio,
+    useCase: e.metadata.useCase
+  }));
+  return unit ? { min, max, unit, tiers } : { min, max, tiers };
 }
 
 // src/core/descriptors/model-accessor.ts
@@ -10379,6 +10385,7 @@ var ModelMetaImpl = class {
   features;
   badges;
   provider;
+  addedAt;
   release;
   constructor(def) {
     this.mode = def.mode;
@@ -10393,6 +10400,7 @@ var ModelMetaImpl = class {
       color: def.providerColor,
       label: def.providerLabel
     };
+    this.addedAt = def.addedAt ?? null;
   }
 };
 var ModelDescriptorImpl = class {

@@ -28,6 +28,7 @@ export type {
   ProviderInfo,
   CreditRange,
   CreditRangeContext,
+  CreditTier,
 } from './types.ts';
 
 // ── Utilities ────────────────────────────────────────────────────────

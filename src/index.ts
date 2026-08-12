@@ -94,6 +94,7 @@ export type {
   ProviderInfo,
   CreditRange,
   CreditRangeContext,
+  CreditTier,
   PricingOptions,
 } from './core/descriptors/index.ts';
 

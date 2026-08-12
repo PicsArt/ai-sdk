@@ -1787,6 +1787,8 @@ interface ModelMeta {
     readonly features: ModelFeature[];
     readonly badges: BadgeType[];
     readonly provider: ProviderInfo;
+    /** ISO YYYY-MM-DD date the model was added to the catalog, or null if unknown. */
+    readonly addedAt: string | null;
     /** Release / availability tier. Absent on the definition ⇒ `'production'`. */
     readonly release: ReleaseTag;
 }
@@ -1824,11 +1826,28 @@ interface CreditRange {
     max: number;
     /** Pricing unit (e.g. 'generation', 'second', 'megapixel'). Set when all matched entries share a unit. */
     unit?: string;
+    /** Per-tier breakdown behind the range — one entry per pricing row (quality /
+     *  audio / token-type variant). Reflects the entries the range summarizes
+     *  (all tiers, or the ctx-filtered subset). */
+    tiers: CreditTier[];
 }
 /** Optional context to narrow the credit range by resolution / audio. */
 interface CreditRangeContext {
     resolution?: string;
     generateAudio?: boolean;
+}
+/** A single pricing tier for a model — one row of its rate table. */
+interface CreditTier {
+    /** Credits charged per `unit`. */
+    credits: number;
+    /** Billing unit (e.g. 'generation', 'second', 'megapixel', 'output_text_tokens'). */
+    unit: string;
+    /** Quality/resolution variant this rate applies to, when priced by quality. */
+    quality?: string;
+    /** Whether this rate is for audio-enabled generation. */
+    audio?: boolean;
+    /** Use case this rate applies to (e.g. 'text-to-video'). */
+    useCase?: string;
 }
 /** Top-level model accessor with grouped sub-accessors. */
 /** Result of validating generation input against a model's params. */
@@ -1846,10 +1865,11 @@ interface ModelDescriptor {
     /** Validate generation input against this model's params. Returns
      *  `{ valid: true }` or `{ valid: false, errors }` — never throws. */
     validate(input: unknown): ValidationResult$1;
-    /** Get the credit range for this model. Pass context to narrow by
-     *  resolution/audio. Returns the per-unit range — callers with time-based
-     *  parameters should scale by the value themselves (e.g. multiply by
-     *  duration when range.unit === 'second'). Returns null if pricing is not loaded. */
+    /** Get the credit range for this model, plus the per-tier breakdown in
+     *  `.tiers`. Pass context to narrow by resolution/audio. Returns the per-unit
+     *  range — callers with time-based parameters should scale by the value
+     *  themselves (e.g. multiply by duration when range.unit === 'second').
+     *  Returns null if pricing is not loaded or the model has no entry. */
     getCreditsInfo(ctx?: CreditRangeContext): CreditRange | null;
     /** Workflow identifiers for this model. */
     readonly api: {
@@ -2682,4 +2702,4 @@ declare const findModel: (ref: string) => ModelDefinition | undefined;
 /** Effect scenes that require two input images (e.g. hugs, kisses, swaps). */
 declare const KLING_DUAL_IMAGE_EFFECTS: ReadonlySet<string>;
 
-export { ALL_MODELS, type AiClient, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogKind, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, type AiClient, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogKind, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };

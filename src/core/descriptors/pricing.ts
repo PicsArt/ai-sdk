@@ -14,7 +14,7 @@ import {
   type ModelPricing,
   type ModelPricingClientOptions,
 } from '@picsart/pa-model-pricing-sdk';
-import type { CreditRange, CreditRangeContext } from './types.ts';
+import type { CreditRange, CreditRangeContext, CreditTier } from './types.ts';
 
 /** Options for configuring the pricing source. The SDK constructs the underlying client. */
 export type PricingOptions = ModelPricingClientOptions;
@@ -96,5 +96,12 @@ export function getCreditsForModel(
     if (e.credits > max) max = e.credits;
     if (e.unit !== unit) unit = undefined;
   }
-  return unit ? { min, max, unit } : { min, max };
+  const tiers: CreditTier[] = entries.map((e) => ({
+    credits: e.credits,
+    unit: e.unit,
+    quality: e.metadata.quality || undefined,
+    audio: e.metadata.audio,
+    useCase: e.metadata.useCase,
+  }));
+  return unit ? { min, max, unit, tiers } : { min, max, tiers };
 }

@@ -144,12 +144,6 @@ export const IdeogramPImage = 'ideogram-p-image' as const;
 export const IdeogramV3 = 'ideogram-v3' as const;
 /** Ideogram 4.0 — ideogram (image) */
 export const IdeogramV4 = 'ideogram-v4' as const;
-/** Imagen 4.0 — google (image) */
-export const Imagen40 = 'imagen-4.0' as const;
-/** Imagen 4.0 Fast — google (image) */
-export const Imagen40Fast = 'imagen-4.0-fast' as const;
-/** Imagen 4.0 Ultra — google (image) */
-export const Imagen40Ultra = 'imagen-4.0-ultra' as const;
 /** Kling 3.0 Image — kling (image) */
 export const Kling30Image = 'kling-3.0-image' as const;
 /** Kling Avatar — kling (video) */
@@ -513,9 +507,6 @@ export const Models = {
   IdeogramPImage,
   IdeogramV3,
   IdeogramV4,
-  Imagen40,
-  Imagen40Fast,
-  Imagen40Ultra,
   Kling30Image,
   KlingAvatar,
   KlingElements,

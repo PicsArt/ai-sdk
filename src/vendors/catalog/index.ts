@@ -35,8 +35,6 @@ import './elevenlabs.payloads.ts'; // registers Music payload builder after mode
 import { MODELS as heygenMODELS } from './heygen.ts';
 import { MODELS as minimaxMODELS } from './minimax.ts';
 import { MODELS as ideogramMODELS } from './ideogram.ts';
-import { MODELS as imagenMODELS } from './imagen.ts';
-import './imagen.payloads.ts'; // registers payload builders after model definitions
 import { MODELS as qwenMODELS } from './qwen.ts';
 import { MODELS as recraftMODELS } from './recraft.ts';
 import { MODELS as topazMODELS } from './topaz.ts';
@@ -80,7 +78,6 @@ export const ALL_MODELS: ModelDefinition[] = [
   ...heygenMODELS,
   ...minimaxMODELS,
   ...ideogramMODELS,
-  ...imagenMODELS,
   ...lyriaMODELS,
   ...qwenMODELS,
   ...recraftMODELS,

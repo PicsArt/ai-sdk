@@ -1146,7 +1146,7 @@ var passthroughPayload = (paramConfig) => (ctx) => {
   return payload;
 };
 function defineModels(provider, configs) {
-  const MODELS38 = [];
+  const MODELS37 = [];
   for (const c of configs) {
     const prov = c.provider ?? provider;
     const resolvedPayload = c.buildPayload ?? passthroughPayload(c.paramConfig);
@@ -1181,19 +1181,19 @@ function defineModels(provider, configs) {
     if (c.constraints !== void 0) model.constraints = c.constraints;
     const contract = createModelContract(model);
     model.outputSchema = c.outputSchema ?? contract.output;
-    MODELS38.push(model);
+    MODELS37.push(model);
   }
-  return { MODELS: MODELS38 };
+  return { MODELS: MODELS37 };
 }
-function registerPayloads(MODELS38, payloads) {
+function registerPayloads(MODELS37, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS38.find((m) => m.id === id);
+    const model = MODELS37.find((m) => m.id === id);
     if (model) model.buildPayload = builder;
   }
 }
-function registerEditPayloads(MODELS38, payloads) {
+function registerEditPayloads(MODELS37, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS38.find((m) => m.id === id);
+    const model = MODELS37.find((m) => m.id === id);
     if (model) model.buildEditPayload = builder;
   }
 }
@@ -6696,78 +6696,6 @@ var { MODELS: MODELS27 } = defineModels("ideogram", [
   }
 ]);
 
-// src/vendors/catalog/imagen.ts
-var imagenParams = {
-  ...params.prompt(),
-  ...params.aspectRatio(["1:1", "16:9", "9:16", "3:4", "4:3"], "1:1"),
-  // Vertex Imagen sampleCount is capped at 4 — don't offer 6/8/10.
-  ...params.count([1, 2, 4]),
-  ...params.enhancePrompt(),
-  ...params.negativePrompt()
-};
-var { MODELS: MODELS28 } = defineModels("google", [
-  {
-    id: "imagen-4.0",
-    name: "Imagen 4.0",
-    modelId: "imagen-4.0-generate-001",
-    addedAt: "2026-02-06",
-    workflow: "imagen",
-    estimatedTime: 12,
-    mode: "image",
-    inputType: "t2i",
-    badge: ["fast"],
-    description: "Quick 1K images with sharp text overlay and prompt enhancement.",
-    features: [feat("1K", "resolution")],
-    paramConfig: imagenParams
-  },
-  {
-    id: "imagen-4.0-ultra",
-    name: "Imagen 4.0 Ultra",
-    modelId: "imagen-4.0-ultra-generate-001",
-    addedAt: "2026-02-06",
-    workflow: "imagen",
-    estimatedTime: 15,
-    mode: "image",
-    inputType: "t2i",
-    badge: ["premium"],
-    description: "Print-ready 2K output optimized for photorealistic detail.",
-    features: [feat("2K", "resolution")],
-    paramConfig: imagenParams
-  },
-  {
-    id: "imagen-4.0-fast",
-    name: "Imagen 4.0 Fast",
-    modelId: "imagen-4.0-fast-generate-001",
-    addedAt: "2026-02-06",
-    workflow: "imagen",
-    estimatedTime: 6,
-    mode: "image",
-    inputType: "t2i",
-    description: "Fastest Imagen tier for quick drafts and rapid prompt iteration.",
-    features: [feat("1K", "resolution"), feat("Fast", "duration")],
-    paramConfig: imagenParams
-  }
-]);
-
-// src/vendors/catalog/imagen.payloads.ts
-var buildImagenPayload = (modelId) => (
-  // Partial: WorkflowTypes incorrectly marks some params as required (e.g. maskDilation, editingSteps)
-  (input) => ({
-    model: modelId,
-    mode: "imagen_generate",
-    prompt: input.prompt,
-    sampleCount: input.count ?? 1,
-    aspectRatio: input.aspectRatio ?? "1:1",
-    enhancePrompt: input.enhancePrompt !== false,
-    ...input.negativePrompt ? { negativePrompt: input.negativePrompt } : {}
-  })
-);
-registerPayloads(MODELS28, {
-  "imagen-4.0": buildImagenPayload("imagen-4.0-generate-001"),
-  "imagen-4.0-ultra": buildImagenPayload("imagen-4.0-ultra-generate-001"),
-  "imagen-4.0-fast": buildImagenPayload("imagen-4.0-fast-generate-001")
-});
-
 // src/vendors/catalog/qwen.ts
 var QWEN_SIZE_MAP = {
   "1024x1024": "1024x1024",
@@ -6831,7 +6759,7 @@ var qwenV1Params3 = {
   ...qwenV1Params,
   ...p.enum("promptExtendMode", ["direct", "agent"], "direct")
 };
-var { MODELS: MODELS29 } = defineModels("qwen", [
+var { MODELS: MODELS28 } = defineModels("qwen", [
   {
     id: "qwen",
     name: "Qwen",
@@ -6979,7 +6907,7 @@ var buildRecraftExploreSimilarPayload = (ctx) => ({
   similarity: ctx.similarity ?? 3,
   ...ctx.aspectRatio ? { size: ctx.aspectRatio } : {}
 });
-var { MODELS: MODELS30 } = defineModels("recraft", [
+var { MODELS: MODELS29 } = defineModels("recraft", [
   // ── V4.1 family (raster only — vector variants exist in API but not exposed here) ─
   {
     id: "recraftv4_1",
@@ -7445,7 +7373,7 @@ var TOPAZ_VIDEO_MODEL_OPTIONS = [
   "Starlight Fast 1",
   "Starlight Fast 2"
 ];
-var { MODELS: MODELS31 } = defineModels("topaz", [
+var { MODELS: MODELS30 } = defineModels("topaz", [
   {
     id: "topaz-upscale-image",
     name: "Topaz Image Upscale",
@@ -7496,7 +7424,7 @@ var buildTopazVideoPayload = (input) => ({
   upscale_factor: 2,
   H264_output: false
 });
-registerPayloads(MODELS31, {
+registerPayloads(MODELS30, {
   "topaz-upscale-image": buildTopazImagePayload,
   "topaz-upscale-video": buildTopazVideoPayload
 });
@@ -7582,7 +7510,7 @@ var buildPcpSanaSprintPayload = (ctx) => {
     height: h
   };
 };
-var { MODELS: MODELS32 } = defineModels("picsart", [
+var { MODELS: MODELS31 } = defineModels("picsart", [
   {
     id: "picsart-change-bg",
     name: "Picsart Change Background",
@@ -7759,7 +7687,7 @@ var buildLyria3Payload = (apiModelId) => (ctx) => ({
   ...ctx.imageUrls?.length === 1 ? { image: imagePart(ctx.imageUrls[0]) } : {},
   ...(ctx.imageUrls?.length ?? 0) > 1 ? { images: ctx.imageUrls.slice(0, 10).map(imagePart) } : {}
 });
-var { MODELS: MODELS33 } = defineModels("google", [
+var { MODELS: MODELS32 } = defineModels("google", [
   {
     id: "lyria-3-clip",
     addedAt: "2026-03-26",
@@ -7882,7 +7810,7 @@ var buildHH11R2VPayload = (ctx) => {
 var HH_AR = ["16:9", "9:16", "1:1", "4:3", "3:4"];
 var HH_RES = ["720P", "1080P"];
 var HH_DURATIONS = [5, 10, 15];
-var { MODELS: MODELS34 } = defineModels("happyhorse", [
+var { MODELS: MODELS33 } = defineModels("happyhorse", [
   {
     id: "happyhorse-1.0-t2v",
     name: "Happy Horse 1.0",
@@ -8027,7 +7955,7 @@ var baseFeatures = [
   feat("Up to 1080p", "resolution"),
   feat("5-15 sec", "duration")
 ];
-var { MODELS: MODELS35 } = defineModels("pixverse", [
+var { MODELS: MODELS34 } = defineModels("pixverse", [
   // ── V6 ─────────────────────────────────────────────────────────────
   {
     id: "pixverse-v6",
@@ -8145,7 +8073,7 @@ var buildReferenceToVideoPayload = (model) => (input) => ({
   aspect_ratio: input.aspectRatio ?? "16:9",
   image_references: (input.imageUrls ?? []).map((url) => ({ url }))
 });
-registerPayloads(MODELS35, {
+registerPayloads(MODELS34, {
   "pixverse-v6": buildTextToVideoPayload("v6"),
   "pixverse-v6-image": buildImageToVideoPayload("v6"),
   "pixverse-v6-fusion": buildReferenceToVideoPayload("v6"),
@@ -8155,7 +8083,7 @@ registerPayloads(MODELS35, {
 });
 
 // src/vendors/catalog/async-ai.ts
-var { MODELS: MODELS36 } = defineModels("async", [
+var { MODELS: MODELS35 } = defineModels("async", [
   {
     id: "async-flash-v1",
     name: "Async Flash v1.0",
@@ -8195,7 +8123,7 @@ var buildAsyncTtsPayload = (input) => {
     }
   };
 };
-registerPayloads(MODELS36, { "async-flash-v1": buildAsyncTtsPayload });
+registerPayloads(MODELS35, { "async-flash-v1": buildAsyncTtsPayload });
 
 // src/vendors/catalog/llm.ts
 var ADDED = "2026-06-16";
@@ -8317,7 +8245,7 @@ var { MODELS: GEMINI_LLM } = defineModels("google", [
     }
   }
 ]);
-var MODELS37 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM];
+var MODELS36 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM];
 
 // src/vendors/catalog/llm.payloads.ts
 var CLAUDE_MAX_TOKENS = 8192;
@@ -8368,7 +8296,7 @@ var buildGeminiPayload = (modelId) => (input) => {
     ...level ? { generationConfig: { thinkingConfig: { thinkingLevel: level } } } : {}
   };
 };
-registerPayloads(MODELS37, {
+registerPayloads(MODELS36, {
   "claude-opus-4-8": buildClaudePayload("claude-opus-4-8"),
   "claude-sonnet-4-6": buildClaudePayload("claude-sonnet-4-6"),
   "claude-haiku-4-5": buildClaudePayload("claude-haiku-4-5"),
@@ -8409,16 +8337,15 @@ var ALL_MODELS = [
   ...MODELS25,
   ...MODELS26,
   ...MODELS27,
+  ...MODELS32,
   ...MODELS28,
-  ...MODELS33,
   ...MODELS29,
   ...MODELS30,
   ...MODELS31,
-  ...MODELS32,
+  ...MODELS33,
   ...MODELS34,
   ...MODELS35,
-  ...MODELS36,
-  ...MODELS37
+  ...MODELS36
 ];
 var getModelsByMode = (mode, includeDisabled = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeDisabled || isVisibleForReleases(m)));
 
@@ -10547,9 +10474,6 @@ var IdeogramCharacter = "ideogram-character";
 var IdeogramPImage = "ideogram-p-image";
 var IdeogramV3 = "ideogram-v3";
 var IdeogramV4 = "ideogram-v4";
-var Imagen40 = "imagen-4.0";
-var Imagen40Fast = "imagen-4.0-fast";
-var Imagen40Ultra = "imagen-4.0-ultra";
 var Kling30Image = "kling-3.0-image";
 var KlingAvatar = "kling-avatar";
 var KlingElements = "kling-elements";
@@ -10749,9 +10673,6 @@ var Models = {
   IdeogramPImage,
   IdeogramV3,
   IdeogramV4,
-  Imagen40,
-  Imagen40Fast,
-  Imagen40Ultra,
   Kling30Image,
   KlingAvatar,
   KlingElements,

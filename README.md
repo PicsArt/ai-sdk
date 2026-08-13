@@ -277,4 +277,4 @@ When the vendor API uses different field names or value formats:
    ```
 4. Import the `.payloads.ts` file in `src/vendors/catalog/index.ts` (after the vendor import)
 
-See `src/vendors/catalog/imagen.ts` + `src/vendors/catalog/imagen.payloads.ts` for a working example.
+See `src/vendors/catalog/luma.ts` + `src/vendors/catalog/luma.payloads.ts` for a working example.

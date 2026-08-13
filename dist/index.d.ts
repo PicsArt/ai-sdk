@@ -446,27 +446,6 @@ type ModelInputById = {
         renderingSpeed?: "TURBO" | "DEFAULT" | "QUALITY";
         enableCopyrightDetection?: boolean;
     };
-    "imagen-4.0": {
-        prompt: string;
-        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3";
-        count?: 1 | 2 | 4;
-        enhancePrompt?: boolean;
-        negativePrompt?: string;
-    };
-    "imagen-4.0-fast": {
-        prompt: string;
-        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3";
-        count?: 1 | 2 | 4;
-        enhancePrompt?: boolean;
-        negativePrompt?: string;
-    };
-    "imagen-4.0-ultra": {
-        prompt: string;
-        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3";
-        count?: 1 | 2 | 4;
-        enhancePrompt?: boolean;
-        negativePrompt?: string;
-    };
     "kling-3.0-image": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4";
@@ -2415,9 +2394,6 @@ declare const Models: {
     readonly IdeogramPImage: "ideogram-p-image";
     readonly IdeogramV3: "ideogram-v3";
     readonly IdeogramV4: "ideogram-v4";
-    readonly Imagen40: "imagen-4.0";
-    readonly Imagen40Fast: "imagen-4.0-fast";
-    readonly Imagen40Ultra: "imagen-4.0-ultra";
     readonly Kling30Image: "kling-3.0-image";
     readonly KlingAvatar: "kling-avatar";
     readonly KlingElements: "kling-elements";

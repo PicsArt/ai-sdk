@@ -329,6 +329,14 @@ export const Recraftv41Vector = 'recraftv4_1_vector' as const;
 export const Recraftv4Pro = 'recraftv4_pro' as const;
 /** Recraft V4 Pro Vector — recraft (image) */
 export const Recraftv4ProVector = 'recraftv4_pro_vector' as const;
+/** Recraft V4 Styles — recraft (image) */
+export const Recraftv4Styles = 'recraftv4_styles' as const;
+/** Recraft V4 Styles Pro — recraft (image) */
+export const Recraftv4StylesPro = 'recraftv4_styles_pro' as const;
+/** Recraft V4 Styles Pro Vector — recraft (image) */
+export const Recraftv4StylesProVector = 'recraftv4_styles_pro_vector' as const;
+/** Recraft V4 Styles Vector — recraft (image) */
+export const Recraftv4StylesVector = 'recraftv4_styles_vector' as const;
 /** Recraft V4 Vector — recraft (image) */
 export const Recraftv4Vector = 'recraftv4_vector' as const;
 /** Reve — reve (image) */
@@ -591,6 +599,10 @@ export const Models = {
   Recraftv41Vector,
   Recraftv4Pro,
   Recraftv4ProVector,
+  Recraftv4Styles,
+  Recraftv4StylesPro,
+  Recraftv4StylesProVector,
+  Recraftv4StylesVector,
   Recraftv4Vector,
   Reve,
   RunwayAleph2,

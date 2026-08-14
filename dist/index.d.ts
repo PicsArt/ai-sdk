@@ -1045,6 +1045,34 @@ type ModelInputById = {
         imageUrls?: string[];
         imageWeight?: number;
     };
+    "recraftv4_styles": {
+        prompt: string;
+        aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
+        count?: 1 | 2 | 4 | 6;
+        imageUrls?: string[];
+        imageWeight?: number;
+    };
+    "recraftv4_styles_pro": {
+        prompt: string;
+        aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
+        count?: 1 | 2 | 4 | 6;
+        imageUrls?: string[];
+        imageWeight?: number;
+    };
+    "recraftv4_styles_pro_vector": {
+        prompt: string;
+        aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
+        count?: 1 | 2 | 4 | 6;
+        imageUrls?: string[];
+        imageWeight?: number;
+    };
+    "recraftv4_styles_vector": {
+        prompt: string;
+        aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
+        count?: 1 | 2 | 4 | 6;
+        imageUrls?: string[];
+        imageWeight?: number;
+    };
     "recraftv4_vector": {
         prompt: string;
         aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
@@ -2476,6 +2504,10 @@ declare const Models: {
     readonly Recraftv41Vector: "recraftv4_1_vector";
     readonly Recraftv4Pro: "recraftv4_pro";
     readonly Recraftv4ProVector: "recraftv4_pro_vector";
+    readonly Recraftv4Styles: "recraftv4_styles";
+    readonly Recraftv4StylesPro: "recraftv4_styles_pro";
+    readonly Recraftv4StylesProVector: "recraftv4_styles_pro_vector";
+    readonly Recraftv4StylesVector: "recraftv4_styles_vector";
     readonly Recraftv4Vector: "recraftv4_vector";
     readonly Reve: "reve";
     readonly RunwayAleph2: "runway-aleph2";

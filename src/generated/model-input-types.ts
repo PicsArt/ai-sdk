@@ -155,6 +155,10 @@ export type ModelInputById = {
   "recraftv4_1_vector": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
   "recraftv4_pro": { prompt: string; style?: "raster" | "vector_illustration"; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
   "recraftv4_pro_vector": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
+  "recraftv4_styles": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
+  "recraftv4_styles_pro": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
+  "recraftv4_styles_pro_vector": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
+  "recraftv4_styles_vector": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
   "recraftv4_vector": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
   "reve": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "runway-aleph2": { prompt: string; videoUrl: string; startFrame?: string; endFrame?: string; };

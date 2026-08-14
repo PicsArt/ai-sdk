@@ -7175,6 +7175,85 @@ var { MODELS: MODELS29 } = defineModels("recraft", [
       ...params.imageWeight(0, 100, 80, 5)
     }
   },
+  // ── V4 Styles family — style-driven via style_id / style_reference_urls ─
+  {
+    id: "recraftv4_styles",
+    name: "Recraft V4 Styles",
+    addedAt: "2026-08-14",
+    workflow: "recraft/v1/images/generations",
+    buildPayload: buildRecraftV4VariantPayload("recraftv4_styles"),
+    estimatedTime: 17,
+    mode: "image",
+    inputType: "t2i",
+    description: "Style-focused raster output with 10K-character prompts.",
+    features: [feat("Image Input", "input"), feat("Text in Image", "characteristic"), feat("10K Prompt", "characteristic")],
+    paramConfig: {
+      ...params.prompt({ maxLength: 1e4 }),
+      ...params.aspectRatio(recraftAspectRatios, "1:1"),
+      ...params.count([1, 2, 4, 6]),
+      ...params.imageInput(1, "Source Image"),
+      ...params.imageWeight(0, 100, 80, 5)
+    }
+  },
+  {
+    id: "recraftv4_styles_vector",
+    name: "Recraft V4 Styles Vector",
+    addedAt: "2026-08-14",
+    workflow: "recraft/v1/images/generations",
+    buildPayload: buildRecraftV4VariantPayload("recraftv4_styles_vector"),
+    estimatedTime: 22,
+    mode: "image",
+    inputType: "t2i",
+    description: "Style-focused SVG vector output with 10K-character prompts.",
+    features: [feat("Image Input", "input"), feat("Vector/SVG", "characteristic"), feat("10K Prompt", "characteristic")],
+    paramConfig: {
+      ...params.prompt({ maxLength: 1e4 }),
+      ...params.aspectRatio(recraftAspectRatios, "1:1"),
+      ...params.count([1, 2, 4, 6]),
+      ...params.imageInput(1, "Source Image"),
+      ...params.imageWeight(0, 100, 80, 5)
+    }
+  },
+  {
+    id: "recraftv4_styles_pro",
+    name: "Recraft V4 Styles Pro",
+    addedAt: "2026-08-14",
+    workflow: "recraft/v1/images/generations",
+    buildPayload: buildRecraftV4VariantPayload("recraftv4_styles_pro"),
+    estimatedTime: 35,
+    mode: "image",
+    inputType: "t2i",
+    badge: ["premium"],
+    description: "Pro-quality style-focused raster output with enhanced detail and 10K-character prompts.",
+    features: [feat("Image Input", "input"), feat("Text in Image", "characteristic"), feat("10K Prompt", "characteristic")],
+    paramConfig: {
+      ...params.prompt({ maxLength: 1e4 }),
+      ...params.aspectRatio(recraftAspectRatios, "1:1"),
+      ...params.count([1, 2, 4, 6]),
+      ...params.imageInput(1, "Source Image"),
+      ...params.imageWeight(0, 100, 80, 5)
+    }
+  },
+  {
+    id: "recraftv4_styles_pro_vector",
+    name: "Recraft V4 Styles Pro Vector",
+    addedAt: "2026-08-14",
+    workflow: "recraft/v1/images/generations",
+    buildPayload: buildRecraftV4VariantPayload("recraftv4_styles_pro_vector"),
+    estimatedTime: 35,
+    mode: "image",
+    inputType: "t2i",
+    badge: ["premium"],
+    description: "Pro-quality style-focused SVG vector output with enhanced detail and 10K-character prompts.",
+    features: [feat("Image Input", "input"), feat("Vector/SVG", "characteristic"), feat("10K Prompt", "characteristic")],
+    paramConfig: {
+      ...params.prompt({ maxLength: 1e4 }),
+      ...params.aspectRatio(recraftAspectRatios, "1:1"),
+      ...params.count([1, 2, 4, 6]),
+      ...params.imageInput(1, "Source Image"),
+      ...params.imageWeight(0, 100, 80, 5)
+    }
+  },
   {
     id: "recraftv3_vector",
     name: "Recraft V3 Vector",
@@ -10535,6 +10614,10 @@ var Recraftv41UtilityVector = "recraftv4_1_utility_vector";
 var Recraftv41Vector = "recraftv4_1_vector";
 var Recraftv4Pro = "recraftv4_pro";
 var Recraftv4ProVector = "recraftv4_pro_vector";
+var Recraftv4Styles = "recraftv4_styles";
+var Recraftv4StylesPro = "recraftv4_styles_pro";
+var Recraftv4StylesProVector = "recraftv4_styles_pro_vector";
+var Recraftv4StylesVector = "recraftv4_styles_vector";
 var Recraftv4Vector = "recraftv4_vector";
 var Reve = "reve";
 var RunwayAleph2 = "runway-aleph2";
@@ -10733,6 +10816,10 @@ var Models = {
   Recraftv41Vector,
   Recraftv4Pro,
   Recraftv4ProVector,
+  Recraftv4Styles,
+  Recraftv4StylesPro,
+  Recraftv4StylesProVector,
+  Recraftv4StylesVector,
   Recraftv4Vector,
   Reve,
   RunwayAleph2,

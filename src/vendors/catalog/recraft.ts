@@ -8,11 +8,16 @@
  *   recraftv4_1 / recraftv4_1_pro / recraftv4_1_utility / recraftv4_1_utility_pro
  *   (vector variants of v4.1 exist in the API but are not exposed in this catalog)
  *   recraftv4 / recraftv4_vector / recraftv4_pro / recraftv4_pro_vector
+ *   recraftv4_styles / recraftv4_styles_vector / recraftv4_styles_pro / recraftv4_styles_pro_vector
  *   recraftv3 / recraftv3_vector
  *   recraftv2 / recraftv2_vector
  *
  * Size accepts both pixel sizes (1024x1024) and aspect ratios (1:1, 4:3, etc.).
  * V4 models support style via model variant selection (not a `style` field).
+ * V4 Styles models are style-driven: the API takes style_id or
+ * style_reference_urls (mutually exclusive; references are text-to-image only)
+ * instead of curated style names. Those inputs are not exposed in this catalog
+ * yet — the entries currently behave like plain V4 variants.
  * V4.1 catalog entries are raster-only (no vector style toggle).
  * V3/V2 models support style, substyle, negative_prompt.
  *
@@ -375,6 +380,77 @@ export const { MODELS } = defineModels('recraft', [
     badge: ['premium'] as const,
     description: 'Pro-quality SVG vector output with enhanced detail and 10K-character prompts.',
     features: [feat('Image Input', 'input'), feat('Vector/SVG', 'characteristic'), feat('Text in Image', 'characteristic'), feat('10K Prompt', 'characteristic')],
+    paramConfig: {
+      ...params.prompt({ maxLength: 10000 }),
+      ...params.aspectRatio(recraftAspectRatios, '1:1'),
+      ...params.count([1, 2, 4, 6]),
+      ...params.imageInput(1, 'Source Image'),
+      ...params.imageWeight(0, 100, 80, 5),
+    },
+  },
+  // ── V4 Styles family — style-driven via style_id / style_reference_urls ─
+  {
+    id: 'recraftv4_styles', name: 'Recraft V4 Styles',
+    addedAt: '2026-08-14',
+    workflow: 'recraft/v1/images/generations',
+    buildPayload: buildRecraftV4VariantPayload('recraftv4_styles'),
+    estimatedTime: 17,
+    mode: 'image', inputType: 't2i',
+    description: 'Style-focused raster output with 10K-character prompts.',
+    features: [feat('Image Input', 'input'), feat('Text in Image', 'characteristic'), feat('10K Prompt', 'characteristic')],
+    paramConfig: {
+      ...params.prompt({ maxLength: 10000 }),
+      ...params.aspectRatio(recraftAspectRatios, '1:1'),
+      ...params.count([1, 2, 4, 6]),
+      ...params.imageInput(1, 'Source Image'),
+      ...params.imageWeight(0, 100, 80, 5),
+    },
+  },
+  {
+    id: 'recraftv4_styles_vector', name: 'Recraft V4 Styles Vector',
+    addedAt: '2026-08-14',
+    workflow: 'recraft/v1/images/generations',
+    buildPayload: buildRecraftV4VariantPayload('recraftv4_styles_vector'),
+    estimatedTime: 22,
+    mode: 'image', inputType: 't2i',
+    description: 'Style-focused SVG vector output with 10K-character prompts.',
+    features: [feat('Image Input', 'input'), feat('Vector/SVG', 'characteristic'), feat('10K Prompt', 'characteristic')],
+    paramConfig: {
+      ...params.prompt({ maxLength: 10000 }),
+      ...params.aspectRatio(recraftAspectRatios, '1:1'),
+      ...params.count([1, 2, 4, 6]),
+      ...params.imageInput(1, 'Source Image'),
+      ...params.imageWeight(0, 100, 80, 5),
+    },
+  },
+  {
+    id: 'recraftv4_styles_pro', name: 'Recraft V4 Styles Pro',
+    addedAt: '2026-08-14',
+    workflow: 'recraft/v1/images/generations',
+    buildPayload: buildRecraftV4VariantPayload('recraftv4_styles_pro'),
+    estimatedTime: 35,
+    mode: 'image', inputType: 't2i',
+    badge: ['premium'] as const,
+    description: 'Pro-quality style-focused raster output with enhanced detail and 10K-character prompts.',
+    features: [feat('Image Input', 'input'), feat('Text in Image', 'characteristic'), feat('10K Prompt', 'characteristic')],
+    paramConfig: {
+      ...params.prompt({ maxLength: 10000 }),
+      ...params.aspectRatio(recraftAspectRatios, '1:1'),
+      ...params.count([1, 2, 4, 6]),
+      ...params.imageInput(1, 'Source Image'),
+      ...params.imageWeight(0, 100, 80, 5),
+    },
+  },
+  {
+    id: 'recraftv4_styles_pro_vector', name: 'Recraft V4 Styles Pro Vector',
+    addedAt: '2026-08-14',
+    workflow: 'recraft/v1/images/generations',
+    buildPayload: buildRecraftV4VariantPayload('recraftv4_styles_pro_vector'),
+    estimatedTime: 35,
+    mode: 'image', inputType: 't2i',
+    badge: ['premium'] as const,
+    description: 'Pro-quality style-focused SVG vector output with enhanced detail and 10K-character prompts.',
+    features: [feat('Image Input', 'input'), feat('Vector/SVG', 'characteristic'), feat('10K Prompt', 'characteristic')],
     paramConfig: {
       ...params.prompt({ maxLength: 10000 }),
       ...params.aspectRatio(recraftAspectRatios, '1:1'),

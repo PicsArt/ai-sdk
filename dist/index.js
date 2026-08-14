@@ -6106,20 +6106,21 @@ var { MODELS: MODELS23 } = defineModels("openai", [
 ]);
 
 // src/vendors/catalog/elevenlabs.ts
-var buildElevenLabsTTSPayload = (ctx) => ({
+var buildElevenLabsTTSPayload = (modelId) => (ctx) => ({
   text: ctx.prompt,
   voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
-  model_id: ctx.modelId,
+  model_id: modelId,
   ...ctx.language ? { language_code: ctx.language } : {}
 });
-var buildElevenLabsSFXPayload = (ctx) => ({
+var buildElevenLabsSFXPayload = (modelId) => (ctx) => ({
   text: ctx.prompt,
-  duration_seconds: ctx.duration ?? 5
+  duration_seconds: ctx.duration ?? 5,
+  model_id: modelId
 });
-var buildElevenLabsSTSPayload = (ctx) => ({
+var buildElevenLabsSTSPayload = (modelId) => (ctx) => ({
   audio_url: ctx.audioUrl,
   voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
-  model_id: ctx.modelId,
+  model_id: modelId,
   remove_background_noise: ctx.removeBackgroundNoise ?? false
 });
 var buildElevenLabsAudioIsolationPayload = (ctx) => ({
@@ -6134,10 +6135,14 @@ var buildElevenLabsVoiceRemixPayload = (ctx) => ({
   voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
   voice_description: ctx.prompt
 });
-var buildElevenLabsVoiceDesignPayload = (ctx) => ({
+var buildElevenLabsVoiceDesignPayload = (modelId) => (ctx) => ({
   voice_description: ctx.prompt,
   auto_generate_text: true,
-  ...ctx.modelId ? { model_id: ctx.modelId } : {}
+  model_id: modelId
+});
+var buildElevenLabsVoicePreviewsPayload = (ctx) => ({
+  voice_description: ctx.prompt,
+  auto_generate_text: true
 });
 var ttsParamConfig = (promptMaxLength) => ({
   ...params.language(true),
@@ -6152,7 +6157,7 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
     modelId: "eleven_v3",
     addedAt: "2026-02-06",
     workflow: "elevenlabs/v1/text-to-speech",
-    buildPayload: buildElevenLabsTTSPayload,
+    buildPayload: buildElevenLabsTTSPayload("eleven_v3"),
     estimatedTime: 11,
     mode: "audio",
     inputType: "tts",
@@ -6167,7 +6172,7 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
     modelId: "eleven_multilingual_v2",
     addedAt: "2026-02-06",
     workflow: "elevenlabs/v1/text-to-speech",
-    buildPayload: buildElevenLabsTTSPayload,
+    buildPayload: buildElevenLabsTTSPayload("eleven_multilingual_v2"),
     estimatedTime: 9,
     mode: "audio",
     inputType: "tts",
@@ -6183,7 +6188,7 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
     modelId: "eleven_text_to_sound_v2",
     addedAt: "2026-02-06",
     workflow: "elevenlabs/v1/sound-generation",
-    buildPayload: buildElevenLabsSFXPayload,
+    buildPayload: buildElevenLabsSFXPayload("eleven_text_to_sound_v2"),
     estimatedTime: 6,
     mode: "audio",
     inputType: "sfx",
@@ -6217,7 +6222,7 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
     modelId: "eleven_english_sts_v2",
     addedAt: "2026-02-15",
     workflow: "elevenlabs/v1/speech-to-speech",
-    buildPayload: buildElevenLabsSTSPayload,
+    buildPayload: buildElevenLabsSTSPayload("eleven_english_sts_v2"),
     estimatedTime: 15,
     mode: "audio",
     inputType: "sts",
@@ -6235,7 +6240,7 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
     modelId: "eleven_multilingual_sts_v2",
     addedAt: "2026-02-15",
     workflow: "elevenlabs/v1/speech-to-speech",
-    buildPayload: buildElevenLabsSTSPayload,
+    buildPayload: buildElevenLabsSTSPayload("eleven_multilingual_sts_v2"),
     estimatedTime: 15,
     mode: "audio",
     inputType: "sts",
@@ -6302,7 +6307,7 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
     addedAt: "2026-03-24",
     modelId: "eleven_ttv_v3",
     workflow: "elevenlabs/v1/voice-design",
-    buildPayload: buildElevenLabsVoiceDesignPayload,
+    buildPayload: buildElevenLabsVoiceDesignPayload("eleven_ttv_v3"),
     estimatedTime: 15,
     mode: "audio",
     inputType: "tts",
@@ -6316,7 +6321,7 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
     addedAt: "2026-03-24",
     modelId: "eleven_multilingual_ttv_v2",
     workflow: "elevenlabs/v1/voice-design",
-    buildPayload: buildElevenLabsVoiceDesignPayload,
+    buildPayload: buildElevenLabsVoiceDesignPayload("eleven_multilingual_ttv_v2"),
     estimatedTime: 15,
     mode: "audio",
     inputType: "tts",
@@ -6329,7 +6334,7 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
     name: "Eleven Voice Previews",
     addedAt: "2026-03-24",
     workflow: "elevenlabs/v1/voice-create-previews",
-    buildPayload: buildElevenLabsVoiceDesignPayload,
+    buildPayload: buildElevenLabsVoicePreviewsPayload,
     estimatedTime: 15,
     mode: "audio",
     inputType: "tts",

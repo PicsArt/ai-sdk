@@ -8,51 +8,71 @@ import { p } from '../../core/descriptors/presets.ts';
 
 // ── Payload builders ────────────────────────────────────────────────
 
-/** TTS — voice_id + text + model_id (v1 Swagger schema). */
-export const buildElevenLabsTTSPayload: PayloadBuilder = (ctx) => ({
-  text: ctx.prompt,
-  voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
-  model_id: ctx.modelId,
-  ...(ctx.language ? { language_code: ctx.language } : {}),
-});
+// `model_id` is baked into each builder at definition time (same pattern as
+// flux/veo/seedream). It is NOT read off the generation context — `ctx.modelId`
+// is never populated at runtime, so reading it silently dropped the field and
+// made the worker fall back to its own default model (and default pricing).
 
-/** Sound Effects — text + duration_seconds. */
-export const buildElevenLabsSFXPayload: PayloadBuilder = (ctx) => ({
-  text: ctx.prompt,
-  duration_seconds: ctx.duration ?? 5,
-});
+/** TTS — voice_id + text + model_id (v1 Swagger schema). */
+const buildElevenLabsTTSPayload =
+  (modelId: string): PayloadBuilder =>
+  (ctx) => ({
+    text: ctx.prompt,
+    voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
+    model_id: modelId,
+    ...(ctx.language ? { language_code: ctx.language } : {}),
+  });
+
+/** Sound Effects — text + duration_seconds + model_id. */
+const buildElevenLabsSFXPayload =
+  (modelId: string): PayloadBuilder =>
+  (ctx) => ({
+    text: ctx.prompt,
+    duration_seconds: ctx.duration ?? 5,
+    model_id: modelId,
+  });
 
 /** Speech-to-Speech — audio_url + voice_id (v1 Swagger schema). */
-export const buildElevenLabsSTSPayload: PayloadBuilder = (ctx) => ({
-  audio_url: ctx.audioUrl,
-  voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
-  model_id: ctx.modelId,
-  remove_background_noise: ctx.removeBackgroundNoise ?? false,
-});
+const buildElevenLabsSTSPayload =
+  (modelId: string): PayloadBuilder =>
+  (ctx) => ({
+    audio_url: ctx.audioUrl,
+    voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
+    model_id: modelId,
+    remove_background_noise: ctx.removeBackgroundNoise ?? false,
+  });
 
 /** Audio Isolation — audio_url only. */
-export const buildElevenLabsAudioIsolationPayload: PayloadBuilder = (ctx) => ({
+const buildElevenLabsAudioIsolationPayload: PayloadBuilder = (ctx) => ({
   audio_url: ctx.audioUrl,
 });
 
 /** Dubbing — audio_url + source/target language. */
-export const buildElevenLabsDubbingPayload: PayloadBuilder = (ctx) => ({
+const buildElevenLabsDubbingPayload: PayloadBuilder = (ctx) => ({
   audio_url: ctx.audioUrl,
   source_lang: 'auto',
   target_lang: ctx.language,
 });
 
 /** Voice Remix — voice_id + description as prompt. */
-export const buildElevenLabsVoiceRemixPayload: PayloadBuilder = (ctx) => ({
+const buildElevenLabsVoiceRemixPayload: PayloadBuilder = (ctx) => ({
   voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
   voice_description: ctx.prompt,
 });
 
-/** Voice Design / Previews — voice_description + optional model_id (shared). */
-export const buildElevenLabsVoiceDesignPayload: PayloadBuilder = (ctx) => ({
+/** Voice Design — voice_description + model_id. */
+const buildElevenLabsVoiceDesignPayload =
+  (modelId: string): PayloadBuilder =>
+  (ctx) => ({
+    voice_description: ctx.prompt,
+    auto_generate_text: true,
+    model_id: modelId,
+  });
+
+/** Voice Create Previews — same shape minus model_id (not in the worker command). */
+const buildElevenLabsVoicePreviewsPayload: PayloadBuilder = (ctx) => ({
   voice_description: ctx.prompt,
   auto_generate_text: true,
-  ...(ctx.modelId ? { model_id: ctx.modelId } : {}),
 });
 
 // Music payload builder lives in elevenlabs.payloads.ts (typed, ModelInput-backed).
@@ -81,7 +101,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     id: 'eleven-v3', name: 'Eleven v3', modelId: 'eleven_v3',
     addedAt: '2026-02-06',
     workflow: 'elevenlabs/v1/text-to-speech',
-    buildPayload: buildElevenLabsTTSPayload,
+    buildPayload: buildElevenLabsTTSPayload('eleven_v3'),
     estimatedTime: 11,
     mode: 'audio', inputType: 'tts',
     badge: ['popular'] as const,
@@ -93,7 +113,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     id: 'eleven-multilingual-v2', name: 'Eleven Multilingual v2', modelId: 'eleven_multilingual_v2',
     addedAt: '2026-02-06',
     workflow: 'elevenlabs/v1/text-to-speech',
-    buildPayload: buildElevenLabsTTSPayload,
+    buildPayload: buildElevenLabsTTSPayload('eleven_multilingual_v2'),
     estimatedTime: 9,
     mode: 'audio', inputType: 'tts',
     badge: ['popular', 'fast'] as const,
@@ -106,7 +126,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     id: 'elevenlabs-sfx', name: 'ElevenLabs SFX v2', modelId: 'eleven_text_to_sound_v2',
     addedAt: '2026-02-06',
     workflow: 'elevenlabs/v1/sound-generation',
-    buildPayload: buildElevenLabsSFXPayload,
+    buildPayload: buildElevenLabsSFXPayload('eleven_text_to_sound_v2'),
     estimatedTime: 6,
     mode: 'audio', inputType: 'sfx',
     badge: ['popular'] as const,
@@ -134,7 +154,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     id: 'eleven-sts-v2', name: 'Eleven STS v2', modelId: 'eleven_english_sts_v2',
     addedAt: '2026-02-15',
     workflow: 'elevenlabs/v1/speech-to-speech',
-    buildPayload: buildElevenLabsSTSPayload,
+    buildPayload: buildElevenLabsSTSPayload('eleven_english_sts_v2'),
     estimatedTime: 15,
     mode: 'audio', inputType: 'sts',
     description: 'Swap your voice to a different speaker while keeping timing and emotion.',
@@ -149,7 +169,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     id: 'eleven-multilingual-sts-v2', name: 'Eleven Multilingual STS v2', modelId: 'eleven_multilingual_sts_v2',
     addedAt: '2026-02-15',
     workflow: 'elevenlabs/v1/speech-to-speech',
-    buildPayload: buildElevenLabsSTSPayload,
+    buildPayload: buildElevenLabsSTSPayload('eleven_multilingual_sts_v2'),
     estimatedTime: 15,
     mode: 'audio', inputType: 'sts',
     description: 'Voice swap across 29 languages — preserves emotion and cadence.',
@@ -207,7 +227,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     addedAt: '2026-03-24',
     modelId: 'eleven_ttv_v3',
     workflow: 'elevenlabs/v1/voice-design',
-    buildPayload: buildElevenLabsVoiceDesignPayload,
+    buildPayload: buildElevenLabsVoiceDesignPayload('eleven_ttv_v3'),
     estimatedTime: 15,
     mode: 'audio', inputType: 'tts',
     description: 'Design a new voice from a text description using v3 engine.',
@@ -219,7 +239,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     addedAt: '2026-03-24',
     modelId: 'eleven_multilingual_ttv_v2',
     workflow: 'elevenlabs/v1/voice-design',
-    buildPayload: buildElevenLabsVoiceDesignPayload,
+    buildPayload: buildElevenLabsVoiceDesignPayload('eleven_multilingual_ttv_v2'),
     estimatedTime: 15,
     mode: 'audio', inputType: 'tts',
     description: 'Design a new voice from a text description with multilingual support.',
@@ -230,7 +250,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     id: 'eleven-voice-create', name: 'Eleven Voice Previews',
     addedAt: '2026-03-24',
     workflow: 'elevenlabs/v1/voice-create-previews',
-    buildPayload: buildElevenLabsVoiceDesignPayload,
+    buildPayload: buildElevenLabsVoicePreviewsPayload,
     estimatedTime: 15,
     mode: 'audio', inputType: 'tts',
     description: 'Generate voice previews from a description to audition before committing.',

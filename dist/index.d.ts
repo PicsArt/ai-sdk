@@ -772,6 +772,15 @@ type ModelInputById = {
         isInstrumental?: boolean;
         outputFormat?: "url" | "hex";
     };
+    "minimax-music-v3": {
+        prompt: string;
+        lyricsPrompt?: string;
+        lyricsOptimizer?: boolean;
+        isInstrumental?: boolean;
+        sampleRate?: 16000 | 24000 | 32000 | 44100;
+        bitrate?: 32000 | 64000 | 128000 | 256000;
+        format?: "mp3" | "wav" | "pcm";
+    };
     "ovi": {
         prompt: string;
         size?: "9:16" | "16:9" | "1:1" | "9:16+" | "16:9+" | "2:5" | "5:2";
@@ -2459,6 +2468,7 @@ declare const Models: {
     readonly Lyria3Pro: "lyria-3-pro";
     readonly Minimax02Hd: "minimax-02-hd";
     readonly MinimaxMusicV2: "minimax-music-v2";
+    readonly MinimaxMusicV3: "minimax-music-v3";
     readonly Ovi: "ovi";
     readonly PicsartChangeBg: "picsart-change-bg";
     readonly PicsartEnhance: "picsart-enhance";

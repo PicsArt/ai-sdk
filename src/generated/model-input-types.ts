@@ -110,6 +110,7 @@ export type ModelInputById = {
   "lyria-3-pro": { prompt: string; imageUrls?: string[]; };
   "minimax-02-hd": { language?: string; accent?: string; prompt: string; };
   "minimax-music-v2": { prompt: string; lyricsPrompt?: string; lyricsOptimizer?: boolean; isInstrumental?: boolean; outputFormat?: "url" | "hex"; };
+  "minimax-music-v3": { prompt: string; lyricsPrompt?: string; lyricsOptimizer?: boolean; isInstrumental?: boolean; sampleRate?: 16000 | 24000 | 32000 | 44100; bitrate?: 32000 | 64000 | 128000 | 256000; format?: "mp3" | "wav" | "pcm"; };
   "ovi": { prompt: string; size?: "9:16" | "16:9" | "1:1" | "9:16+" | "16:9+" | "2:5" | "5:2"; imageUrls?: string[]; };
   "picsart-change-bg": { imageUrls: [string, ...string[]]; prompt: string; };
   "picsart-enhance": { imageUrls: [string, ...string[]]; };

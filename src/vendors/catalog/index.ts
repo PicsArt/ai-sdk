@@ -34,6 +34,7 @@ import { MODELS as elevenlabsMODELS } from './elevenlabs.ts';
 import './elevenlabs.payloads.ts'; // registers Music payload builder after model definitions
 import { MODELS as heygenMODELS } from './heygen.ts';
 import { MODELS as minimaxMODELS } from './minimax.ts';
+import './minimax.payloads.ts'; // registers the Music v3 payload builder after model definitions
 import { MODELS as ideogramMODELS } from './ideogram.ts';
 import { MODELS as qwenMODELS } from './qwen.ts';
 import { MODELS as recraftMODELS } from './recraft.ts';

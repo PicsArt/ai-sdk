@@ -6485,8 +6485,51 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
       ...p.boolean("isInstrumental", false, "Instrumental"),
       ...p.enum("outputFormat", ["url", "hex"], "url", { label: "Output Format" })
     }
+  },
+  {
+    id: "minimax-music-v3",
+    name: "MiniMax Music v3",
+    addedAt: "2026-08-14",
+    workflow: "minimax-music/v3",
+    estimatedTime: 40,
+    mode: "audio",
+    inputType: "music",
+    description: "Text-to-music with vocals or instrumentals from a style prompt and optional lyrics, with configurable audio encoding.",
+    features: [feat("Music", "characteristic"), feat("Vocals", "characteristic")],
+    paramConfig: {
+      ...params.prompt({ maxLength: 2e3, placeholder: "Describe the genre, mood, instruments, tempo, and production style..." }),
+      ...p.text("lyricsPrompt", {
+        maxLength: 2e3,
+        label: "Lyrics",
+        placeholder: "Write lyrics; \\n separates lines, [Intro]/[Verse]/[Chorus] tags supported. Optional for instrumental or optimizer-generated lyrics."
+      }),
+      ...p.boolean("lyricsOptimizer", false, "Lyrics Optimizer"),
+      ...p.boolean("isInstrumental", false, "Instrumental"),
+      ...p.enum("sampleRate", [16e3, 24e3, 32e3, 44100], 44100, { label: "Sample Rate" }),
+      ...p.enum("bitrate", [32e3, 64e3, 128e3, 256e3], 256e3, { label: "Bitrate" }),
+      ...p.enum("format", ["mp3", "wav", "pcm"], "mp3", { label: "Format" })
+    }
   }
 ]);
+
+// src/vendors/catalog/minimax.payloads.ts
+var buildMinimaxMusicV3Payload = (input) => ({
+  prompt: input.prompt,
+  ...input.lyricsPrompt ? { lyrics: input.lyricsPrompt } : {},
+  lyrics_optimizer: input.lyricsOptimizer ?? false,
+  is_instrumental: input.isInstrumental ?? false,
+  // Apply the paramConfig defaults explicitly — a custom builder (unlike the
+  // pass-through one) doesn't get them for free, and the advertised defaults
+  // must reach the wire instead of whatever the backend would pick.
+  audio_setting: {
+    sample_rate: input.sampleRate ?? 44100,
+    bitrate: input.bitrate ?? 256e3,
+    format: input.format ?? "mp3"
+  }
+});
+registerPayloads(MODELS26, {
+  "minimax-music-v3": buildMinimaxMusicV3Payload
+});
 
 // src/vendors/catalog/ideogram.ts
 var toIdeogramAr = (ar) => ar.replace(":", "x");
@@ -10572,6 +10615,7 @@ var Lyria3Clip = "lyria-3-clip";
 var Lyria3Pro = "lyria-3-pro";
 var Minimax02Hd = "minimax-02-hd";
 var MinimaxMusicV2 = "minimax-music-v2";
+var MinimaxMusicV3 = "minimax-music-v3";
 var Ovi = "ovi";
 var PicsartChangeBg = "picsart-change-bg";
 var PicsartEnhance = "picsart-enhance";
@@ -10774,6 +10818,7 @@ var Models = {
   Lyria3Pro,
   Minimax02Hd,
   MinimaxMusicV2,
+  MinimaxMusicV3,
   Ovi,
   PicsartChangeBg,
   PicsartEnhance,

@@ -236,6 +236,8 @@ export const Lyria3Pro = 'lyria-3-pro' as const;
 export const Minimax02Hd = 'minimax-02-hd' as const;
 /** MiniMax Music v2 — minimax (audio) */
 export const MinimaxMusicV2 = 'minimax-music-v2' as const;
+/** MiniMax Music v3 — minimax (audio) */
+export const MinimaxMusicV3 = 'minimax-music-v3' as const;
 /** OVI — ovi (video) */
 export const Ovi = 'ovi' as const;
 /** Picsart Change Background — picsart (image) */
@@ -554,6 +556,7 @@ export const Models = {
   Lyria3Pro,
   Minimax02Hd,
   MinimaxMusicV2,
+  MinimaxMusicV3,
   Ovi,
   PicsartChangeBg,
   PicsartEnhance,

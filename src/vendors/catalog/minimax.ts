@@ -54,4 +54,26 @@ export const { MODELS } = defineModels('minimax', [
       ...p.enum('outputFormat', ['url', 'hex'], 'url', { label: 'Output Format' }),
     },
   },
+  {
+    id: 'minimax-music-v3', name: 'MiniMax Music v3',
+    addedAt: '2026-08-14',
+    workflow: 'minimax-music/v3',
+    estimatedTime: 40,
+    mode: 'audio', inputType: 'music',
+    description: 'Text-to-music with vocals or instrumentals from a style prompt and optional lyrics, with configurable audio encoding.',
+    features: [feat('Music', 'characteristic'), feat('Vocals', 'characteristic')],
+    paramConfig: {
+      ...params.prompt({ maxLength: 2000, placeholder: 'Describe the genre, mood, instruments, tempo, and production style...' }),
+      ...p.text('lyricsPrompt', {
+        maxLength: 2000,
+        label: 'Lyrics',
+        placeholder: 'Write lyrics; \\n separates lines, [Intro]/[Verse]/[Chorus] tags supported. Optional for instrumental or optimizer-generated lyrics.',
+      }),
+      ...p.boolean('lyricsOptimizer', false, 'Lyrics Optimizer'),
+      ...p.boolean('isInstrumental', false, 'Instrumental'),
+      ...p.enum('sampleRate', [16000, 24000, 32000, 44100], 44100, { label: 'Sample Rate' }),
+      ...p.enum('bitrate', [32000, 64000, 128000, 256000], 256000, { label: 'Bitrate' }),
+      ...p.enum('format', ['mp3', 'wav', 'pcm'], 'mp3', { label: 'Format' }),
+    },
+  },
 ]);

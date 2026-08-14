@@ -8803,6 +8803,9 @@ function parseTextResult(completed, model) {
   return { text, model: model.id, handle: completed.handle, raw: completed.raw ?? completed.result };
 }
 
+// src/core/limits.ts
+var MAX_DRIVE_PROMPT_LENGTH = 18e3;
+
 // src/client/drive.ts
 var USER_REACTION_ATTR = "userReaction";
 function inferResourceType(mode) {
@@ -8866,7 +8869,7 @@ function parseJsonAttr(raw) {
 var asString = (v) => typeof v === "string" && v.trim() ? v : void 0;
 var asStringArray = (v) => Array.isArray(v) && v.length && v.every((x) => typeof x === "string") ? v : void 0;
 function toSdkPayload(params2) {
-  const p2 = { prompt: String(params2.prompt ?? "") };
+  const p2 = { prompt: String(params2.prompt ?? "").slice(0, MAX_DRIVE_PROMPT_LENGTH) };
   for (const [key, value] of Object.entries(params2)) {
     if (key === "prompt") continue;
     if (value === void 0 || value === null || value === "") continue;

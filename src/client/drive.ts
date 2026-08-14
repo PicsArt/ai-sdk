@@ -5,6 +5,7 @@
  * Root folder is auto-created on first use and cached.
  */
 import type { AuthenticatedFetch, AppType, AppIdentity } from './types.ts';
+import { MAX_DRIVE_PROMPT_LENGTH } from '../core/limits.ts';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -240,9 +241,14 @@ const asStringArray = (v: unknown): string[] | undefined =>
 /**
  * Map a generation context onto the SDK payload — captures every defined input
  * param (skipping null/undefined/empty), so nothing is dropped.
+ *
+ * The prompt is capped at `MAX_DRIVE_PROMPT_LENGTH` here rather than upstream:
+ * this is the one place every Drive write goes through, including the models
+ * that declare no `prompt` param and direct `buildGenerationAttributes`
+ * callers, neither of which is clamped by param validation.
  */
 export function toSdkPayload(params: Record<string, unknown>): SdkPayload {
-  const p: SdkPayload = { prompt: String(params.prompt ?? '') };
+  const p: SdkPayload = { prompt: String(params.prompt ?? '').slice(0, MAX_DRIVE_PROMPT_LENGTH) };
   for (const [key, value] of Object.entries(params)) {
     if (key === 'prompt') continue;
     if (value === undefined || value === null || value === '') continue;

@@ -6702,14 +6702,6 @@ var { MODELS: MODELS27 } = defineModels("ideogram", [
 ]);
 
 // src/vendors/catalog/qwen.ts
-var QWEN_SIZE_MAP = {
-  "1024x1024": "1024x1024",
-  "1024x768": "1024x768",
-  "768x1024": "768x1024",
-  "1536x1024": "1536x1024",
-  "1024x1536": "1024x1536",
-  "2048x2048": "2048x2048"
-};
 var QWEN_V1_SIZES = [
   "2048x2048",
   "2688x1536",
@@ -6731,11 +6723,6 @@ var buildQwen2Payload = (ctx) => {
     ...hasImages ? { image_urls: ctx.imageUrls } : {}
   };
 };
-var buildQwenEditPlusPayload = (ctx) => ({
-  prompt: ctx.prompt,
-  image_urls: ctx.imageUrls ?? [],
-  ...ctx.size && QWEN_SIZE_MAP[ctx.size] ? { size: QWEN_SIZE_MAP[ctx.size] } : {}
-});
 var buildQwenV1 = (model) => (ctx) => {
   const hasImages = Array.isArray(ctx.imageUrls) && ctx.imageUrls.length > 0;
   return {
@@ -6840,23 +6827,6 @@ var { MODELS: MODELS28 } = defineModels("qwen", [
       feat("2K", "resolution")
     ],
     paramConfig: qwenV1Params3
-  },
-  {
-    id: "qwen-image-edit-plus",
-    name: "Qwen Edit Plus",
-    addedAt: "2026-02-06",
-    workflow: "qwen-image-edit-plus",
-    buildPayload: buildQwenEditPlusPayload,
-    estimatedTime: 11,
-    mode: "image",
-    inputType: "i2i",
-    description: "Edit or transform up to 3 source images with prompt-guided changes.",
-    features: [feat("Image Input", "input")],
-    paramConfig: {
-      ...params.prompt(),
-      // size: Qwen edit-plus API ignores size param — output is always 1024x1024
-      ...params.imageInput(3, "Source Images", true)
-    }
   }
 ]);
 
@@ -10544,7 +10514,6 @@ var Qwen = "qwen";
 var QwenImage2 = "qwen-image-2";
 var QwenImage2Pro = "qwen-image-2-pro";
 var QwenImage30 = "qwen-image-3.0";
-var QwenImageEditPlus = "qwen-image-edit-plus";
 var RecraftCreativeUpscale = "recraft-creative-upscale";
 var RecraftCrispUpscale = "recraft-crisp-upscale";
 var RecraftExplore = "recraft-explore";
@@ -10743,7 +10712,6 @@ var Models = {
   QwenImage2,
   QwenImage2Pro,
   QwenImage30,
-  QwenImageEditPlus,
   RecraftCreativeUpscale,
   RecraftCrispUpscale,
   RecraftExplore,

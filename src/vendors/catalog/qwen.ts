@@ -5,13 +5,6 @@ import type { PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 
-// ── Size map (Qwen API expects WxH string, 512–2048 px) ────────────
-
-const QWEN_SIZE_MAP: Record<string, string> = {
-  '1024x1024': '1024x1024', '1024x768': '1024x768', '768x1024': '768x1024',
-  '1536x1024': '1536x1024', '1024x1536': '1024x1536', '2048x2048': '2048x2048',
-};
-
 // ── Qwen v1 recommended sizes (API format uses *, we store as x) ────
 const QWEN_V1_SIZES: string[] = [
   '2048x2048', '2688x1536', '1536x2688', '2368x1728', '1728x2368',
@@ -34,13 +27,6 @@ export const buildQwen2Payload: PayloadBuilder = (ctx) => {
     ...(hasImages ? { image_urls: ctx.imageUrls } : {}),
   };
 };
-
-/** Qwen Edit Plus — prompt + image_urls array (max 3) + optional size. */
-export const buildQwenEditPlusPayload: PayloadBuilder = (ctx) => ({
-  prompt: ctx.prompt,
-  image_urls: ctx.imageUrls ?? [],
-  ...(ctx.size && QWEN_SIZE_MAP[ctx.size] ? { size: QWEN_SIZE_MAP[ctx.size] } : {}),
-});
 
 /** Qwen v1 T2I/I2I — shared builder parameterised by model name. */
 const buildQwenV1 = (model: string): PayloadBuilder => (ctx) => {
@@ -140,19 +126,5 @@ export const { MODELS } = defineModels('qwen', [
       feat('2K', 'resolution'),
     ],
     paramConfig: qwenV1Params3,
-  },
-  {
-    id: 'qwen-image-edit-plus', name: 'Qwen Edit Plus',
-    addedAt: '2026-02-06',
-    workflow: 'qwen-image-edit-plus', buildPayload: buildQwenEditPlusPayload,
-    estimatedTime: 11,
-    mode: 'image', inputType: 'i2i',
-    description: 'Edit or transform up to 3 source images with prompt-guided changes.',
-    features: [feat('Image Input', 'input')],
-    paramConfig: {
-      ...params.prompt(),
-      // size: Qwen edit-plus API ignores size param — output is always 1024x1024
-      ...params.imageInput(3, 'Source Images', true),
-    },
   },
 ]);

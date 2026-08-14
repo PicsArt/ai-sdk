@@ -915,10 +915,6 @@ type ModelInputById = {
         imageUrls?: string[];
         promptExtendMode?: "direct" | "agent";
     };
-    "qwen-image-edit-plus": {
-        prompt: string;
-        imageUrls: [string, ...string[]];
-    };
     "recraft-creative-upscale": {
         imageUrls: [string, ...string[]];
     };
@@ -2459,7 +2455,6 @@ declare const Models: {
     readonly QwenImage2: "qwen-image-2";
     readonly QwenImage2Pro: "qwen-image-2-pro";
     readonly QwenImage30: "qwen-image-3.0";
-    readonly QwenImageEditPlus: "qwen-image-edit-plus";
     readonly RecraftCreativeUpscale: "recraft-creative-upscale";
     readonly RecraftCrispUpscale: "recraft-crisp-upscale";
     readonly RecraftExplore: "recraft-explore";

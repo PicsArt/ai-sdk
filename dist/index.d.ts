@@ -1258,7 +1258,7 @@ type ModelInputById = {
     "seedance-2.5": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
-        resolution?: "480p" | "720p";
+        resolution?: "480p" | "720p" | "1080p";
         duration?: 4 | 5 | 6 | 8 | 10 | 12 | 15 | 20 | 25 | 30;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
@@ -1272,7 +1272,7 @@ type ModelInputById = {
     "seedance-2.5-video-edit": {
         prompt: string;
         aspectRatio?: "adaptive";
-        resolution?: "480p" | "720p";
+        resolution?: "480p" | "720p" | "1080p";
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         outputFormat?: "mp4" | "mov";
@@ -1282,7 +1282,7 @@ type ModelInputById = {
     "seedance-2.5-video-extend": {
         prompt: string;
         aspectRatio?: "adaptive";
-        resolution?: "480p" | "720p";
+        resolution?: "480p" | "720p" | "1080p";
         duration?: 4 | 5 | 6 | 8 | 10 | 12 | 15 | 20 | 25 | 30;
         generateAudio?: boolean;
         outputFormat?: "mp4" | "mov";

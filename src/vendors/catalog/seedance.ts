@@ -201,7 +201,7 @@ export const buildSeedance20VideoExtendPayloadFor =
  *    so we reuse the 2.0 constraints minus the leading audio-only block.
  *  - wider content limits (30 images / 10 videos / 10 audios).
  *  - new `output_format` (mp4/mov) parameter, sent on every 2.5 flow.
- *  Resolution is capped at 480p/720p (no 1080p, no 4k).
+ *  Resolution goes up to 1080p (no 4k).
  *  The trailing rule enforces last_frame pairing: the vendor rejects a
  *  last_frame supplied on its own, and refs are already mutually exclusive
  *  with endFrame above, so endFrame is only valid alongside a startFrame. */
@@ -339,11 +339,11 @@ export const { MODELS } = defineModels('seedance', [
     mode: 'video', inputType: 't2v',
     badge: ['new', 'premium', 'hot'],
     description: 'Latest cinematic video with audio, multi-reference input, and mp4/mov output. Up to 30s.',
-    features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('720p', 'resolution'), feat('4-30 sec', 'duration')],
+    features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
-      ...params.resolution(['480p', '720p'], '720p'),
+      ...params.resolution(['480p', '720p', '1080p'], '720p'),
       ...params.duration(SEEDANCE_25_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
@@ -365,13 +365,13 @@ export const { MODELS } = defineModels('seedance', [
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
     description: 'Edit video — replace subjects, add or remove objects, restyle scenes with reference images.',
-    features: [feat('Video Input', 'input'), feat('Multi-Image Input', 'input'), feat('Audio', 'audio'), feat('720p', 'resolution'), feat('Source length', 'duration')],
+    features: [feat('Video Input', 'input'), feat('Multi-Image Input', 'input'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('Source length', 'duration')],
     paramConfig: {
       ...params.prompt(),
       // Editing mode: aspect ratio is fixed to 'adaptive' and duration is
       // source-driven ('-1'), so neither is user-selectable (vendor rule).
       ...params.aspectRatio(['adaptive']),
-      ...params.resolution(['480p', '720p'], '720p'),
+      ...params.resolution(['480p', '720p', '1080p'], '720p'),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
@@ -388,13 +388,13 @@ export const { MODELS } = defineModels('seedance', [
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
     description: 'Stitch up to 10 clips into one continuous, extended video.',
-    features: [feat('Multi-Video Input', 'input'), feat('Audio', 'audio'), feat('720p', 'resolution'), feat('4-30 sec', 'duration')],
+    features: [feat('Multi-Video Input', 'input'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
     paramConfig: {
       ...params.prompt(),
       // Extension mode: aspect ratio is locked to 'adaptive' (vendor rule);
       // duration stays user-selectable.
       ...params.aspectRatio(['adaptive']),
-      ...params.resolution(['480p', '720p'], '720p'),
+      ...params.resolution(['480p', '720p', '1080p'], '720p'),
       ...params.duration(SEEDANCE_25_DURATIONS, 15),
       ...params.generateAudio(),
       ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),

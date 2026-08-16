@@ -4091,11 +4091,11 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     inputType: "t2v",
     badge: ["new", "premium", "hot"],
     description: "Latest cinematic video with audio, multi-reference input, and mp4/mov output. Up to 30s.",
-    features: [feat("Reference Image", "frame"), feat("Start/End Frame", "frame"), feat("Audio", "audio"), feat("720p", "resolution"), feat("4-30 sec", "duration")],
+    features: [feat("Reference Image", "frame"), feat("Start/End Frame", "frame"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("4-30 sec", "duration")],
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
-      ...params.resolution(["480p", "720p"], "720p"),
+      ...params.resolution(["480p", "720p", "1080p"], "720p"),
       ...params.duration(SEEDANCE_25_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
@@ -4120,13 +4120,13 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     inputType: "v2v",
     badge: ["new", "premium", "hot"],
     description: "Edit video \u2014 replace subjects, add or remove objects, restyle scenes with reference images.",
-    features: [feat("Video Input", "input"), feat("Multi-Image Input", "input"), feat("Audio", "audio"), feat("720p", "resolution"), feat("Source length", "duration")],
+    features: [feat("Video Input", "input"), feat("Multi-Image Input", "input"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("Source length", "duration")],
     paramConfig: {
       ...params.prompt(),
       // Editing mode: aspect ratio is fixed to 'adaptive' and duration is
       // source-driven ('-1'), so neither is user-selectable (vendor rule).
       ...params.aspectRatio(["adaptive"]),
-      ...params.resolution(["480p", "720p"], "720p"),
+      ...params.resolution(["480p", "720p", "1080p"], "720p"),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
@@ -4146,13 +4146,13 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     inputType: "v2v",
     badge: ["new", "premium", "hot"],
     description: "Stitch up to 10 clips into one continuous, extended video.",
-    features: [feat("Multi-Video Input", "input"), feat("Audio", "audio"), feat("720p", "resolution"), feat("4-30 sec", "duration")],
+    features: [feat("Multi-Video Input", "input"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("4-30 sec", "duration")],
     paramConfig: {
       ...params.prompt(),
       // Extension mode: aspect ratio is locked to 'adaptive' (vendor rule);
       // duration stays user-selectable.
       ...params.aspectRatio(["adaptive"]),
-      ...params.resolution(["480p", "720p"], "720p"),
+      ...params.resolution(["480p", "720p", "1080p"], "720p"),
       ...params.duration(SEEDANCE_25_DURATIONS, 15),
       ...params.generateAudio(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),

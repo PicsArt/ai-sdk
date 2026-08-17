@@ -1258,6 +1258,37 @@ type ModelInputById = {
         generateAudio?: boolean;
         videoUrls: [string, ...string[]];
     };
+    "seedance-2.0-without-moderation": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
+        resolution?: "480p" | "720p" | "1080p" | "4k";
+        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        generateAudio?: boolean;
+        returnLastFrame?: boolean;
+        imageUrls?: string[];
+        videoUrls?: string[];
+        audioUrls?: string[];
+        startFrame?: string;
+        endFrame?: string;
+    };
+    "seedance-2.0-without-moderation-video-edit": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
+        resolution?: "480p" | "720p" | "1080p" | "4k";
+        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        generateAudio?: boolean;
+        returnLastFrame?: boolean;
+        videoUrl: string;
+        imageUrls?: string[];
+    };
+    "seedance-2.0-without-moderation-video-extend": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
+        resolution?: "480p" | "720p" | "1080p" | "4k";
+        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        generateAudio?: boolean;
+        videoUrls: [string, ...string[]];
+    };
     "seedance-2.5": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
@@ -2548,6 +2579,9 @@ declare const Models: {
     readonly Seedance20MiniVideoExtend: "seedance-2.0-mini-video-extend";
     readonly Seedance20VideoEdit: "seedance-2.0-video-edit";
     readonly Seedance20VideoExtend: "seedance-2.0-video-extend";
+    readonly Seedance20WithoutModeration: "seedance-2.0-without-moderation";
+    readonly Seedance20WithoutModerationVideoEdit: "seedance-2.0-without-moderation-video-edit";
+    readonly Seedance20WithoutModerationVideoExtend: "seedance-2.0-without-moderation-video-extend";
     readonly Seedance25: "seedance-2.5";
     readonly Seedance25VideoEdit: "seedance-2.5-video-edit";
     readonly Seedance25VideoExtend: "seedance-2.5-video-extend";

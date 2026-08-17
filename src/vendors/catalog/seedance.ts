@@ -103,6 +103,16 @@ export const buildSeedanceI2VPayload: PayloadBuilder = (ctx) => ({
   ...(ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {}),
 });
 
+/** Worker aliases sharing the Seedance 2.0 request shape.
+ *  `seedance_2_0_without_moderation` is the same model as `seedance_2_0` on a
+ *  vendor endpoint with moderation disabled — full capability parity, bills
+ *  under the `seedance-2.0` pricing key. */
+type Seedance20Alias =
+  | 'seedance_2_0'
+  | 'seedance_2_0_without_moderation'
+  | 'seedance_2_0_fast'
+  | 'seedance_2_0_mini';
+
 /** Seedance 2.0 / 2.0 Fast — text-to-video / image-to-video / multimodal refs.
  *  Each backend role on its own paramConfig field:
  *  - imageUrls[]  (max 9) → reference_image roles
@@ -115,7 +125,7 @@ export const buildSeedanceI2VPayload: PayloadBuilder = (ctx) => ({
  *  last_frame must be paired with first_frame OR a reference_image (worker
  *  rejects last_frame alone). */
 export const buildSeedance20PayloadFor =
-  (modelAlias: 'seedance_2_0' | 'seedance_2_0_fast' | 'seedance_2_0_mini'): PayloadBuilder =>
+  (modelAlias: Seedance20Alias): PayloadBuilder =>
   (ctx) => {
     const refImages = ctx.imageUrls ?? [];
     const refVideos = ctx.videoUrls ?? [];
@@ -159,7 +169,7 @@ export const buildSeedance20PayloadFor =
  *  Required: reference_video (enforced by `videoInput` paramConfig). Optional: up to 9 reference_image.
  *  Worker routes to `video-to-video.*` toolId because content includes a video_url. */
 export const buildSeedance20VideoEditPayloadFor =
-  (modelAlias: 'seedance_2_0' | 'seedance_2_0_fast' | 'seedance_2_0_mini'): PayloadBuilder =>
+  (modelAlias: Seedance20Alias): PayloadBuilder =>
   (ctx) => ({
     model: modelAlias,
     content: [
@@ -185,7 +195,7 @@ export const buildSeedance20VideoEditPayloadFor =
  *  Worker routes to `video-to-video.*` toolId (same as edit) because content
  *  includes video_url roles. Uses `videoUrls[]` instead of single `videoUrl`. */
 export const buildSeedance20VideoExtendPayloadFor =
-  (modelAlias: 'seedance_2_0' | 'seedance_2_0_fast' | 'seedance_2_0_mini'): PayloadBuilder =>
+  (modelAlias: Seedance20Alias): PayloadBuilder =>
   (ctx) => ({
     model: modelAlias,
     content: [
@@ -435,6 +445,37 @@ export const { MODELS } = defineModels('seedance', [
     },
   },
   {
+    // Same model as seedance-2.0 on a vendor endpoint with moderation
+    // disabled — full capability parity, bills under the seedance-2.0
+    // pricing key (hence the shared modelId).
+    id: 'seedance-2.0-without-moderation', name: 'Seedance 2.0 Without Moderation', modelId: 'seedance-2.0',
+    addedAt: '2026-08-17',
+    release: 'preview',
+    workflow: 'seedance',
+    buildPayload: buildSeedance20PayloadFor('seedance_2_0_without_moderation'),
+    constraints: seedance20Constraints,
+    estimatedTime: 15,
+    mode: 'video', inputType: 't2v',
+    badge: ['new', 'premium', 'hot'],
+    description: 'Seedance 2.0 with vendor moderation disabled — cinematic video with optional audio and reference image. Up to 4K.',
+    features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('4K', 'resolution'), feat('4-15 sec', 'duration')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(['480p', '720p', '1080p', '4k'], '720p'),
+      ...params.duration(SEEDANCE_V2_DURATIONS, 10),
+      ...params.generateAudio(),
+      ...params.returnLastFrame(),
+      // Reference roles map directly to backend `reference_*` content entries.
+      // start/end frame stay on their own named slots.
+      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_MIN_PIXELS),
+      ...params.videoInputs(3, 'Reference Videos', false, SEEDANCE_MIN_PIXELS),
+      ...params.audioInputs(3, 'Reference Audios'),
+      ...params.startFrame(),
+      ...params.endFrame(),
+    },
+  },
+  {
     id: 'seedance-2.0-fast', name: 'Seedance 2.0 Fast', modelId: 'seedance-2.0-fast',
     addedAt: '2026-05-27',
     workflow: 'seedance',
@@ -510,6 +551,28 @@ export const { MODELS } = defineModels('seedance', [
     },
   },
   {
+    id: 'seedance-2.0-without-moderation-video-edit', name: 'Seedance 2.0 Without Moderation Video Edit', modelId: 'seedance-2.0',
+    addedAt: '2026-08-17',
+    release: 'preview',
+    workflow: 'seedance',
+    buildPayload: buildSeedance20VideoEditPayloadFor('seedance_2_0_without_moderation'),
+    estimatedTime: 77,
+    mode: 'video', inputType: 'v2v',
+    badge: ['new', 'premium', 'hot'],
+    description: 'Moderation-free video edit — replace subjects, add or remove objects, restyle scenes with reference images.',
+    features: [feat('Video Input', 'input'), feat('Multi-Image Input', 'input'), feat('Audio', 'audio'), feat('4K', 'resolution'), feat('4-15 sec', 'duration')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(['480p', '720p', '1080p', '4k'], '720p'),
+      ...params.duration(SEEDANCE_V2_DURATIONS, 5),
+      ...params.generateAudio(),
+      ...params.returnLastFrame(),
+      ...params.videoInput('Source Video'),
+      ...params.imageInput(9, 'Reference Images'),
+    },
+  },
+  {
     id: 'seedance-2.0-fast-video-edit', name: 'Seedance 2.0 Fast Video Edit', modelId: 'seedance-2.0-fast',
     addedAt: '2026-05-27',
     workflow: 'seedance',
@@ -560,6 +623,26 @@ export const { MODELS } = defineModels('seedance', [
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
     description: 'Stitch up to 3 clips into one continuous, extended video.',
+    features: [feat('Multi-Video Input', 'input'), feat('Audio', 'audio'), feat('4K', 'resolution'), feat('4-15 sec', 'duration')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(['480p', '720p', '1080p', '4k'], '720p'),
+      ...params.duration(SEEDANCE_V2_DURATIONS, 15),
+      ...params.generateAudio(),
+      ...params.videoInputs(3, 'Source Videos', true),
+    },
+  },
+  {
+    id: 'seedance-2.0-without-moderation-video-extend', name: 'Seedance 2.0 Without Moderation Video Extend', modelId: 'seedance-2.0',
+    addedAt: '2026-08-17',
+    release: 'preview',
+    workflow: 'seedance',
+    buildPayload: buildSeedance20VideoExtendPayloadFor('seedance_2_0_without_moderation'),
+    estimatedTime: 400,
+    mode: 'video', inputType: 'v2v',
+    badge: ['new', 'premium', 'hot'],
+    description: 'Moderation-free: stitch up to 3 clips into one continuous, extended video.',
     features: [feat('Multi-Video Input', 'input'), feat('Audio', 'audio'), feat('4K', 'resolution'), feat('4-15 sec', 'duration')],
     paramConfig: {
       ...params.prompt(),

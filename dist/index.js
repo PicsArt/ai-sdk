@@ -4202,6 +4202,40 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     }
   },
   {
+    // Same model as seedance-2.0 on a vendor endpoint with moderation
+    // disabled — full capability parity, bills under the seedance-2.0
+    // pricing key (hence the shared modelId).
+    id: "seedance-2.0-without-moderation",
+    name: "Seedance 2.0 Without Moderation",
+    modelId: "seedance-2.0",
+    addedAt: "2026-08-17",
+    release: "preview",
+    workflow: "seedance",
+    buildPayload: buildSeedance20PayloadFor("seedance_2_0_without_moderation"),
+    constraints: seedance20Constraints,
+    estimatedTime: 15,
+    mode: "video",
+    inputType: "t2v",
+    badge: ["new", "premium", "hot"],
+    description: "Seedance 2.0 with vendor moderation disabled \u2014 cinematic video with optional audio and reference image. Up to 4K.",
+    features: [feat("Reference Image", "frame"), feat("Start/End Frame", "frame"), feat("Audio", "audio"), feat("4K", "resolution"), feat("4-15 sec", "duration")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(["480p", "720p", "1080p", "4k"], "720p"),
+      ...params.duration(SEEDANCE_V2_DURATIONS, 10),
+      ...params.generateAudio(),
+      ...params.returnLastFrame(),
+      // Reference roles map directly to backend `reference_*` content entries.
+      // start/end frame stay on their own named slots.
+      ...params.imageInput(9, "Reference Images", false, "reference", SEEDANCE_MIN_PIXELS),
+      ...params.videoInputs(3, "Reference Videos", false, SEEDANCE_MIN_PIXELS),
+      ...params.audioInputs(3, "Reference Audios"),
+      ...params.startFrame(),
+      ...params.endFrame()
+    }
+  },
+  {
     id: "seedance-2.0-fast",
     name: "Seedance 2.0 Fast",
     modelId: "seedance-2.0-fast",
@@ -4286,6 +4320,31 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     }
   },
   {
+    id: "seedance-2.0-without-moderation-video-edit",
+    name: "Seedance 2.0 Without Moderation Video Edit",
+    modelId: "seedance-2.0",
+    addedAt: "2026-08-17",
+    release: "preview",
+    workflow: "seedance",
+    buildPayload: buildSeedance20VideoEditPayloadFor("seedance_2_0_without_moderation"),
+    estimatedTime: 77,
+    mode: "video",
+    inputType: "v2v",
+    badge: ["new", "premium", "hot"],
+    description: "Moderation-free video edit \u2014 replace subjects, add or remove objects, restyle scenes with reference images.",
+    features: [feat("Video Input", "input"), feat("Multi-Image Input", "input"), feat("Audio", "audio"), feat("4K", "resolution"), feat("4-15 sec", "duration")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(["480p", "720p", "1080p", "4k"], "720p"),
+      ...params.duration(SEEDANCE_V2_DURATIONS, 5),
+      ...params.generateAudio(),
+      ...params.returnLastFrame(),
+      ...params.videoInput("Source Video"),
+      ...params.imageInput(9, "Reference Images")
+    }
+  },
+  {
     id: "seedance-2.0-fast-video-edit",
     name: "Seedance 2.0 Fast Video Edit",
     modelId: "seedance-2.0-fast",
@@ -4345,6 +4404,29 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     inputType: "v2v",
     badge: ["new", "premium", "hot"],
     description: "Stitch up to 3 clips into one continuous, extended video.",
+    features: [feat("Multi-Video Input", "input"), feat("Audio", "audio"), feat("4K", "resolution"), feat("4-15 sec", "duration")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(["480p", "720p", "1080p", "4k"], "720p"),
+      ...params.duration(SEEDANCE_V2_DURATIONS, 15),
+      ...params.generateAudio(),
+      ...params.videoInputs(3, "Source Videos", true)
+    }
+  },
+  {
+    id: "seedance-2.0-without-moderation-video-extend",
+    name: "Seedance 2.0 Without Moderation Video Extend",
+    modelId: "seedance-2.0",
+    addedAt: "2026-08-17",
+    release: "preview",
+    workflow: "seedance",
+    buildPayload: buildSeedance20VideoExtendPayloadFor("seedance_2_0_without_moderation"),
+    estimatedTime: 400,
+    mode: "video",
+    inputType: "v2v",
+    badge: ["new", "premium", "hot"],
+    description: "Moderation-free: stitch up to 3 clips into one continuous, extended video.",
     features: [feat("Multi-Video Input", "input"), feat("Audio", "audio"), feat("4K", "resolution"), feat("4-15 sec", "duration")],
     paramConfig: {
       ...params.prompt(),
@@ -10696,6 +10778,9 @@ var Seedance20MiniVideoEdit = "seedance-2.0-mini-video-edit";
 var Seedance20MiniVideoExtend = "seedance-2.0-mini-video-extend";
 var Seedance20VideoEdit = "seedance-2.0-video-edit";
 var Seedance20VideoExtend = "seedance-2.0-video-extend";
+var Seedance20WithoutModeration = "seedance-2.0-without-moderation";
+var Seedance20WithoutModerationVideoEdit = "seedance-2.0-without-moderation-video-edit";
+var Seedance20WithoutModerationVideoExtend = "seedance-2.0-without-moderation-video-extend";
 var Seedance25 = "seedance-2.5";
 var Seedance25VideoEdit = "seedance-2.5-video-edit";
 var Seedance25VideoExtend = "seedance-2.5-video-extend";
@@ -10899,6 +10984,9 @@ var Models = {
   Seedance20MiniVideoExtend,
   Seedance20VideoEdit,
   Seedance20VideoExtend,
+  Seedance20WithoutModeration,
+  Seedance20WithoutModerationVideoEdit,
+  Seedance20WithoutModerationVideoExtend,
   Seedance25,
   Seedance25VideoEdit,
   Seedance25VideoExtend,

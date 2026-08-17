@@ -382,6 +382,12 @@ export const Seedance20MiniVideoExtend = 'seedance-2.0-mini-video-extend' as con
 export const Seedance20VideoEdit = 'seedance-2.0-video-edit' as const;
 /** Seedance 2.0 Video Extend — seedance (video) */
 export const Seedance20VideoExtend = 'seedance-2.0-video-extend' as const;
+/** Seedance 2.0 Without Moderation — seedance (video) */
+export const Seedance20WithoutModeration = 'seedance-2.0-without-moderation' as const;
+/** Seedance 2.0 Without Moderation Video Edit — seedance (video) */
+export const Seedance20WithoutModerationVideoEdit = 'seedance-2.0-without-moderation-video-edit' as const;
+/** Seedance 2.0 Without Moderation Video Extend — seedance (video) */
+export const Seedance20WithoutModerationVideoExtend = 'seedance-2.0-without-moderation-video-extend' as const;
 /** Seedance 2.5 — seedance (video) */
 export const Seedance25 = 'seedance-2.5' as const;
 /** Seedance 2.5 Video Edit — seedance (video) */
@@ -626,6 +632,9 @@ export const Models = {
   Seedance20MiniVideoExtend,
   Seedance20VideoEdit,
   Seedance20VideoExtend,
+  Seedance20WithoutModeration,
+  Seedance20WithoutModerationVideoEdit,
+  Seedance20WithoutModerationVideoExtend,
   Seedance25,
   Seedance25VideoEdit,
   Seedance25VideoExtend,

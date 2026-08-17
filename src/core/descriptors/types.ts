@@ -80,6 +80,13 @@ export interface FileDescriptor {
    * authoritative gate. Omit for no client-side ceiling.
    */
   maxShortSidePixels?: number;
+  /**
+   * Max file size in bytes accepted for this slot (e.g. Seedance 2.5 reference
+   * videos are capped at 200 MiB by the vendor). Enforced client-side at upload
+   * by measuring the file (or its `Content-Length`) before it is sent; the
+   * backend worker stays the authoritative gate. Omit for no client-side cap.
+   */
+  maxBytes?: number;
 }
 
 export interface ObjectDescriptor {

@@ -153,19 +153,22 @@ type ModelInputById = {
     };
     "flux-2-flex": {
         prompt: string;
-        aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4";
+        aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21";
+        resolution?: "1K" | "2K" | "4K";
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         imageUrls?: string[];
     };
     "flux-2-max": {
         prompt: string;
-        aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4";
+        aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21";
+        resolution?: "1K" | "2K" | "4K";
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         imageUrls?: string[];
     };
     "flux-2-pro": {
         prompt: string;
-        aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4";
+        aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21";
+        resolution?: "1K" | "2K" | "4K";
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         imageUrls?: string[];
     };
@@ -1734,6 +1737,13 @@ interface FileDescriptor {
      * authoritative gate. Omit for no client-side ceiling.
      */
     maxShortSidePixels?: number;
+    /**
+     * Max file size in bytes accepted for this slot (e.g. Seedance 2.5 reference
+     * videos are capped at 200 MiB by the vendor). Enforced client-side at upload
+     * by measuring the file (or its `Content-Length`) before it is sent; the
+     * backend worker stays the authoritative gate. Omit for no client-side cap.
+     */
+    maxBytes?: number;
 }
 interface ObjectDescriptor {
     kind: 'object';

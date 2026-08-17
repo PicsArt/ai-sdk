@@ -230,6 +230,8 @@ export const p = {
       minPixels?: number;
       /** Client-side max short-side length (pixels) for an image/video slot. */
       maxShortSidePixels?: number;
+      /** Client-side max file size (bytes) for this slot. */
+      maxBytes?: number;
     },
   ): ModelParams {
     return {
@@ -244,6 +246,7 @@ export const p = {
           ...(opts?.maxDurationSec != null ? { maxDurationSec: opts.maxDurationSec } : {}),
           ...(opts?.minPixels != null ? { minPixels: opts.minPixels } : {}),
           ...(opts?.maxShortSidePixels != null ? { maxShortSidePixels: opts.maxShortSidePixels } : {}),
+          ...(opts?.maxBytes != null ? { maxBytes: opts.maxBytes } : {}),
         },
       },
     };

@@ -4,10 +4,10 @@
 import type { Constraint, PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
-import { resolveImageSize } from '../../core/helpers.ts';
 
 // ── Aspect-ratio → pixel-size map ────────────────────────────────────
-// UI shows plain "W:H" ratios; Flux API requires width/height pixels.
+// Legacy map kept for picsart.ts consumers; the flux-v2 workflow now takes
+// `resolution` + `aspectRatio` directly and computes sizes backend-side.
 
 export const FLUX_AR_TO_SIZE: Record<string, string> = {
   '1:1': '1024x1024',
@@ -17,8 +17,12 @@ export const FLUX_AR_TO_SIZE: Record<string, string> = {
   '3:4': '768x1024',
 };
 
-// Aspect-ratio options derived from AR→size map.
-const fluxAspectRatios = Object.keys(FLUX_AR_TO_SIZE);
+// FluxAspectRatio enum values (the `0:0` origin variant is backend-only —
+// it sizes from the input image and isn't exposed as a picker option).
+const fluxAspectRatios = ['1:1', '16:9', '9:16', '4:3', '3:4', '21:9', '9:21'];
+
+// FluxResolution enum values; the backend caps every tier at 4MP total area.
+const fluxResolutions = ['1K', '2K', '4K'];
 
 // ── Payload builders ────────────────────────────────────────────────
 
@@ -26,23 +30,20 @@ const fluxAspectRatios = Object.keys(FLUX_AR_TO_SIZE);
  * Flux V2 payload builder for the dedicated `flux-v2` workflow.
  * Flat top-level params — no modelOptions wrapper.
  * imageUrls is required by the API (send [] for pure T2I).
+ * Sizing goes through `resolution` + `aspectRatio` (must be sent together);
+ * the backend derives pixel dimensions within the BFL 4MP area cap.
  */
 const buildFluxV2Payload =
   (modelId: string): PayloadBuilder =>
-  (ctx) => {
-    const size = resolveImageSize(ctx, FLUX_AR_TO_SIZE);
-    return {
-      prompt: ctx.prompt,
-      model: modelId,
-      imageUrls: ctx.imageUrls ?? [],
-      ...(size ? {
-        width: parseInt(size.split('x')[0]),
-        height: parseInt(size.split('x')[1]),
-      } : {}),
-      ...(ctx.guidance != null ? { guidance: ctx.guidance } : {}),
-      ...(ctx.seed != null ? { seed: ctx.seed } : {}),
-    };
-  };
+  (ctx) => ({
+    prompt: ctx.prompt,
+    model: modelId,
+    imageUrls: ctx.imageUrls ?? [],
+    resolution: ctx.resolution ?? '1K',
+    aspectRatio: ctx.aspectRatio ?? '1:1',
+    ...(ctx.guidance != null ? { guidance: ctx.guidance } : {}),
+    ...(ctx.seed != null ? { seed: ctx.seed } : {}),
+  });
 
 function normalizeAspectRatio(aspect?: string | null): string | null {
   if (!aspect) return null;
@@ -112,11 +113,12 @@ export const { MODELS } = defineModels('flux', [
     addedAt: '2026-02-06',
     buildPayload: buildFluxV2Payload('flux-2-pro'),
     estimatedTime: 19,
-    description: 'Sharp 2K images with fine-tuned color accuracy and detail.',
-    features: [feat('Multi-Image Input', 'input'), feat('2K', 'resolution')],
+    description: 'Sharp images up to 4K with fine-tuned color accuracy and detail.',
+    features: [feat('Multi-Image Input', 'input'), feat('4K', 'resolution')],
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(fluxAspectRatios, '4:3'),
+      ...params.resolution(fluxResolutions, '1K'),
       ...params.count(),
       ...params.imageInput(4, 'Source Images'),
     },
@@ -128,10 +130,11 @@ export const { MODELS } = defineModels('flux', [
     buildPayload: buildFluxV2Payload('flux-2-max'),
     estimatedTime: 27,
     description: 'Maximum detail for intricate compositions and demanding scenes.',
-    features: [feat('Image Input', 'input'), feat('2K', 'resolution')],
+    features: [feat('Image Input', 'input'), feat('4K', 'resolution')],
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(fluxAspectRatios, '1:1'),
+      ...params.resolution(fluxResolutions, '1K'),
       ...params.count(),
       ...params.imageInput(1, 'Source Image'),
     },
@@ -142,11 +145,12 @@ export const { MODELS } = defineModels('flux', [
     addedAt: '2026-02-06',
     buildPayload: buildFluxV2Payload('flux-2-flex'),
     estimatedTime: 15,
-    description: 'Adaptable generation across varied visual styles at 2K.',
-    features: [feat('Image Input', 'input'), feat('2K', 'resolution')],
+    description: 'Adaptable generation across varied visual styles up to 4K.',
+    features: [feat('Image Input', 'input'), feat('4K', 'resolution')],
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(fluxAspectRatios, '3:4'),
+      ...params.resolution(fluxResolutions, '1K'),
       ...params.count(),
       ...params.imageInput(1, 'Source Image'),
     },

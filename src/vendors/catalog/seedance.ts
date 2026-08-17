@@ -21,6 +21,12 @@ const SEEDANCE_FRAME_REF_REASON = 'Start/End frames cannot be combined with refe
 /** Backend rejects reference image/video content below 409,600 px (640×640):
  *  "video pixel count ... must be greater than or equal to 409600". */
 const SEEDANCE_MIN_PIXELS = 409_600;
+/** Vendor caps each video file at 200 MiB: "the parameter video size (bytes)
+ *  specified in the request must be less than or equal to 209715200 for model
+ *  dreamina-seedance-2-5 in r2v". Observed on the 2.5 reference-video path; the
+ *  2.5 edit / extend modes post the same `reference_video` role to the same
+ *  vendor model, so the cap is declared for all three. */
+const SEEDANCE_25_MAX_VIDEO_BYTES = 209_715_200;
 const seedance20Constraints: Constraint[] = [
   {
     when: {
@@ -350,7 +356,7 @@ export const { MODELS } = defineModels('seedance', [
       ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(10, 'Reference Videos', false, SEEDANCE_MIN_PIXELS),
+      ...params.videoInputs(10, 'Reference Videos', false, SEEDANCE_MIN_PIXELS, SEEDANCE_25_MAX_VIDEO_BYTES),
       ...params.audioInputs(10, 'Reference Audios'),
       ...params.startFrame(),
       ...params.endFrame(),
@@ -375,7 +381,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
-      ...params.videoInput('Source Video'),
+      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, SEEDANCE_25_MAX_VIDEO_BYTES),
       ...params.imageInput(30, 'Reference Images'),
     },
   },
@@ -398,7 +404,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.duration(SEEDANCE_25_DURATIONS, 15),
       ...params.generateAudio(),
       ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
-      ...params.videoInputs(10, 'Source Videos', true),
+      ...params.videoInputs(10, 'Source Videos', true, undefined, SEEDANCE_25_MAX_VIDEO_BYTES),
     },
   },
   {

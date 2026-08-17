@@ -1004,7 +1004,8 @@ var p = {
           ...opts?.array ? { array: opts.array } : {},
           ...opts?.maxDurationSec != null ? { maxDurationSec: opts.maxDurationSec } : {},
           ...opts?.minPixels != null ? { minPixels: opts.minPixels } : {},
-          ...opts?.maxShortSidePixels != null ? { maxShortSidePixels: opts.maxShortSidePixels } : {}
+          ...opts?.maxShortSidePixels != null ? { maxShortSidePixels: opts.maxShortSidePixels } : {},
+          ...opts?.maxBytes != null ? { maxBytes: opts.maxBytes } : {}
         }
       }
     };
@@ -1221,20 +1222,30 @@ var params = {
   //   reference → ref images/videos/audios (guidance signals)
   imageInput: (max = 1, label = "Start Image", required = false, category = "reference", minPixels) => p.file("imageUrls", "image", { array: { max }, label, required, category, ...minPixels != null ? { minPixels } : {} }),
   /** Single source-video slot (v2v / video edit). Writes to `videoUrl`.
-   *  `maxDurationSec` caps the source clip length and `maxShortSidePixels` caps
-   *  the shorter side (upscaler sources), both enforced client-side at upload. */
-  videoInput: (label = "Source Video", category = "reference", required = true, maxDurationSec, maxShortSidePixels) => p.file("videoUrl", "video", {
+   *  `maxDurationSec` caps the source clip length, `maxShortSidePixels` caps
+   *  the shorter side (upscaler sources) and `maxBytes` caps the file size,
+   *  all enforced client-side at upload. */
+  videoInput: (label = "Source Video", category = "reference", required = true, maxDurationSec, maxShortSidePixels, maxBytes) => p.file("videoUrl", "video", {
     label,
     required,
     category,
     ...maxDurationSec != null ? { maxDurationSec } : {},
-    ...maxShortSidePixels != null ? { maxShortSidePixels } : {}
+    ...maxShortSidePixels != null ? { maxShortSidePixels } : {},
+    ...maxBytes != null ? { maxBytes } : {}
   }),
   /** Single driving / sync-audio slot. Writes to `audioUrl`. */
   audioInput: (label = "Audio Track", required = false, category = "asset") => p.file("audioUrl", "audio", { label, required, category }),
   /** Array of reference videos (writes to `videoUrls`). Backend enforces
-   *  per-model total-duration caps (e.g. ≤ 15s for seedance). */
-  videoInputs: (max = 3, label = "Reference Videos", required = false, minPixels) => p.file("videoUrls", "video", { array: { max }, label, required, category: "reference", ...minPixels != null ? { minPixels } : {} }),
+   *  per-model total-duration caps (e.g. ≤ 15s for seedance). `maxBytes` caps
+   *  each individual clip's file size, enforced client-side at upload. */
+  videoInputs: (max = 3, label = "Reference Videos", required = false, minPixels, maxBytes) => p.file("videoUrls", "video", {
+    array: { max },
+    label,
+    required,
+    category: "reference",
+    ...minPixels != null ? { minPixels } : {},
+    ...maxBytes != null ? { maxBytes } : {}
+  }),
   /** Array of reference audios (writes to `audioUrls`). Backend enforces
    *  per-model total-duration caps. */
   audioInputs: (max = 3, label = "Reference Audios", required = false) => p.file("audioUrls", "audio", { array: { max }, label, required, category: "reference" }),
@@ -3852,6 +3863,7 @@ registerPayloads(MODELS11, {
 // src/vendors/catalog/seedance.ts
 var SEEDANCE_FRAME_REF_REASON = "Start/End frames cannot be combined with reference images, videos, or audios";
 var SEEDANCE_MIN_PIXELS = 409600;
+var SEEDANCE_25_MAX_VIDEO_BYTES = 209715200;
 var seedance20Constraints = [
   {
     when: {
@@ -4102,7 +4114,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, "Reference Images", false, "reference", SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(10, "Reference Videos", false, SEEDANCE_MIN_PIXELS),
+      ...params.videoInputs(10, "Reference Videos", false, SEEDANCE_MIN_PIXELS, SEEDANCE_25_MAX_VIDEO_BYTES),
       ...params.audioInputs(10, "Reference Audios"),
       ...params.startFrame(),
       ...params.endFrame()
@@ -4130,7 +4142,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
-      ...params.videoInput("Source Video"),
+      ...params.videoInput("Source Video", "reference", true, void 0, void 0, SEEDANCE_25_MAX_VIDEO_BYTES),
       ...params.imageInput(30, "Reference Images")
     }
   },
@@ -4156,7 +4168,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.duration(SEEDANCE_25_DURATIONS, 15),
       ...params.generateAudio(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
-      ...params.videoInputs(10, "Source Videos", true)
+      ...params.videoInputs(10, "Source Videos", true, void 0, SEEDANCE_25_MAX_VIDEO_BYTES)
     }
   },
   {
@@ -5477,9 +5489,6 @@ var { MODELS: MODELS20 } = defineModels("runway", [
   }
 ]);
 
-// src/core/helpers.ts
-var resolveImageSize = (ctx, arMap) => ctx.aspectRatio && arMap[ctx.aspectRatio] || ctx.size;
-
 // src/vendors/catalog/flux.ts
 var FLUX_AR_TO_SIZE = {
   "1:1": "1024x1024",
@@ -5488,21 +5497,17 @@ var FLUX_AR_TO_SIZE = {
   "4:3": "1024x768",
   "3:4": "768x1024"
 };
-var fluxAspectRatios = Object.keys(FLUX_AR_TO_SIZE);
-var buildFluxV2Payload = (modelId) => (ctx) => {
-  const size = resolveImageSize(ctx, FLUX_AR_TO_SIZE);
-  return {
-    prompt: ctx.prompt,
-    model: modelId,
-    imageUrls: ctx.imageUrls ?? [],
-    ...size ? {
-      width: parseInt(size.split("x")[0]),
-      height: parseInt(size.split("x")[1])
-    } : {},
-    ...ctx.guidance != null ? { guidance: ctx.guidance } : {},
-    ...ctx.seed != null ? { seed: ctx.seed } : {}
-  };
-};
+var fluxAspectRatios = ["1:1", "16:9", "9:16", "4:3", "3:4", "21:9", "9:21"];
+var fluxResolutions = ["1K", "2K", "4K"];
+var buildFluxV2Payload = (modelId) => (ctx) => ({
+  prompt: ctx.prompt,
+  model: modelId,
+  imageUrls: ctx.imageUrls ?? [],
+  resolution: ctx.resolution ?? "1K",
+  aspectRatio: ctx.aspectRatio ?? "1:1",
+  ...ctx.guidance != null ? { guidance: ctx.guidance } : {},
+  ...ctx.seed != null ? { seed: ctx.seed } : {}
+});
 function normalizeAspectRatio(aspect) {
   if (!aspect) return null;
   const raw = String(aspect).trim();
@@ -5554,11 +5559,12 @@ var { MODELS: MODELS21 } = defineModels("flux", [
     addedAt: "2026-02-06",
     buildPayload: buildFluxV2Payload("flux-2-pro"),
     estimatedTime: 19,
-    description: "Sharp 2K images with fine-tuned color accuracy and detail.",
-    features: [feat("Multi-Image Input", "input"), feat("2K", "resolution")],
+    description: "Sharp images up to 4K with fine-tuned color accuracy and detail.",
+    features: [feat("Multi-Image Input", "input"), feat("4K", "resolution")],
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(fluxAspectRatios, "4:3"),
+      ...params.resolution(fluxResolutions, "1K"),
       ...params.count(),
       ...params.imageInput(4, "Source Images")
     }
@@ -5572,10 +5578,11 @@ var { MODELS: MODELS21 } = defineModels("flux", [
     buildPayload: buildFluxV2Payload("flux-2-max"),
     estimatedTime: 27,
     description: "Maximum detail for intricate compositions and demanding scenes.",
-    features: [feat("Image Input", "input"), feat("2K", "resolution")],
+    features: [feat("Image Input", "input"), feat("4K", "resolution")],
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(fluxAspectRatios, "1:1"),
+      ...params.resolution(fluxResolutions, "1K"),
       ...params.count(),
       ...params.imageInput(1, "Source Image")
     }
@@ -5588,11 +5595,12 @@ var { MODELS: MODELS21 } = defineModels("flux", [
     addedAt: "2026-02-06",
     buildPayload: buildFluxV2Payload("flux-2-flex"),
     estimatedTime: 15,
-    description: "Adaptable generation across varied visual styles at 2K.",
-    features: [feat("Image Input", "input"), feat("2K", "resolution")],
+    description: "Adaptable generation across varied visual styles up to 4K.",
+    features: [feat("Image Input", "input"), feat("4K", "resolution")],
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(fluxAspectRatios, "3:4"),
+      ...params.resolution(fluxResolutions, "1K"),
       ...params.count(),
       ...params.imageInput(1, "Source Image")
     }
@@ -7525,6 +7533,9 @@ registerPayloads(MODELS30, {
   "topaz-upscale-image": buildTopazImagePayload,
   "topaz-upscale-video": buildTopazVideoPayload
 });
+
+// src/core/helpers.ts
+var resolveImageSize = (ctx, arMap) => ctx.aspectRatio && arMap[ctx.aspectRatio] || ctx.size;
 
 // src/vendors/catalog/picsart.ts
 var MAX_WORDS = 77;

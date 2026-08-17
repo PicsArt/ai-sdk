@@ -74,8 +74,8 @@ ai.generate('kling-v3', { prompt: 'test', duration: 20 });
 // ✓ Type-safe via Models constant (typed string literal)
 ai.generate(Models.Flux2Pro, { prompt: 'test', aspectRatio: '1:1' });
 
-// @ts-expect-error — invalid aspect ratio for flux-2-pro
-ai.generate(Models.Flux2Pro, { prompt: 'test', aspectRatio: '21:9' });
+// @ts-expect-error — invalid aspect ratio for flux-2-pro (not in the FluxAspectRatio enum)
+ai.generate(Models.Flux2Pro, { prompt: 'test', aspectRatio: '5:3' });
 
 // ✓ getCredits and submit also type-safe
 ai.getCredits('flux-2-pro', { prompt: 'test', count: 2 });

@@ -230,21 +230,28 @@ export const params = {
   imageInput: (max = 1, label = 'Start Image', required = false, category: 'asset' | 'reference' = 'reference', minPixels?: number): ModelParams =>
     p.file('imageUrls', 'image', { array: { max }, label, required, category, ...(minPixels != null ? { minPixels } : {}) }),
   /** Single source-video slot (v2v / video edit). Writes to `videoUrl`.
-   *  `maxDurationSec` caps the source clip length and `maxShortSidePixels` caps
-   *  the shorter side (upscaler sources), both enforced client-side at upload. */
-  videoInput: (label = 'Source Video', category: 'asset' | 'reference' = 'reference', required = true, maxDurationSec?: number, maxShortSidePixels?: number): ModelParams =>
+   *  `maxDurationSec` caps the source clip length, `maxShortSidePixels` caps
+   *  the shorter side (upscaler sources) and `maxBytes` caps the file size,
+   *  all enforced client-side at upload. */
+  videoInput: (label = 'Source Video', category: 'asset' | 'reference' = 'reference', required = true, maxDurationSec?: number, maxShortSidePixels?: number, maxBytes?: number): ModelParams =>
     p.file('videoUrl', 'video', {
       label, required, category,
       ...(maxDurationSec != null ? { maxDurationSec } : {}),
       ...(maxShortSidePixels != null ? { maxShortSidePixels } : {}),
+      ...(maxBytes != null ? { maxBytes } : {}),
     }),
   /** Single driving / sync-audio slot. Writes to `audioUrl`. */
   audioInput: (label = 'Audio Track', required = false, category: 'asset' | 'reference' = 'asset'): ModelParams =>
     p.file('audioUrl', 'audio', { label, required, category }),
   /** Array of reference videos (writes to `videoUrls`). Backend enforces
-   *  per-model total-duration caps (e.g. ≤ 15s for seedance). */
-  videoInputs: (max = 3, label = 'Reference Videos', required = false, minPixels?: number): ModelParams =>
-    p.file('videoUrls', 'video', { array: { max }, label, required, category: 'reference', ...(minPixels != null ? { minPixels } : {}) }),
+   *  per-model total-duration caps (e.g. ≤ 15s for seedance). `maxBytes` caps
+   *  each individual clip's file size, enforced client-side at upload. */
+  videoInputs: (max = 3, label = 'Reference Videos', required = false, minPixels?: number, maxBytes?: number): ModelParams =>
+    p.file('videoUrls', 'video', {
+      array: { max }, label, required, category: 'reference',
+      ...(minPixels != null ? { minPixels } : {}),
+      ...(maxBytes != null ? { maxBytes } : {}),
+    }),
   /** Array of reference audios (writes to `audioUrls`). Backend enforces
    *  per-model total-duration caps. */
   audioInputs: (max = 3, label = 'Reference Audios', required = false): ModelParams =>

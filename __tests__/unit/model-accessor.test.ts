@@ -163,4 +163,19 @@ const upscalerVideo = Model('bytedance-video-upscaler').params().file('videoUrl'
 assert(upscalerVideo, 'bytedance-video-upscaler should have a videoUrl file param');
 assert.strictEqual(upscalerVideo!.maxShortSidePixels, 1079, 'upscaler source short side must be capped below 1080');
 
+// \u2500\u2500 FileDescriptor.maxBytes: vendor file-size cap \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// Seedance 2.5 rejects any video file over 200 MiB ("video size (bytes) ... must
+// be less than or equal to 209715200"), on every mode that posts a
+// reference_video: t2v references, video edit and video extend.
+
+for (const [modelId, key] of [
+  ['seedance-2.5', 'videoUrls'],
+  ['seedance-2.5-video-edit', 'videoUrl'],
+  ['seedance-2.5-video-extend', 'videoUrls'],
+] as const) {
+  const videoSlot = Model(modelId).params().file(key);
+  assert(videoSlot, `${modelId} should have a ${key} file param`);
+  assert.strictEqual(videoSlot!.maxBytes, 209_715_200, `${modelId} video slot must cap files at 200 MiB`);
+}
+
 console.log('\u2713 model-accessor.test.ts \u2014 all passed');

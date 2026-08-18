@@ -1,6 +1,6 @@
 {
   "name": "@picsart/ai-sdk",
-  "version": "5.6.1",
+  "version": "5.7.0",
   "type": "module",
   "description": "Type-safe SDK for 100+ AI models — image, video, audio, and text generation with Picsart",
   "license": "MIT",

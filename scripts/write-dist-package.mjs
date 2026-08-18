@@ -52,7 +52,13 @@ pkg.types = stripDist(pkg.types);
 // point the public entry at the built JS + types instead.
 const builtMain = pkg.main || './index.js';
 const builtTypes = pkg.types || './index.d.ts';
-pkg.exports = { '.': { types: builtTypes, import: builtMain } };
+// `module-sync` lets CommonJS consumers `require()` this ESM entry on Node
+// >=20.19/22.10 (the `require(esm)` feature). Without a condition that
+// `require()` resolution matches, `require('@picsart/ai-sdk')` fails with
+// ERR_PACKAGE_PATH_NOT_EXPORTED before the file is ever opened — the package
+// isn't unrequireable, it's unfindable. One ESM build still ships, so there is
+// no second copy and no dual-package hazard.
+pkg.exports = { '.': { types: builtTypes, 'module-sync': builtMain, import: builtMain } };
 
 // Scoped package must be published with public access. The target registry is
 // chosen per-publish by publish.mjs (via --@picsart:registry), not pinned here.

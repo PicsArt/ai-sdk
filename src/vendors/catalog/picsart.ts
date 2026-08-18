@@ -95,6 +95,17 @@ const SANA_AR_TO_SIZE: Record<string, string> = {
   '1:2':  '704x1408',
 };
 
+/**
+ * Magic Flow effect run (picsart-flow/v1/effects). The adapter worker resolves
+ * the template's engine inputs server-side from its catalog, so the payload is
+ * just the pair — generation never depends on client-side catalog state.
+ */
+const buildFlowEffectsPayload: PayloadBuilder = (ctx) => ({
+  // Wire field stays `template` — the deployed adapter's command contract.
+  template: ctx.templateId ?? '',
+  imageUrls: ctx.imageUrls ?? [],
+});
+
 /** SANA-Sprint (pcp/v1/sana-sprint) — fast Picsart T2I; AR drives width/height. */
 const buildPcpSanaSprintPayload: PayloadBuilder = (ctx) => {
   const size = resolveImageSize(ctx, SANA_AR_TO_SIZE);
@@ -232,6 +243,47 @@ export const { MODELS } = defineModels('picsart', [
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(Object.keys(SANA_AR_TO_SIZE), '1:1'),
+    },
+  },
+  {
+    id: 'picsart-flow', name: 'Picsart Effects',
+    addedAt: '2026-08-14',
+    workflow: 'picsart-flow/v1/effects',
+    buildPayload: buildFlowEffectsPayload,
+    estimatedTime: 35,
+    mode: 'image', inputType: 'i2i',
+    badge: ['new'] as const,
+    description: 'Apply curated Picsart effect presets to a photo — multi-step Magic Flow pipelines, one tap.',
+    features: [feat('Effect Presets', 'characteristic'), feat('Image Required', 'input')],
+    paramConfig: {
+      ...params.catalog('templateId', {
+        label: 'Effect Preset',
+        required: true,
+        source: { workflow: 'picsart-flow/v1/catalog/templates', modelId: 'picsart-flow' },
+        default: '',
+      }),
+      // Slot count per template rides the catalog item's meta.imageSlots.
+      ...params.imageInput(3, 'Your Photo', true, 'asset'),
+    },
+  },
+  {
+    id: 'picsart-flow-video', name: 'Picsart Effects Video',
+    addedAt: '2026-08-14',
+    workflow: 'picsart-flow/v1/effects',
+    buildPayload: buildFlowEffectsPayload,
+    estimatedTime: 150,
+    mode: 'video', inputType: 'i2v',
+    badge: ['new'] as const,
+    description: 'Animate a photo with curated Picsart video presets — multi-step Magic Flow pipelines, one tap.',
+    features: [feat('Effect Presets', 'characteristic'), feat('Image Required', 'input')],
+    paramConfig: {
+      ...params.catalog('templateId', {
+        label: 'Effect Preset',
+        required: true,
+        source: { workflow: 'picsart-flow/v1/catalog/templates', modelId: 'picsart-flow-video' },
+        default: '',
+      }),
+      ...params.imageInput(3, 'Your Photo', true, 'asset'),
     },
   },
   {

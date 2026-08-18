@@ -15,64 +15,17 @@ import {
   klingV3AdvancedParams,
 } from './params.ts';
 
-// ── Effect scenes (kling/v1/video-effects) ──────────────────────────
+// ── Effect templates (kling/v1/video-effects) ───────────────────────
+// The effect list lives in the `kling/v1/catalog/templates` platform task
+// (derived from the worker's own effect enum, with preview media and
+// `meta.imageSlots`); the `templateId` param is catalog-bound below.
 
-const KLING_EFFECT_SCENES: string[] = [
-  'korean_baseball', 'pet_skateboard', 'daily_ootd', 'tiny_beast_printer', 'landmark_reveal', 'winter_charm',
-  'flash_ride', 'maestro_of_magic', 'magic_carpet_ride', 'good_luck_spirit', 'shooting_star', 'sparkler_wand',
-  'sovereign_scepter', 'dirt_rush', 'return_of_the_king', 'dance_with_dragon', 'minimalist_light', 'martial_meow',
-  'sassy_shake', 'knock_at_a_door_revenge', 'palm_sized_figure_pro', 'prank_box', 'perler_beads', 'spring_bloom',
-  'toss_run', 'switch_to_silk', 'get_rich_quick', 'make_it_rain', 'twist_shake', 'the_hip_sway',
-  'send_my_love', 'funky_martian', 'wealth_drive', 'the_high_kick', 'the_exercise', 'lucky_veggie',
-  'studio_look', 'flash_drive', 'shush_my_dreams', 'french_elegance', 'finger_swipe', 'advent_of_flora',
-  'smooth_transition', 'kiss_pro', 'raid_check', 'snow_night_kiss', 'eternal_kiss', 'fortune_in_motion',
-  'chinese_trend', 'sedan_chair_dance', 'skyfall', 'good_luck_dance', 'laicai_dance', 'yangge_dance',
-  'color_mixing', 'palm_sized_figure', 'lantern_festival_cuju', 'unique_firework', 'unique_spring_couplets', 'horse_mask',
-  'fortune_knocks_cartoon', 'tangyuan_to_animal', 'hot_feet_dance', 'swag_dance', 'pigeon_dance', 'bloodline_dance',
-  'chanel_dance', 'cute_dance', 'love_theme_song', 'pumpitup_dance', 'city_to_village', 'fortune_god_transform',
-  'new_year_feast', 'ring_in_new', 'horse_year_firework', 'pet_vlogger', 'crystal_horse', 'lateral_shift_transition',
-  'drunk_dance', 'drunk_dance_pet', 'daoma_dance', 'bouncy_dance', 'smooth_sailing_dance', 'new_year_greeting',
-  'lion_dance', 'prosperity', 'great_success', 'golden_horse_fortune', 'red_packet_box', 'lucky_horse_year',
-  'lucky_red_packet', 'lucky_money_come', 'lion_dance_pet', 'dumpling_making_pet', 'fish_making_pet', 'pet_red_packet',
-  'lantern_glow', 'expression_challenge', 'overdrive', 'heart_gesture_dance', 'poping', 'martial_arts',
-  'running', 'nezha', 'motorcycle_dance', 'subject_3_dance', 'ghost_step_dance', 'phantom_jewel',
-  'zoom_out', 'cheers_2026', 'fight_pro', 'hug_pro', 'heart_gesture_pro', 'dollar_rain_pro',
-  'pet_bee_pro', 'countdown_teleport', 'santa_random_surprise', 'magic_match_tree', 'bullet_time_360', 'happy_birthday',
-  'birthday_star', 'thumbs_up_pro', 'tiger_hug_pro', 'pet_lion_pro', 'surprise_bouquet', 'bouquet_drop',
-  '3d_cartoon_1_pro', 'firework_2026', 'glamour_photo_shoot', 'box_of_joy', 'first_toast_of_the_year', 'my_santa_pic',
-  'santa_gift', 'steampunk_christmas', 'snowglobe', 'christmas_photo_shoot', 'ornament_crash', 'santa_express',
-  'instant_christmas', 'particle_santa_surround', 'coronation_of_frost', 'building_sweater', 'spark_in_the_snow', 'scarlet_and_snow',
-  'cozy_toon_wrap', 'bullet_time_lite', 'magic_cloak', 'balloon_parade', 'jumping_ginger_joy', 'bullet_time',
-  'c4d_cartoon_pro', 'pure_white_wings', 'black_wings', 'golden_wing', 'pink_pink_wings', 'venomous_spider',
-  'throne_of_king', 'luminous_elf', 'woodland_elf', 'japanese_anime_1', 'american_comics', 'guardian_spirit',
-  'swish_swish', 'snowboarding', 'witch_transform', 'vampire_transform', 'pumpkin_head_transform', 'demon_transform',
-  'mummy_transform', 'zombie_transform', 'cute_pumpkin_transform', 'cute_ghost_transform', 'knock_knock_halloween', 'halloween_escape',
-  'baseball', 'inner_voice', 'a_list_look', 'memory_alive', 'trampoline', 'trampoline_night',
-  'pucker_up', 'guess_what', 'feed_mooncake', 'rampage_ape', 'flyer', 'dishwasher',
-  'pet_chinese_opera', 'magic_fireball', 'gallery_ring', 'pet_moto_rider', 'muscle_pet', 'squeeze_scream',
-  'pet_delivery', 'running_man', 'disappear', 'mythic_style', 'steampunk', '3d_cartoon_2',
-  'eagle_snatch', 'hug_from_past', 'firework', 'media_interview', 'pet_chef', 'santa_gifts',
-  'santa_hug', 'heart_gesture_1', 'pet_wizard', 'smoke_smoke', 'instant_kid', 'dollar_rain',
-  'cry_cry', 'building_collapse', 'gun_shot', 'mushroom', 'double_gun', 'pet_warrior',
-  'lightning_power', 'jesus_hug', 'shark_alert', 'long_hair', 'lie_flat', 'polar_bear_hug',
-  'brown_bear_hug', 'jazz_jazz', 'office_escape_plow', 'fly_fly', 'watermelon_bomb', 'pet_dance',
-  'boss_coming', 'wool_curly', 'pet_bee', 'marry_me', 'swing_swing', 'day_to_night',
-  'piggy_morph', 'wig_out', 'car_explosion', 'ski_ski', 'siblings', 'construction_worker',
-  "let's_ride", 'snatched', 'magic_broom', 'felt_felt', 'jumpdrop', 'surfsurf',
-  'fairy_wing', 'angel_wing', 'dark_wing', 'skateskate', 'plushcut', 'jelly_press',
-  'jelly_slice', 'jelly_squish', 'jelly_jiggle', 'pixelpixel', 'yearbook', 'instant_film',
-  'anime_figure', 'rocketrocket', 'bloombloom', 'dizzydizzy', 'fuzzyfuzzy', 'squish',
-  'expansion', 'emoji',
-  'tennis_trend', 'whirling_beverage', 'f1_live', 'football_live',
-  'spielberg_transition',
-];
-
-const effectSceneStyles = KLING_EFFECT_SCENES.map(id => ({
-  id,
-  label: id.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join(' '),
-}));
-
-/** Effect scenes that require two input images (e.g. hugs, kisses, swaps). */
+/**
+ * Effect scenes that require two input images (e.g. hugs, kisses, swaps).
+ * @deprecated Read `meta.imageSlots` on the `kling/v1/catalog/templates`
+ * catalog items instead — this frozen copy is no longer maintained and will be
+ * removed in the next major.
+ */
 export const KLING_DUAL_IMAGE_EFFECTS: ReadonlySet<string> = new Set([
   'pet_skateboard', 'daily_ootd', 'toss_run', 'switch_to_silk', 'studio_look',
   'french_elegance', 'finger_swipe', 'smooth_transition', 'kiss_pro', 'snow_night_kiss',
@@ -515,10 +468,14 @@ export const { MODELS } = defineModels('kling', [
     estimatedTime: 30,
     mode: 'video', inputType: 'i2v',
     badge: ['new'] as const,
-    description: 'Apply 260+ visual effects to photos — single or dual-image scenes.',
+    description: 'Apply 270+ visual effects to photos — single or dual-image scenes.',
     features: [feat('Image Input', 'input'), feat('Video Effects', 'characteristic')],
     paramConfig: {
-      ...params.style(effectSceneStyles, effectSceneStyles[0].id),
+      ...params.catalog('templateId', {
+        label: 'Effect',
+        source: { workflow: 'kling/v1/catalog/templates' },
+        default: 'korean_baseball',
+      }),
       ...params.imageInput(2, 'Effect Images', true),
     },
   },

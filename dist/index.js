@@ -1067,6 +1067,20 @@ var p = {
       }
     };
   },
+  /**
+   * Any param whose options are served by a platform catalog task (effect
+   * templates, and anything the voiceId/videoId presets don't cover). The
+   * value is a free-string id — the live catalog is the source of truth.
+   */
+  catalog(key, cfg) {
+    return {
+      [key]: {
+        label: cfg.label,
+        required: cfg.required,
+        descriptor: { kind: "catalog", source: cfg.source, default: cfg.default }
+      }
+    };
+  },
   voiceId(options, def, opts) {
     return {
       voiceId: {
@@ -1215,6 +1229,7 @@ var params = {
   renderingSpeed: p.renderingSpeed,
   voiceId: p.voiceId,
   videoId: p.videoId,
+  catalog: p.catalog,
   language: p.language,
   // File presets — key matches the runtime GenerationContext field name.
   // `category` defaults to the most common role for the slot (overridable per call):
@@ -1451,283 +1466,6 @@ var klingOmniAdvancedParams = {
 };
 
 // src/vendors/catalog/kling/index.ts
-var KLING_EFFECT_SCENES = [
-  "korean_baseball",
-  "pet_skateboard",
-  "daily_ootd",
-  "tiny_beast_printer",
-  "landmark_reveal",
-  "winter_charm",
-  "flash_ride",
-  "maestro_of_magic",
-  "magic_carpet_ride",
-  "good_luck_spirit",
-  "shooting_star",
-  "sparkler_wand",
-  "sovereign_scepter",
-  "dirt_rush",
-  "return_of_the_king",
-  "dance_with_dragon",
-  "minimalist_light",
-  "martial_meow",
-  "sassy_shake",
-  "knock_at_a_door_revenge",
-  "palm_sized_figure_pro",
-  "prank_box",
-  "perler_beads",
-  "spring_bloom",
-  "toss_run",
-  "switch_to_silk",
-  "get_rich_quick",
-  "make_it_rain",
-  "twist_shake",
-  "the_hip_sway",
-  "send_my_love",
-  "funky_martian",
-  "wealth_drive",
-  "the_high_kick",
-  "the_exercise",
-  "lucky_veggie",
-  "studio_look",
-  "flash_drive",
-  "shush_my_dreams",
-  "french_elegance",
-  "finger_swipe",
-  "advent_of_flora",
-  "smooth_transition",
-  "kiss_pro",
-  "raid_check",
-  "snow_night_kiss",
-  "eternal_kiss",
-  "fortune_in_motion",
-  "chinese_trend",
-  "sedan_chair_dance",
-  "skyfall",
-  "good_luck_dance",
-  "laicai_dance",
-  "yangge_dance",
-  "color_mixing",
-  "palm_sized_figure",
-  "lantern_festival_cuju",
-  "unique_firework",
-  "unique_spring_couplets",
-  "horse_mask",
-  "fortune_knocks_cartoon",
-  "tangyuan_to_animal",
-  "hot_feet_dance",
-  "swag_dance",
-  "pigeon_dance",
-  "bloodline_dance",
-  "chanel_dance",
-  "cute_dance",
-  "love_theme_song",
-  "pumpitup_dance",
-  "city_to_village",
-  "fortune_god_transform",
-  "new_year_feast",
-  "ring_in_new",
-  "horse_year_firework",
-  "pet_vlogger",
-  "crystal_horse",
-  "lateral_shift_transition",
-  "drunk_dance",
-  "drunk_dance_pet",
-  "daoma_dance",
-  "bouncy_dance",
-  "smooth_sailing_dance",
-  "new_year_greeting",
-  "lion_dance",
-  "prosperity",
-  "great_success",
-  "golden_horse_fortune",
-  "red_packet_box",
-  "lucky_horse_year",
-  "lucky_red_packet",
-  "lucky_money_come",
-  "lion_dance_pet",
-  "dumpling_making_pet",
-  "fish_making_pet",
-  "pet_red_packet",
-  "lantern_glow",
-  "expression_challenge",
-  "overdrive",
-  "heart_gesture_dance",
-  "poping",
-  "martial_arts",
-  "running",
-  "nezha",
-  "motorcycle_dance",
-  "subject_3_dance",
-  "ghost_step_dance",
-  "phantom_jewel",
-  "zoom_out",
-  "cheers_2026",
-  "fight_pro",
-  "hug_pro",
-  "heart_gesture_pro",
-  "dollar_rain_pro",
-  "pet_bee_pro",
-  "countdown_teleport",
-  "santa_random_surprise",
-  "magic_match_tree",
-  "bullet_time_360",
-  "happy_birthday",
-  "birthday_star",
-  "thumbs_up_pro",
-  "tiger_hug_pro",
-  "pet_lion_pro",
-  "surprise_bouquet",
-  "bouquet_drop",
-  "3d_cartoon_1_pro",
-  "firework_2026",
-  "glamour_photo_shoot",
-  "box_of_joy",
-  "first_toast_of_the_year",
-  "my_santa_pic",
-  "santa_gift",
-  "steampunk_christmas",
-  "snowglobe",
-  "christmas_photo_shoot",
-  "ornament_crash",
-  "santa_express",
-  "instant_christmas",
-  "particle_santa_surround",
-  "coronation_of_frost",
-  "building_sweater",
-  "spark_in_the_snow",
-  "scarlet_and_snow",
-  "cozy_toon_wrap",
-  "bullet_time_lite",
-  "magic_cloak",
-  "balloon_parade",
-  "jumping_ginger_joy",
-  "bullet_time",
-  "c4d_cartoon_pro",
-  "pure_white_wings",
-  "black_wings",
-  "golden_wing",
-  "pink_pink_wings",
-  "venomous_spider",
-  "throne_of_king",
-  "luminous_elf",
-  "woodland_elf",
-  "japanese_anime_1",
-  "american_comics",
-  "guardian_spirit",
-  "swish_swish",
-  "snowboarding",
-  "witch_transform",
-  "vampire_transform",
-  "pumpkin_head_transform",
-  "demon_transform",
-  "mummy_transform",
-  "zombie_transform",
-  "cute_pumpkin_transform",
-  "cute_ghost_transform",
-  "knock_knock_halloween",
-  "halloween_escape",
-  "baseball",
-  "inner_voice",
-  "a_list_look",
-  "memory_alive",
-  "trampoline",
-  "trampoline_night",
-  "pucker_up",
-  "guess_what",
-  "feed_mooncake",
-  "rampage_ape",
-  "flyer",
-  "dishwasher",
-  "pet_chinese_opera",
-  "magic_fireball",
-  "gallery_ring",
-  "pet_moto_rider",
-  "muscle_pet",
-  "squeeze_scream",
-  "pet_delivery",
-  "running_man",
-  "disappear",
-  "mythic_style",
-  "steampunk",
-  "3d_cartoon_2",
-  "eagle_snatch",
-  "hug_from_past",
-  "firework",
-  "media_interview",
-  "pet_chef",
-  "santa_gifts",
-  "santa_hug",
-  "heart_gesture_1",
-  "pet_wizard",
-  "smoke_smoke",
-  "instant_kid",
-  "dollar_rain",
-  "cry_cry",
-  "building_collapse",
-  "gun_shot",
-  "mushroom",
-  "double_gun",
-  "pet_warrior",
-  "lightning_power",
-  "jesus_hug",
-  "shark_alert",
-  "long_hair",
-  "lie_flat",
-  "polar_bear_hug",
-  "brown_bear_hug",
-  "jazz_jazz",
-  "office_escape_plow",
-  "fly_fly",
-  "watermelon_bomb",
-  "pet_dance",
-  "boss_coming",
-  "wool_curly",
-  "pet_bee",
-  "marry_me",
-  "swing_swing",
-  "day_to_night",
-  "piggy_morph",
-  "wig_out",
-  "car_explosion",
-  "ski_ski",
-  "siblings",
-  "construction_worker",
-  "let's_ride",
-  "snatched",
-  "magic_broom",
-  "felt_felt",
-  "jumpdrop",
-  "surfsurf",
-  "fairy_wing",
-  "angel_wing",
-  "dark_wing",
-  "skateskate",
-  "plushcut",
-  "jelly_press",
-  "jelly_slice",
-  "jelly_squish",
-  "jelly_jiggle",
-  "pixelpixel",
-  "yearbook",
-  "instant_film",
-  "anime_figure",
-  "rocketrocket",
-  "bloombloom",
-  "dizzydizzy",
-  "fuzzyfuzzy",
-  "squish",
-  "expansion",
-  "emoji",
-  "tennis_trend",
-  "whirling_beverage",
-  "f1_live",
-  "football_live",
-  "spielberg_transition"
-];
-var effectSceneStyles = KLING_EFFECT_SCENES.map((id) => ({
-  id,
-  label: id.split("_").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ")
-}));
 var KLING_DUAL_IMAGE_EFFECTS = /* @__PURE__ */ new Set([
   "pet_skateboard",
   "daily_ootd",
@@ -2218,10 +1956,14 @@ var { MODELS } = defineModels("kling", [
     mode: "video",
     inputType: "i2v",
     badge: ["new"],
-    description: "Apply 260+ visual effects to photos \u2014 single or dual-image scenes.",
+    description: "Apply 270+ visual effects to photos \u2014 single or dual-image scenes.",
     features: [feat("Image Input", "input"), feat("Video Effects", "characteristic")],
     paramConfig: {
-      ...params.style(effectSceneStyles, effectSceneStyles[0].id),
+      ...params.catalog("templateId", {
+        label: "Effect",
+        source: { workflow: "kling/v1/catalog/templates" },
+        default: "korean_baseball"
+      }),
       ...params.imageInput(2, "Effect Images", true)
     }
   },
@@ -2414,7 +2156,9 @@ var buildKlingElementsPayload = (input) => {
 var buildKlingVideoEffectsPayload = (input) => {
   const isDualEffect = input.imageUrls && input.imageUrls.length >= 2;
   return {
-    effect_scene: input.style,
+    // `style` carried the effect id before the catalog-bound `templateId` param
+    // (4.1); persisted history still sends it. Alias removed in the next major.
+    effect_scene: input.templateId ?? input.style,
     ...isDualEffect ? { images: input.imageUrls.slice(0, 2) } : input.imageUrls?.[0] ? { image: input.imageUrls[0] } : {}
   };
 };
@@ -4777,13 +4521,18 @@ function toAvatarOption(item, provider) {
   };
 }
 var registry = /* @__PURE__ */ new Map();
-var keyOf = (s) => `${s.workflow}\0${s.modelId ?? ""}`;
-function installHydratedCatalog(source, kind, items, provider, version) {
+var keyOf = (s) => `${s.workflow} ${s.modelId ?? ""}`;
+var OPTION_ADAPTERS = {
+  voiceId: toVoiceOption,
+  videoId: toAvatarOption
+};
+function installHydratedCatalog(source, paramKey, items, provider, version) {
+  const adapt = OPTION_ADAPTERS[paramKey];
   registry.set(keyOf(source), {
-    kind,
+    paramKey,
     items,
     options: items.map((i) => ({ id: i.id, label: i.name })),
-    catalogOptions: kind === "voices" ? items.map((i) => toVoiceOption(i, provider)) : items.map((i) => toAvatarOption(i, provider)),
+    catalogOptions: adapt ? items.map((i) => adapt(i, provider)) : items,
     version
   });
 }
@@ -4793,7 +4542,7 @@ function getHydratedCatalog(source) {
 function getHydratedVoices() {
   const out = [];
   for (const c of registry.values()) {
-    if (c.kind === "voices") out.push(...c.catalogOptions);
+    if (c.paramKey === "voiceId") out.push(...c.catalogOptions);
   }
   return out;
 }
@@ -7705,6 +7454,11 @@ var SANA_AR_TO_SIZE = {
   "2:1": "1408x704",
   "1:2": "704x1408"
 };
+var buildFlowEffectsPayload = (ctx) => ({
+  // Wire field stays `template` — the deployed adapter's command contract.
+  template: ctx.templateId ?? "",
+  imageUrls: ctx.imageUrls ?? []
+});
 var buildPcpSanaSprintPayload = (ctx) => {
   const size = resolveImageSize(ctx, SANA_AR_TO_SIZE);
   const [w, h] = size ? size.split("x").map((n) => parseInt(n)) : [1024, 1024];
@@ -7859,6 +7613,51 @@ var { MODELS: MODELS31 } = defineModels("picsart", [
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(Object.keys(SANA_AR_TO_SIZE), "1:1")
+    }
+  },
+  {
+    id: "picsart-flow",
+    name: "Picsart Effects",
+    addedAt: "2026-08-14",
+    workflow: "picsart-flow/v1/effects",
+    buildPayload: buildFlowEffectsPayload,
+    estimatedTime: 35,
+    mode: "image",
+    inputType: "i2i",
+    badge: ["new"],
+    description: "Apply curated Picsart effect presets to a photo \u2014 multi-step Magic Flow pipelines, one tap.",
+    features: [feat("Effect Presets", "characteristic"), feat("Image Required", "input")],
+    paramConfig: {
+      ...params.catalog("templateId", {
+        label: "Effect Preset",
+        required: true,
+        source: { workflow: "picsart-flow/v1/catalog/templates", modelId: "picsart-flow" },
+        default: ""
+      }),
+      // Slot count per template rides the catalog item's meta.imageSlots.
+      ...params.imageInput(3, "Your Photo", true, "asset")
+    }
+  },
+  {
+    id: "picsart-flow-video",
+    name: "Picsart Effects Video",
+    addedAt: "2026-08-14",
+    workflow: "picsart-flow/v1/effects",
+    buildPayload: buildFlowEffectsPayload,
+    estimatedTime: 150,
+    mode: "video",
+    inputType: "i2v",
+    badge: ["new"],
+    description: "Animate a photo with curated Picsart video presets \u2014 multi-step Magic Flow pipelines, one tap.",
+    features: [feat("Effect Presets", "characteristic"), feat("Image Required", "input")],
+    paramConfig: {
+      ...params.catalog("templateId", {
+        label: "Effect Preset",
+        required: true,
+        source: { workflow: "picsart-flow/v1/catalog/templates", modelId: "picsart-flow-video" },
+        default: ""
+      }),
+      ...params.imageInput(3, "Your Photo", true, "asset")
     }
   },
   {
@@ -9875,10 +9674,6 @@ function createApis(config) {
 // src/client/catalogs.ts
 var DEFAULT_LIMIT = 100;
 var MIN_TTL_SECONDS = 60;
-var PARAM_KEY = {
-  voices: "voiceId",
-  avatars: "videoId"
-};
 var copyPage = (page) => ({
   items: [...page.items],
   nextCursor: page.nextCursor
@@ -9947,7 +9742,7 @@ function createCatalogs(transport, options) {
     }
     return [...byId.values()];
   }
-  async function loadPage(def, kind, source, options2) {
+  async function loadPage(def, paramKey, source, options2) {
     const store = storeFor(source, options2?.forceRefresh);
     const cursorKey = options2?.cursor ?? "";
     const cached = store.pages.get(cursorKey);
@@ -9970,7 +9765,7 @@ function createCatalogs(transport, options) {
         if (store.expiresAt === 0) {
           store.expiresAt = Date.now() + Math.max(MIN_TTL_SECONDS, res.ttlSeconds || 0) * 1e3;
         }
-        installHydratedCatalog(source, kind, accumulated(store), def.provider, store.version);
+        installHydratedCatalog(source, paramKey, accumulated(store), def.provider, store.version);
       }
       return page;
     }).finally(() => {
@@ -9979,33 +9774,32 @@ function createCatalogs(transport, options) {
     inflight.set(inflightKey, run);
     return abortable(run.then(copyPage), options2?.signal);
   }
-  function requireSource(def, kind) {
-    const d = def.paramConfig[PARAM_KEY[kind]]?.descriptor;
+  function requireSource(def, key) {
+    const d = def.paramConfig[key]?.descriptor;
     const source = d?.kind === "catalog" ? d.source : void 0;
     if (!source) {
-      throw new Error(`Model "${def.id}" has no runtime ${kind} catalog \u2014 its ${PARAM_KEY[kind]} options are static.`);
+      throw new Error(`Model "${def.id}" has no runtime catalog on param "${key}" \u2014 its options are static.`);
     }
     return source;
   }
+  async function loadParam(model, key, options2) {
+    const def = resolveModel(model);
+    return loadPage(def, key, requireSource(def, key), options2);
+  }
   const client = {
-    async voices(model, options2) {
-      const def = resolveModel(model);
-      return loadPage(def, "voices", requireSource(def, "voices"), options2);
-    },
-    async avatars(model, options2) {
-      const def = resolveModel(model);
-      return loadPage(def, "avatars", requireSource(def, "avatars"), options2);
-    }
+    voices: (model, options2) => loadParam(model, "voiceId", options2),
+    avatars: (model, options2) => loadParam(model, "videoId", options2),
+    templates: (model, options2) => loadParam(model, "templateId", options2)
   };
   if (options?.preload) {
     const seen = /* @__PURE__ */ new Set();
     for (const def of ALL_MODELS) {
-      for (const kind of ["voices", "avatars"]) {
-        const d = def.paramConfig[PARAM_KEY[kind]]?.descriptor;
-        const source = d?.kind === "catalog" ? d.source : void 0;
+      for (const [key, entry] of Object.entries(def.paramConfig)) {
+        const d = entry.descriptor;
+        const source = d.kind === "catalog" ? d.source : void 0;
         if (!source || seen.has(keyOf2(source))) continue;
         seen.add(keyOf2(source));
-        void loadPage(def, kind, source).catch(() => {
+        void loadPage(def, key, source).catch(() => {
         });
       }
     }
@@ -10727,6 +10521,8 @@ var MinimaxMusicV3 = "minimax-music-v3";
 var Ovi = "ovi";
 var PicsartChangeBg = "picsart-change-bg";
 var PicsartEnhance = "picsart-enhance";
+var PicsartFlow = "picsart-flow";
+var PicsartFlowVideo = "picsart-flow-video";
 var PicsartFlux2Klein = "picsart-flux-2-klein";
 var PicsartHidreamT2i = "picsart-hidream-t2i";
 var PicsartQwenImageEdit = "picsart-qwen-image-edit";
@@ -10933,6 +10729,8 @@ var Models = {
   Ovi,
   PicsartChangeBg,
   PicsartEnhance,
+  PicsartFlow,
+  PicsartFlowVideo,
   PicsartFlux2Klein,
   PicsartHidreamT2i,
   PicsartQwenImageEdit,

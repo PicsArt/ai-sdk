@@ -131,6 +131,12 @@ export interface GenerationContext {
   /** Recraft V4 Styles — style-reference image URLs (max 5, t2i only).
    *  Required: the V4 Styles API rejects requests without a style. */
   styleReferenceUrls?: string[];
+  /**
+   * Effect template id — a catalog-served content preset id (e.g. a Kling effect
+   * scene from `kling/v1/catalog/templates`). Free string; the live catalog is
+   * the source of truth.
+   */
+  templateId?: string;
   quality?: string;
   size?: string;
   negativePrompt?: string;

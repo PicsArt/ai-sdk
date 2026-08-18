@@ -1,6 +1,7 @@
 /**
- * ai.catalogs — runtime access to the platform voice/avatar catalog tasks
- * (`<vendor>/v1/catalog/<voices|avatars>`).
+ * ai.catalogs — runtime access to the platform catalog tasks
+ * (`<vendor>/v1/catalog/<voices|avatars|…>`) serving any catalog-bound param
+ * (`kind: 'catalog'` descriptor): voices, avatars, effect templates.
  *
  * Loading is page-by-page: each call fetches ONE page (UI loads more on
  * scroll/pagination via `nextCursor`). Pages are cached per the `ttlSeconds`
@@ -15,7 +16,7 @@
 import type { SdkTransport } from '../core/workflow.ts';
 import type { ModelDefinition } from '../core/types.ts';
 import type { TypedModelId } from '../generated/model-input-types.ts';
-import type { CatalogItem, CatalogKind, CatalogQuery, CatalogResult, CatalogSource } from '../core/catalogs.ts';
+import type { CatalogItem, CatalogQuery, CatalogResult, CatalogSource } from '../core/catalogs.ts';
 import { installHydratedCatalog } from '../core/catalogs.ts';
 import { resolveModel } from '../core/resolve.ts';
 import { ALL_MODELS } from '../vendors/catalog/index.ts';
@@ -46,12 +47,15 @@ export interface CatalogPageOptions {
 
 export interface CatalogsClient {
   /**
-   * One page of the model's voice catalog. Fetched pages accumulate into the
-   * model's `voiceId` options, so pickers see everything loaded so far.
+   * One page of the model's voice catalog (`voiceId` param). Fetched pages
+   * accumulate into `Model(id).params().catalog('voiceId').catalogOptions`,
+   * so pickers see everything loaded so far.
    */
   voices(model: ModelId, options?: CatalogPageOptions): Promise<CatalogPage>;
   /** One page of the model's avatar catalog — same semantics, for `videoId`. */
   avatars(model: ModelId, options?: CatalogPageOptions): Promise<CatalogPage>;
+  /** One page of the model's effect-template catalog — same semantics, for `templateId`. */
+  templates(model: ModelId, options?: CatalogPageOptions): Promise<CatalogPage>;
 }
 
 export interface CatalogsOptions {
@@ -66,11 +70,6 @@ export interface CatalogsOptions {
 const DEFAULT_LIMIT = 100;
 /** Serve-stale floor so a worker sending `ttlSeconds: 0` can't disable caching. */
 const MIN_TTL_SECONDS = 60;
-
-const PARAM_KEY: Record<CatalogKind, 'voiceId' | 'videoId'> = {
-  voices: 'voiceId',
-  avatars: 'videoId',
-};
 
 /** Cached pages of one catalog source, in fetch order. */
 interface SourceStore {
@@ -160,7 +159,7 @@ export function createCatalogs(transport: SdkTransport, options?: CatalogsOption
 
   async function loadPage(
     def: ModelDefinition,
-    kind: CatalogKind,
+    paramKey: string,
     source: CatalogSource,
     options?: CatalogPageOptions,
   ): Promise<CatalogPage> {
@@ -193,7 +192,7 @@ export function createCatalogs(transport: SdkTransport, options?: CatalogsOption
           if (store.expiresAt === 0) {
             store.expiresAt = Date.now() + Math.max(MIN_TTL_SECONDS, res.ttlSeconds || 0) * 1000;
           }
-          installHydratedCatalog(source, kind, accumulated(store), def.provider, store.version);
+          installHydratedCatalog(source, paramKey, accumulated(store), def.provider, store.version);
         }
         return page;
       })
@@ -204,25 +203,24 @@ export function createCatalogs(transport: SdkTransport, options?: CatalogsOption
     return abortable(run.then(copyPage), options?.signal);
   }
 
-  function requireSource(def: ModelDefinition, kind: CatalogKind): CatalogSource {
-    const d = def.paramConfig[PARAM_KEY[kind]]?.descriptor;
+  function requireSource(def: ModelDefinition, key: string): CatalogSource {
+    const d = def.paramConfig[key]?.descriptor;
     const source = d?.kind === 'catalog' ? d.source : undefined;
     if (!source) {
-      throw new Error(`Model "${def.id}" has no runtime ${kind} catalog — its ${PARAM_KEY[kind]} options are static.`);
+      throw new Error(`Model "${def.id}" has no runtime catalog on param "${key}" — its options are static.`);
     }
     return source;
   }
 
-  const client: CatalogsClient = {
-    async voices(model, options) {
-      const def = resolveModel(model);
-      return loadPage(def, 'voices', requireSource(def, 'voices'), options);
-    },
+  async function loadParam(model: ModelId, key: string, options?: CatalogPageOptions): Promise<CatalogPage> {
+    const def = resolveModel(model);
+    return loadPage(def, key, requireSource(def, key), options);
+  }
 
-    async avatars(model, options) {
-      const def = resolveModel(model);
-      return loadPage(def, 'avatars', requireSource(def, 'avatars'), options);
-    },
+  const client: CatalogsClient = {
+    voices: (model, options) => loadParam(model, 'voiceId', options),
+    avatars: (model, options) => loadParam(model, 'videoId', options),
+    templates: (model, options) => loadParam(model, 'templateId', options),
   };
 
   if (options?.preload) {
@@ -230,12 +228,12 @@ export function createCatalogs(transport: SdkTransport, options?: CatalogsOption
     // silent by design: a picker opened later just triggers a normal load.
     const seen = new Set<string>();
     for (const def of ALL_MODELS) {
-      for (const kind of ['voices', 'avatars'] as const) {
-        const d = def.paramConfig[PARAM_KEY[kind]]?.descriptor;
-        const source = d?.kind === 'catalog' ? d.source : undefined;
+      for (const [key, entry] of Object.entries(def.paramConfig)) {
+        const d = entry.descriptor;
+        const source = d.kind === 'catalog' ? d.source : undefined;
         if (!source || seen.has(keyOf(source))) continue;
         seen.add(keyOf(source));
-        void loadPage(def, kind, source).catch(() => {});
+        void loadPage(def, key, source).catch(() => {});
       }
     }
   }

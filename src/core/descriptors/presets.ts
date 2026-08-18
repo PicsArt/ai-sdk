@@ -327,6 +327,24 @@ export const p = {
     };
   },
 
+  /**
+   * Any param whose options are served by a platform catalog task (effect
+   * templates, and anything the voiceId/videoId presets don't cover). The
+   * value is a free-string id — the live catalog is the source of truth.
+   */
+  catalog(
+    key: string,
+    cfg: { source: CatalogSource; default: string; label?: string; required?: boolean },
+  ): ModelParams {
+    return {
+      [key]: {
+        label: cfg.label,
+        required: cfg.required,
+        descriptor: { kind: 'catalog', source: cfg.source, default: cfg.default },
+      },
+    };
+  },
+
   voiceId(
     options: ReadonlyArray<{ id: string; name?: string }>,
     def: string,

@@ -244,6 +244,10 @@ export const Ovi = 'ovi' as const;
 export const PicsartChangeBg = 'picsart-change-bg' as const;
 /** Enhance — picsart (image) */
 export const PicsartEnhance = 'picsart-enhance' as const;
+/** Picsart Effects — picsart (image) */
+export const PicsartFlow = 'picsart-flow' as const;
+/** Picsart Effects Video — picsart (video) */
+export const PicsartFlowVideo = 'picsart-flow-video' as const;
 /** Flux 2 Klein 4B — picsart (image) */
 export const PicsartFlux2Klein = 'picsart-flux-2-klein' as const;
 /** Picsart HiDream T2I — picsart (image) */
@@ -566,6 +570,8 @@ export const Models = {
   Ovi,
   PicsartChangeBg,
   PicsartEnhance,
+  PicsartFlow,
+  PicsartFlowVideo,
   PicsartFlux2Klein,
   PicsartHidreamT2i,
   PicsartQwenImageEdit,

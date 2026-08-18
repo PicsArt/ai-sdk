@@ -222,6 +222,7 @@ export const params = {
   renderingSpeed: p.renderingSpeed,
   voiceId: p.voiceId,
   videoId: p.videoId,
+  catalog: p.catalog,
   language: p.language,
   // File presets — key matches the runtime GenerationContext field name.
   // `category` defaults to the most common role for the slot (overridable per call):

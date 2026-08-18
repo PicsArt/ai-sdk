@@ -167,10 +167,9 @@ Model('heygen-video-avatar').params().catalog('videoId')?.catalogOptions
 
 `CatalogItem` is the standard shape across all vendors:
 `{ id, name, description?, tags, preview? { imageUrl | videoUrl | audioUrl }, meta? }` —
-`id` is sent back verbatim as `voiceId` / `videoId` on generate. Validation
+`id` is sent back verbatim on generate as the bound param's value. Validation
 never requires hydration: catalog-bound params accept any id and the platform
-validates for real. Migrating from self-fetched catalogs? See
-`docs/DYNAMIC-CATALOGS-MIGRATION.md` at the pa-gen-ai-sdk repo root.
+validates for real.
 
 ## Advanced Lifecycle
 

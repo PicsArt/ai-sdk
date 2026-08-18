@@ -629,7 +629,7 @@ type ModelInputById = {
         staticMask?: string;
     };
     "kling-video-effects": {
-        style?: "korean_baseball" | "pet_skateboard" | "daily_ootd" | "tiny_beast_printer" | "landmark_reveal" | "winter_charm" | "flash_ride" | "maestro_of_magic" | "magic_carpet_ride" | "good_luck_spirit" | "shooting_star" | "sparkler_wand" | "sovereign_scepter" | "dirt_rush" | "return_of_the_king" | "dance_with_dragon" | "minimalist_light" | "martial_meow" | "sassy_shake" | "knock_at_a_door_revenge" | "palm_sized_figure_pro" | "prank_box" | "perler_beads" | "spring_bloom" | "toss_run" | "switch_to_silk" | "get_rich_quick" | "make_it_rain" | "twist_shake" | "the_hip_sway" | "send_my_love" | "funky_martian" | "wealth_drive" | "the_high_kick" | "the_exercise" | "lucky_veggie" | "studio_look" | "flash_drive" | "shush_my_dreams" | "french_elegance" | "finger_swipe" | "advent_of_flora" | "smooth_transition" | "kiss_pro" | "raid_check" | "snow_night_kiss" | "eternal_kiss" | "fortune_in_motion" | "chinese_trend" | "sedan_chair_dance" | "skyfall" | "good_luck_dance" | "laicai_dance" | "yangge_dance" | "color_mixing" | "palm_sized_figure" | "lantern_festival_cuju" | "unique_firework" | "unique_spring_couplets" | "horse_mask" | "fortune_knocks_cartoon" | "tangyuan_to_animal" | "hot_feet_dance" | "swag_dance" | "pigeon_dance" | "bloodline_dance" | "chanel_dance" | "cute_dance" | "love_theme_song" | "pumpitup_dance" | "city_to_village" | "fortune_god_transform" | "new_year_feast" | "ring_in_new" | "horse_year_firework" | "pet_vlogger" | "crystal_horse" | "lateral_shift_transition" | "drunk_dance" | "drunk_dance_pet" | "daoma_dance" | "bouncy_dance" | "smooth_sailing_dance" | "new_year_greeting" | "lion_dance" | "prosperity" | "great_success" | "golden_horse_fortune" | "red_packet_box" | "lucky_horse_year" | "lucky_red_packet" | "lucky_money_come" | "lion_dance_pet" | "dumpling_making_pet" | "fish_making_pet" | "pet_red_packet" | "lantern_glow" | "expression_challenge" | "overdrive" | "heart_gesture_dance" | "poping" | "martial_arts" | "running" | "nezha" | "motorcycle_dance" | "subject_3_dance" | "ghost_step_dance" | "phantom_jewel" | "zoom_out" | "cheers_2026" | "fight_pro" | "hug_pro" | "heart_gesture_pro" | "dollar_rain_pro" | "pet_bee_pro" | "countdown_teleport" | "santa_random_surprise" | "magic_match_tree" | "bullet_time_360" | "happy_birthday" | "birthday_star" | "thumbs_up_pro" | "tiger_hug_pro" | "pet_lion_pro" | "surprise_bouquet" | "bouquet_drop" | "3d_cartoon_1_pro" | "firework_2026" | "glamour_photo_shoot" | "box_of_joy" | "first_toast_of_the_year" | "my_santa_pic" | "santa_gift" | "steampunk_christmas" | "snowglobe" | "christmas_photo_shoot" | "ornament_crash" | "santa_express" | "instant_christmas" | "particle_santa_surround" | "coronation_of_frost" | "building_sweater" | "spark_in_the_snow" | "scarlet_and_snow" | "cozy_toon_wrap" | "bullet_time_lite" | "magic_cloak" | "balloon_parade" | "jumping_ginger_joy" | "bullet_time" | "c4d_cartoon_pro" | "pure_white_wings" | "black_wings" | "golden_wing" | "pink_pink_wings" | "venomous_spider" | "throne_of_king" | "luminous_elf" | "woodland_elf" | "japanese_anime_1" | "american_comics" | "guardian_spirit" | "swish_swish" | "snowboarding" | "witch_transform" | "vampire_transform" | "pumpkin_head_transform" | "demon_transform" | "mummy_transform" | "zombie_transform" | "cute_pumpkin_transform" | "cute_ghost_transform" | "knock_knock_halloween" | "halloween_escape" | "baseball" | "inner_voice" | "a_list_look" | "memory_alive" | "trampoline" | "trampoline_night" | "pucker_up" | "guess_what" | "feed_mooncake" | "rampage_ape" | "flyer" | "dishwasher" | "pet_chinese_opera" | "magic_fireball" | "gallery_ring" | "pet_moto_rider" | "muscle_pet" | "squeeze_scream" | "pet_delivery" | "running_man" | "disappear" | "mythic_style" | "steampunk" | "3d_cartoon_2" | "eagle_snatch" | "hug_from_past" | "firework" | "media_interview" | "pet_chef" | "santa_gifts" | "santa_hug" | "heart_gesture_1" | "pet_wizard" | "smoke_smoke" | "instant_kid" | "dollar_rain" | "cry_cry" | "building_collapse" | "gun_shot" | "mushroom" | "double_gun" | "pet_warrior" | "lightning_power" | "jesus_hug" | "shark_alert" | "long_hair" | "lie_flat" | "polar_bear_hug" | "brown_bear_hug" | "jazz_jazz" | "office_escape_plow" | "fly_fly" | "watermelon_bomb" | "pet_dance" | "boss_coming" | "wool_curly" | "pet_bee" | "marry_me" | "swing_swing" | "day_to_night" | "piggy_morph" | "wig_out" | "car_explosion" | "ski_ski" | "siblings" | "construction_worker" | "let's_ride" | "snatched" | "magic_broom" | "felt_felt" | "jumpdrop" | "surfsurf" | "fairy_wing" | "angel_wing" | "dark_wing" | "skateskate" | "plushcut" | "jelly_press" | "jelly_slice" | "jelly_squish" | "jelly_jiggle" | "pixelpixel" | "yearbook" | "instant_film" | "anime_figure" | "rocketrocket" | "bloombloom" | "dizzydizzy" | "fuzzyfuzzy" | "squish" | "expansion" | "emoji" | "tennis_trend" | "whirling_beverage" | "f1_live" | "football_live" | "spielberg_transition";
+        templateId?: string;
         imageUrls: [string, ...string[]];
     };
     "kling-video-o1": {
@@ -794,6 +794,14 @@ type ModelInputById = {
         prompt: string;
     };
     "picsart-enhance": {
+        imageUrls: [string, ...string[]];
+    };
+    "picsart-flow": {
+        templateId: string;
+        imageUrls: [string, ...string[]];
+    };
+    "picsart-flow-video": {
+        templateId: string;
         imageUrls: [string, ...string[]];
     };
     "picsart-flux-2-klein": {
@@ -2009,6 +2017,12 @@ interface GenerationContext {
     /** Recraft V4 Styles — style-reference image URLs (max 5, t2i only).
      *  Required: the V4 Styles API rejects requests without a style. */
     styleReferenceUrls?: string[];
+    /**
+     * Effect template id — a catalog-served content preset id (e.g. a Kling effect
+     * scene from `kling/v1/catalog/templates`). Free string; the live catalog is
+     * the source of truth.
+     */
+    templateId?: string;
     quality?: string;
     size?: string;
     negativePrompt?: string;
@@ -2137,9 +2151,10 @@ interface ModelDefinition {
 }
 
 /**
- * Voice/avatar catalogs — the standard format served by the platform
- * `<vendor>/v1/catalog/<voices|avatars>` tasks, plus the in-memory hydration
- * registry that lets runtime-fetched catalogs back the descriptor system.
+ * Runtime catalogs — the standard format served by the platform
+ * `<vendor>/v1/catalog/<voices|avatars|…>` tasks (voices, avatars, effect
+ * templates), plus the in-memory hydration registry that lets runtime-fetched
+ * catalogs back the descriptor system.
  *
  * The wire types mirror the shared backend contract (`@picsart/pa-genai-common`);
  * the SDK owns its own copy so it carries no backend dependency.
@@ -2151,7 +2166,7 @@ interface CatalogPreview {
     audioUrl?: string;
 }
 interface CatalogItem {
-    /** Vendor-native id, sent back verbatim on generate (voiceId / videoId). */
+    /** Vendor-native id, sent back verbatim on generate as the bound param's value. */
     id: string;
     name: string;
     description?: string;
@@ -2178,6 +2193,7 @@ interface CatalogResult {
     /** `null` when the list is complete. */
     nextCursor: string | null;
 }
+/** @deprecated No longer drives behavior — catalogs are addressed by param key. */
 type CatalogKind = 'voices' | 'avatars';
 /** Binds a param's options to a platform catalog task. */
 interface CatalogSource {
@@ -2190,8 +2206,9 @@ declare function toVoiceOption(item: CatalogItem, provider: Provider): VoiceOpti
 declare function toAvatarOption(item: CatalogItem, provider: Provider): AvatarOption;
 
 /**
- * ai.catalogs — runtime access to the platform voice/avatar catalog tasks
- * (`<vendor>/v1/catalog/<voices|avatars>`).
+ * ai.catalogs — runtime access to the platform catalog tasks
+ * (`<vendor>/v1/catalog/<voices|avatars|…>`) serving any catalog-bound param
+ * (`kind: 'catalog'` descriptor): voices, avatars, effect templates.
  *
  * Loading is page-by-page: each call fetches ONE page (UI loads more on
  * scroll/pagination via `nextCursor`). Pages are cached per the `ttlSeconds`
@@ -2226,12 +2243,15 @@ interface CatalogPageOptions {
 }
 interface CatalogsClient {
     /**
-     * One page of the model's voice catalog. Fetched pages accumulate into the
-     * model's `voiceId` options, so pickers see everything loaded so far.
+     * One page of the model's voice catalog (`voiceId` param). Fetched pages
+     * accumulate into `Model(id).params().catalog('voiceId').catalogOptions`,
+     * so pickers see everything loaded so far.
      */
     voices(model: ModelId, options?: CatalogPageOptions): Promise<CatalogPage>;
     /** One page of the model's avatar catalog — same semantics, for `videoId`. */
     avatars(model: ModelId, options?: CatalogPageOptions): Promise<CatalogPage>;
+    /** One page of the model's effect-template catalog — same semantics, for `templateId`. */
+    templates(model: ModelId, options?: CatalogPageOptions): Promise<CatalogPage>;
 }
 interface CatalogsOptions {
     /**
@@ -2512,6 +2532,8 @@ declare const Models: {
     readonly Ovi: "ovi";
     readonly PicsartChangeBg: "picsart-change-bg";
     readonly PicsartEnhance: "picsart-enhance";
+    readonly PicsartFlow: "picsart-flow";
+    readonly PicsartFlowVideo: "picsart-flow-video";
     readonly PicsartFlux2Klein: "picsart-flux-2-klein";
     readonly PicsartHidreamT2i: "picsart-hidream-t2i";
     readonly PicsartQwenImageEdit: "picsart-qwen-image-edit";
@@ -2755,7 +2777,12 @@ declare const getModel: (id: string) => ModelDefinition | undefined;
 /** Find a model by ID, workflow name, or display name (case-insensitive). */
 declare const findModel: (ref: string) => ModelDefinition | undefined;
 
-/** Effect scenes that require two input images (e.g. hugs, kisses, swaps). */
+/**
+ * Effect scenes that require two input images (e.g. hugs, kisses, swaps).
+ * @deprecated Read `meta.imageSlots` on the `kling/v1/catalog/templates`
+ * catalog items instead — this frozen copy is no longer maintained and will be
+ * removed in the next major.
+ */
 declare const KLING_DUAL_IMAGE_EFFECTS: ReadonlySet<string>;
 
 export { ALL_MODELS, type AiClient, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogKind, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };

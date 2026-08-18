@@ -304,10 +304,12 @@ export const buildKlingElementsPayload = (input: KlingElementsInput): KlingEleme
 
 // ── Video effects (single or dual-image scenes) ─────────────────────
 
-export const buildKlingVideoEffectsPayload = (input: KlingVideoEffectsInput) => {
+export const buildKlingVideoEffectsPayload = (input: KlingVideoEffectsInput & { style?: string }) => {
   const isDualEffect = input.imageUrls && input.imageUrls.length >= 2;
   return {
-    effect_scene: input.style,
+    // `style` carried the effect id before the catalog-bound `templateId` param
+    // (4.1); persisted history still sends it. Alias removed in the next major.
+    effect_scene: input.templateId ?? input.style,
     ...(isDualEffect
       ? { images: input.imageUrls!.slice(0, 2) }
       : input.imageUrls?.[0] ? { image: input.imageUrls[0] } : {}),

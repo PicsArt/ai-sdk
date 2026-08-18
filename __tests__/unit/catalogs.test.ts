@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import type { SdkTransport, WorkflowSubmitRequest } from '../../src/core/workflow.ts';
 import type { CatalogItem } from '../../src/core/catalogs.ts';
-import { clearHydratedCatalogs } from '../../src/core/catalogs.ts';
+import { clearHydratedCatalogs, installHydratedCatalog, getHydratedCatalog } from '../../src/core/catalogs.ts';
 import { createCatalogs } from '../../src/client/catalogs.ts';
 import { Model } from '../../src/core/descriptors/model-accessor.ts';
 import { p } from '../../src/core/descriptors/presets.ts';
@@ -198,7 +198,7 @@ assert.strictEqual(plain.voiceId, 'b');
 
 await assert.rejects(
   () => catalogs.voices('flux-2-pro'),
-  /has no runtime voices catalog/,
+  /has no runtime catalog on param "voiceId"/,
 );
 
 // ── Error paths ──────────────────────────────────────────────────────
@@ -333,6 +333,83 @@ await assert.rejects(
     (Model('heygen-video-avatar').params().catalog('voiceId')?.catalogOptions as VoiceOption[]).length,
     100,
   );
+}
+
+// ── templates(): third catalog accessor, same machinery ─────────────
+
+{
+  const c = createCatalogs(fakeTransport);
+  // Models without a template catalog reject cleanly, naming model and param.
+  await assert.rejects(
+    () => c.templates('heygen-video-avatar'),
+    /has no runtime catalog on param "templateId"/,
+  );
+
+  // kling-video-effects: template is catalog-bound to the platform task.
+  const entry = Model('kling-video-effects').params().catalog('templateId');
+  assert.ok(entry);
+  assert.strictEqual(entry.kind, 'catalog');
+  assert.strictEqual(entry.default, 'korean_baseball');
+  assert.strictEqual(
+    entry.kind === 'catalog' && entry.source.workflow,
+    'kling/v1/catalog/templates',
+  );
+  executeCalls = [];
+  const page = await c.templates('kling-video-effects');
+  assert.strictEqual(executeCalls[0].workflow, 'kling/v1/catalog/templates');
+  assert.strictEqual(page.items.length, 5, 'stub page from the fake transport');
+
+  // picsart-flow models share one catalog task, split by the modelId filter —
+  // per-modelId sources are separate cache entries (seedaudio precedent).
+  executeCalls = [];
+  await c.templates('picsart-flow');
+  await c.templates('picsart-flow-video');
+  assert.strictEqual(executeCalls.length, 2);
+  assert.strictEqual(executeCalls[0].workflow, 'picsart-flow/v1/catalog/templates');
+  assert.strictEqual((executeCalls[0].payload as { modelId?: string }).modelId, 'picsart-flow');
+  assert.strictEqual((executeCalls[1].payload as { modelId?: string }).modelId, 'picsart-flow-video');
+}
+
+// ── params.catalog() builder: any key, free-string descriptor ────────
+
+{
+  const built = p.catalog('templateId', {
+    label: 'Effect',
+    required: true,
+    source: { workflow: 'kling/v1/catalog/templates' },
+    default: 'korean_baseball',
+  });
+  const entry = built.templateId;
+  assert.strictEqual(entry.label, 'Effect');
+  assert.strictEqual(entry.required, true);
+  assert.strictEqual(entry.descriptor.kind, 'catalog');
+  assert.strictEqual(entry.descriptor.kind === 'catalog' && entry.descriptor.default, 'korean_baseball');
+  // Free string: type-checked only, never membership-validated.
+  assert.doesNotThrow(() => validateAll(built, { templateId: 'anything-goes' }));
+  assert.throws(() => validateAll(built, { templateId: 42 }), /must be a string/);
+  // Reset-to-default on model switch, like every catalog param.
+  assert.strictEqual(transferValues(built, { templateId: 'hug_pro' }).templateId, 'korean_baseball');
+}
+
+// ── Hydration for non-voice/avatar keys stores raw CatalogItems ──────
+
+{
+  clearHydratedCatalogs();
+  const source = { workflow: 'kling/v1/catalog/templates' };
+  const effectItems: CatalogItem[] = [
+    { id: 'hug_pro', name: 'Hug Pro', tags: ['Dual Image'],
+      preview: { videoUrl: 'https://cdn/hug_pro.mp4' }, meta: { imageSlots: 2 } },
+  ];
+  installHydratedCatalog(source, 'templateId', effectItems, 'kling', '2026-08-10');
+  const hydrated = getHydratedCatalog(source);
+  assert.ok(hydrated);
+  assert.strictEqual(hydrated.paramKey, 'templateId');
+  assert.strictEqual(hydrated.catalogOptions, effectItems,
+    'no adapter for template — raw CatalogItems ARE the options');
+  const raw = hydrated.catalogOptions[0] as CatalogItem;
+  assert.strictEqual((raw.meta as { imageSlots?: number }).imageSlots, 2);
+  // Raw items must NOT leak into voice lookups.
+  assert.strictEqual(getVoiceById('hug_pro'), undefined);
 }
 
 // ── Cleanup so other test files see pristine state ───────────────────

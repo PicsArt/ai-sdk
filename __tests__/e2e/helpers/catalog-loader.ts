@@ -40,6 +40,11 @@ export const DISABLED_TEST_MODELS = new Set<string>([
   'heygen-video-avatar',
   // Backend dubbing requires a target language not declared (as required) in paramConfig.
   'eleven-dubbing',
+  // Require a real `template` — the picker is hydrated at runtime from
+  // `picsart-flow/v1/catalog/templates` (via ai.catalogs). CMS preset ids
+  // rotate, so no id is stable enough to bundle as a default ("").
+  'picsart-flow',
+  'picsart-flow-video',
 ]);
 
 export interface CatalogEntry {

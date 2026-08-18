@@ -14,10 +14,11 @@
  *
  * Size accepts both pixel sizes (1024x1024) and aspect ratios (1:1, 4:3, etc.).
  * V4 models support style via model variant selection (not a `style` field).
- * V4 Styles models are style-driven: the API takes style_id or
- * style_reference_urls (mutually exclusive; references are text-to-image only)
- * instead of curated style names. Those inputs are not exposed in this catalog
- * yet — the entries currently behave like plain V4 variants.
+ * V4 Styles models are style-driven: every request must supply
+ * style_reference_urls (text-to-image only) — a request without it is
+ * rejected. Exposed as the required styleReferenceUrls param; the API's
+ * alternative style_id input is not surfaced in this catalog. Because
+ * references are t2i-only and mandatory, these entries take no source image.
  * V4.1 catalog entries are raster-only (no vector style toggle).
  * V3/V2 models support style, substyle, negative_prompt.
  *
@@ -98,6 +99,25 @@ const buildRecraftUtilityPayload =
     ...(includePrompt && ctx.prompt ? { prompt: ctx.prompt } : {}),
   });
 
+/**
+ * V4 Styles payload — style-driven. The API rejects a request without a style,
+ * so styleReferenceUrls is required (text-to-image only, no source image).
+ */
+const buildRecraftV4StylesPayload =
+  (apiModel: string): PayloadBuilder =>
+  (ctx) => {
+    if (!ctx.styleReferenceUrls?.length) {
+      throw new Error('V4 Styles models require styleReferenceUrls');
+    }
+    return {
+      prompt: ctx.prompt,
+      model: apiModel,
+      n: ctx.count ?? 1,
+      ...(ctx.aspectRatio ? { size: ctx.aspectRatio } : {}),
+      style_reference_urls: ctx.styleReferenceUrls,
+    };
+  };
+
 /** V4 variant payload — fixed API model string. Used for dedicated vector/pro variant models. */
 const buildRecraftV4VariantPayload =
   (apiModel: string): PayloadBuilder =>
@@ -120,6 +140,15 @@ const buildRecraftExploreSimilarPayload: PayloadBuilder = (ctx) => ({
   source_image_id: ctx.sourceImageId,
   similarity: ctx.similarity ?? 3,
   ...(ctx.aspectRatio ? { size: ctx.aspectRatio } : {}),
+});
+
+// ── V4 Styles inputs ────────────────────────────────────────────────
+
+// Vendor caps refs at 5 images / 10MB total (PNG/JPG/WEBP); maxBytes guards
+// per file client-side, the total cap is enforced vendor-side.
+const v4StylesParams = p.file('styleReferenceUrls', 'image', {
+  label: 'Style References', required: true, array: { min: 1, max: 5 },
+  category: 'reference', maxBytes: 10 * 1024 * 1024,
 });
 
 // ── Model definitions ───────────────────────────────────────────────
@@ -393,70 +422,66 @@ export const { MODELS } = defineModels('recraft', [
     id: 'recraftv4_styles', name: 'Recraft V4 Styles',
     addedAt: '2026-08-14',
     workflow: 'recraft/v1/images/generations',
-    buildPayload: buildRecraftV4VariantPayload('recraftv4_styles'),
+    buildPayload: buildRecraftV4StylesPayload('recraftv4_styles'),
     estimatedTime: 17,
     mode: 'image', inputType: 't2i',
     description: 'Style-focused raster output with 10K-character prompts.',
-    features: [feat('Image Input', 'input'), feat('Text in Image', 'characteristic'), feat('10K Prompt', 'characteristic')],
+    features: [feat('Style References', 'style'), feat('Text in Image', 'characteristic'), feat('10K Prompt', 'characteristic')],
     paramConfig: {
       ...params.prompt({ maxLength: 10000 }),
+      ...v4StylesParams,
       ...params.aspectRatio(recraftAspectRatios, '1:1'),
       ...params.count([1, 2, 4, 6]),
-      ...params.imageInput(1, 'Source Image'),
-      ...params.imageWeight(0, 100, 80, 5),
     },
   },
   {
     id: 'recraftv4_styles_vector', name: 'Recraft V4 Styles Vector',
     addedAt: '2026-08-14',
     workflow: 'recraft/v1/images/generations',
-    buildPayload: buildRecraftV4VariantPayload('recraftv4_styles_vector'),
+    buildPayload: buildRecraftV4StylesPayload('recraftv4_styles_vector'),
     estimatedTime: 22,
     mode: 'image', inputType: 't2i',
     description: 'Style-focused SVG vector output with 10K-character prompts.',
-    features: [feat('Image Input', 'input'), feat('Vector/SVG', 'characteristic'), feat('10K Prompt', 'characteristic')],
+    features: [feat('Style References', 'style'), feat('Vector/SVG', 'characteristic'), feat('10K Prompt', 'characteristic')],
     paramConfig: {
       ...params.prompt({ maxLength: 10000 }),
+      ...v4StylesParams,
       ...params.aspectRatio(recraftAspectRatios, '1:1'),
       ...params.count([1, 2, 4, 6]),
-      ...params.imageInput(1, 'Source Image'),
-      ...params.imageWeight(0, 100, 80, 5),
     },
   },
   {
     id: 'recraftv4_styles_pro', name: 'Recraft V4 Styles Pro',
     addedAt: '2026-08-14',
     workflow: 'recraft/v1/images/generations',
-    buildPayload: buildRecraftV4VariantPayload('recraftv4_styles_pro'),
+    buildPayload: buildRecraftV4StylesPayload('recraftv4_styles_pro'),
     estimatedTime: 35,
     mode: 'image', inputType: 't2i',
     badge: ['premium'] as const,
     description: 'Pro-quality style-focused raster output with enhanced detail and 10K-character prompts.',
-    features: [feat('Image Input', 'input'), feat('Text in Image', 'characteristic'), feat('10K Prompt', 'characteristic')],
+    features: [feat('Style References', 'style'), feat('Text in Image', 'characteristic'), feat('10K Prompt', 'characteristic')],
     paramConfig: {
       ...params.prompt({ maxLength: 10000 }),
+      ...v4StylesParams,
       ...params.aspectRatio(recraftAspectRatios, '1:1'),
       ...params.count([1, 2, 4, 6]),
-      ...params.imageInput(1, 'Source Image'),
-      ...params.imageWeight(0, 100, 80, 5),
     },
   },
   {
     id: 'recraftv4_styles_pro_vector', name: 'Recraft V4 Styles Pro Vector',
     addedAt: '2026-08-14',
     workflow: 'recraft/v1/images/generations',
-    buildPayload: buildRecraftV4VariantPayload('recraftv4_styles_pro_vector'),
+    buildPayload: buildRecraftV4StylesPayload('recraftv4_styles_pro_vector'),
     estimatedTime: 35,
     mode: 'image', inputType: 't2i',
     badge: ['premium'] as const,
     description: 'Pro-quality style-focused SVG vector output with enhanced detail and 10K-character prompts.',
-    features: [feat('Image Input', 'input'), feat('Vector/SVG', 'characteristic'), feat('10K Prompt', 'characteristic')],
+    features: [feat('Style References', 'style'), feat('Vector/SVG', 'characteristic'), feat('10K Prompt', 'characteristic')],
     paramConfig: {
       ...params.prompt({ maxLength: 10000 }),
+      ...v4StylesParams,
       ...params.aspectRatio(recraftAspectRatios, '1:1'),
       ...params.count([1, 2, 4, 6]),
-      ...params.imageInput(1, 'Source Image'),
-      ...params.imageWeight(0, 100, 80, 5),
     },
   },
   {

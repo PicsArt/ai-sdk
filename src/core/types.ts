@@ -128,6 +128,9 @@ export interface GenerationContext {
   language?: string;
   accent?: string;
   style?: string;
+  /** Recraft V4 Styles — style-reference image URLs (max 5, t2i only).
+   *  Required: the V4 Styles API rejects requests without a style. */
+  styleReferenceUrls?: string[];
   quality?: string;
   size?: string;
   negativePrompt?: string;

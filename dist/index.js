@@ -6999,6 +6999,18 @@ var buildRecraftUtilityPayload = (includePrompt) => (ctx) => ({
   image_url: ctx.imageUrls?.[0],
   ...includePrompt && ctx.prompt ? { prompt: ctx.prompt } : {}
 });
+var buildRecraftV4StylesPayload = (apiModel) => (ctx) => {
+  if (!ctx.styleReferenceUrls?.length) {
+    throw new Error("V4 Styles models require styleReferenceUrls");
+  }
+  return {
+    prompt: ctx.prompt,
+    model: apiModel,
+    n: ctx.count ?? 1,
+    ...ctx.aspectRatio ? { size: ctx.aspectRatio } : {},
+    style_reference_urls: ctx.styleReferenceUrls
+  };
+};
 var buildRecraftV4VariantPayload = (apiModel) => (ctx) => ({
   prompt: ctx.prompt,
   model: apiModel,
@@ -7014,6 +7026,13 @@ var buildRecraftExploreSimilarPayload = (ctx) => ({
   source_image_id: ctx.sourceImageId,
   similarity: ctx.similarity ?? 3,
   ...ctx.aspectRatio ? { size: ctx.aspectRatio } : {}
+});
+var v4StylesParams = p.file("styleReferenceUrls", "image", {
+  label: "Style References",
+  required: true,
+  array: { min: 1, max: 5 },
+  category: "reference",
+  maxBytes: 10 * 1024 * 1024
 });
 var { MODELS: MODELS29 } = defineModels("recraft", [
   // ── V4.1 family (raster only — vector variants exist in API but not exposed here) ─
@@ -7314,18 +7333,17 @@ var { MODELS: MODELS29 } = defineModels("recraft", [
     name: "Recraft V4 Styles",
     addedAt: "2026-08-14",
     workflow: "recraft/v1/images/generations",
-    buildPayload: buildRecraftV4VariantPayload("recraftv4_styles"),
+    buildPayload: buildRecraftV4StylesPayload("recraftv4_styles"),
     estimatedTime: 17,
     mode: "image",
     inputType: "t2i",
     description: "Style-focused raster output with 10K-character prompts.",
-    features: [feat("Image Input", "input"), feat("Text in Image", "characteristic"), feat("10K Prompt", "characteristic")],
+    features: [feat("Style References", "style"), feat("Text in Image", "characteristic"), feat("10K Prompt", "characteristic")],
     paramConfig: {
       ...params.prompt({ maxLength: 1e4 }),
+      ...v4StylesParams,
       ...params.aspectRatio(recraftAspectRatios, "1:1"),
-      ...params.count([1, 2, 4, 6]),
-      ...params.imageInput(1, "Source Image"),
-      ...params.imageWeight(0, 100, 80, 5)
+      ...params.count([1, 2, 4, 6])
     }
   },
   {
@@ -7333,18 +7351,17 @@ var { MODELS: MODELS29 } = defineModels("recraft", [
     name: "Recraft V4 Styles Vector",
     addedAt: "2026-08-14",
     workflow: "recraft/v1/images/generations",
-    buildPayload: buildRecraftV4VariantPayload("recraftv4_styles_vector"),
+    buildPayload: buildRecraftV4StylesPayload("recraftv4_styles_vector"),
     estimatedTime: 22,
     mode: "image",
     inputType: "t2i",
     description: "Style-focused SVG vector output with 10K-character prompts.",
-    features: [feat("Image Input", "input"), feat("Vector/SVG", "characteristic"), feat("10K Prompt", "characteristic")],
+    features: [feat("Style References", "style"), feat("Vector/SVG", "characteristic"), feat("10K Prompt", "characteristic")],
     paramConfig: {
       ...params.prompt({ maxLength: 1e4 }),
+      ...v4StylesParams,
       ...params.aspectRatio(recraftAspectRatios, "1:1"),
-      ...params.count([1, 2, 4, 6]),
-      ...params.imageInput(1, "Source Image"),
-      ...params.imageWeight(0, 100, 80, 5)
+      ...params.count([1, 2, 4, 6])
     }
   },
   {
@@ -7352,19 +7369,18 @@ var { MODELS: MODELS29 } = defineModels("recraft", [
     name: "Recraft V4 Styles Pro",
     addedAt: "2026-08-14",
     workflow: "recraft/v1/images/generations",
-    buildPayload: buildRecraftV4VariantPayload("recraftv4_styles_pro"),
+    buildPayload: buildRecraftV4StylesPayload("recraftv4_styles_pro"),
     estimatedTime: 35,
     mode: "image",
     inputType: "t2i",
     badge: ["premium"],
     description: "Pro-quality style-focused raster output with enhanced detail and 10K-character prompts.",
-    features: [feat("Image Input", "input"), feat("Text in Image", "characteristic"), feat("10K Prompt", "characteristic")],
+    features: [feat("Style References", "style"), feat("Text in Image", "characteristic"), feat("10K Prompt", "characteristic")],
     paramConfig: {
       ...params.prompt({ maxLength: 1e4 }),
+      ...v4StylesParams,
       ...params.aspectRatio(recraftAspectRatios, "1:1"),
-      ...params.count([1, 2, 4, 6]),
-      ...params.imageInput(1, "Source Image"),
-      ...params.imageWeight(0, 100, 80, 5)
+      ...params.count([1, 2, 4, 6])
     }
   },
   {
@@ -7372,19 +7388,18 @@ var { MODELS: MODELS29 } = defineModels("recraft", [
     name: "Recraft V4 Styles Pro Vector",
     addedAt: "2026-08-14",
     workflow: "recraft/v1/images/generations",
-    buildPayload: buildRecraftV4VariantPayload("recraftv4_styles_pro_vector"),
+    buildPayload: buildRecraftV4StylesPayload("recraftv4_styles_pro_vector"),
     estimatedTime: 35,
     mode: "image",
     inputType: "t2i",
     badge: ["premium"],
     description: "Pro-quality style-focused SVG vector output with enhanced detail and 10K-character prompts.",
-    features: [feat("Image Input", "input"), feat("Vector/SVG", "characteristic"), feat("10K Prompt", "characteristic")],
+    features: [feat("Style References", "style"), feat("Vector/SVG", "characteristic"), feat("10K Prompt", "characteristic")],
     paramConfig: {
       ...params.prompt({ maxLength: 1e4 }),
+      ...v4StylesParams,
       ...params.aspectRatio(recraftAspectRatios, "1:1"),
-      ...params.count([1, 2, 4, 6]),
-      ...params.imageInput(1, "Source Image"),
-      ...params.imageWeight(0, 100, 80, 5)
+      ...params.count([1, 2, 4, 6])
     }
   },
   {

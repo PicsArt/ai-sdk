@@ -1059,31 +1059,27 @@ type ModelInputById = {
     };
     "recraftv4_styles": {
         prompt: string;
+        styleReferenceUrls: [string, ...string[]];
         aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
         count?: 1 | 2 | 4 | 6;
-        imageUrls?: string[];
-        imageWeight?: number;
     };
     "recraftv4_styles_pro": {
         prompt: string;
+        styleReferenceUrls: [string, ...string[]];
         aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
         count?: 1 | 2 | 4 | 6;
-        imageUrls?: string[];
-        imageWeight?: number;
     };
     "recraftv4_styles_pro_vector": {
         prompt: string;
+        styleReferenceUrls: [string, ...string[]];
         aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
         count?: 1 | 2 | 4 | 6;
-        imageUrls?: string[];
-        imageWeight?: number;
     };
     "recraftv4_styles_vector": {
         prompt: string;
+        styleReferenceUrls: [string, ...string[]];
         aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
         count?: 1 | 2 | 4 | 6;
-        imageUrls?: string[];
-        imageWeight?: number;
     };
     "recraftv4_vector": {
         prompt: string;
@@ -2010,6 +2006,9 @@ interface GenerationContext {
     language?: string;
     accent?: string;
     style?: string;
+    /** Recraft V4 Styles — style-reference image URLs (max 5, t2i only).
+     *  Required: the V4 Styles API rejects requests without a style. */
+    styleReferenceUrls?: string[];
     quality?: string;
     size?: string;
     negativePrompt?: string;

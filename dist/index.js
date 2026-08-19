@@ -8265,6 +8265,23 @@ var { MODELS: GEMINI_LLM } = defineModels("google", [
     }
   },
   {
+    id: "gemini-3.7-flash",
+    name: "Gemini 3.7 Flash",
+    workflow: "chat-completions",
+    addedAt: "2026-08-19",
+    estimatedTime: 5,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["fast"],
+    description: "Latest fast Gemini model \u2014 low-latency multimodal text generation.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  {
     id: "gemini-3.6-flash",
     name: "Gemini 3.6 Flash",
     workflow: "chat-completions",
@@ -8357,6 +8374,7 @@ registerPayloads(MODELS36, {
   "gemini-3-pro": buildGeminiPayload("gemini-3-pro-preview"),
   // Flash models route through chat-completions (OpenAI-shaped), not the
   // native `gemini` workflow. flash-lite has no thinking param → reasoning_effort omitted.
+  "gemini-3.7-flash": buildOpenAiPayload("gemini-3.7-flash"),
   "gemini-3.6-flash": buildOpenAiPayload("gemini-3.6-flash"),
   "gemini-3.5-flash-lite": buildOpenAiPayload("gemini-3.5-flash-lite")
 });
@@ -10496,6 +10514,7 @@ var Gemini31FlashImage = "gemini-3.1-flash-image";
 var Gemini31FlashLiteImage = "gemini-3.1-flash-lite-image";
 var Gemini35FlashLite = "gemini-3.5-flash-lite";
 var Gemini36Flash = "gemini-3.6-flash";
+var Gemini37Flash = "gemini-3.7-flash";
 var GeminiOmniFlashPreview = "gemini-omni-flash-preview";
 var Gpt55 = "gpt-5.5";
 var GptImage1 = "gpt-image-1";
@@ -10705,6 +10724,7 @@ var Models = {
   Gemini31FlashLiteImage,
   Gemini35FlashLite,
   Gemini36Flash,
+  Gemini37Flash,
   GeminiOmniFlashPreview,
   Gpt55,
   GptImage1,

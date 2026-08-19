@@ -40,6 +40,7 @@ export type ModelInputById = {
   "gemini-3.1-flash-lite-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "3:2" | "2:3" | "4:5" | "5:4" | "4:1" | "1:4" | "8:1" | "1:8" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; thinkingLevel?: "minimal" | "high"; imageUrls?: string[]; };
   "gemini-3.5-flash-lite": { prompt: string; imageUrls?: string[]; };
   "gemini-3.6-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
+  "gemini-3.7-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-omni-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; duration?: 3 | 5 | 6 | 8 | 10; imageUrls?: string[]; videoUrl?: string; };
   "gpt-5.5": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gpt-image-1": { prompt: string; aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4"; quality?: "high" | "medium" | "low"; background?: "opaque" | "transparent"; outputFormat?: "png" | "jpeg" | "webp"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
@@ -219,7 +220,7 @@ export type TypedModelId = keyof ModelInputById;
 export type ModelInput<M extends TypedModelId> = ModelInputById[M];
 
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-export type TextModelId = "claude-haiku-4-5" | "claude-opus-4-8" | "claude-sonnet-4-6" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gpt-5.5";
+export type TextModelId = "claude-haiku-4-5" | "claude-opus-4-8" | "claude-sonnet-4-6" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gpt-5.5";
 export type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /** Ensure caller does not pass keys unsupported by the target model input shape. */

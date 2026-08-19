@@ -91,6 +91,18 @@ const { MODELS: GEMINI_LLM } = defineModels('google', [
     },
   },
   {
+    id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash',
+    workflow: 'chat-completions', addedAt: '2026-08-19', estimatedTime: 5,
+    mode: 'text', inputType: 'i2t', badge: ['fast'],
+    description: 'Latest fast Gemini model — low-latency multimodal text generation.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high']),
+    },
+  },
+  {
     id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash',
     workflow: 'chat-completions', addedAt: '2026-07-22', estimatedTime: 5,
     mode: 'text', inputType: 'i2t', badge: ['fast'],

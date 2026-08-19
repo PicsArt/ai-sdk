@@ -6522,10 +6522,11 @@ interface XAiTtsResult {
 
 interface XAiImagesGenerationsCommand {
     prompt: string;
-    model?: "grok-imagine-image" | "grok-imagine-image-quality";
+    model?: "grok-imagine-image" | "grok-imagine-image-quality" | "grok-imagine-image-2.0";
     aspect_ratio?: "1:1" | "3:4" | "4:3" | "9:16" | "16:9" | "2:3" | "3:2" | "9:19.5" | "19.5:9" | "9:20" | "20:9" | "1:2" | "2:1" | "auto";
     n?: number;
     resolution?: "1k" | "2k";
+    quality?: "low" | "medium";
     options?: GenAIOptions$1a;
 }
 interface GenAIOptions$1a {
@@ -6564,7 +6565,7 @@ interface XAiImagesEditsCommand {
     image?: XAiImageUrl$1;
     images?: XAiImageUrl$1[];
     mask?: XAiImageUrl$1;
-    model?: "grok-imagine-image" | "grok-imagine-image-quality";
+    model?: "grok-imagine-image" | "grok-imagine-image-quality" | "grok-imagine-image-2.0";
     n?: number;
     resolution?: "1k" | "2k";
     options?: GenAIOptions$19;
@@ -9365,7 +9366,11 @@ interface AsyncCatalogVoice {
     name: string;
     description?: string;
     tags: string[];
+    preview?: AsyncCatalogVoicePreview;
     meta?: Record<string, unknown>;
+}
+interface AsyncCatalogVoicePreview {
+    audioUrl?: string;
 }
 
 interface GeminiCatalogVoicesCommand {

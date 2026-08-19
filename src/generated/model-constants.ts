@@ -85,6 +85,8 @@ export const Gemini31FlashLiteImage = 'gemini-3.1-flash-lite-image' as const;
 export const Gemini35FlashLite = 'gemini-3.5-flash-lite' as const;
 /** Gemini 3.6 Flash — google (text) */
 export const Gemini36Flash = 'gemini-3.6-flash' as const;
+/** Gemini 3.7 Flash — google (text) */
+export const Gemini37Flash = 'gemini-3.7-flash' as const;
 /** Gemini Omni — google (video) */
 export const GeminiOmniFlashPreview = 'gemini-omni-flash-preview' as const;
 /** GPT-5.5 — openai (text) */
@@ -498,6 +500,7 @@ export const Models = {
   Gemini31FlashLiteImage,
   Gemini35FlashLite,
   Gemini36Flash,
+  Gemini37Flash,
   GeminiOmniFlashPreview,
   Gpt55,
   GptImage1,

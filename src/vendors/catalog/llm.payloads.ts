@@ -20,7 +20,7 @@ type GeminiParams = WorkflowTypes['gemini']['params'];
 // but the published @picsart/workflows-types (1.1.79) doesn't list them in its
 // `model` enum yet. Widen locally until the types package catches up, then
 // drop ChatModel/ChatPayload and revert to ChatParams.
-type ChatModel = ChatParams['model'] | 'gemini-3.6-flash' | 'gemini-3.5-flash-lite';
+type ChatModel = ChatParams['model'] | 'gemini-3.6-flash' | 'gemini-3.5-flash-lite' | 'gemini-3.7-flash';
 type ChatPayload = Omit<ChatParams, 'model'> & { model: ChatModel };
 
 const CLAUDE_MAX_TOKENS = 8192;
@@ -98,6 +98,7 @@ registerPayloads(MODELS, {
   'gemini-3-pro': buildGeminiPayload('gemini-3-pro-preview'),
   // Flash models route through chat-completions (OpenAI-shaped), not the
   // native `gemini` workflow. flash-lite has no thinking param → reasoning_effort omitted.
+  'gemini-3.7-flash': buildOpenAiPayload('gemini-3.7-flash'),
   'gemini-3.6-flash': buildOpenAiPayload('gemini-3.6-flash'),
   'gemini-3.5-flash-lite': buildOpenAiPayload('gemini-3.5-flash-lite'),
 });

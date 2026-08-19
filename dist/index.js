@@ -7772,7 +7772,7 @@ var { MODELS: MODELS32 } = defineModels("google", [
     description: "Extended music generation up to 184s with vocals, powered by Google Lyria 3 Pro.",
     features: [feat("Image Input", "input"), feat("Vocal & Instrumental", "characteristic"), feat("Up to 184s", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ placeholder: "Generate voiceover, music and sound effects" }),
       ...params.imageInput(10, "Mood Images")
     }
   }

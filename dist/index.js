@@ -3790,7 +3790,7 @@ var buildSeedance25Payload = (ctx) => {
     ],
     ratio: usesFrame ? "adaptive" : ctx.aspectRatio ?? "16:9",
     duration: ctx.duration ?? 5,
-    resolution: ctx.resolution ?? "720p",
+    resolution: ctx.resolution ?? "1080p",
     generate_audio: ctx.generateAudio ?? true,
     output_format: ctx.outputFormat ?? "mp4",
     ...ctx.returnLastFrame ? { return_last_frame: true } : {}
@@ -3809,7 +3809,7 @@ var buildSeedance25VideoEditPayload = (ctx) => ({
   ],
   ratio: "adaptive",
   duration: -1,
-  resolution: ctx.resolution ?? "720p",
+  resolution: ctx.resolution ?? "1080p",
   generate_audio: ctx.generateAudio ?? true,
   output_format: ctx.outputFormat ?? "mp4",
   ...ctx.returnLastFrame ? { return_last_frame: true } : {}
@@ -3826,7 +3826,7 @@ var buildSeedance25VideoExtendPayload = (ctx) => ({
   ],
   ratio: "adaptive",
   duration: ctx.duration ?? 15,
-  resolution: ctx.resolution ?? "720p",
+  resolution: ctx.resolution ?? "1080p",
   generate_audio: ctx.generateAudio ?? true,
   output_format: ctx.outputFormat ?? "mp4"
 });
@@ -3851,7 +3851,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
-      ...params.resolution(["480p", "720p", "1080p"], "720p"),
+      ...params.resolution(["480p", "720p", "1080p"], "1080p"),
       ...params.duration(SEEDANCE_25_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
@@ -3882,7 +3882,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       // Editing mode: aspect ratio is fixed to 'adaptive' and duration is
       // source-driven ('-1'), so neither is user-selectable (vendor rule).
       ...params.aspectRatio(["adaptive"]),
-      ...params.resolution(["480p", "720p", "1080p"], "720p"),
+      ...params.resolution(["480p", "720p", "1080p"], "1080p"),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
@@ -3908,7 +3908,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       // Extension mode: aspect ratio is locked to 'adaptive' (vendor rule);
       // duration stays user-selectable.
       ...params.aspectRatio(["adaptive"]),
-      ...params.resolution(["480p", "720p", "1080p"], "720p"),
+      ...params.resolution(["480p", "720p", "1080p"], "1080p"),
       ...params.duration(SEEDANCE_25_DURATIONS, 15),
       ...params.generateAudio(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),

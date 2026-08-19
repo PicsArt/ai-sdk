@@ -48,6 +48,7 @@ export type ModelInputById = {
   "grok-edit-video": { prompt: string; videoUrl: string; };
   "grok-extend-video": { prompt: string; duration?: 3 | 5 | 6 | 8 | 10; videoUrl: string; };
   "grok-imagine-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "3:2" | "2:3" | "2:1" | "1:2" | "19.5:9" | "9:19.5" | "20:9" | "9:20"; resolution?: "1k" | "2k"; count?: 1 | 2 | 4; imageUrls?: string[]; };
+  "grok-imagine-image-2.0": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "3:2" | "2:3" | "2:1" | "1:2" | "19.5:9" | "9:19.5" | "20:9" | "9:20"; resolution?: "1k" | "2k"; quality?: "low" | "medium"; count?: 1 | 2 | 4; imageUrls?: string[]; };
   "grok-imagine-image-quality": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "3:2" | "2:3" | "2:1" | "1:2" | "19.5:9" | "9:19.5" | "20:9" | "9:20"; resolution?: "1k" | "2k"; count?: 1 | 2 | 4; imageUrls?: string[]; };
   "grok-imagine-video": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3"; resolution?: "480p" | "720p"; duration?: 3 | 5 | 6 | 8 | 10 | 12 | 15; imageUrls?: string[]; };
   "grok-imagine-video-1.5": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3"; resolution?: "480p" | "720p" | "1080p"; duration?: 3 | 5 | 6 | 8 | 10 | 12 | 15; imageUrls: [string, ...string[]]; };

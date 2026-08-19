@@ -4890,6 +4890,28 @@ var { MODELS: MODELS17 } = defineModels("grok", [
       ...params.imageInput(1, "Source Image")
     }
   },
+  {
+    id: "grok-imagine-image-2.0",
+    name: "Grok Imagine 2.0",
+    addedAt: "2026-08-19",
+    workflow: "x-ai/v1/images/generations",
+    editWorkflow: "x-ai/v1/images/edits",
+    estimatedTime: 16,
+    mode: "image",
+    inputType: "t2i",
+    description: "Latest Grok Imagine generation \u2014 sharper detail with a low/medium quality tier.",
+    features: [feat("Image Input", "input"), feat("2k", "resolution")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(GROK_IMAGE_AR, "1:1"),
+      ...params.resolution(GROK_IMAGE_RESOLUTIONS, "1k"),
+      // Vendor-side default is medium; only supported by grok-imagine-image-2.0
+      // (generations only — the edits command has no quality field).
+      ...p.quality(["low", "medium"], "medium"),
+      ...params.count([1, 2, 4]),
+      ...params.imageInput(1, "Source Image")
+    }
+  },
   // ── Audio ─────────────────────────────────────────
   {
     id: "grok-tts",
@@ -4910,6 +4932,33 @@ var { MODELS: MODELS17 } = defineModels("grok", [
     }
   }
 ]);
+
+// src/vendors/catalog/grok.payloads.ts
+var buildGrokImage2Payload = (input) => ({
+  model: "grok-imagine-image-2.0",
+  prompt: input.prompt,
+  n: input.count ?? 1,
+  ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
+  ...input.resolution ? { resolution: input.resolution } : {},
+  ...input.quality ? { quality: input.quality } : {}
+});
+var buildGrokImage2EditPayload = (input) => {
+  const urls = input.imageUrls ?? [];
+  const imagePart2 = urls.length > 1 ? { images: urls.map((url) => ({ url })) } : urls.length === 1 ? { image: { url: urls[0] } } : {};
+  return {
+    model: "grok-imagine-image-2.0",
+    prompt: input.prompt,
+    n: input.count ?? 1,
+    ...input.resolution ? { resolution: input.resolution } : {},
+    ...imagePart2
+  };
+};
+registerPayloads(MODELS17, {
+  "grok-imagine-image-2.0": buildGrokImage2Payload
+});
+registerEditPayloads(MODELS17, {
+  "grok-imagine-image-2.0": buildGrokImage2EditPayload
+});
 
 // src/vendors/catalog/pika.ts
 var PIKA_RATIO_MAP = {
@@ -10455,6 +10504,7 @@ var GptImage2 = "gpt-image-2";
 var GrokEditVideo = "grok-edit-video";
 var GrokExtendVideo = "grok-extend-video";
 var GrokImagineImage = "grok-imagine-image";
+var GrokImagineImage20 = "grok-imagine-image-2.0";
 var GrokImagineImageQuality = "grok-imagine-image-quality";
 var GrokImagineVideo = "grok-imagine-video";
 var GrokImagineVideo15 = "grok-imagine-video-1.5";
@@ -10663,6 +10713,7 @@ var Models = {
   GrokEditVideo,
   GrokExtendVideo,
   GrokImagineImage,
+  GrokImagineImage20,
   GrokImagineImageQuality,
   GrokImagineVideo,
   GrokImagineVideo15,

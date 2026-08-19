@@ -102,6 +102,8 @@ export const GrokEditVideo = 'grok-edit-video' as const;
 export const GrokExtendVideo = 'grok-extend-video' as const;
 /** Grok Imagine — grok (image) */
 export const GrokImagineImage = 'grok-imagine-image' as const;
+/** Grok Imagine 2.0 — grok (image) */
+export const GrokImagineImage20 = 'grok-imagine-image-2.0' as const;
 /** Grok Imagine Quality — grok (image) */
 export const GrokImagineImageQuality = 'grok-imagine-image-quality' as const;
 /** Grok Imagine 1.0 — grok (video) */
@@ -504,6 +506,7 @@ export const Models = {
   GrokEditVideo,
   GrokExtendVideo,
   GrokImagineImage,
+  GrokImagineImage20,
   GrokImagineImageQuality,
   GrokImagineVideo,
   GrokImagineVideo15,

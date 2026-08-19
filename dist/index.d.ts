@@ -305,6 +305,14 @@ type ModelInputById = {
         count?: 1 | 2 | 4;
         imageUrls?: string[];
     };
+    "grok-imagine-image-2.0": {
+        prompt: string;
+        aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "3:2" | "2:3" | "2:1" | "1:2" | "19.5:9" | "9:19.5" | "20:9" | "9:20";
+        resolution?: "1k" | "2k";
+        quality?: "low" | "medium";
+        count?: 1 | 2 | 4;
+        imageUrls?: string[];
+    };
     "grok-imagine-image-quality": {
         prompt: string;
         aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "3:2" | "2:3" | "2:1" | "1:2" | "19.5:9" | "9:19.5" | "20:9" | "9:20";
@@ -2466,6 +2474,7 @@ declare const Models: {
     readonly GrokEditVideo: "grok-edit-video";
     readonly GrokExtendVideo: "grok-extend-video";
     readonly GrokImagineImage: "grok-imagine-image";
+    readonly GrokImagineImage20: "grok-imagine-image-2.0";
     readonly GrokImagineImageQuality: "grok-imagine-image-quality";
     readonly GrokImagineVideo: "grok-imagine-video";
     readonly GrokImagineVideo15: "grok-imagine-video-1.5";

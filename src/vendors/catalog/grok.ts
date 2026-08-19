@@ -7,6 +7,7 @@
  *       https://docs.x.ai/developers/model-capabilities/images/generation
  *       https://docs.x.ai/docs/api-reference#text-to-speech
  */
+import { p } from '../../core/descriptors/presets.ts';
 import type { PayloadBuilder } from '../../core/types.ts';
 import { DEFAULT_GROK_VOICE_ID } from '../../core/voices.ts';
 import { defineModels, feat, params } from '../define.ts';
@@ -215,6 +216,25 @@ export const { MODELS } = defineModels('grok', [
       ...params.prompt({ maxLength: 8000 }),
       ...params.aspectRatio(GROK_IMAGE_AR, '1:1'),
       ...params.resolution(GROK_IMAGE_RESOLUTIONS, '2k'),
+      ...params.count([1, 2, 4]),
+      ...params.imageInput(1, 'Source Image'),
+    },
+  },
+  {
+    id: 'grok-imagine-image-2.0', name: 'Grok Imagine 2.0',
+    addedAt: '2026-08-19',
+    workflow: 'x-ai/v1/images/generations', editWorkflow: 'x-ai/v1/images/edits',
+    estimatedTime: 16,
+    mode: 'image', inputType: 't2i',
+    description: 'Latest Grok Imagine generation — sharper detail with a low/medium quality tier.',
+    features: [feat('Image Input', 'input'), feat('2k', 'resolution')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(GROK_IMAGE_AR, '1:1'),
+      ...params.resolution(GROK_IMAGE_RESOLUTIONS, '1k'),
+      // Vendor-side default is medium; only supported by grok-imagine-image-2.0
+      // (generations only — the edits command has no quality field).
+      ...p.quality(['low', 'medium'], 'medium'),
       ...params.count([1, 2, 4]),
       ...params.imageInput(1, 'Source Image'),
     },

@@ -68,6 +68,9 @@ type ModelInputById = {
         prompt?: string;
         imageUrls: [string, ...string[]];
         audioUrl: string;
+        resolution?: "720p" | "1080p";
+        turboMode?: boolean;
+        seed?: number;
     };
     "bytedance-video-enhance": {
         videoUrl: string;

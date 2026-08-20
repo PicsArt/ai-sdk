@@ -6,8 +6,8 @@ import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 
 // ── Aspect-ratio → pixel-size map ────────────────────────────────────
-// Legacy map kept for picsart.ts consumers; the flux-v2 workflow now takes
-// `resolution` + `aspectRatio` directly and computes sizes backend-side.
+// Legacy map kept for picsart.ts consumers; the bfl/v1/flux-2 workflow now
+// takes `resolution` + `aspectRatio` directly and computes sizes backend-side.
 
 export const FLUX_AR_TO_SIZE: Record<string, string> = {
   '1:1': '1024x1024',
@@ -27,17 +27,20 @@ const fluxResolutions = ['1K', '2K', '4K'];
 // ── Payload builders ────────────────────────────────────────────────
 
 /**
- * Flux V2 payload builder for the dedicated `flux-v2` workflow.
+ * Flux V2 payload builder for the dedicated `bfl/v1/flux-2` workflow.
  * Flat top-level params — no modelOptions wrapper.
  * imageUrls is required by the API (send [] for pure T2I).
  * Sizing goes through `resolution` + `aspectRatio` (must be sent together);
  * the backend derives pixel dimensions within the BFL 4MP area cap.
+ * `count` fans out that many independent generations backend-side and the
+ * response comes back as `result.items[]`, one entry per image.
  */
 const buildFluxV2Payload =
   (modelId: string): PayloadBuilder =>
   (ctx) => ({
     prompt: ctx.prompt,
     model: modelId,
+    count: ctx.count ?? 1,
     imageUrls: ctx.imageUrls ?? [],
     resolution: ctx.resolution ?? '1K',
     aspectRatio: ctx.aspectRatio ?? '1:1',
@@ -66,9 +69,11 @@ function inferAspectFromSize(size?: string | null): string | null {
 }
 
 /**
- * Flux Kontext payload builder for the dedicated `flux-kontext` workflow.
- * Flat top-level params — aspectRatio at top level, no modelOptions wrapper.
- * imageUrls is required by the API (send [] for pure T2I).
+ * Flux Kontext payload builder for the dedicated `bfl/v1/flux-kontext`
+ * workflow. Flat top-level params — aspectRatio at top level, no modelOptions
+ * wrapper. imageUrls is optional; [] reads as pure T2I just the same.
+ * `count` fans out that many independent generations backend-side and the
+ * response comes back as `result.items[]`, one entry per image.
  */
 const buildFluxKontextPayload =
   (modelId: string): PayloadBuilder =>
@@ -77,6 +82,7 @@ const buildFluxKontextPayload =
     return {
       prompt: ctx.prompt,
       model: modelId,
+      count: ctx.count ?? 1,
       imageUrls: ctx.imageUrls ?? [],
       ...(aspectRatio ? { aspectRatio } : {}),
     };
@@ -85,13 +91,13 @@ const buildFluxKontextPayload =
 // ── Shared config ───────────────────────────────────────────────────
 
 const fluxV2Base = {
-  workflow: 'flux-v2' as const,
+  workflow: 'bfl/v1/flux-2' as const,
   mode: 'image' as const,
   inputType: 't2i' as const,
 };
 
 const fluxKontextBase = {
-  workflow: 'flux-kontext' as const,
+  workflow: 'bfl/v1/flux-kontext' as const,
   mode: 'image' as const,
   inputType: 't2i' as const,
 };

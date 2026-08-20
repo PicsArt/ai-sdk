@@ -21,6 +21,12 @@ export const BYTEDANCE_ENHANCE_RESOLUTION_OPTIONS = [
 ] as const;
 
 /**
+ * Output resolutions for OmniHuman. Exact backend enum strings
+ * (`OmniHumanCommand.resolution`); the vendor defaults to 1080p.
+ */
+export const BYTEDANCE_OMNIHUMAN_RESOLUTION_OPTIONS = ['720p', '1080p'] as const;
+
+/**
  * Output frame rates. The backend accepts any integer in 15..120, but it prices
  * in three tiers (<=30 / <=60 / >60), so only the tier boundaries are offered —
  * an intermediate value lands in the same tier at the same price.
@@ -41,12 +47,6 @@ export const buildBytedanceUpscalerPayload: PayloadBuilder = (ctx) => ({
   target_resolution: '1080p',
 });
 
-export const buildBytedanceOmnihumanPayload: PayloadBuilder = (ctx) => ({
-  image_url: ctx.imageUrls?.[0],
-  audio_url: ctx.audioUrl,
-  ...(ctx.prompt ? { prompt: ctx.prompt } : {}),
-});
-
 export const { MODELS } = defineModels('bytedance', [
   {
     id: 'bytedance-video-upscaler', name: 'ByteDance Upscaler',
@@ -54,6 +54,7 @@ export const { MODELS } = defineModels('bytedance', [
     workflow: 'bytedance-upscaler/upscale/video', buildPayload: buildBytedanceUpscalerPayload,
     estimatedTime: 88,
     mode: 'video', inputType: 'v2v',
+    deprecated: true,
     description: 'AI upscale video resolution — enhance existing footage to 1080p.',
     features: [feat('Video Input', 'input'), feat('1080p', 'resolution')],
     // Vendor rejects sources already at/above the 1080p target: "The input
@@ -64,15 +65,33 @@ export const { MODELS } = defineModels('bytedance', [
   {
     id: 'bytedance-omnihuman-v1.5', name: 'ByteDance OmniHuman',
     addedAt: '2026-02-06',
-    workflow: 'bytedance/omnihuman/v1.5', buildPayload: buildBytedanceOmnihumanPayload,
-    estimatedTime: 179,
+    workflow: 'bytedance/omnihuman/v1.5',
+    // Pricing key of the direct BytePlus Vision AI integration that now serves
+    // this workflow (it replaced the fal.ai proxy). The catalog `id` keeps its
+    // `v1.5` spelling for stability, so the backend key has to be spelled out.
+    // Priced per second of output video, narrowed by `resolution`.
+    modelId: 'bytedance-omnihuman-1.5',
+    // The vendor quotes a real-time factor of 23 (720p) / 27 (1080p), so wall
+    // time is driven by the driving audio's length: ~230s for a 10s clip at
+    // 720p. Measured 92-131s for a 1.84s clip — mostly queue and fixed
+    // overhead. This is a representative mid-length figure, not a ceiling.
+    estimatedTime: 250,
     mode: 'video', inputType: 'i2v',
     description: 'Animate a portrait with realistic body movement driven by audio.',
-    features: [feat('Image Input', 'input'), feat('Audio Input', 'audio')],
+    features: [
+      feat('Image Input', 'input'),
+      feat('Audio Input', 'audio'),
+      feat('1080p', 'resolution'),
+    ],
     paramConfig: {
       ...params.prompt({ required: false }),
       ...params.imageInput(1, 'Portrait Image', true),
       ...params.audioInput('Audio Track', true),
+      ...params.resolution([...BYTEDANCE_OMNIHUMAN_RESOLUTION_OPTIONS], '1080p'),
+      ...p.boolean('turboMode', false, 'Turbo Mode'),
+      // -1 (the vendor default) means "pick a random seed"; any positive value
+      // reproduces the same result for identical inputs.
+      ...p.range('seed', -1, 2147483647, -1),
     },
   },
   {
@@ -84,9 +103,6 @@ export const { MODELS } = defineModels('bytedance', [
     // representative short-clip figure, not a ceiling.
     estimatedTime: 300,
     mode: 'video', inputType: 'v2v',
-    // The pa-bytedance-pluggable-worker MR adding this task is still open, so
-    // the workflow is not deployed. Flip this off once the worker ships.
-    disabled: true,
     description: 'Denoise, color-correct and super-resolve existing footage up to 8K, with frame-rate conversion.',
     features: [feat('Video Required', 'input'), feat('Up to 8K', 'resolution'), feat('Enhance', 'quality')],
     paramConfig: {

@@ -6,7 +6,7 @@
  */
 export type ModelInputById = {
   "async-flash-v1": { prompt: string; voiceId?: string; container?: "mp3" | "wav" | "raw"; sampleRate?: number; encoding?: "pcm_s16le" | "pcm_f32le"; bitRate?: number; };
-  "bytedance-omnihuman-v1.5": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; };
+  "bytedance-omnihuman-v1.5": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; resolution?: "720p" | "1080p"; turboMode?: boolean; seed?: number; };
   "bytedance-video-enhance": { videoUrl: string; quality?: "standard" | "professional"; resolution?: "source" | "720p" | "1080p" | "2k" | "4k" | "8k"; fps?: 30 | 60 | 120; scene?: "common" | "ugc" | "short_series" | "aigc" | "old_film"; bitrateLevel?: "low" | "medium" | "high"; };
   "bytedance-video-upscaler": { videoUrl: string; };
   "claude-haiku-4-5": { prompt: string; imageUrls?: string[]; };

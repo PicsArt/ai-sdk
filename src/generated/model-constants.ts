@@ -18,9 +18,9 @@ export const AsyncFlashV1 = 'async-flash-v1' as const;
 /** ByteDance OmniHuman — bytedance (video) */
 export const BytedanceOmnihumanV15 = 'bytedance-omnihuman-v1.5' as const;
 /** ByteDance Video Enhance — bytedance (video) */
-/** @deprecated This model is currently unavailable (disabled). */
 export const BytedanceVideoEnhance = 'bytedance-video-enhance' as const;
 /** ByteDance Upscaler — bytedance (video) */
+/** @deprecated This model is retired (deprecated). */
 export const BytedanceVideoUpscaler = 'bytedance-video-upscaler' as const;
 /** Claude Haiku 4.5 — anthropic (text) */
 export const ClaudeHaiku45 = 'claude-haiku-4-5' as const;

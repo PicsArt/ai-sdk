@@ -37,15 +37,10 @@ type KlingVideoEffectsInput = ModelInput<'kling-video-effects'>;
 // field is also on I2V, plus image / image_tail / static_mask / element_list).
 
 type KlingVideoPayload = WorkflowTypes['kling-image-to-video']['params'];
-// Kling V3 Turbo rides the same kling-text/image-to-video workflows but the
-// executor (added 2026-06) accepts a `resolution` field and the
-// `kling-v3-turbo` model_name that WorkflowTypes 1.1.45 doesn't carry yet.
-// Widen locally; drop this once upstream @picsart/workflows-types catches up.
-type KlingV3TurboPayload = Omit<KlingVideoPayload, 'model_name'> & {
-  model_name?: KlingVideoPayload['model_name'] | 'kling-v3-turbo';
-  resolution?: '720p' | '1080p';
-};
 type KlingOmniVideoPayload = WorkflowTypes['kling-omni-video']['params'];
+// Omni media-array element types, derived from the wire contract.
+type KlingOmniImageRef = NonNullable<KlingOmniVideoPayload['image_list']>[number];
+type KlingOmniVideoRef = NonNullable<KlingOmniVideoPayload['video_list']>[number];
 type KlingMotionControlPayload = WorkflowTypes['kling-motion-control']['params'];
 type KlingAvatarPayload = WorkflowTypes['kling-avatar']['params'];
 type KlingT2APayload = WorkflowTypes['kling-text-to-audio']['params'];
@@ -83,9 +78,7 @@ export const buildKlingV3Payload =
       ...(hasEndFrame ? { image_tail: input.endFrame } : {}),
       ...(input.negativePrompt ? { negative_prompt: input.negativePrompt } : {}),
       ...(hasSound ? { sound: 'on' } : {}),
-      // WorkflowTypes 1.0.5 still types mode as std/pro, but the backend accepts
-      // the catalog's 4k mode for Kling V3.
-      mode: mode as KlingVideoPayload['mode'],
+      mode,
       ...(input.multiShot != null ? { multi_shot: input.multiShot } : {}),
       ...(input.shotType ? { shot_type: input.shotType } : {}),
       ...(input.multiPrompt ? { multi_prompt: input.multiPrompt } : {}),
@@ -108,7 +101,7 @@ export const buildKlingV3Payload =
  *  kling-v3-only), so this builder never emits them.
  *  - duration MUST be string.
  *  - static_mask: I2V-only (gated on startFrame). */
-export const buildKlingV3TurboPayload = (input: KlingV3TurboInput): KlingV3TurboPayload => ({
+export const buildKlingV3TurboPayload = (input: KlingV3TurboInput): KlingVideoPayload => ({
   prompt: input.prompt,
   aspect_ratio: input.aspectRatio ?? '16:9',
   // String(n) is just `string`; wire expects '3'|'5'|...|'15'. Narrowing cast.
@@ -149,30 +142,45 @@ const stringElementList = (list?: Array<{ element_id: string | number }>) =>
   list?.length ? { element_list: list.map(e => ({ element_id: String(e.element_id) })) } : {};
 
 /** V3 Omni video — full surface (multi-shot, omni media lists, element refs).
- *  - aspect_ratio omitted when video_list:base or omniImageList[0].type='first_frame'.
+ *  Media assembly: the model exposes flat file slots (startFrame / endFrame /
+ *  imageUrls / videoUrl + referType / keepOriginalSound); this builder folds
+ *  them into the wire `image_list` and `video_list` arrays.
+ *  - aspect_ratio omitted when video_list:base or a first frame is supplied.
  *  - duration omitted for video_list:base (output duration = input duration).
  *  - mode='4k' valid only when resolution='4k' AND no reference video.
  *  - sound forced off when reference video present.
  *  - element_list requires element_id as STRING (cf. V3 T2V which accepts number). */
 const buildOmniV3 = (input: KlingOmniV3Input): KlingOmniVideoPayload => {
-  const hasBaseEdit = input.omniVideoList?.some(v => v.refer_type === 'base');
-  const hasReferenceVideo = !!input.omniVideoList?.length;
+  const imageList: KlingOmniImageRef[] = [
+    ...(input.startFrame ? [{ image_url: input.startFrame, type: 'first_frame' as const }] : []),
+    ...(input.endFrame ? [{ image_url: input.endFrame, type: 'end_frame' as const }] : []),
+    ...(input.imageUrls ?? []).map(image_url => ({ image_url })),
+  ];
+  const videoList: KlingOmniVideoRef[] = input.videoUrl
+    ? [{
+        video_url: input.videoUrl,
+        refer_type: input.referType ?? 'feature',
+        keep_original_sound: input.keepOriginalSound ?? 'yes',
+      }]
+    : [];
+  const hasBaseEdit = videoList[0]?.refer_type === 'base';
+  const hasReferenceVideo = videoList.length > 0;
   const fourK = input.resolution === '4k' && !hasReferenceVideo;
   const hasSound = !!input.generateAudio && !hasReferenceVideo;
   return {
     ...(input.multiShot ? {} : { prompt: input.prompt }),
     model_name: 'kling-v3-omni',
-    ...(hasBaseEdit || input.omniImageList?.[0]?.type === 'first_frame'
+    ...(hasBaseEdit || input.startFrame
       ? {}
       : { aspect_ratio: input.aspectRatio ?? '16:9' }),
     // String(n) is just `string`; wire expects literal union. Narrowing cast.
     ...(hasBaseEdit ? {} : { duration: String(input.duration ?? 5) as KlingOmniVideoPayload['duration'] }),
-    ...(fourK ? { mode: '4k' as KlingOmniVideoPayload['mode'] } : (input.renderingSpeed ? { mode: input.renderingSpeed } : {})),
+    ...(fourK ? { mode: '4k' as const } : (input.renderingSpeed ? { mode: input.renderingSpeed } : {})),
     ...(input.multiShot != null ? { multi_shot: input.multiShot } : {}),
     ...(input.shotType ? { shot_type: input.shotType } : {}),
     ...(input.multiPrompt ? { multi_prompt: input.multiPrompt } : {}),
-    ...(input.omniImageList?.length ? { image_list: input.omniImageList } : {}),
-    ...(input.omniVideoList?.length ? { video_list: input.omniVideoList } : {}),
+    ...(imageList.length ? { image_list: imageList } : {}),
+    ...(videoList.length ? { video_list: videoList } : {}),
     ...stringElementList(input.elementList),
     ...(hasSound ? { sound: 'on' } : {}),
   };

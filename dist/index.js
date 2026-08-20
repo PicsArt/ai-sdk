@@ -1318,6 +1318,20 @@ var klingKeepOriginalSound = {
     }
   }
 };
+var klingOmniReferType = {
+  referType: {
+    label: "Reference Video Mode",
+    descriptor: {
+      kind: "enum",
+      valueType: "string",
+      options: [
+        { id: "feature", label: "Feature Reference" },
+        { id: "base", label: "Base Edit" }
+      ],
+      default: "feature"
+    }
+  }
+};
 var klingV3AdvancedParams = {
   multiShot: {
     label: "Multi-Shot Mode",
@@ -1402,54 +1416,6 @@ var klingOmniAdvancedParams = {
         index: { kind: "range", min: 0, max: 5, default: 0 },
         prompt: { kind: "text", maxLength: 512 },
         duration: { kind: "text" }
-      }
-    }
-  },
-  omniImageList: {
-    label: "Reference Images",
-    descriptor: {
-      kind: "object",
-      array: { max: 10 },
-      fields: {
-        image_url: { kind: "text" },
-        type: {
-          kind: "enum",
-          required: false,
-          valueType: "string",
-          options: [
-            { id: "first_frame", label: "First Frame" },
-            { id: "end_frame", label: "End Frame" }
-          ],
-          default: "first_frame"
-        }
-      }
-    }
-  },
-  omniVideoList: {
-    label: "Reference Video",
-    descriptor: {
-      kind: "object",
-      array: { max: 1 },
-      fields: {
-        video_url: { kind: "text" },
-        // refer_type / keep_original_sound stay required — upstream
-        // ReferenceVideo marks both required. Descriptor defaults are
-        // informational only until upstream relaxes the wire contract.
-        refer_type: {
-          kind: "enum",
-          valueType: "string",
-          options: [
-            { id: "feature", label: "Feature Reference" },
-            { id: "base", label: "Base Edit" }
-          ],
-          default: "feature"
-        },
-        keep_original_sound: {
-          kind: "enum",
-          valueType: "string",
-          options: [{ id: "yes", label: "Yes" }, { id: "no", label: "No" }],
-          default: "yes"
-        }
       }
     }
   },
@@ -1564,7 +1530,11 @@ var { MODELS } = defineModels("kling", [
     badge: ["popular", "premium"],
     description: "Long-form video up to 15s with native audio and start/end frame control.",
     constraints: [
-      { when: { renderingSpeed: { is: "std" } }, then: { endFrame: { disabled: true, reason: "End frame requires Pro or 4K mode." } } }
+      { when: { renderingSpeed: { is: "std" } }, then: { endFrame: { disabled: true, reason: "End frame requires Pro or 4K mode." } } },
+      // Backend: `voice_list` requires `sound=on`. Two rules because the
+      // `is` operator does not match an unset value (see core/constraints.ts).
+      { when: { generateAudio: { is: false } }, then: { voiceList: { disabled: true, reason: "Voice references require generated audio." } } },
+      { when: { generateAudio: { exists: false } }, then: { voiceList: { disabled: true, reason: "Voice references require generated audio." } } }
     ]
   },
   // ── Video: Kling V3 Turbo (resolution-tiered T2V + I2V) ───────────
@@ -1600,7 +1570,12 @@ var { MODELS } = defineModels("kling", [
     mode: "video",
     inputType: "t2v",
     description: "Flexible generation across creative styles using V3 Omni architecture, with optional 4K output.",
-    features: [feat("4K", "resolution"), feat("15 sec", "duration")],
+    features: [feat("Image + Video Input", "input"), feat("4K", "resolution"), feat("15 sec", "duration")],
+    // The omni task accepts reference media on the SAME workflow (no
+    // editWorkflow): `image_list` carries the optional first/end frames plus
+    // plain reference images, `video_list` carries a single reference clip.
+    // They are declared here as real file slots so `hasFileInput()` sees them
+    // and the app renders upload targets; payloads.ts assembles the arrays.
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
       ...params.aspectRatio(["16:9", "9:16", "1:1"]),
@@ -1608,8 +1583,24 @@ var { MODELS } = defineModels("kling", [
       ...params.resolution(["720p", "1080p", "4k"], "720p"),
       ...params.renderingSpeed([{ id: "std", label: "Standard" }, { id: "pro", label: "Pro" }], "std"),
       ...params.generateAudio(false),
+      ...params.startFrame("First Frame"),
+      ...params.endFrame("End Frame"),
+      // Backend states no explicit cap for omni `image_list`; 10 mirrors the
+      // omni-image contract. The worker stays the authoritative gate.
+      ...params.imageInput(10, "Reference Images"),
+      ...params.videoInput("Reference Video", "reference", false),
+      ...klingOmniReferType,
+      ...klingKeepOriginalSound,
       ...klingOmniAdvancedParams
-    }
+    },
+    constraints: [
+      // KlingMode: `4k` is incompatible with video_list; the worker also drops
+      // generated sound whenever a reference clip is supplied.
+      { when: { videoUrl: { exists: true } }, then: {
+        resolution: { allowed: ["720p", "1080p"], reason: "4K output is unavailable with a reference video." },
+        generateAudio: { disabled: true, reason: "Kling disables generated sound when a reference video is supplied." }
+      } }
+    ]
   },
   {
     id: "kling-video-o1",
@@ -2014,8 +2005,6 @@ var buildKlingV3Payload = (defaultMode = "std") => (input) => {
     ...hasEndFrame ? { image_tail: input.endFrame } : {},
     ...input.negativePrompt ? { negative_prompt: input.negativePrompt } : {},
     ...hasSound ? { sound: "on" } : {},
-    // WorkflowTypes 1.0.5 still types mode as std/pro, but the backend accepts
-    // the catalog's 4k mode for Kling V3.
     mode,
     ...input.multiShot != null ? { multi_shot: input.multiShot } : {},
     ...input.shotType ? { shot_type: input.shotType } : {},
@@ -2056,22 +2045,32 @@ var buildKlingV26Payload = (input) => {
 };
 var stringElementList = (list) => list?.length ? { element_list: list.map((e) => ({ element_id: String(e.element_id) })) } : {};
 var buildOmniV3 = (input) => {
-  const hasBaseEdit = input.omniVideoList?.some((v) => v.refer_type === "base");
-  const hasReferenceVideo = !!input.omniVideoList?.length;
+  const imageList = [
+    ...input.startFrame ? [{ image_url: input.startFrame, type: "first_frame" }] : [],
+    ...input.endFrame ? [{ image_url: input.endFrame, type: "end_frame" }] : [],
+    ...(input.imageUrls ?? []).map((image_url) => ({ image_url }))
+  ];
+  const videoList = input.videoUrl ? [{
+    video_url: input.videoUrl,
+    refer_type: input.referType ?? "feature",
+    keep_original_sound: input.keepOriginalSound ?? "yes"
+  }] : [];
+  const hasBaseEdit = videoList[0]?.refer_type === "base";
+  const hasReferenceVideo = videoList.length > 0;
   const fourK = input.resolution === "4k" && !hasReferenceVideo;
   const hasSound = !!input.generateAudio && !hasReferenceVideo;
   return {
     ...input.multiShot ? {} : { prompt: input.prompt },
     model_name: "kling-v3-omni",
-    ...hasBaseEdit || input.omniImageList?.[0]?.type === "first_frame" ? {} : { aspect_ratio: input.aspectRatio ?? "16:9" },
+    ...hasBaseEdit || input.startFrame ? {} : { aspect_ratio: input.aspectRatio ?? "16:9" },
     // String(n) is just `string`; wire expects literal union. Narrowing cast.
     ...hasBaseEdit ? {} : { duration: String(input.duration ?? 5) },
     ...fourK ? { mode: "4k" } : input.renderingSpeed ? { mode: input.renderingSpeed } : {},
     ...input.multiShot != null ? { multi_shot: input.multiShot } : {},
     ...input.shotType ? { shot_type: input.shotType } : {},
     ...input.multiPrompt ? { multi_prompt: input.multiPrompt } : {},
-    ...input.omniImageList?.length ? { image_list: input.omniImageList } : {},
-    ...input.omniVideoList?.length ? { video_list: input.omniVideoList } : {},
+    ...imageList.length ? { image_list: imageList } : {},
+    ...videoList.length ? { video_list: videoList } : {},
     ...stringElementList(input.elementList),
     ...hasSound ? { sound: "on" } : {}
   };

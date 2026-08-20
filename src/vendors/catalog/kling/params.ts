@@ -32,30 +32,6 @@ export const klingHumanFidelity: ModelParams = {
   },
 };
 
-/** Sound-effect prompt — Kling V2A (≤200 chars). */
-export const klingSoundEffectPrompt: ModelParams = {
-  soundEffectPrompt: {
-    label: 'Sound Effect Prompt',
-    descriptor: { kind: 'text', maxLength: 200, placeholder: 'e.g. rain on metal roof' },
-  },
-};
-
-/** Background-music prompt — Kling V2A (≤200 chars). */
-export const klingBgmPrompt: ModelParams = {
-  bgmPrompt: {
-    label: 'Background Music',
-    descriptor: { kind: 'text', maxLength: 200, placeholder: 'e.g. calm piano' },
-  },
-};
-
-/** ASMR mode — Kling V2A (enhances detailed sound effects). */
-export const klingAsmrMode: ModelParams = {
-  asmrMode: {
-    label: 'ASMR Mode',
-    descriptor: { kind: 'boolean', default: false },
-  },
-};
-
 /** Character orientation — Kling Motion Control. 'image' caps ref video at 10s,
  *  'video' caps at 30s. */
 export const klingCharacterOrientation: ModelParams = {
@@ -82,6 +58,24 @@ export const klingKeepOriginalSound: ModelParams = {
       valueType: 'string',
       options: [{ id: 'yes', label: 'Yes' }, { id: 'no', label: 'No' }],
       default: 'yes',
+    },
+  },
+};
+
+/** Reference-video mode — Kling Omni `video_list[0].refer_type`.
+ *  'feature' uses the clip as a style/character reference; 'base' edits the
+ *  clip itself (output duration follows the input, so `duration` is dropped). */
+export const klingOmniReferType: ModelParams = {
+  referType: {
+    label: 'Reference Video Mode',
+    descriptor: {
+      kind: 'enum',
+      valueType: 'string',
+      options: [
+        { id: 'feature', label: 'Feature Reference' },
+        { id: 'base', label: 'Base Edit' },
+      ],
+      default: 'feature',
     },
   },
 };
@@ -149,8 +143,11 @@ export const klingV3AdvancedParams: ModelParams = {
 };
 
 /** Omni video advanced params (KlingOmniVideoCommand).
- *  Differences vs V3 T2V/I2V: image_list / video_list shape, shotType locked
- *  to 'customize', element_list always allowed (not gated on startFrame). */
+ *  Differences vs V3 T2V/I2V: shotType locked to 'customize' and element_list
+ *  is always allowed (not gated on startFrame). The omni media inputs are NOT
+ *  here — `image_list` / `video_list` are declared on the model entry as real
+ *  file slots (startFrame / endFrame / imageUrls / videoUrl) and assembled by
+ *  the payload builder. */
 export const klingOmniAdvancedParams: ModelParams = {
   multiShot: {
     label: 'Multi-Shot Mode',
@@ -177,54 +174,6 @@ export const klingOmniAdvancedParams: ModelParams = {
         index: { kind: 'range', min: 0, max: 5, default: 0 },
         prompt: { kind: 'text', maxLength: 512 },
         duration: { kind: 'text' },
-      },
-    },
-  },
-  omniImageList: {
-    label: 'Reference Images',
-    descriptor: {
-      kind: 'object',
-      array: { max: 10 },
-      fields: {
-        image_url: { kind: 'text' },
-        type: {
-          kind: 'enum',
-          required: false,
-          valueType: 'string',
-          options: [
-            { id: 'first_frame', label: 'First Frame' },
-            { id: 'end_frame', label: 'End Frame' },
-          ],
-          default: 'first_frame',
-        },
-      },
-    },
-  },
-  omniVideoList: {
-    label: 'Reference Video',
-    descriptor: {
-      kind: 'object',
-      array: { max: 1 },
-      fields: {
-        video_url: { kind: 'text' },
-        // refer_type / keep_original_sound stay required — upstream
-        // ReferenceVideo marks both required. Descriptor defaults are
-        // informational only until upstream relaxes the wire contract.
-        refer_type: {
-          kind: 'enum',
-          valueType: 'string',
-          options: [
-            { id: 'feature', label: 'Feature Reference' },
-            { id: 'base', label: 'Base Edit' },
-          ],
-          default: 'feature',
-        },
-        keep_original_sound: {
-          kind: 'enum',
-          valueType: 'string',
-          options: [{ id: 'yes', label: 'Yes' }, { id: 'no', label: 'No' }],
-          default: 'yes',
-        },
       },
     },
   },

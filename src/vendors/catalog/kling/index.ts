@@ -12,6 +12,7 @@ import {
   klingImageReference,
   klingKeepOriginalSound,
   klingOmniAdvancedParams,
+  klingOmniReferType,
   klingV3AdvancedParams,
 } from './params.ts';
 
@@ -129,6 +130,10 @@ export const { MODELS } = defineModels('kling', [
     description: 'Long-form video up to 15s with native audio and start/end frame control.',
     constraints: [
       { when: { renderingSpeed: { is: 'std' } }, then: { endFrame: { disabled: true, reason: 'End frame requires Pro or 4K mode.' } } },
+      // Backend: `voice_list` requires `sound=on`. Two rules because the
+      // `is` operator does not match an unset value (see core/constraints.ts).
+      { when: { generateAudio: { is: false } }, then: { voiceList: { disabled: true, reason: 'Voice references require generated audio.' } } },
+      { when: { generateAudio: { exists: false } }, then: { voiceList: { disabled: true, reason: 'Voice references require generated audio.' } } },
     ],
   },
   // ── Video: Kling V3 Turbo (resolution-tiered T2V + I2V) ───────────
@@ -156,7 +161,12 @@ export const { MODELS } = defineModels('kling', [
     estimatedTime: 55,
     mode: 'video', inputType: 't2v',
     description: 'Flexible generation across creative styles using V3 Omni architecture, with optional 4K output.',
-    features: [feat('4K', 'resolution'), feat('15 sec', 'duration')],
+    features: [feat('Image + Video Input', 'input'), feat('4K', 'resolution'), feat('15 sec', 'duration')],
+    // The omni task accepts reference media on the SAME workflow (no
+    // editWorkflow): `image_list` carries the optional first/end frames plus
+    // plain reference images, `video_list` carries a single reference clip.
+    // They are declared here as real file slots so `hasFileInput()` sees them
+    // and the app renders upload targets; payloads.ts assembles the arrays.
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
       ...params.aspectRatio(['16:9', '9:16', '1:1']),
@@ -164,8 +174,24 @@ export const { MODELS } = defineModels('kling', [
       ...params.resolution(['720p', '1080p', '4k'], '720p'),
       ...params.renderingSpeed([{ id: 'std', label: 'Standard' }, { id: 'pro', label: 'Pro' }], 'std'),
       ...params.generateAudio(false),
+      ...params.startFrame('First Frame'),
+      ...params.endFrame('End Frame'),
+      // Backend states no explicit cap for omni `image_list`; 10 mirrors the
+      // omni-image contract. The worker stays the authoritative gate.
+      ...params.imageInput(10, 'Reference Images'),
+      ...params.videoInput('Reference Video', 'reference', false),
+      ...klingOmniReferType,
+      ...klingKeepOriginalSound,
       ...klingOmniAdvancedParams,
     },
+    constraints: [
+      // KlingMode: `4k` is incompatible with video_list; the worker also drops
+      // generated sound whenever a reference clip is supplied.
+      { when: { videoUrl: { exists: true } }, then: {
+        resolution: { allowed: ['720p', '1080p'], reason: '4K output is unavailable with a reference video.' },
+        generateAudio: { disabled: true, reason: 'Kling disables generated sound when a reference video is supplied.' },
+      } },
+    ],
   },
   {
     id: 'kling-video-o1', name: 'Kling Video O1', modelId: 'kling-video-o1',

@@ -615,21 +615,18 @@ type ModelInputById = {
         resolution?: "720p" | "1080p" | "4k";
         renderingSpeed?: "std" | "pro";
         generateAudio?: boolean;
+        startFrame?: string;
+        endFrame?: string;
+        imageUrls?: string[];
+        videoUrl?: string;
+        referType?: "feature" | "base";
+        keepOriginalSound?: "yes" | "no";
         multiShot?: boolean;
         shotType?: "customize";
         multiPrompt?: Array<{
             index: number;
             prompt: string;
             duration: string;
-        }>;
-        omniImageList?: Array<{
-            image_url: string;
-            type?: "first_frame" | "end_frame";
-        }>;
-        omniVideoList?: Array<{
-            video_url: string;
-            refer_type: "feature" | "base";
-            keep_original_sound: "yes" | "no";
         }>;
         elementList?: Array<{
             element_id: string;

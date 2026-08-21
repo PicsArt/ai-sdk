@@ -1310,7 +1310,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p";
-        duration?: 4 | 5 | 6 | 8 | 10 | 12 | 15 | 20 | 25 | 30;
+        duration?: number;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         outputFormat?: "mp4" | "mov";
@@ -1334,7 +1334,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "adaptive";
         resolution?: "480p" | "720p" | "1080p";
-        duration?: 4 | 5 | 6 | 8 | 10 | 12 | 15 | 20 | 25 | 30;
+        duration?: number;
         generateAudio?: boolean;
         outputFormat?: "mp4" | "mov";
         videoUrls: [string, ...string[]];
@@ -1876,7 +1876,10 @@ interface ModelParamsAccessor {
     file(key: string): FileEntry | undefined;
     prompt(): TextEntry | undefined;
     aspectRatio(): EnumEntry | undefined;
-    duration(): EnumEntry | undefined;
+    /** Duration is an enum on models with a fixed option list and a range on
+     *  models whose vendor accepts every value in a span (kling-t2a,
+     *  seedance-2.5), so narrow on `.kind` before reading `.options` / `.min`. */
+    duration(): EnumEntry | RangeEntry | undefined;
     resolution(): EnumEntry | undefined;
     generateAudio(): BooleanEntry | undefined;
     startFrame(): FileEntry | undefined;

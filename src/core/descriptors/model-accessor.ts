@@ -100,7 +100,13 @@ class ModelParamsAccessorImpl implements ModelParamsAccessor {
   // Well-known shorthands
   prompt(): TextEntry | undefined { return this.narrow('prompt', 'text'); }
   aspectRatio(): EnumEntry | undefined { return this.narrow('aspectRatio', 'enum'); }
-  duration(): EnumEntry | undefined { return this.narrow('duration', 'enum'); }
+  /** Enum on fixed-option models, range where the vendor accepts every value
+   *  in a span — callers narrow on `.kind`. */
+  duration(): EnumEntry | RangeEntry | undefined {
+    const entry = this.param('duration');
+    if (!entry || (entry.kind !== 'enum' && entry.kind !== 'range')) return undefined;
+    return entry as EnumEntry | RangeEntry;
+  }
   resolution(): EnumEntry | undefined { return this.narrow('resolution', 'enum'); }
   generateAudio(): BooleanEntry | undefined { return this.narrow('generateAudio', 'boolean'); }
   startFrame(): FileEntry | undefined { return this.narrow('startFrame', 'file'); }
@@ -166,7 +172,12 @@ class ConstrainedParamsAccessor implements ModelParamsAccessor {
 
   prompt(): TextEntry | undefined { return this.applyEntry('prompt', this.inner.prompt()); }
   aspectRatio(): EnumEntry | undefined { return this.applyEnum('aspectRatio', this.inner.aspectRatio()); }
-  duration(): EnumEntry | undefined { return this.applyEnum('duration', this.inner.duration()); }
+  duration(): EnumEntry | RangeEntry | undefined {
+    const entry = this.inner.duration();
+    return entry?.kind === 'enum'
+      ? this.applyEnum('duration', entry)
+      : this.applyEntry('duration', entry);
+  }
   resolution(): EnumEntry | undefined { return this.applyEnum('resolution', this.inner.resolution()); }
   generateAudio(): BooleanEntry | undefined { return this.applyEntry('generateAudio', this.inner.generateAudio()); }
   startFrame(): FileEntry | undefined { return this.applyEntry('startFrame', this.inner.startFrame()); }

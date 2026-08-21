@@ -197,7 +197,10 @@ export interface ModelParamsAccessor {
   // Well-known shorthands
   prompt(): TextEntry | undefined;
   aspectRatio(): EnumEntry | undefined;
-  duration(): EnumEntry | undefined;
+  /** Duration is an enum on models with a fixed option list and a range on
+   *  models whose vendor accepts every value in a span (kling-t2a,
+   *  seedance-2.5), so narrow on `.kind` before reading `.options` / `.min`. */
+  duration(): EnumEntry | RangeEntry | undefined;
   resolution(): EnumEntry | undefined;
   generateAudio(): BooleanEntry | undefined;
   startFrame(): FileEntry | undefined;

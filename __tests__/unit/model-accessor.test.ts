@@ -178,4 +178,33 @@ for (const [modelId, key] of [
   assert.strictEqual(videoSlot!.maxBytes, 209_715_200, `${modelId} video slot must cap files at 200 MiB`);
 }
 
+// \u2500\u2500 duration() shorthand spans both descriptor kinds \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// Duration is an enum where the vendor takes a fixed option list and a range
+// where it takes every value in a span. The shorthand must surface both, or
+// consumers silently lose the duration control on the range models.
+
+const enumDuration = Model('seedance-2.0').params().duration();
+assert(enumDuration, 'seedance-2.0 duration should resolve via the shorthand');
+assert.strictEqual(enumDuration!.kind, 'enum', 'seedance-2.0 duration is an option list');
+
+for (const [modelId, expected] of [
+  ['seedance-2.5', { min: 4, max: 30, step: 1 }],
+  ['seedance-2.5-video-extend', { min: 4, max: 30, step: 1 }],
+  ['kling-t2a', { min: 3, max: 10, step: 0.5 }],
+] as const) {
+  const rangeDuration = Model(modelId).params().duration();
+  assert(rangeDuration, `${modelId} duration should resolve via the shorthand, not just param('duration')`);
+  assert.strictEqual(rangeDuration!.kind, 'range', `${modelId} duration is a continuous range`);
+  if (rangeDuration!.kind !== 'range') throw new Error('unreachable');
+  assert.strictEqual(rangeDuration.min, expected.min, `${modelId} duration min`);
+  assert.strictEqual(rangeDuration.max, expected.max, `${modelId} duration max`);
+  assert.strictEqual(rangeDuration.step, expected.step, `${modelId} duration step`);
+}
+
+// The constrained accessor (constraint effects pre-applied) must not drop it
+// either \u2014 seedance-2.5 carries constraints, so this is the live path.
+const constrainedDuration = Model('seedance-2.5').paramsFor({ startFrame: 'https://x/a.png' }).duration();
+assert(constrainedDuration, 'constrained accessor should still surface the range duration');
+assert.strictEqual(constrainedDuration!.kind, 'range', 'constrained duration stays a range');
+
 console.log('\u2713 model-accessor.test.ts \u2014 all passed');

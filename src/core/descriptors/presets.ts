@@ -38,6 +38,23 @@ export const p = {
     };
   },
 
+  /** Continuous duration (seconds) — for models whose vendor accepts every
+   *  value in a span instead of a fixed option list. Reach for this only when
+   *  the span holds more than 10 possible values; 10 or fewer stays an enum
+   *  (`duration`), which shows the exact options instead of a slider. */
+  durationRange(
+    min: number,
+    max: number,
+    def: number,
+    step = 1,
+  ): ModelParams {
+    return {
+      duration: {
+        descriptor: { kind: 'range', min, max, step, default: def },
+      },
+    };
+  },
+
   resolution(opts: string[], def?: string): ModelParams {
     return {
       resolution: {

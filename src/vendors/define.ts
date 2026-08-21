@@ -209,6 +209,7 @@ export const params = {
   prompt: p.prompt,
   aspectRatio: p.aspectRatio,
   duration: p.duration,
+  durationRange: p.durationRange,
   count: p.count,
   resolution: p.resolution,
   negativePrompt: p.negativePrompt,

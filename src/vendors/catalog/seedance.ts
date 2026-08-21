@@ -342,7 +342,9 @@ export const buildSeedance25VideoExtendPayload: PayloadBuilder = (ctx) => ({
 
 const SEEDANCE_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', 'adaptive'];
 const SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-const SEEDANCE_25_DURATIONS = [4, 5, 6, 8, 10, 12, 15, 20, 25, 30];
+/** 2.5 accepts any whole second in 4-30s, so it is a range, not an option
+ *  list — an enum would hide the values in between. */
+const SEEDANCE_25_DURATION = { min: 4, max: 30 } as const;
 
 export const { MODELS } = defineModels('seedance', [
   {
@@ -360,7 +362,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
-      ...params.duration(SEEDANCE_25_DURATIONS, 5),
+      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
@@ -411,7 +413,7 @@ export const { MODELS } = defineModels('seedance', [
       // duration stays user-selectable.
       ...params.aspectRatio(['adaptive']),
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
-      ...params.duration(SEEDANCE_25_DURATIONS, 15),
+      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
       ...params.generateAudio(),
       ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
       ...params.videoInputs(10, 'Source Videos', true, undefined, SEEDANCE_25_MAX_VIDEO_BYTES),

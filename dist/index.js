@@ -846,6 +846,17 @@ var p = {
       }
     };
   },
+  /** Continuous duration (seconds) — for models whose vendor accepts every
+   *  value in a span instead of a fixed option list. Reach for this only when
+   *  the span holds more than 10 possible values; 10 or fewer stays an enum
+   *  (`duration`), which shows the exact options instead of a slider. */
+  durationRange(min, max, def, step = 1) {
+    return {
+      duration: {
+        descriptor: { kind: "range", min, max, step, default: def }
+      }
+    };
+  },
   resolution(opts, def) {
     return {
       resolution: {
@@ -1216,6 +1227,7 @@ var params = {
   prompt: p.prompt,
   aspectRatio: p.aspectRatio,
   duration: p.duration,
+  durationRange: p.durationRange,
   count: p.count,
   resolution: p.resolution,
   negativePrompt: p.negativePrompt,
@@ -3851,7 +3863,7 @@ var buildSeedance25VideoExtendPayload = (ctx) => ({
 });
 var SEEDANCE_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"];
 var SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-var SEEDANCE_25_DURATIONS = [4, 5, 6, 8, 10, 12, 15, 20, 25, 30];
+var SEEDANCE_25_DURATION = { min: 4, max: 30 };
 var { MODELS: MODELS12 } = defineModels("seedance", [
   {
     id: "seedance-2.5",
@@ -3871,7 +3883,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p", "1080p"], "1080p"),
-      ...params.duration(SEEDANCE_25_DURATIONS, 5),
+      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
@@ -3928,7 +3940,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       // duration stays user-selectable.
       ...params.aspectRatio(["adaptive"]),
       ...params.resolution(["480p", "720p", "1080p"], "1080p"),
-      ...params.duration(SEEDANCE_25_DURATIONS, 15),
+      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
       ...params.generateAudio(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
       ...params.videoInputs(10, "Source Videos", true, void 0, SEEDANCE_25_MAX_VIDEO_BYTES)
@@ -10229,8 +10241,12 @@ var ModelParamsAccessorImpl = class {
   aspectRatio() {
     return this.narrow("aspectRatio", "enum");
   }
+  /** Enum on fixed-option models, range where the vendor accepts every value
+   *  in a span — callers narrow on `.kind`. */
   duration() {
-    return this.narrow("duration", "enum");
+    const entry = this.param("duration");
+    if (!entry || entry.kind !== "enum" && entry.kind !== "range") return void 0;
+    return entry;
   }
   resolution() {
     return this.narrow("resolution", "enum");
@@ -10308,7 +10324,8 @@ var ConstrainedParamsAccessor = class {
     return this.applyEnum("aspectRatio", this.inner.aspectRatio());
   }
   duration() {
-    return this.applyEnum("duration", this.inner.duration());
+    const entry = this.inner.duration();
+    return entry?.kind === "enum" ? this.applyEnum("duration", entry) : this.applyEntry("duration", entry);
   }
   resolution() {
     return this.applyEnum("resolution", this.inner.resolution());

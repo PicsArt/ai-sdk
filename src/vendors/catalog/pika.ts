@@ -51,6 +51,7 @@ export const { MODELS } = defineModels('pika', [
   {
     id: 'pika-2.2', name: 'Pika',
     addedAt: '2026-02-06',
+    deprecated: true,
     workflow: 'pika-text-to-video-v2-2', editWorkflow: 'pika-image-to-video-v2-2',
     buildPayload: buildPikaPayload,
     estimatedTime: 50, editEstimatedTime: 50,
@@ -68,6 +69,7 @@ export const { MODELS } = defineModels('pika', [
   {
     id: 'pika-2.2-scenes', name: 'Pika Scenes',
     addedAt: '2026-02-06',
+    deprecated: true,
     workflow: 'pika-scenes-v2-2', buildPayload: buildPikaScenesPayload,
     estimatedTime: 55,
     mode: 'video', inputType: 'i2v',
@@ -84,6 +86,7 @@ export const { MODELS } = defineModels('pika', [
   {
     id: 'pika-2.2-frames', name: 'Pika Frames',
     addedAt: '2026-02-06',
+    deprecated: true,
     workflow: 'pika-frames-v2-2', buildPayload: buildPikaFramesPayload,
     estimatedTime: 50,
     mode: 'video', inputType: 'i2v',

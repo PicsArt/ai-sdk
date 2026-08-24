@@ -269,10 +269,13 @@ export const PicsartSodV82 = 'picsart-sod-v8-2' as const;
 /** Videography — videography (video) */
 export const PicsartVideography = 'picsart-videography' as const;
 /** Pika — pika (video) */
+/** @deprecated This model is retired (deprecated). */
 export const Pika22 = 'pika-2.2' as const;
 /** Pika Frames — pika (video) */
+/** @deprecated This model is retired (deprecated). */
 export const Pika22Frames = 'pika-2.2-frames' as const;
 /** Pika Scenes — pika (video) */
+/** @deprecated This model is retired (deprecated). */
 export const Pika22Scenes = 'pika-2.2-scenes' as const;
 /** PixVerse C1 — pixverse (video) */
 export const PixverseC1 = 'pixverse-c1' as const;

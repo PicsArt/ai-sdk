@@ -505,14 +505,6 @@ type ModelInputById = {
         imageUrls: [string, ...string[]];
         videoUrl: string;
     };
-    "kling-multi-image": {
-        prompt?: string;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4";
-        count?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-        imageUrls: [string, ...string[]];
-        sceneImage?: string;
-        styleImage?: string;
-    };
     "kling-multi-image-v2-1": {
         prompt?: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4";
@@ -531,16 +523,6 @@ type ModelInputById = {
     "kling-t2a": {
         prompt: string;
         duration?: number;
-    };
-    "kling-v1-5-image": {
-        prompt: string;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4";
-        count?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-        negativePrompt?: string;
-        imageUrls: [string, ...string[]];
-        imageReference?: "subject" | "face";
-        imageWeight?: number;
-        humanFidelity?: number;
     };
     "kling-v2-1-image": {
         prompt: string;
@@ -561,25 +543,6 @@ type ModelInputById = {
         generateAudio?: boolean;
         cfgScale?: number;
         renderingSpeed?: "std" | "pro";
-    };
-    "kling-v2-image": {
-        prompt: string;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4";
-        count?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-        negativePrompt?: string;
-        imageUrls?: string[];
-        imageWeight?: number;
-        humanFidelity?: number;
-    };
-    "kling-v2-new-image": {
-        prompt: string;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4";
-        count?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-        negativePrompt?: string;
-        imageUrls: [string, ...string[]];
-        imageReference?: "subject" | "face";
-        imageWeight?: number;
-        humanFidelity?: number;
     };
     "kling-v2a": {
         videoUrl: string;
@@ -2510,15 +2473,11 @@ declare const Models: {
     readonly KlingElements: "kling-elements";
     readonly KlingMotionControl: "kling-motion-control";
     readonly KlingMotionControlV3: "kling-motion-control-v3";
-    readonly KlingMultiImage: "kling-multi-image";
     readonly KlingMultiImageV21: "kling-multi-image-v2-1";
     readonly KlingO1Image: "kling-o1-image";
     readonly KlingT2a: "kling-t2a";
-    readonly KlingV15Image: "kling-v1-5-image";
     readonly KlingV21Image: "kling-v2-1-image";
     readonly KlingV26: "kling-v2-6";
-    readonly KlingV2Image: "kling-v2-image";
-    readonly KlingV2NewImage: "kling-v2-new-image";
     readonly KlingV2a: "kling-v2a";
     readonly KlingV3: "kling-v3";
     readonly KlingV3Omni: "kling-v3-omni";

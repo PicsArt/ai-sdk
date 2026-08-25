@@ -9,7 +9,6 @@ import { defineModels, feat, params, paramPresets } from '../../define.ts';
 import {
   klingCharacterOrientation,
   klingHumanFidelity,
-  klingImageReference,
   klingKeepOriginalSound,
   klingOmniAdvancedParams,
   klingOmniReferType,
@@ -314,44 +313,7 @@ export const { MODELS } = defineModels('kling', [
     },
   },
   // ── Image: Generations ──────────────────────────────────────────
-  {
-    id: 'kling-v2-new-image', name: 'Kling V2 New Image', modelId: 'kling-v2-new',
-    addedAt: '2026-03-25',
-    workflow: 'kling/v1/images/generations',
-    estimatedTime: 15,
-    mode: 'image', inputType: 't2i',
-    description: 'Latest V2 image generation with optional restyle via image reference.',
-    features: [feat('Image Input', 'input'), feat('Negative Prompt', 'characteristic')],
-    paramConfig: {
-      ...params.prompt({ maxLength: 2500 }),
-      ...params.aspectRatio(KLING_IMAGE_AR),
-      ...params.count([1, 2, 3, 4, 5, 6, 7, 8, 9]),
-      ...params.negativePrompt(),
-      ...params.imageInput(1, 'Restyle Image', true), // backend requires image despite t2i
-      ...klingImageReference,
-      ...params.imageWeight(0, 100, 50, 5),
-      ...klingHumanFidelity,
-    },
-  },
-  {
-    id: 'kling-v2-image', name: 'Kling V2 Image', modelId: 'kling-v2',
-    addedAt: '2026-03-25',
-    deprecated: true, // superseded by kling-v3-omni / kling-v3-pro
-    workflow: 'kling/v1/images/generations',
-    estimatedTime: 15,
-    mode: 'image', inputType: 't2i',
-    description: 'Standard V2 image generation with optional restyle via image reference.',
-    features: [feat('Image Input', 'input'), feat('Negative Prompt', 'characteristic')],
-    paramConfig: {
-      ...params.prompt({ maxLength: 2500 }),
-      ...params.aspectRatio(KLING_IMAGE_AR),
-      ...params.count([1, 2, 3, 4, 5, 6, 7, 8, 9]),
-      ...params.negativePrompt(),
-      ...params.imageInput(1, 'Restyle Image'),
-      ...params.imageWeight(0, 100, 50, 5),
-      ...klingHumanFidelity,
-    },
-  },
+
   {
     id: 'kling-v2-1-image', name: 'Kling V2.1 Image', modelId: 'kling-v2-1',
     addedAt: '2026-03-25',
@@ -371,53 +333,7 @@ export const { MODELS } = defineModels('kling', [
       ...klingHumanFidelity,
     },
   },
-  {
-    id: 'kling-v1-5-image', name: 'Kling V1.5 Image', modelId: 'kling-v1-5',
-    addedAt: '2026-03-25',
-    deprecated: true, // superseded by kling-v3-omni (4 generations behind)
-    workflow: 'kling/v1/images/generations',
-    estimatedTime: 15,
-    mode: 'image', inputType: 't2i',
-    description: 'V1.5 image generation with subject and face reference support.',
-    features: [feat('Image Input', 'input'), feat('Negative Prompt', 'characteristic')],
-    paramConfig: {
-      ...params.prompt({ maxLength: 2500 }),
-      ...params.aspectRatio(KLING_IMAGE_AR),
-      ...params.count([1, 2, 3, 4, 5, 6, 7, 8, 9]),
-      ...params.negativePrompt(),
-      ...params.imageInput(1, 'Restyle Image', true),
-      ...klingImageReference,
-      ...params.imageWeight(0, 100, 50, 5),
-      ...klingHumanFidelity,
-    },
-  },
   // ── Image: Multi-Image-to-Image ─────────────────────────────────
-  {
-    id: 'kling-multi-image', name: 'Kling Multi-Image', modelId: 'kling-v2-multi',
-    addedAt: '2026-03-25',
-    deprecated: true, // V2 is 3 generations behind v3
-    workflow: 'kling/v1/images/multi-image-to-image',
-    estimatedTime: 20,
-    mode: 'image', inputType: 'i2i',
-    description: 'Compose up to 4 subject images into a new scene with optional prompt.',
-    features: [feat('Multi-Image Input', 'input')],
-    paramConfig: {
-      ...params.prompt({ required: false, maxLength: 2500 }),
-      ...params.aspectRatio(KLING_IMAGE_AR, '16:9'),
-      ...params.count([1, 2, 3, 4, 5, 6, 7, 8, 9]),
-      ...params.imageInput(4, 'Subject Images', true),
-      sceneImage: {
-        label: 'Scene Reference',
-        category: 'reference',
-        descriptor: { kind: 'file', accept: 'image' },
-      },
-      styleImage: {
-        label: 'Style Reference',
-        category: 'reference',
-        descriptor: { kind: 'file', accept: 'image' },
-      },
-    },
-  },
   {
     id: 'kling-multi-image-v2-1', name: 'Kling Multi-Image V2.1', modelId: 'kling-v2-1-multi',
     addedAt: '2026-03-25',
@@ -486,7 +402,6 @@ export const { MODELS } = defineModels('kling', [
       },
     },
   },
-  // ── Video: Video Effects ────────────────────────────────────────────
   {
     id: 'kling-video-effects', name: 'Kling Video Effects',
     addedAt: '2026-05-13',
@@ -494,7 +409,7 @@ export const { MODELS } = defineModels('kling', [
     estimatedTime: 30,
     mode: 'video', inputType: 'i2v',
     badge: ['new'] as const,
-    description: 'Apply 270+ visual effects to photos — single or dual-image scenes.',
+    description: 'Apply 190+ visual effects to photos — single or dual-image scenes.',
     features: [feat('Image Input', 'input'), feat('Video Effects', 'characteristic')],
     paramConfig: {
       ...params.catalog('templateId', {

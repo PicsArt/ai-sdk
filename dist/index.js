@@ -1285,20 +1285,6 @@ var paramPresets = {
 var feat = (label, variant) => ({ label, variant });
 
 // src/vendors/catalog/kling/params.ts
-var klingImageReference = {
-  imageReference: {
-    label: "Reference Mode",
-    descriptor: {
-      kind: "enum",
-      valueType: "string",
-      options: [
-        { id: "subject", label: "Subject" },
-        { id: "face", label: "Face" }
-      ],
-      default: "subject"
-    }
-  }
-};
 var klingHumanFidelity = {
   humanFidelity: {
     label: "Face Fidelity",
@@ -1751,52 +1737,6 @@ var { MODELS } = defineModels("kling", [
   },
   // ── Image: Generations ──────────────────────────────────────────
   {
-    id: "kling-v2-new-image",
-    name: "Kling V2 New Image",
-    modelId: "kling-v2-new",
-    addedAt: "2026-03-25",
-    workflow: "kling/v1/images/generations",
-    estimatedTime: 15,
-    mode: "image",
-    inputType: "t2i",
-    description: "Latest V2 image generation with optional restyle via image reference.",
-    features: [feat("Image Input", "input"), feat("Negative Prompt", "characteristic")],
-    paramConfig: {
-      ...params.prompt({ maxLength: 2500 }),
-      ...params.aspectRatio(KLING_IMAGE_AR),
-      ...params.count([1, 2, 3, 4, 5, 6, 7, 8, 9]),
-      ...params.negativePrompt(),
-      ...params.imageInput(1, "Restyle Image", true),
-      // backend requires image despite t2i
-      ...klingImageReference,
-      ...params.imageWeight(0, 100, 50, 5),
-      ...klingHumanFidelity
-    }
-  },
-  {
-    id: "kling-v2-image",
-    name: "Kling V2 Image",
-    modelId: "kling-v2",
-    addedAt: "2026-03-25",
-    deprecated: true,
-    // superseded by kling-v3-omni / kling-v3-pro
-    workflow: "kling/v1/images/generations",
-    estimatedTime: 15,
-    mode: "image",
-    inputType: "t2i",
-    description: "Standard V2 image generation with optional restyle via image reference.",
-    features: [feat("Image Input", "input"), feat("Negative Prompt", "characteristic")],
-    paramConfig: {
-      ...params.prompt({ maxLength: 2500 }),
-      ...params.aspectRatio(KLING_IMAGE_AR),
-      ...params.count([1, 2, 3, 4, 5, 6, 7, 8, 9]),
-      ...params.negativePrompt(),
-      ...params.imageInput(1, "Restyle Image"),
-      ...params.imageWeight(0, 100, 50, 5),
-      ...klingHumanFidelity
-    }
-  },
-  {
     id: "kling-v2-1-image",
     name: "Kling V2.1 Image",
     modelId: "kling-v2-1",
@@ -1819,61 +1759,7 @@ var { MODELS } = defineModels("kling", [
       ...klingHumanFidelity
     }
   },
-  {
-    id: "kling-v1-5-image",
-    name: "Kling V1.5 Image",
-    modelId: "kling-v1-5",
-    addedAt: "2026-03-25",
-    deprecated: true,
-    // superseded by kling-v3-omni (4 generations behind)
-    workflow: "kling/v1/images/generations",
-    estimatedTime: 15,
-    mode: "image",
-    inputType: "t2i",
-    description: "V1.5 image generation with subject and face reference support.",
-    features: [feat("Image Input", "input"), feat("Negative Prompt", "characteristic")],
-    paramConfig: {
-      ...params.prompt({ maxLength: 2500 }),
-      ...params.aspectRatio(KLING_IMAGE_AR),
-      ...params.count([1, 2, 3, 4, 5, 6, 7, 8, 9]),
-      ...params.negativePrompt(),
-      ...params.imageInput(1, "Restyle Image", true),
-      ...klingImageReference,
-      ...params.imageWeight(0, 100, 50, 5),
-      ...klingHumanFidelity
-    }
-  },
   // ── Image: Multi-Image-to-Image ─────────────────────────────────
-  {
-    id: "kling-multi-image",
-    name: "Kling Multi-Image",
-    modelId: "kling-v2-multi",
-    addedAt: "2026-03-25",
-    deprecated: true,
-    // V2 is 3 generations behind v3
-    workflow: "kling/v1/images/multi-image-to-image",
-    estimatedTime: 20,
-    mode: "image",
-    inputType: "i2i",
-    description: "Compose up to 4 subject images into a new scene with optional prompt.",
-    features: [feat("Multi-Image Input", "input")],
-    paramConfig: {
-      ...params.prompt({ required: false, maxLength: 2500 }),
-      ...params.aspectRatio(KLING_IMAGE_AR, "16:9"),
-      ...params.count([1, 2, 3, 4, 5, 6, 7, 8, 9]),
-      ...params.imageInput(4, "Subject Images", true),
-      sceneImage: {
-        label: "Scene Reference",
-        category: "reference",
-        descriptor: { kind: "file", accept: "image" }
-      },
-      styleImage: {
-        label: "Style Reference",
-        category: "reference",
-        descriptor: { kind: "file", accept: "image" }
-      }
-    }
-  },
   {
     id: "kling-multi-image-v2-1",
     name: "Kling Multi-Image V2.1",
@@ -1949,7 +1835,6 @@ var { MODELS } = defineModels("kling", [
       }
     }
   },
-  // ── Video: Video Effects ────────────────────────────────────────────
   {
     id: "kling-video-effects",
     name: "Kling Video Effects",
@@ -1959,7 +1844,7 @@ var { MODELS } = defineModels("kling", [
     mode: "video",
     inputType: "i2v",
     badge: ["new"],
-    description: "Apply 270+ visual effects to photos \u2014 single or dual-image scenes.",
+    description: "Apply 190+ visual effects to photos \u2014 single or dual-image scenes.",
     features: [feat("Image Input", "input"), feat("Video Effects", "characteristic")],
     paramConfig: {
       ...params.catalog("templateId", {
@@ -2124,24 +2009,21 @@ var buildOmniImage = (modelName) => (input) => ({
   ...input.resolution ? { resolution: input.resolution } : {},
   ...input.imageUrls?.length ? { image_list: input.imageUrls.map((url) => ({ image_url: url })) } : {}
 });
-var buildGenerations = (modelName) => (input) => {
-  const imageUrls = input.imageUrls;
-  const hasImage = !!imageUrls?.[0];
-  const imageReference = hasImage && "imageReference" in input ? input.imageReference ?? (modelName === "kling-v1-5" ? "subject" : void 0) : void 0;
+var buildGenerations = (input) => {
+  const hasImage = !!input.imageUrls?.[0];
   return {
     prompt: input.prompt,
-    model_name: modelName,
+    model_name: "kling-v2-1",
     n: input.count ?? 1,
     ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
     ...input.negativePrompt ? { negative_prompt: input.negativePrompt } : {},
-    ...hasImage ? { image: imageUrls[0] } : {},
-    ...imageReference ? { image_reference: imageReference } : {},
+    ...hasImage ? { image: input.imageUrls[0] } : {},
     ...hasImage && input.imageWeight != null ? { image_fidelity: input.imageWeight / 100 } : {},
     ...input.humanFidelity != null ? { human_fidelity: input.humanFidelity } : {}
   };
 };
-var buildMultiImage = (modelName) => (input) => ({
-  model_name: modelName,
+var buildMultiImage = (input) => ({
+  model_name: "kling-v2-1",
   n: input.count ?? 1,
   ...input.prompt ? { prompt: input.prompt } : {},
   subject_image_list: (input.imageUrls ?? []).map((url) => ({ subject_image: url })),
@@ -2198,13 +2080,9 @@ registerPayloads(MODELS, {
   "kling-3.0-image": buildOmniImage("kling-v3-omni"),
   "kling-o1-image": buildOmniImage("kling-image-o1"),
   // Generations
-  "kling-v2-new-image": buildGenerations("kling-v2-new"),
-  "kling-v2-image": buildGenerations("kling-v2"),
-  "kling-v2-1-image": buildGenerations("kling-v2-1"),
-  "kling-v1-5-image": buildGenerations("kling-v1-5"),
+  "kling-v2-1-image": buildGenerations,
   // Multi-image
-  "kling-multi-image": buildMultiImage("kling-v2"),
-  "kling-multi-image-v2-1": buildMultiImage("kling-v2-1"),
+  "kling-multi-image-v2-1": buildMultiImage,
   // Elements
   "kling-elements": buildKlingElementsPayload,
   // Video effects
@@ -10591,15 +10469,11 @@ var KlingAvatar = "kling-avatar";
 var KlingElements = "kling-elements";
 var KlingMotionControl = "kling-motion-control";
 var KlingMotionControlV3 = "kling-motion-control-v3";
-var KlingMultiImage = "kling-multi-image";
 var KlingMultiImageV21 = "kling-multi-image-v2-1";
 var KlingO1Image = "kling-o1-image";
 var KlingT2a = "kling-t2a";
-var KlingV15Image = "kling-v1-5-image";
 var KlingV21Image = "kling-v2-1-image";
 var KlingV26 = "kling-v2-6";
-var KlingV2Image = "kling-v2-image";
-var KlingV2NewImage = "kling-v2-new-image";
 var KlingV2a = "kling-v2a";
 var KlingV3 = "kling-v3";
 var KlingV3Omni = "kling-v3-omni";
@@ -10801,15 +10675,11 @@ var Models = {
   KlingElements,
   KlingMotionControl,
   KlingMotionControlV3,
-  KlingMultiImage,
   KlingMultiImageV21,
   KlingO1Image,
   KlingT2a,
-  KlingV15Image,
   KlingV21Image,
   KlingV26,
-  KlingV2Image,
-  KlingV2NewImage,
   KlingV2a,
   KlingV3,
   KlingV3Omni,

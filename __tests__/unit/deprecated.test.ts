@@ -21,8 +21,7 @@ const DEPRECATED_IDS = [
   'recraftv2', 'recraftv2_vector',
   'wan-2.6-t2v', 'wan-2.6-r2v', 'wan-2.6-image',
   'gpt-image-1',
-  'kling-v2-image', 'kling-v2-1-image', 'kling-v1-5-image',
-  'kling-multi-image', 'kling-multi-image-v2-1',
+  'kling-v2-1-image', 'kling-multi-image-v2-1',
   'ltx-pro-t2v', 'ltx-v2-fast', 'ltx-v2-retake',
   'runway-gen3a-turbo', 'runway-gen4-aleph',
 ];

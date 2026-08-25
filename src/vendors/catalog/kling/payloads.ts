@@ -26,9 +26,8 @@ type KlingAvatarInput = ModelInput<'kling-avatar'>;
 type KlingT2AInput = ModelInput<'kling-t2a'>;
 type KlingV2AInput = ModelInput<'kling-v2a'>;
 type KlingOmniImageInput = ModelInput<'kling-3.0-image'>;
-type KlingGenerationsWithRef = ModelInput<'kling-v2-new-image'>;
-type KlingGenerationsNoRef = ModelInput<'kling-v2-image'>;
-type KlingMultiImageInput = ModelInput<'kling-multi-image'>;
+type KlingV21ImageInput = ModelInput<'kling-v2-1-image'>;
+type KlingMultiImageInput = ModelInput<'kling-multi-image-v2-1'>;
 type KlingElementsInput = ModelInput<'kling-elements'>;
 type KlingVideoEffectsInput = ModelInput<'kling-video-effects'>;
 
@@ -244,37 +243,25 @@ const buildOmniImage =
       : {}),
   });
 
-// ── Generations (standard T2I + optional I2I restyle) ───────────────
-
-const buildGenerations =
-  (modelName: 'kling-v2-new' | 'kling-v2' | 'kling-v2-1' | 'kling-v1-5') =>
-  (input: KlingGenerationsWithRef | KlingGenerationsNoRef): KlingGenerationsPayload => {
-    const imageUrls = input.imageUrls;
-    const hasImage = !!imageUrls?.[0];
-    const imageReference = hasImage && 'imageReference' in input
-      ? (input.imageReference ?? (modelName === 'kling-v1-5' ? 'subject' : undefined))
-      : undefined;
-    return {
-      prompt: input.prompt,
-      model_name: modelName,
-      n: input.count ?? 1,
-      ...(input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {}),
-      ...(input.negativePrompt ? { negative_prompt: input.negativePrompt } : {}),
-      ...(hasImage ? { image: imageUrls![0] } : {}),
-      ...(imageReference ? { image_reference: imageReference } : {}),
-      ...(hasImage && input.imageWeight != null
-        ? { image_fidelity: input.imageWeight / 100 }
-        : {}),
-      ...(input.humanFidelity != null ? { human_fidelity: input.humanFidelity } : {}),
-    };
+const buildGenerations = (input: KlingV21ImageInput): KlingGenerationsPayload => {
+  const hasImage = !!input.imageUrls?.[0];
+  return {
+    prompt: input.prompt,
+    model_name: 'kling-v2-1',
+    n: input.count ?? 1,
+    ...(input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {}),
+    ...(input.negativePrompt ? { negative_prompt: input.negativePrompt } : {}),
+    ...(hasImage ? { image: input.imageUrls![0] } : {}),
+    ...(hasImage && input.imageWeight != null
+      ? { image_fidelity: input.imageWeight / 100 }
+      : {}),
+    ...(input.humanFidelity != null ? { human_fidelity: input.humanFidelity } : {}),
   };
-
-// ── Multi-image-to-image ────────────────────────────────────────────
+};
 
 const buildMultiImage =
-  (modelName: 'kling-v2' | 'kling-v2-1') =>
   (input: KlingMultiImageInput): KlingMultiImagePayload => ({
-    model_name: modelName,
+    model_name: 'kling-v2-1',
     n: input.count ?? 1,
     ...(input.prompt ? { prompt: input.prompt } : {}),
     subject_image_list: (input.imageUrls ?? []).map(url => ({ subject_image: url })),
@@ -360,13 +347,9 @@ registerPayloads(MODELS, {
   'kling-3.0-image': buildOmniImage('kling-v3-omni'),
   'kling-o1-image': buildOmniImage('kling-image-o1'),
   // Generations
-  'kling-v2-new-image': buildGenerations('kling-v2-new'),
-  'kling-v2-image': buildGenerations('kling-v2'),
-  'kling-v2-1-image': buildGenerations('kling-v2-1'),
-  'kling-v1-5-image': buildGenerations('kling-v1-5'),
+  'kling-v2-1-image': buildGenerations,
   // Multi-image
-  'kling-multi-image': buildMultiImage('kling-v2'),
-  'kling-multi-image-v2-1': buildMultiImage('kling-v2-1'),
+  'kling-multi-image-v2-1': buildMultiImage,
   // Elements
   'kling-elements': buildKlingElementsPayload,
   // Video effects

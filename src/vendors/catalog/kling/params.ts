@@ -8,23 +8,7 @@
  */
 import type { ModelParams } from '../../../core/descriptors';
 
-/** Kling image_reference toggle (subject vs face) — V1.5 / V2-new generations. */
-export const klingImageReference: ModelParams = {
-  imageReference: {
-    label: 'Reference Mode',
-    descriptor: {
-      kind: 'enum',
-      valueType: 'string',
-      options: [
-        { id: 'subject', label: 'Subject' },
-        { id: 'face', label: 'Face' },
-      ],
-      default: 'subject',
-    },
-  },
-};
-
-/** Face-similarity strength — Kling V1.5 / V2 image generations. */
+/** Face-similarity strength — Kling V2.1 image generations. */
 export const klingHumanFidelity: ModelParams = {
   humanFidelity: {
     label: 'Face Fidelity',

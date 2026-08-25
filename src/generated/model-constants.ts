@@ -159,9 +159,6 @@ export const KlingElements = 'kling-elements' as const;
 export const KlingMotionControl = 'kling-motion-control' as const;
 /** Kling Motion Control V3 — kling (video) */
 export const KlingMotionControlV3 = 'kling-motion-control-v3' as const;
-/** Kling Multi-Image — kling (image) */
-/** @deprecated This model is retired (deprecated). */
-export const KlingMultiImage = 'kling-multi-image' as const;
 /** Kling Multi-Image V2.1 — kling (image) */
 /** @deprecated This model is retired (deprecated). */
 export const KlingMultiImageV21 = 'kling-multi-image-v2-1' as const;
@@ -169,19 +166,11 @@ export const KlingMultiImageV21 = 'kling-multi-image-v2-1' as const;
 export const KlingO1Image = 'kling-o1-image' as const;
 /** Kling T2A — kling (audio) */
 export const KlingT2a = 'kling-t2a' as const;
-/** Kling V1.5 Image — kling (image) */
-/** @deprecated This model is retired (deprecated). */
-export const KlingV15Image = 'kling-v1-5-image' as const;
 /** Kling V2.1 Image — kling (image) */
 /** @deprecated This model is retired (deprecated). */
 export const KlingV21Image = 'kling-v2-1-image' as const;
 /** Kling V2.6 — kling (video) */
 export const KlingV26 = 'kling-v2-6' as const;
-/** Kling V2 Image — kling (image) */
-/** @deprecated This model is retired (deprecated). */
-export const KlingV2Image = 'kling-v2-image' as const;
-/** Kling V2 New Image — kling (image) */
-export const KlingV2NewImage = 'kling-v2-new-image' as const;
 /** Kling V2A — kling (audio) */
 export const KlingV2a = 'kling-v2a' as const;
 /** Kling V3 — kling (video) */
@@ -539,15 +528,11 @@ export const Models = {
   KlingElements,
   KlingMotionControl,
   KlingMotionControlV3,
-  KlingMultiImage,
   KlingMultiImageV21,
   KlingO1Image,
   KlingT2a,
-  KlingV15Image,
   KlingV21Image,
   KlingV26,
-  KlingV2Image,
-  KlingV2NewImage,
   KlingV2a,
   KlingV3,
   KlingV3Omni,

@@ -4707,7 +4707,7 @@ var { MODELS: MODELS17 } = defineModels("grok", [
     buildEditPayload: buildGrok15I2VPayload,
     estimatedTime: 30,
     mode: "video",
-    inputType: "i2v",
+    inputType: "t2v",
     badge: ["new"],
     description: "Next-gen Grok video \u2014 faster, higher fidelity, up to 15s with audio.",
     features: [feat("Image Input", "input"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("15 sec", "duration")],
@@ -4716,7 +4716,7 @@ var { MODELS: MODELS17 } = defineModels("grok", [
       ...params.aspectRatio(GROK_VIDEO_AR),
       ...params.resolution(GROK_VIDEO_RESOLUTIONS_15, "720p"),
       ...params.duration(GROK_DURATIONS, 8),
-      ...params.imageInput(1, "Input Image", true)
+      ...params.imageInput(1, "Input Image", false)
     }
   },
   {

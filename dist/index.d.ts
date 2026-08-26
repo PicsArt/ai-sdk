@@ -340,7 +340,7 @@ type ModelInputById = {
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3";
         resolution?: "480p" | "720p" | "1080p";
         duration?: 3 | 5 | 6 | 8 | 10 | 12 | 15;
-        imageUrls: [string, ...string[]];
+        imageUrls?: string[];
     };
     "grok-tts": {
         language?: string;

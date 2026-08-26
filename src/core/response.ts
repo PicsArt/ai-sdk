@@ -1,4 +1,4 @@
-import type { WorkflowJobHandle, WorkflowStatusResult } from './workflow.ts';
+import type { WorkflowJobHandle, WorkflowStatusResult, CreditUsage } from './workflow.ts';
 
 export function throwIfErrorResult(result: unknown, modelName: string): void {
   if (!result || typeof result !== 'object' || Array.isArray(result)) return;
@@ -217,11 +217,13 @@ export function toCompletedStatus(
   handle: WorkflowJobHandle,
   result: unknown,
   raw: unknown,
+  usage?: CreditUsage,
 ): WorkflowStatusResult<unknown> {
   return {
     handle,
     status: 'COMPLETED',
     result,
     raw,
+    usage,
   };
 }

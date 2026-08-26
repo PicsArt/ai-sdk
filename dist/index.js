@@ -474,6 +474,8 @@ function parseWorkflowStatus(handle, raw) {
   const statusRaw = pickFirst(raw, [["response", "status"], ["status"]]);
   const status = normalizeStatus(statusRaw);
   const result = pickFirst(raw, [["response", "result"], ["result"]]);
+  const usageRaw = pickFirst(raw, [["response", "usage"], ["usage"]]);
+  const usage = usageRaw && typeof usageRaw === "object" && (typeof usageRaw.credits === "number" || Array.isArray(usageRaw.details)) ? usageRaw : void 0;
   const errorRaw = pickFirst(raw, [["response", "error"], ["error"], ["message"], ["reason"]]);
   const progressRaw = pickFirst(raw, [["response", "progress"], ["progress"]]);
   const progress = progressRaw && typeof progressRaw === "object" ? {
@@ -486,6 +488,7 @@ function parseWorkflowStatus(handle, raw) {
     result,
     error: typeof errorRaw === "string" ? errorRaw : void 0,
     progress,
+    usage,
     raw
   };
 }
@@ -6712,15 +6715,15 @@ var buildRecraftUtilityPayload = (includePrompt) => (ctx) => ({
   ...includePrompt && ctx.prompt ? { prompt: ctx.prompt } : {}
 });
 var buildRecraftV4StylesPayload = (apiModel) => (ctx) => {
-  if (!ctx.styleReferenceUrls?.length) {
-    throw new Error("V4 Styles models require styleReferenceUrls");
+  if (!ctx.imageUrls?.length) {
+    throw new Error("V4 Styles models require style-reference images");
   }
   return {
     prompt: ctx.prompt,
     model: apiModel,
     n: ctx.count ?? 1,
     ...ctx.aspectRatio ? { size: ctx.aspectRatio } : {},
-    style_reference_urls: ctx.styleReferenceUrls
+    style_reference_urls: ctx.imageUrls
   };
 };
 var buildRecraftV4VariantPayload = (apiModel) => (ctx) => ({
@@ -6739,7 +6742,7 @@ var buildRecraftExploreSimilarPayload = (ctx) => ({
   similarity: ctx.similarity ?? 3,
   ...ctx.aspectRatio ? { size: ctx.aspectRatio } : {}
 });
-var v4StylesParams = p.file("styleReferenceUrls", "image", {
+var v4StylesParams = p.file("imageUrls", "image", {
   label: "Style References",
   required: true,
   array: { min: 1, max: 5 },
@@ -8552,12 +8555,13 @@ var extractAllResults = (result) => {
   }
   return void 0;
 };
-function toCompletedStatus(handle, result, raw) {
+function toCompletedStatus(handle, result, raw, usage) {
   return {
     handle,
     status: "COMPLETED",
     result,
-    raw
+    raw,
+    usage
   };
 }
 
@@ -8710,13 +8714,13 @@ function parseResult(completed, model, contract) {
       url: item.url,
       metadata: item.exploreImageId ? { exploreImageId: item.exploreImageId } : void 0
     }));
-    return { url: results[0].url, results, model: model.id, handle: completed.handle, raw: parsed };
+    return { url: results[0].url, results, model: model.id, handle: completed.handle, raw: parsed, usage: completed.usage };
   }
   const url = extractUrl(parsed);
   if (!url) {
     throw new Error(`${model.name}: unexpected response \u2014 no result URL`);
   }
-  return { url, results: [{ url }], model: model.id, handle: completed.handle, raw: parsed };
+  return { url, results: [{ url }], model: model.id, handle: completed.handle, raw: parsed, usage: completed.usage };
 }
 function parseTextResult(completed, model) {
   if (completed.status === "FAILED") {
@@ -8731,7 +8735,7 @@ function parseTextResult(completed, model) {
   if (text == null) {
     throw new Error(`${model.name}: unexpected response \u2014 no text`);
   }
-  return { text, model: model.id, handle: completed.handle, raw: completed.raw ?? completed.result };
+  return { text, model: model.id, handle: completed.handle, raw: completed.raw ?? completed.result, usage: completed.usage };
 }
 
 // src/core/limits.ts
@@ -9807,7 +9811,8 @@ function createClient(config) {
       return toCompletedStatus(
         syncResponse.handle,
         extractSyncResult(syncResponse.raw),
-        syncResponse.raw
+        syncResponse.raw,
+        syncResponse.usage
       );
     }
     return client.run({ workflow, payload, signal });

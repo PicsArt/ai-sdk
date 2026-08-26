@@ -5,6 +5,8 @@ import type {
   WorkflowSubscribeOptions,
   WorkflowStatusResult,
   WorkflowRunOptions,
+  CreditUsage,
+  ToolUsage,
 } from '../core/workflow.ts';
 import type { TypedModelId, ModelInputById, TextModelId, TextModelInputById } from '../generated/model-input-types.ts';
 import type { DriveFolder, DriveSaveResult, PayloadDriveOptions, DriveClient } from './drive.ts';
@@ -12,7 +14,7 @@ import type { ApisClient } from './apis.ts';
 import type { CatalogsClient, CatalogsOptions } from './catalogs.ts';
 
 // Re-export for public API — users need these to type stored job handles + custom transports
-export type { WorkflowJobHandle, SdkTransport };
+export type { WorkflowJobHandle, SdkTransport, CreditUsage, ToolUsage };
 
 // ── Client config ────────────────────────────────────────────────────
 
@@ -91,6 +93,8 @@ export interface GenerateResult {
   handle: WorkflowJobHandle;
   /** Raw parsed output for advanced consumers. */
   raw: unknown;
+  /** Credit usage reported by the platform — same structure as the pluggable APIs' GenAITaskResponse. */
+  usage?: CreditUsage;
   /** Present when Drive is enabled and the file was saved. */
   drive?: DriveSaveResult;
 }
@@ -103,8 +107,10 @@ export interface GenerateTextResult {
   model: string;
   /** Job handle for status tracking. */
   handle: WorkflowJobHandle;
-  /** Raw parsed output — carries usage, finish reason, thinking trace, etc. */
+  /** Raw parsed output — carries vendor token usage, finish reason, thinking trace, etc. */
   raw: unknown;
+  /** Credit usage reported by the platform — same structure as the pluggable APIs' GenAITaskResponse. */
+  usage?: CreditUsage;
 }
 
 /** Options for individual generate() / submit() calls. */

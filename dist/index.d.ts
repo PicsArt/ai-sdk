@@ -17,12 +17,41 @@ interface WorkflowProgress {
     percent?: number;
     estimatedSecondsLeft?: number;
 }
+/**
+ * Per-tool credit usage entry inside {@link CreditUsage.details}
+ * (mirrors `ToolUsage` from `pa-pluggable-api-adapter`).
+ */
+interface ToolUsage {
+    operationId?: string;
+    toolId: string;
+    price: number;
+    amount: number;
+    credits: number;
+    failed?: boolean;
+}
+/**
+ * Credit usage reported on a completed task, as returned by the pluggable
+ * APIs platform on every task response (mirrors the adapter's public
+ * `CreditUsage` from `pa-pluggable-api-adapter`).
+ */
+interface CreditUsage {
+    /** The tool identifier. Set to "total_credits" when subtask usage is present. */
+    toolId?: string;
+    /** Per-tool credit usage breakdown. */
+    details?: ToolUsage[];
+    /** The amount of credits charged. */
+    credits: number;
+    /** The remaining balance. */
+    balance?: number;
+}
 interface WorkflowStatusResult<TResult = unknown> {
     handle: WorkflowJobHandle;
     status: WorkflowStatus;
     result?: TResult;
     error?: string;
     progress?: WorkflowProgress;
+    /** Credit usage reported by the platform, when present on the response. */
+    usage?: CreditUsage;
     raw: unknown;
 }
 /**
@@ -1043,25 +1072,25 @@ type ModelInputById = {
     };
     "recraftv4_styles": {
         prompt: string;
-        styleReferenceUrls: [string, ...string[]];
+        imageUrls: [string, ...string[]];
         aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
         count?: 1 | 2 | 4 | 6;
     };
     "recraftv4_styles_pro": {
         prompt: string;
-        styleReferenceUrls: [string, ...string[]];
+        imageUrls: [string, ...string[]];
         aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
         count?: 1 | 2 | 4 | 6;
     };
     "recraftv4_styles_pro_vector": {
         prompt: string;
-        styleReferenceUrls: [string, ...string[]];
+        imageUrls: [string, ...string[]];
         aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
         count?: 1 | 2 | 4 | 6;
     };
     "recraftv4_styles_vector": {
         prompt: string;
-        styleReferenceUrls: [string, ...string[]];
+        imageUrls: [string, ...string[]];
         aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
         count?: 1 | 2 | 4 | 6;
     };
@@ -1993,9 +2022,6 @@ interface GenerationContext {
     language?: string;
     accent?: string;
     style?: string;
-    /** Recraft V4 Styles — style-reference image URLs (max 5, t2i only).
-     *  Required: the V4 Styles API rejects requests without a style. */
-    styleReferenceUrls?: string[];
     /**
      * Effect template id — a catalog-served content preset id (e.g. a Kling effect
      * scene from `kling/v1/catalog/templates`). Free string; the live catalog is
@@ -2307,6 +2333,8 @@ interface GenerateResult {
     handle: WorkflowJobHandle;
     /** Raw parsed output for advanced consumers. */
     raw: unknown;
+    /** Credit usage reported by the platform — same structure as the pluggable APIs' GenAITaskResponse. */
+    usage?: CreditUsage;
     /** Present when Drive is enabled and the file was saved. */
     drive?: DriveSaveResult;
 }
@@ -2318,8 +2346,10 @@ interface GenerateTextResult {
     model: string;
     /** Job handle for status tracking. */
     handle: WorkflowJobHandle;
-    /** Raw parsed output — carries usage, finish reason, thinking trace, etc. */
+    /** Raw parsed output — carries vendor token usage, finish reason, thinking trace, etc. */
     raw: unknown;
+    /** Credit usage reported by the platform — same structure as the pluggable APIs' GenAITaskResponse. */
+    usage?: CreditUsage;
 }
 /** Options for individual generate() / submit() calls. */
 interface GenerateOptions {
@@ -2762,4 +2792,4 @@ declare const findModel: (ref: string) => ModelDefinition | undefined;
  */
 declare const KLING_DUAL_IMAGE_EFFECTS: ReadonlySet<string>;
 
-export { ALL_MODELS, type AiClient, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogKind, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, type AiClient, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogKind, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };

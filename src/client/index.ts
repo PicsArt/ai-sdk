@@ -20,7 +20,7 @@ import { createApis } from './apis.ts';
 import { createCatalogs } from './catalogs.ts';
 
 // ── Re-export types for the public API ──
-export type { ClientConfig, AuthenticatedFetch, SdkTransport, GenerateResult, GenerateResultItem, GenerateTextResult, GenerateOptions, WorkflowJobHandle, AiClient, MediaModelId } from './types.ts';
+export type { ClientConfig, AuthenticatedFetch, SdkTransport, GenerateResult, GenerateResultItem, GenerateTextResult, GenerateOptions, WorkflowJobHandle, CreditUsage, ToolUsage, AiClient, MediaModelId } from './types.ts';
 export type { ApiResponse, ApiRunOptions, ApiSchemas, ApisClient } from './apis.ts';
 export type { CatalogsClient, CatalogPage, CatalogPageOptions, CatalogsOptions } from './catalogs.ts';
 export { ExecutionMode as ApiRunMode } from '@picsart/workflows-client';
@@ -81,6 +81,7 @@ export function createClient(config: ClientConfig | SdkTransport) {
         syncResponse.handle,
         extractSyncResult(syncResponse.raw),
         syncResponse.raw,
+        syncResponse.usage,
       );
     }
     return client.run({ workflow, payload, signal });

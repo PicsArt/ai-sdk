@@ -87,6 +87,30 @@ await ai.generateText('gemini-3-pro', { prompt: 'Describe', imageUrls: ['https:/
 await ai.generateText('gemini-3-pro', { prompt: 'Hi' });
 assert.strictEqual(mock.lastExecute!.payload.generationConfig, undefined, 'no thinkingConfig when off');
 
+// ── Platform credit usage surfaced on GenerateTextResult ─────────────
+// Vendor token usage (result.usage: prompt_tokens/...) stays in raw only;
+// the platform CreditUsage ({ credits, details, ... }) lands on result.usage.
+
+const usageMock = {
+  async execute() {
+    return {
+      status: 'success',
+      response: {
+        result: {
+          choices: [{ index: 0, message: { role: 'assistant', content: 'Hi.' }, finish_reason: 'stop' }],
+          usage: { prompt_tokens: 5, completion_tokens: 4, total_tokens: 9 },
+        },
+        usage: { toolId: 'gpt-5.5', credits: 1, details: [{ operationId: 'op-1', toolId: 'gpt-5.5', price: 0.01, amount: 9, credits: 1 }] },
+      },
+    };
+  },
+};
+const textUsage = await createClient(usageMock).generateText('gpt-5.5', { prompt: 'Hi' });
+assert(textUsage.usage, 'generateText should surface platform usage');
+assert.strictEqual(textUsage.usage!.credits, 1);
+assert.strictEqual(textUsage.usage!.details![0].credits, 1);
+assert.strictEqual(claude.usage, undefined, 'vendor token usage inside result must not leak into usage');
+
 // ── Cross-guards ─────────────────────────────────────────────────────
 
 await assert.rejects(

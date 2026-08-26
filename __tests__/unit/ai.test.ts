@@ -164,4 +164,61 @@ await assert.rejects(
   'status should throw on execute-only transport',
 );
 
+// \u2500\u2500 Test: usage \u2014 platform credit usage surfaced on results \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+const mockUsage = {
+  toolId: 'flux-2-pro',
+  credits: 5,
+  balance: 995,
+  details: [
+    { operationId: 'op-1', toolId: 'flux-2-pro', price: 0.05, amount: 1, credits: 5 },
+  ],
+};
+
+function createUsageTransport(envelope: (body: Record<string, unknown>) => unknown) {
+  return {
+    async submit(request: WorkflowSubmitRequest) {
+      return { workflow: request.workflow, id: 'usage-123' };
+    },
+    async status() {
+      return envelope({
+        status: 'COMPLETED',
+        result: { url: 'https://cdn.example.com/usage.jpg' },
+        usage: mockUsage,
+      });
+    },
+    async execute() {
+      return envelope({
+        status: 'COMPLETED',
+        result: { url: 'https://cdn.example.com/usage.jpg' },
+        usage: mockUsage,
+      });
+    },
+  };
+}
+
+// top-level envelope ({ status, result, usage })
+const aiUsage = createClient(createUsageTransport(body => body));
+const usageGen = await aiUsage.generate('flux-2-pro', { prompt: 'with usage' });
+assert(usageGen.usage, 'generate should surface usage from the response');
+assert.strictEqual(usageGen.usage!.credits, 5, 'top-level credits surfaced');
+assert.strictEqual(usageGen.usage!.toolId, 'flux-2-pro', 'top-level toolId surfaced');
+assert.strictEqual(usageGen.usage!.balance, 995, 'top-level balance surfaced');
+assert.strictEqual(usageGen.usage!.details!.length, 1);
+assert.strictEqual(usageGen.usage!.details![0].credits, 5);
+
+// wrapped envelope ({ response: { status, result, usage } })
+const aiUsageWrapped = createClient(createUsageTransport(body => ({ response: body })));
+const usageWrapped = await aiUsageWrapped.generate('flux-2-pro', { prompt: 'with wrapped usage' });
+assert(usageWrapped.usage, 'generate should surface usage from a response-wrapped envelope');
+assert.strictEqual(usageWrapped.usage!.details![0].operationId, 'op-1');
+
+// status() also carries usage
+const usageHandle = await aiUsage.submit('flux-2-pro', { prompt: 'x' });
+const usageStatus = await aiUsage.status(usageHandle);
+assert(usageStatus.usage, 'status should surface usage from the response');
+
+// no usage on the response \u2192 field stays undefined
+assert.strictEqual(genResult.usage, undefined, 'usage should be undefined when the response has none');
+
 console.log('\u2713 ai.test.ts \u2014 all passed');

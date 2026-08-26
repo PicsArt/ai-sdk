@@ -16,9 +16,12 @@
  * V4 models support style via model variant selection (not a `style` field).
  * V4 Styles models are style-driven: every request must supply
  * style_reference_urls (text-to-image only) — a request without it is
- * rejected. Exposed as the required styleReferenceUrls param; the API's
- * alternative style_id input is not surfaced in this catalog. Because
- * references are t2i-only and mandatory, these entries take no source image.
+ * rejected. Exposed through the standard `imageUrls` file slot (labelled
+ * "Style References") so host apps that only wire the standard image-upload
+ * slot can serve them; the payload builder maps it to style_reference_urls.
+ * The API's alternative style_id input is not surfaced in this catalog.
+ * Because references are t2i-only and mandatory, these entries take no
+ * separate source image.
  * V4.1 catalog entries are raster-only (no vector style toggle).
  * V3/V2 models support style, substyle, negative_prompt.
  *
@@ -101,20 +104,22 @@ const buildRecraftUtilityPayload =
 
 /**
  * V4 Styles payload — style-driven. The API rejects a request without a style,
- * so styleReferenceUrls is required (text-to-image only, no source image).
+ * so the style-reference images are required (text-to-image only, no source
+ * image). They arrive via the standard `imageUrls` slot and are sent as
+ * style_reference_urls.
  */
 const buildRecraftV4StylesPayload =
   (apiModel: string): PayloadBuilder =>
   (ctx) => {
-    if (!ctx.styleReferenceUrls?.length) {
-      throw new Error('V4 Styles models require styleReferenceUrls');
+    if (!ctx.imageUrls?.length) {
+      throw new Error('V4 Styles models require style-reference images');
     }
     return {
       prompt: ctx.prompt,
       model: apiModel,
       n: ctx.count ?? 1,
       ...(ctx.aspectRatio ? { size: ctx.aspectRatio } : {}),
-      style_reference_urls: ctx.styleReferenceUrls,
+      style_reference_urls: ctx.imageUrls,
     };
   };
 
@@ -146,7 +151,9 @@ const buildRecraftExploreSimilarPayload: PayloadBuilder = (ctx) => ({
 
 // Vendor caps refs at 5 images / 10MB total (PNG/JPG/WEBP); maxBytes guards
 // per file client-side, the total cap is enforced vendor-side.
-const v4StylesParams = p.file('styleReferenceUrls', 'image', {
+// Uses the standard `imageUrls` slot so host apps' existing image-upload
+// wiring fills it; the payload builder sends it as style_reference_urls.
+const v4StylesParams = p.file('imageUrls', 'image', {
   label: 'Style References', required: true, array: { min: 1, max: 5 },
   category: 'reference', maxBytes: 10 * 1024 * 1024,
 });

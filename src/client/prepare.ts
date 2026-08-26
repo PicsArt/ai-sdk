@@ -65,7 +65,7 @@ export function parseResult(
       url: item.url,
       metadata: item.exploreImageId ? { exploreImageId: item.exploreImageId } : undefined,
     }));
-    return { url: results[0].url, results, model: model.id, handle: completed.handle, raw: parsed };
+    return { url: results[0].url, results, model: model.id, handle: completed.handle, raw: parsed, usage: completed.usage };
   }
 
   // Single-result models — extract URL
@@ -74,7 +74,7 @@ export function parseResult(
     throw new Error(`${model.name}: unexpected response — no result URL`);
   }
 
-  return { url, results: [{ url }], model: model.id, handle: completed.handle, raw: parsed };
+  return { url, results: [{ url }], model: model.id, handle: completed.handle, raw: parsed, usage: completed.usage };
 }
 
 /**
@@ -107,5 +107,5 @@ export function parseTextResult(
     throw new Error(`${model.name}: unexpected response — no text`);
   }
 
-  return { text, model: model.id, handle: completed.handle, raw: completed.raw ?? completed.result };
+  return { text, model: model.id, handle: completed.handle, raw: completed.raw ?? completed.result, usage: completed.usage };
 }

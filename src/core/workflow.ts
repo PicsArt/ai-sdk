@@ -28,12 +28,43 @@ export interface WorkflowProgress {
   estimatedSecondsLeft?: number;
 }
 
+/**
+ * Per-tool credit usage entry inside {@link CreditUsage.details}
+ * (mirrors `ToolUsage` from `pa-pluggable-api-adapter`).
+ */
+export interface ToolUsage {
+  operationId?: string;
+  toolId: string;
+  price: number;
+  amount: number;
+  credits: number;
+  failed?: boolean;
+}
+
+/**
+ * Credit usage reported on a completed task, as returned by the pluggable
+ * APIs platform on every task response (mirrors the adapter's public
+ * `CreditUsage` from `pa-pluggable-api-adapter`).
+ */
+export interface CreditUsage {
+  /** The tool identifier. Set to "total_credits" when subtask usage is present. */
+  toolId?: string;
+  /** Per-tool credit usage breakdown. */
+  details?: ToolUsage[];
+  /** The amount of credits charged. */
+  credits: number;
+  /** The remaining balance. */
+  balance?: number;
+}
+
 export interface WorkflowStatusResult<TResult = unknown> {
   handle: WorkflowJobHandle;
   status: WorkflowStatus;
   result?: TResult;
   error?: string;
   progress?: WorkflowProgress;
+  /** Credit usage reported by the platform, when present on the response. */
+  usage?: CreditUsage;
   raw: unknown;
 }
 
@@ -119,6 +150,14 @@ export function parseWorkflowStatus<TResult = unknown>(
   const statusRaw = pickFirst(raw, [['response', 'status'], ['status']]);
   const status = normalizeStatus(statusRaw);
   const result = pickFirst(raw, [['response', 'result'], ['result']]) as TResult | undefined;
+  const usageRaw = pickFirst(raw, [['response', 'usage'], ['usage']]);
+  // Accept only the platform CreditUsage shape (credits and/or details) —
+  // vendor token usage (prompt_tokens, ...) has neither and must not leak in.
+  const usage = (usageRaw && typeof usageRaw === 'object'
+    && (typeof (usageRaw as Record<string, unknown>).credits === 'number'
+      || Array.isArray((usageRaw as Record<string, unknown>).details)))
+    ? usageRaw as CreditUsage
+    : undefined;
   const errorRaw = pickFirst(raw, [['response', 'error'], ['error'], ['message'], ['reason']]);
   const progressRaw = pickFirst(raw, [['response', 'progress'], ['progress']]);
   const progress = (progressRaw && typeof progressRaw === 'object')
@@ -139,6 +178,7 @@ export function parseWorkflowStatus<TResult = unknown>(
     result,
     error: typeof errorRaw === 'string' ? errorRaw : undefined,
     progress,
+    usage,
     raw,
   };
 }

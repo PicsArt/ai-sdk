@@ -14,6 +14,8 @@ export type {
   AuthenticatedFetch,
   SdkTransport,
   WorkflowJobHandle,
+  CreditUsage,
+  ToolUsage,
   DriveConfig,
   DriveClient,
   DriveFolder,

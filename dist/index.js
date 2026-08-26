@@ -1201,6 +1201,7 @@ function defineModels(provider, configs) {
     if (c.estimatedTime !== void 0) model.estimatedTime = c.estimatedTime;
     if (c.editEstimatedTime !== void 0) model.editEstimatedTime = c.editEstimatedTime;
     if (c.testTimeout !== void 0) model.testTimeout = c.testTimeout;
+    if (c.pollOptions !== void 0) model.pollOptions = c.pollOptions;
     if (c.badge !== void 0) model.badge = c.badge;
     if (c.addedAt !== void 0) model.addedAt = c.addedAt;
     if (c.disabled !== void 0) model.disabled = c.disabled;
@@ -2927,6 +2928,22 @@ var wanV3Constraints = [
     audioUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON }
   } }
 ];
+var wanV3Features = [feat("Image Input", "input"), feat("Video Input", "input"), feat("Audio", "audio"), feat("Start/End Frame", "frame"), feat("1080P", "resolution"), feat("Adaptive Ratio", "resolution")];
+var wanV3ParamConfig = {
+  ...params.prompt(),
+  ...params.duration([5, 10, 15, 30], 5),
+  ...params.resolution(["480P", "720P", "1080P"], "1080P"),
+  ...params.aspectRatio(["16:9", "9:16", "1:1", "4:3", "3:4", "adaptive"]),
+  ...params.generateAudio(true),
+  ...params.startFrame(),
+  ...params.endFrame(),
+  ...params.imageInput(10, "Reference Images"),
+  ...params.videoInputs(5, "Reference Videos", false),
+  ...params.audioInputs(5, "Reference Audios"),
+  ...p.boolean("enableThinking", false, "Deep Thinking"),
+  ...p.boolean("watermark", false, "Watermark"),
+  ...p.range("seed", 0, 2147483647, 0, { label: "Seed" })
+};
 var { MODELS: MODELS10 } = defineModels("wan", [
   // ── Video ─────────────────────────────────────────
   {
@@ -3094,6 +3111,10 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     }
   },
   // ── Wan 3.0 all-in-one Video ─────────────────────────
+  // wan-3.0-video and wan-3.0-video-prime share the wan/v3/video workflow and
+  // the full param surface — the backend `model` enum value (hardcoded per
+  // entry in wan.payloads.ts) is the only wire difference. Prime is the same
+  // model, up to 7x faster.
   {
     id: "wan-3.0-video",
     name: "Wan 3.0",
@@ -3106,28 +3127,32 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     mode: "video",
     inputType: "t2v",
     description: "Wan 3.0 all-in-one \u2014 text, image/video/audio references, and start/end frames with adaptive ratio, intelligent duration, and audio.",
-    features: [feat("Image Input", "input"), feat("Video Input", "input"), feat("Audio", "audio"), feat("Start/End Frame", "frame"), feat("1080P", "resolution"), feat("Adaptive Ratio", "resolution")],
+    features: [...wanV3Features],
     constraints: wanV3Constraints,
-    paramConfig: {
-      ...params.prompt(),
-      ...params.duration([5, 10, 15, 30], 5),
-      ...params.resolution(["480P", "720P", "1080P"], "1080P"),
-      ...params.aspectRatio(["16:9", "9:16", "1:1", "4:3", "3:4", "adaptive"]),
-      ...params.generateAudio(true),
-      ...params.startFrame(),
-      ...params.endFrame(),
-      ...params.imageInput(10, "Reference Images"),
-      ...params.videoInputs(5, "Reference Videos", false),
-      ...params.audioInputs(5, "Reference Audios"),
-      ...p.boolean("enableThinking", false, "Deep Thinking"),
-      ...p.boolean("watermark", false, "Watermark"),
-      ...p.range("seed", 0, 2147483647, 0, { label: "Seed" })
-    }
+    // Generations at 1080P / long durations can outlast the global 10-min
+    // polling default — widen to 5s × 360 attempts (30 min).
+    pollOptions: { intervalMs: 5e3, maxAttempts: 360 },
+    paramConfig: { ...wanV3ParamConfig }
+  },
+  {
+    id: "wan-3.0-video-prime",
+    name: "Wan 3.0 Prime",
+    modelId: "wan3.0-video-prime",
+    addedAt: "2026-08-26",
+    workflow: "wan/v3/video",
+    estimatedTime: 30,
+    mode: "video",
+    inputType: "t2v",
+    description: "Wan 3.0 Prime \u2014 the same all-in-one model as Wan 3.0, up to 7x faster.",
+    features: [...wanV3Features],
+    constraints: wanV3Constraints,
+    pollOptions: { intervalMs: 5e3, maxAttempts: 360 },
+    paramConfig: { ...wanV3ParamConfig }
   }
 ]);
 
 // src/vendors/catalog/wan.payloads.ts
-var buildWanV3VideoPayload = (input) => {
+var makeWanV3VideoPayload = (model) => (input) => {
   const media = [];
   if (input.startFrame) media.push({ type: "first_frame", url: input.startFrame });
   if (input.endFrame) media.push({ type: "last_frame", url: input.endFrame });
@@ -3141,7 +3166,7 @@ var buildWanV3VideoPayload = (input) => {
     for (const url of input.audioUrls) media.push({ type: "reference_audio", url });
   }
   return {
-    model: "wan3.0-video",
+    model,
     resolution: input.resolution ?? "1080P",
     ratio: input.aspectRatio ?? "16:9",
     duration: input.duration ?? 5,
@@ -3154,7 +3179,8 @@ var buildWanV3VideoPayload = (input) => {
   };
 };
 registerPayloads(MODELS10, {
-  "wan-3.0-video": buildWanV3VideoPayload
+  "wan-3.0-video": makeWanV3VideoPayload("wan3.0-video"),
+  "wan-3.0-video-prime": makeWanV3VideoPayload("wan3.0-video-prime")
 });
 
 // src/vendors/catalog/luma.ts
@@ -9815,7 +9841,7 @@ function createClient(config) {
         syncResponse.usage
       );
     }
-    return client.run({ workflow, payload, signal });
+    return client.run({ workflow, payload, signal }, model.pollOptions);
   }
   function buildDrivePayloadOptions(model, params2, options) {
     const explicit = options?.drive;
@@ -9916,7 +9942,7 @@ function createClient(config) {
     async result(handle, model, options) {
       const resolved = resolveModel(model);
       const contract = getModelContract(resolved.id);
-      const completed = await client.result(handle, options);
+      const completed = await client.result(handle, { ...resolved.pollOptions, ...options });
       return parseResult(completed, resolved, contract);
     },
     /**
@@ -10608,6 +10634,7 @@ var Wan27R2v = "wan-2.7-r2v";
 var Wan27T2v = "wan-2.7-t2v";
 var Wan27VideoEdit = "wan-2.7-video-edit";
 var Wan30Video = "wan-3.0-video";
+var Wan30VideoPrime = "wan-3.0-video-prime";
 var Models = {
   AsyncFlashV1,
   BytedanceOmnihumanV15,
@@ -10814,6 +10841,7 @@ var Models = {
   Wan27T2v,
   Wan27VideoEdit,
   Wan30Video,
+  Wan30VideoPrime,
   /** @deprecated Use the `catalog` accessor (`catalog.all()` / `catalog.find({ output, provider })`) instead. */
   list(filter) {
     if (!filter) return [...ALL_MODELS];

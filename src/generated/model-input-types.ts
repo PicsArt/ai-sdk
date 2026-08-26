@@ -210,6 +210,7 @@ export type ModelInputById = {
   "wan-2.7-t2v": { prompt: string; duration?: 5 | 10 | 15; resolution?: "720P" | "1080P"; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; negativePrompt?: string; enhancePrompt?: boolean; audioUrl?: string; startFrame?: string; };
   "wan-2.7-video-edit": { prompt?: string; resolution?: "720P" | "1080P"; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; negativePrompt?: string; videoUrl: string; imageUrls?: string[]; };
   "wan-3.0-video": { prompt: string; duration?: 5 | 10 | 15 | 30; resolution?: "480P" | "720P" | "1080P"; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "adaptive"; generateAudio?: boolean; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; enableThinking?: boolean; watermark?: boolean; seed?: number; };
+  "wan-3.0-video-prime": { prompt: string; duration?: 5 | 10 | 15 | 30; resolution?: "480P" | "720P" | "1080P"; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "adaptive"; generateAudio?: boolean; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; enableThinking?: boolean; watermark?: boolean; seed?: number; };
 };
 
 export type TypedModelId = keyof ModelInputById;

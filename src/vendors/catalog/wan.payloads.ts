@@ -1,18 +1,27 @@
 /**
- * Wan 3.0 payload builder.
+ * Wan 3.0 payload builders.
  *
  * Assembles the all-in-one `media[]` discriminated array from the SDK's flat
  * asset keys and renames fields to the backend WanV3VideoCommand wire shape.
- *
- * NOTE: `wan/v3/video` is not yet published in @picsart/workflows-types
- * (installed 1.1.89) — the return is left inferred. Once the worker team ships
- * the type, annotate as `WorkflowTypes['wan/v3/video']['params']` to catch drift.
+ * wan-3.0-video and wan-3.0-video-prime share the builder — the hardcoded
+ * `model` wire value is the only difference.
  */
+import type { WorkflowTypes } from '@picsart/workflows-types';
 import type { ModelInput } from '../../generated/model-input-types.ts';
 import { registerPayloads } from '../define.ts';
 import { MODELS } from './wan.ts';
 
+// ModelInput<'wan-3.0-video-prime'> is structurally identical (shared paramConfig).
 type WanV3Input = ModelInput<'wan-3.0-video'>;
+
+type WanV3Model = 'wan3.0-video' | 'wan3.0-video-prime';
+
+// @picsart/workflows-types 1.1.118 still types `model` as the single literal
+// 'wan3.0-video'; the live schema also accepts 'wan3.0-video-prime'. Widen
+// locally — drop once upstream catches up.
+type WanV3Payload = Omit<WorkflowTypes['wan/v3/video']['params'], 'model'> & {
+  model?: WanV3Model;
+};
 
 type WanV3MediaItem = {
   type:
@@ -24,7 +33,7 @@ type WanV3MediaItem = {
   url: string;
 };
 
-const buildWanV3VideoPayload = (input: WanV3Input) => {
+const makeWanV3VideoPayload = (model: WanV3Model) => (input: WanV3Input): WanV3Payload => {
   // Frame mode (first/last) and reference mode (image/video/audio) are mutually
   // exclusive per request — the backend validates; the builder just forwards
   // whatever slots the caller populated.
@@ -42,7 +51,7 @@ const buildWanV3VideoPayload = (input: WanV3Input) => {
   }
 
   return {
-    model: 'wan3.0-video',
+    model,
     resolution: input.resolution ?? '1080P',
     ratio: input.aspectRatio ?? '16:9',
     duration: input.duration ?? 5,
@@ -56,5 +65,6 @@ const buildWanV3VideoPayload = (input: WanV3Input) => {
 };
 
 registerPayloads(MODELS, {
-  'wan-3.0-video': buildWanV3VideoPayload,
+  'wan-3.0-video': makeWanV3VideoPayload('wan3.0-video'),
+  'wan-3.0-video-prime': makeWanV3VideoPayload('wan3.0-video-prime'),
 });

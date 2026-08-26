@@ -84,7 +84,7 @@ export function createClient(config: ClientConfig | SdkTransport) {
         syncResponse.usage,
       );
     }
-    return client.run({ workflow, payload, signal });
+    return client.run({ workflow, payload, signal }, model.pollOptions);
   }
 
   /**
@@ -236,7 +236,7 @@ export function createClient(config: ClientConfig | SdkTransport) {
     ): Promise<GenerateResult> {
       const resolved = resolveModel(model);
       const contract = getModelContract(resolved.id);
-      const completed = await client.result(handle, options);
+      const completed = await client.result(handle, { ...resolved.pollOptions, ...options });
       return parseResult(completed, resolved, contract);
     },
 

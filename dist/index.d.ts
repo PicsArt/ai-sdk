@@ -1516,6 +1516,21 @@ type ModelInputById = {
         watermark?: boolean;
         seed?: number;
     };
+    "wan-3.0-video-prime": {
+        prompt: string;
+        duration?: 5 | 10 | 15 | 30;
+        resolution?: "480P" | "720P" | "1080P";
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "adaptive";
+        generateAudio?: boolean;
+        startFrame?: string;
+        endFrame?: string;
+        imageUrls?: string[];
+        videoUrls?: string[];
+        audioUrls?: string[];
+        enableThinking?: boolean;
+        watermark?: boolean;
+        seed?: number;
+    };
 };
 type TypedModelId = keyof ModelInputById;
 type ModelInput<M extends TypedModelId> = ModelInputById[M];
@@ -2153,6 +2168,15 @@ interface ModelDefinition {
     estimatedTime?: number | Record<string, number>;
     editEstimatedTime?: number | Record<string, number>;
     testTimeout?: number;
+    /**
+     * Per-model polling overrides for async jobs. Widens the global
+     * 2s × 300-attempt (~10 min) default for models whose generations can
+     * outlast it. Explicit per-call poll options still win.
+     */
+    pollOptions?: {
+        intervalMs?: number;
+        maxAttempts?: number;
+    };
 }
 
 /**
@@ -2637,6 +2661,7 @@ declare const Models: {
     readonly Wan27T2v: "wan-2.7-t2v";
     readonly Wan27VideoEdit: "wan-2.7-video-edit";
     readonly Wan30Video: "wan-3.0-video";
+    readonly Wan30VideoPrime: "wan-3.0-video-prime";
     /** @deprecated Use the `catalog` accessor (`catalog.all()` / `catalog.find({ output, provider })`) instead. */
     readonly list: (filter?: ModelFilter) => ModelDefinition[];
     /** @deprecated Use `Model(id).validate(input)` instead. */

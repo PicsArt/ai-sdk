@@ -33,6 +33,8 @@ interface BaseModelConfig {
   estimatedTime?: number | Record<string, number>;
   editEstimatedTime?: number | Record<string, number>;
   testTimeout?: number;
+  /** Per-model polling overrides for async jobs — see ModelDefinition.pollOptions. */
+  pollOptions?: { intervalMs?: number; maxAttempts?: number };
 }
 
 /** App-visible fields shared by enabled and disabled model configs. */
@@ -131,6 +133,7 @@ export function defineModels(
     if (c.estimatedTime !== undefined) model.estimatedTime = c.estimatedTime;
     if (c.editEstimatedTime !== undefined) model.editEstimatedTime = c.editEstimatedTime;
     if (c.testTimeout !== undefined) model.testTimeout = c.testTimeout;
+    if (c.pollOptions !== undefined) model.pollOptions = c.pollOptions;
     if (c.badge !== undefined) model.badge = c.badge;
     if (c.addedAt !== undefined) model.addedAt = c.addedAt;
     if (c.disabled !== undefined) model.disabled = c.disabled;

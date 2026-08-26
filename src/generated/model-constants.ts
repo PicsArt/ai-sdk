@@ -447,6 +447,8 @@ export const Wan27T2v = 'wan-2.7-t2v' as const;
 export const Wan27VideoEdit = 'wan-2.7-video-edit' as const;
 /** Wan 3.0 — wan (video) */
 export const Wan30Video = 'wan-3.0-video' as const;
+/** Wan 3.0 Prime — wan (video) */
+export const Wan30VideoPrime = 'wan-3.0-video-prime' as const;
 
 // ── Validation result ────────────────────────────────────────────
 
@@ -662,6 +664,7 @@ export const Models = {
   Wan27T2v,
   Wan27VideoEdit,
   Wan30Video,
+  Wan30VideoPrime,
 
   /** @deprecated Use the `catalog` accessor (`catalog.all()` / `catalog.find({ output, provider })`) instead. */
   list(filter?: ModelFilter): ModelDefinition[] {

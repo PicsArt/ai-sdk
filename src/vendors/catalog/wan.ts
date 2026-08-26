@@ -138,6 +138,24 @@ const wanV3Constraints: Constraint[] = [
   } },
 ];
 
+// Shared by wan-3.0-video and wan-3.0-video-prime — identical models, prime is faster.
+const wanV3Features = [feat('Image Input', 'input'), feat('Video Input', 'input'), feat('Audio', 'audio'), feat('Start/End Frame', 'frame'), feat('1080P', 'resolution'), feat('Adaptive Ratio', 'resolution')];
+const wanV3ParamConfig = {
+  ...params.prompt(),
+  ...params.duration([5, 10, 15, 30], 5),
+  ...params.resolution(['480P', '720P', '1080P'], '1080P'),
+  ...params.aspectRatio(['16:9', '9:16', '1:1', '4:3', '3:4', 'adaptive']),
+  ...params.generateAudio(true),
+  ...params.startFrame(),
+  ...params.endFrame(),
+  ...params.imageInput(10, 'Reference Images'),
+  ...params.videoInputs(5, 'Reference Videos', false),
+  ...params.audioInputs(5, 'Reference Audios'),
+  ...p.boolean('enableThinking', false, 'Deep Thinking'),
+  ...p.boolean('watermark', false, 'Watermark'),
+  ...p.range('seed', 0, 2147483647, 0, { label: 'Seed' }),
+};
+
 export const { MODELS } = defineModels('wan', [
   // ── Video ─────────────────────────────────────────
   {
@@ -273,6 +291,10 @@ export const { MODELS } = defineModels('wan', [
     },
   },
   // ── Wan 3.0 all-in-one Video ─────────────────────────
+  // wan-3.0-video and wan-3.0-video-prime share the wan/v3/video workflow and
+  // the full param surface — the backend `model` enum value (hardcoded per
+  // entry in wan.payloads.ts) is the only wire difference. Prime is the same
+  // model, up to 7x faster.
   {
     id: 'wan-3.0-video', name: 'Wan 3.0', modelId: 'wan3.0-video',
     addedAt: '2026-08-03',
@@ -282,22 +304,23 @@ export const { MODELS } = defineModels('wan', [
     estimatedTime: 120,
     mode: 'video', inputType: 't2v',
     description: 'Wan 3.0 all-in-one — text, image/video/audio references, and start/end frames with adaptive ratio, intelligent duration, and audio.',
-    features: [feat('Image Input', 'input'), feat('Video Input', 'input'), feat('Audio', 'audio'), feat('Start/End Frame', 'frame'), feat('1080P', 'resolution'), feat('Adaptive Ratio', 'resolution')],
+    features: [...wanV3Features],
     constraints: wanV3Constraints,
-    paramConfig: {
-      ...params.prompt(),
-      ...params.duration([5, 10, 15, 30], 5),
-      ...params.resolution(['480P', '720P', '1080P'], '1080P'),
-      ...params.aspectRatio(['16:9', '9:16', '1:1', '4:3', '3:4', 'adaptive']),
-      ...params.generateAudio(true),
-      ...params.startFrame(),
-      ...params.endFrame(),
-      ...params.imageInput(10, 'Reference Images'),
-      ...params.videoInputs(5, 'Reference Videos', false),
-      ...params.audioInputs(5, 'Reference Audios'),
-      ...p.boolean('enableThinking', false, 'Deep Thinking'),
-      ...p.boolean('watermark', false, 'Watermark'),
-      ...p.range('seed', 0, 2147483647, 0, { label: 'Seed' }),
-    },
+    // Generations at 1080P / long durations can outlast the global 10-min
+    // polling default — widen to 5s × 360 attempts (30 min).
+    pollOptions: { intervalMs: 5000, maxAttempts: 360 },
+    paramConfig: { ...wanV3ParamConfig },
+  },
+  {
+    id: 'wan-3.0-video-prime', name: 'Wan 3.0 Prime', modelId: 'wan3.0-video-prime',
+    addedAt: '2026-08-26',
+    workflow: 'wan/v3/video',
+    estimatedTime: 30,
+    mode: 'video', inputType: 't2v',
+    description: 'Wan 3.0 Prime — the same all-in-one model as Wan 3.0, up to 7x faster.',
+    features: [...wanV3Features],
+    constraints: wanV3Constraints,
+    pollOptions: { intervalMs: 5000, maxAttempts: 360 },
+    paramConfig: { ...wanV3ParamConfig },
   },
 ]);

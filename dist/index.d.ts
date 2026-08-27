@@ -288,6 +288,17 @@ type ModelInputById = {
         imageUrls?: string[];
         thinking?: "off" | "low" | "medium" | "high";
     };
+    "gemini-omni-1.1-flash-preview": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16";
+        resolution?: "360p" | "720p" | "1080p" | "4k";
+        duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+        startFrame?: string;
+        endFrame?: string;
+        imageUrls?: string[];
+        videoUrl?: string;
+        videoUrls?: string[];
+    };
     "gemini-omni-flash-preview": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16";
@@ -2492,6 +2503,7 @@ declare const Models: {
     readonly Gemini35FlashLite: "gemini-3.5-flash-lite";
     readonly Gemini36Flash: "gemini-3.6-flash";
     readonly Gemini37Flash: "gemini-3.7-flash";
+    readonly GeminiOmni11FlashPreview: "gemini-omni-1.1-flash-preview";
     readonly GeminiOmniFlashPreview: "gemini-omni-flash-preview";
     readonly Gpt55: "gpt-5.5";
     readonly GptImage1: "gpt-image-1";

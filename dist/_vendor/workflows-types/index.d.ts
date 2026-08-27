@@ -109,7 +109,7 @@ interface SpeakerVoiceConfig$2 {
     speaker: string;
     voiceConfig: VoiceConfig$2;
 }
-type GeminiModel$1 = "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-2.5-flash-image-preview" | "gemini-2.5-flash-image" | "gemini-2.5-flash-lite-preview-06-17" | "gemini-2.0-flash" | "gemini-2.0-flash-preview-image-generation" | "gemini-2.0-flash-lite" | "gemini-1.5-flash" | "gemini-1.5-flash-8b" | "gemini-1.5-pro" | "gemini-embedding-exp" | "gemini-3-pro" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.1-flash-lite" | "gemini-3-pro-image" | "gemini-3-pro-image-preview" | "gemini-3.1-flash-image-preview" | "gemini-3.1-flash-image" | "gemini-3.1-flash-lite-image" | "gemini-2.5-flash-tts" | "gemini-2.5-pro-tts" | "instant-ramen";
+type GeminiModel$1 = "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-2.5-flash-image-preview" | "gemini-2.5-flash-image" | "gemini-2.5-flash-lite-preview-06-17" | "gemini-2.0-flash" | "gemini-2.0-flash-preview-image-generation" | "gemini-2.0-flash-lite" | "gemini-1.5-flash" | "gemini-1.5-flash-8b" | "gemini-1.5-pro" | "gemini-embedding-exp" | "gemini-3-pro" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.1-flash-lite" | "gemini-3.1-flash-lite-preview" | "gemini-3-pro-image" | "gemini-3-pro-image-preview" | "gemini-3.1-flash-image-preview" | "gemini-3.1-flash-image" | "gemini-3.1-flash-lite-image" | "gemini-2.5-flash-tts" | "gemini-2.5-pro-tts" | "instant-ramen";
 interface GeminiResult$1 {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -435,7 +435,7 @@ interface SpeakerVoiceConfig$1 {
     speaker: string;
     voiceConfig: VoiceConfig$1;
 }
-type GeminiModel = "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-2.5-flash-image-preview" | "gemini-2.5-flash-image" | "gemini-2.5-flash-lite-preview-06-17" | "gemini-2.0-flash" | "gemini-2.0-flash-preview-image-generation" | "gemini-2.0-flash-lite" | "gemini-1.5-flash" | "gemini-1.5-flash-8b" | "gemini-1.5-pro" | "gemini-embedding-exp" | "gemini-3-pro" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.1-flash-lite" | "gemini-3-pro-image" | "gemini-3-pro-image-preview" | "gemini-3.1-flash-image-preview" | "gemini-3.1-flash-image" | "gemini-3.1-flash-lite-image" | "gemini-2.5-flash-tts" | "gemini-2.5-pro-tts" | "instant-ramen";
+type GeminiModel = "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-2.5-flash-image-preview" | "gemini-2.5-flash-image" | "gemini-2.5-flash-lite-preview-06-17" | "gemini-2.0-flash" | "gemini-2.0-flash-preview-image-generation" | "gemini-2.0-flash-lite" | "gemini-1.5-flash" | "gemini-1.5-flash-8b" | "gemini-1.5-pro" | "gemini-embedding-exp" | "gemini-3-pro" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.1-flash-lite" | "gemini-3.1-flash-lite-preview" | "gemini-3-pro-image" | "gemini-3-pro-image-preview" | "gemini-3.1-flash-image-preview" | "gemini-3.1-flash-image" | "gemini-3.1-flash-lite-image" | "gemini-2.5-flash-tts" | "gemini-2.5-pro-tts" | "instant-ramen";
 interface GeminiResult {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -6762,22 +6762,22 @@ interface HappyhorseImageToVideoResult {
 interface WhisperxVideoCaptionsCommand {
     url: string;
     model?: "preview-model-whisperx-large-v3" | "model-whisperx-large-v3";
-    parameters?: WhisperParameters;
-    alignment?: AlignmentOptions;
-    diarization?: DiarizationOptions;
-    output?: OutputOptions;
+    parameters?: WhisperParameters$1;
+    alignment?: AlignmentOptions$1;
+    diarization?: DiarizationOptions$1;
+    output?: OutputOptions$1;
     options?: GenAIOptions$19;
 }
-interface WhisperParameters {
+interface WhisperParameters$1 {
     language?: "en" | "es" | "fr" | "de" | "it" | "pt" | "nl" | "pl" | "ja" | "zh" | "ru";
     task?: "transcribe" | "translate";
 }
-interface AlignmentOptions {
+interface AlignmentOptions$1 {
     enabled?: boolean;
     return_char_alignments?: boolean;
     interpolate_method?: "nearest" | "linear" | "ignore";
 }
-interface DiarizationOptions {
+interface DiarizationOptions$1 {
     enabled?: boolean;
     num_speakers?: number;
     min_speakers?: number;
@@ -6786,7 +6786,7 @@ interface DiarizationOptions {
     fill_nearest?: boolean;
     apply_word_speakers?: boolean;
 }
-interface OutputOptions {
+interface OutputOptions$1 {
     include_word_segments?: boolean;
     include_char_segments?: boolean;
 }
@@ -6813,24 +6813,24 @@ interface WhisperxVideoCaptionsResponse {
 }
 interface WhisperxVideoCaptionsResultData {
     language: string;
-    segments?: TranscriptionSegment[];
+    segments?: TranscriptionSegment$1[];
 }
-interface TranscriptionSegment {
+interface TranscriptionSegment$1 {
     start: number;
     end: number;
     text: string;
     speaker?: string;
-    words?: WordSegment[];
-    chars?: CharSegment[];
+    words?: WordSegment$1[];
+    chars?: CharSegment$1[];
 }
-interface WordSegment {
+interface WordSegment$1 {
     word: string;
     start?: number;
     end?: number;
     score?: number;
     speaker?: string;
 }
-interface CharSegment {
+interface CharSegment$1 {
     char: string;
     start?: number;
     end?: number;
@@ -9218,7 +9218,7 @@ interface ImageSegmentationResultData {
 interface WanV3VideoCommand {
     prompt?: string;
     media?: WanV3MediaItem[];
-    model?: "wan3.0-video";
+    model?: "wan3.0-video" | "wan3.0-video-prime";
     resolution?: "480P" | "720P" | "1080P";
     ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "adaptive";
     duration?: number;
@@ -10333,6 +10333,69 @@ interface FaceCollageResultData {
     driveFile?: Record<string, unknown>;
 }
 
+interface WhisperxSliceCommand {
+    url: string;
+    start?: number;
+    end?: number;
+    model?: "preview-model-whisperx-large-v3" | "model-whisperx-large-v3";
+    parameters?: WhisperParameters;
+    alignment?: AlignmentOptions;
+    diarization?: DiarizationOptions;
+    output?: OutputOptions;
+}
+interface WhisperParameters {
+    language?: "en" | "es" | "fr" | "de" | "it" | "pt" | "nl" | "pl" | "ja" | "zh" | "ru";
+    task?: "transcribe" | "translate";
+}
+interface AlignmentOptions {
+    enabled?: boolean;
+    return_char_alignments?: boolean;
+    interpolate_method?: "nearest" | "linear" | "ignore";
+}
+interface DiarizationOptions {
+    enabled?: boolean;
+    num_speakers?: number;
+    min_speakers?: number;
+    max_speakers?: number;
+    return_embeddings?: boolean;
+    fill_nearest?: boolean;
+    apply_word_speakers?: boolean;
+}
+interface OutputOptions {
+    include_word_segments?: boolean;
+    include_char_segments?: boolean;
+}
+interface WhisperxSliceResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: WhisperxSliceResultData;
+}
+interface WhisperxSliceResultData {
+    language: string;
+    segments?: TranscriptionSegment[];
+}
+interface TranscriptionSegment {
+    start: number;
+    end: number;
+    text: string;
+    speaker?: string;
+    words?: WordSegment[];
+    chars?: CharSegment[];
+}
+interface WordSegment {
+    word: string;
+    start?: number;
+    end?: number;
+    score?: number;
+    speaker?: string;
+}
+interface CharSegment {
+    char: string;
+    start?: number;
+    end?: number;
+    score?: number;
+}
+
 interface WorkflowTypes {
     'check-text': {
         params: CheckTextCommand;
@@ -11333,6 +11396,10 @@ interface WorkflowTypes {
     'pcp/v1/face-collage': {
         params: FaceCollageCommand;
         result: FaceCollageResponse;
+    };
+    'pcp/v1/whisperx-stt-slice': {
+        params: WhisperxSliceCommand;
+        result: WhisperxSliceResponse;
     };
 }
 

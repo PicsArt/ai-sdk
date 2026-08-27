@@ -5753,8 +5753,55 @@ var { MODELS: MODELS22 } = defineModels("google", [
       ...params.imageInput(1, "Source Image", false, "asset"),
       ...params.videoInput("Source Video", "asset", false)
     }
+  },
+  {
+    id: "gemini-omni-1.1-flash-preview",
+    name: "Gemini Omni 1.2 Flash",
+    specName: "Gemini Omni 1.1 Flash Preview",
+    addedAt: "2026-08-27",
+    workflow: "gemini-omni/video",
+    estimatedTime: { "360p": 30, "720p": 40, "1080p": 60, "4k": 90 },
+    mode: "video",
+    inputType: "t2v",
+    description: "Gemini Omni with frame interpolation, video extension, reference-guided generation, and up to 4K output.",
+    features: [feat("Start/End Frame", "input"), feat("Reference Images & Videos", "input"), feat("Video Extension", "input"), feat("4K", "resolution"), feat("3\u201310 sec", "duration")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(["16:9", "9:16"], "16:9"),
+      ...params.resolution(["360p", "720p", "1080p", "4k"], "720p"),
+      ...params.duration([3, 4, 5, 6, 7, 8, 9, 10], 8),
+      ...params.startFrame("Start Frame"),
+      ...params.endFrame("End Frame"),
+      ...params.imageInput(5, "Reference Images", false, "reference"),
+      // Extension source: the worker extends the clip by up to 10s; input must be under 30s.
+      ...params.videoInput("Source Video", "asset", false, 30),
+      ...params.videoInputs(3, "Reference Videos")
+    }
   }
 ]);
+
+// src/vendors/catalog/gemini.payloads.ts
+function inferMimeType3(url) {
+  return url.match(/\.png(\?|$)/i) ? "image/png" : "image/jpeg";
+}
+var toImage = (url) => ({ url, mimeType: inferMimeType3(url) });
+var buildOmniFlash11Payload = (input) => ({
+  prompt: input.prompt,
+  model: "gemini-omni-1.1-flash-preview",
+  // Materialize the catalog defaults so direct SDK calls send the advertised
+  // values rather than relying on the worker/vendor defaults.
+  aspectRatio: input.aspectRatio ?? "16:9",
+  durationSeconds: input.duration ?? 8,
+  resolution: input.resolution ?? "720p",
+  ...input.startFrame ? { image: toImage(input.startFrame) } : {},
+  ...input.endFrame ? { lastFrame: toImage(input.endFrame) } : {},
+  ...input.imageUrls?.length ? { referenceImages: input.imageUrls.map(toImage) } : {},
+  ...input.videoUrl ? { video: { url: input.videoUrl } } : {},
+  ...input.videoUrls?.length ? { referenceVideos: input.videoUrls.map((url) => ({ url })) } : {}
+});
+registerPayloads(MODELS22, {
+  "gemini-omni-1.1-flash-preview": buildOmniFlash11Payload
+});
 
 // src/vendors/catalog/openai.ts
 var GPT_IMAGE_AR_TO_SIZE = {
@@ -10465,6 +10512,7 @@ var Gemini31FlashLiteImage = "gemini-3.1-flash-lite-image";
 var Gemini35FlashLite = "gemini-3.5-flash-lite";
 var Gemini36Flash = "gemini-3.6-flash";
 var Gemini37Flash = "gemini-3.7-flash";
+var GeminiOmni11FlashPreview = "gemini-omni-1.1-flash-preview";
 var GeminiOmniFlashPreview = "gemini-omni-flash-preview";
 var Gpt55 = "gpt-5.5";
 var GptImage1 = "gpt-image-1";
@@ -10672,6 +10720,7 @@ var Models = {
   Gemini35FlashLite,
   Gemini36Flash,
   Gemini37Flash,
+  GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,
   Gpt55,
   GptImage1,

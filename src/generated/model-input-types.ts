@@ -41,6 +41,7 @@ export type ModelInputById = {
   "gemini-3.5-flash-lite": { prompt: string; imageUrls?: string[]; };
   "gemini-3.6-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-3.7-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
+  "gemini-omni-1.1-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; resolution?: "360p" | "720p" | "1080p" | "4k"; duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrl?: string; videoUrls?: string[]; };
   "gemini-omni-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; duration?: 3 | 5 | 6 | 8 | 10; imageUrls?: string[]; videoUrl?: string; };
   "gpt-5.5": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gpt-image-1": { prompt: string; aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4"; quality?: "high" | "medium" | "low"; background?: "opaque" | "transparent"; outputFormat?: "png" | "jpeg" | "webp"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };

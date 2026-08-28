@@ -5506,6 +5506,36 @@ var { MODELS: MODELS21 } = defineModels("flux", [
       // draft: fast low-step preview.
       ...p.boolean("draft", false, "Draft")
     }
+  },
+  {
+    // Pure pass-through: the worker Command takes the SDK's own field names
+    // (videoUrl, upscaleFactor, creativity, prompt, safetyTolerance) — no
+    // payload builder needed. webhookUrl is polling plumbing, not surfaced
+    // (same as flux-3-video).
+    id: "flux-video-upscale",
+    name: "Flux Video Upscale",
+    workflow: "flux/v1/video-upscale",
+    mode: "video",
+    inputType: "v2v",
+    addedAt: "2026-08-28",
+    estimatedTime: 180,
+    description: "Upscale videos toward 4K (1.5x\u20133x) in precise (source-faithful) or creative (detail-enhancing) mode. Source clips up to 20 seconds and 2K.",
+    features: [
+      feat("Upscale", "quality"),
+      feat("Video Required", "input"),
+      feat("Up to 4K", "resolution")
+    ],
+    paramConfig: {
+      // Vendor source caps: 20s, 50 MB, 2560x1440 (2K).
+      ...params.videoInput("Source Video", "asset", true, 20, 1440, 50 * 1024 * 1024),
+      ...p.range("upscaleFactor", 1.5, 3, 2, { step: 0.5, label: "Upscale Factor" }),
+      // Vendor switch: 0 preserves the source precisely; 1 (default) allows
+      // creative detail enhancement and is the more expensive pricing tier.
+      ...p.enum("creativity", [{ id: 0, label: "Precise" }, { id: 1, label: "Creative" }], 1, { label: "Creativity" }),
+      ...params.prompt({ required: false }),
+      // Moderation level: 0 (strict) … 4 (permissive).
+      ...p.range("safetyTolerance", 0, 4, 2, { label: "Safety Tolerance" })
+    }
   }
 ]);
 
@@ -10510,6 +10540,7 @@ var Flux2Pro = "flux-2-pro";
 var Flux3Video = "flux-3-video";
 var FluxKontextMax = "flux-kontext-max";
 var FluxKontextPro = "flux-kontext-pro";
+var FluxVideoUpscale = "flux-video-upscale";
 var Gemini25FlashImage = "gemini-2.5-flash-image";
 var Gemini25FlashTts = "gemini-2.5-flash-tts";
 var Gemini25ProTts = "gemini-2.5-pro-tts";
@@ -10718,6 +10749,7 @@ var Models = {
   Flux3Video,
   FluxKontextMax,
   FluxKontextPro,
+  FluxVideoUpscale,
   Gemini25FlashImage,
   Gemini25FlashTts,
   Gemini25ProTts,

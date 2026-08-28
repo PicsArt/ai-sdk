@@ -5782,7 +5782,7 @@ var { MODELS: MODELS22 } = defineModels("google", [
   },
   {
     id: "gemini-omni-1.1-flash-preview",
-    name: "Gemini Omni 1.2 Flash",
+    name: "Gemini Omni 1.1 Flash",
     specName: "Gemini Omni 1.1 Flash Preview",
     addedAt: "2026-08-27",
     workflow: "gemini-omni/video",

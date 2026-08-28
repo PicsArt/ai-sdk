@@ -269,9 +269,10 @@ export interface ModelDefinition {
   editEstimatedTime?: number | Record<string, number>;
   testTimeout?: number;
   /**
-   * Per-model polling overrides for async jobs. Widens the global
-   * 2s × 300-attempt (~10 min) default for models whose generations can
-   * outlast it. Explicit per-call poll options still win.
+   * Per-model polling overrides for async jobs. Narrows or widens the mode
+   * default (video 2s × 1800 ≈ 1 h; image/audio/text 1s × 1200 ≈ 20 min) for
+   * models whose generations don't fit it. Explicit per-call poll options
+   * still win.
    */
   pollOptions?: { intervalMs?: number; maxAttempts?: number };
 }

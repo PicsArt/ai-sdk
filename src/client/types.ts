@@ -116,6 +116,17 @@ export interface GenerateTextResult {
 /** Options for individual generate() / submit() calls. */
 export interface GenerateOptions {
   signal?: AbortSignal;
+  /**
+   * Poll interval for the async status loop, in ms. Overrides the model's
+   * `pollOptions` and the mode default (video 2s; image/audio/text 1s).
+   */
+  intervalMs?: number;
+  /**
+   * Max poll attempts before the call throws a timeout. Overrides the model's
+   * `pollOptions` and the mode default (video 1800 ≈ 1 hour;
+   * image/audio/text 1200 ≈ 20 min).
+   */
+  maxAttempts?: number;
   /** Save to a specific subfolder instead of the root (legacy — used by SDK DriveConfig). */
   folder?: DriveFolder;
   /** Save result to Picsart Drive via backend. Injected into the workflow payload. */

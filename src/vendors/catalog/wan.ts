@@ -306,9 +306,6 @@ export const { MODELS } = defineModels('wan', [
     description: 'Wan 3.0 all-in-one — text, image/video/audio references, and start/end frames with adaptive ratio, intelligent duration, and audio.',
     features: [...wanV3Features],
     constraints: wanV3Constraints,
-    // Generations at 1080P / long durations can outlast the global 10-min
-    // polling default — widen to 5s × 360 attempts (30 min).
-    pollOptions: { intervalMs: 5000, maxAttempts: 360 },
     paramConfig: { ...wanV3ParamConfig },
   },
   {
@@ -320,7 +317,6 @@ export const { MODELS } = defineModels('wan', [
     description: 'Wan 3.0 Prime — the same all-in-one model as Wan 3.0, up to 7x faster.',
     features: [...wanV3Features],
     constraints: wanV3Constraints,
-    pollOptions: { intervalMs: 5000, maxAttempts: 360 },
     paramConfig: { ...wanV3ParamConfig },
   },
 ]);

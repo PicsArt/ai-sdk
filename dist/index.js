@@ -3129,9 +3129,6 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     description: "Wan 3.0 all-in-one \u2014 text, image/video/audio references, and start/end frames with adaptive ratio, intelligent duration, and audio.",
     features: [...wanV3Features],
     constraints: wanV3Constraints,
-    // Generations at 1080P / long durations can outlast the global 10-min
-    // polling default — widen to 5s × 360 attempts (30 min).
-    pollOptions: { intervalMs: 5e3, maxAttempts: 360 },
     paramConfig: { ...wanV3ParamConfig }
   },
   {
@@ -3146,7 +3143,6 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     description: "Wan 3.0 Prime \u2014 the same all-in-one model as Wan 3.0, up to 7x faster.",
     features: [...wanV3Features],
     constraints: wanV3Constraints,
-    pollOptions: { intervalMs: 5e3, maxAttempts: 360 },
     paramConfig: { ...wanV3ParamConfig }
   }
 ]);
@@ -3786,12 +3782,6 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     badge: ["new", "premium", "hot"],
     description: "Latest cinematic video with audio, multi-reference input, and mp4/mov output. Up to 30s.",
     features: [feat("Reference Image", "frame"), feat("Start/End Frame", "frame"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("4-30 sec", "duration")],
-    // 1080p / 30s runs, and the whole extend path, outlast the global 10-min
-    // polling default: measured p90 for seedance-2.5-video-extend sits above
-    // the 600s ceiling. Widened to 5s × 360 attempts (30 min), same request
-    // count, 3x the wall clock. Deliberately NOT derived from estimatedTime,
-    // which understates seedance latency by ~10x.
-    pollOptions: { intervalMs: 5e3, maxAttempts: 360 },
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
@@ -3821,7 +3811,6 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     badge: ["new", "premium", "hot"],
     description: "Edit video \u2014 replace subjects, add or remove objects, restyle scenes with reference images.",
     features: [feat("Video Input", "input"), feat("Multi-Image Input", "input"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("Source length", "duration")],
-    pollOptions: { intervalMs: 5e3, maxAttempts: 360 },
     paramConfig: {
       ...params.prompt(),
       // Editing mode: aspect ratio is fixed to 'adaptive' and duration is
@@ -3848,7 +3837,6 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     badge: ["new", "premium", "hot"],
     description: "Stitch up to 10 clips into one continuous, extended video.",
     features: [feat("Multi-Video Input", "input"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("4-30 sec", "duration")],
-    pollOptions: { intervalMs: 5e3, maxAttempts: 360 },
     paramConfig: {
       ...params.prompt(),
       // Extension mode: aspect ratio is locked to 'adaptive' (vendor rule);
@@ -9904,6 +9892,23 @@ function createCatalogs(transport, options) {
 }
 
 // src/client/index.ts
+var MODE_POLL_DEFAULTS = {
+  video: { intervalMs: 2e3, maxAttempts: 1800 },
+  // 2s × 1800 = 1 hour
+  image: { intervalMs: 1e3, maxAttempts: 1200 },
+  // 1s × 1200 = 20 min
+  audio: { intervalMs: 1e3, maxAttempts: 1200 },
+  // 1s × 1200 = 20 min
+  text: { intervalMs: 1e3, maxAttempts: 1200 }
+  // 1s × 1200 = 20 min
+};
+function resolvePollOptions(model, overrides) {
+  const resolved = { ...MODE_POLL_DEFAULTS[model.mode], ...model.pollOptions };
+  if (overrides?.intervalMs !== void 0) resolved.intervalMs = overrides.intervalMs;
+  if (overrides?.maxAttempts !== void 0) resolved.maxAttempts = overrides.maxAttempts;
+  if (overrides?.signal !== void 0) resolved.signal = overrides.signal;
+  return resolved;
+}
 function createClient(config) {
   const isConfig = isClientConfig(config);
   const transport = isConfig ? buildTransport(config) : config;
@@ -9913,7 +9918,8 @@ function createClient(config) {
   const catalogs = createCatalogs(transport, isConfig ? config.catalogs : void 0);
   const driveConfig = isConfig ? config.drive : void 0;
   const driveClient = isConfig && driveConfig ? createDriveClient(resolveFetch(config), config.apiUrl, driveConfig.folder) : null;
-  async function executeModel(model, workflow, payload, signal) {
+  async function executeModel(model, workflow, payload, options) {
+    const signal = options?.signal;
     if (model.syncExecute || !supportsSubmit) {
       const syncResponse = await client.run(
         { workflow, payload, signal },
@@ -9926,7 +9932,7 @@ function createClient(config) {
         syncResponse.usage
       );
     }
-    return client.run({ workflow, payload, signal }, model.pollOptions);
+    return client.run({ workflow, payload, signal }, resolvePollOptions(model, options));
   }
   function buildDrivePayloadOptions(model, params2, options) {
     const explicit = options?.drive;
@@ -9966,7 +9972,7 @@ function createClient(config) {
       const { workflow, payload, contract } = prepareRequest(resolved, params2);
       const drive = buildDrivePayloadOptions(resolved, params2, options);
       const finalPayload = injectDriveOptions(payload, drive);
-      const completed = await executeModel(resolved, workflow, finalPayload, options?.signal);
+      const completed = await executeModel(resolved, workflow, finalPayload, options);
       return parseResult(completed, resolved, contract);
     },
     /**
@@ -9983,7 +9989,7 @@ function createClient(config) {
         throw new Error(`${resolved.name} is not a text model \u2014 use generate() instead.`);
       }
       const { workflow, payload } = prepareRequest(resolved, params2);
-      const completed = await executeModel(resolved, workflow, payload, options?.signal);
+      const completed = await executeModel(resolved, workflow, payload, options);
       return parseTextResult(completed, resolved);
     },
     /** @deprecated Use `getCredits()` instead. */
@@ -10027,7 +10033,7 @@ function createClient(config) {
     async result(handle, model, options) {
       const resolved = resolveModel(model);
       const contract = getModelContract(resolved.id);
-      const completed = await client.result(handle, { ...resolved.pollOptions, ...options });
+      const completed = await client.result(handle, resolvePollOptions(resolved, options));
       return parseResult(completed, resolved, contract);
     },
     /**

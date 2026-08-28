@@ -1,4 +1,4 @@
-import type { ModelDefinition } from '../core/types.ts';
+import type { GenerationMode, ModelDefinition } from '../core/types.ts';
 import {
   createWorkflowClient,
   type WorkflowJobHandle,
@@ -27,6 +27,39 @@ export { ExecutionMode as ApiRunMode } from '@picsart/workflows-client';
 export type { DriveConfig, AppType, AppIdentity } from './types.ts';
 export type { DriveMediaItem, DriveFileDetails, ListOptions, MediaTypeFilter, SaveParams, UserReaction, GenerationFile, DriveFile, SdkPayload, DriveAttributes, DriveFolder, DriveSaveResult, PayloadDriveOptions, PayloadDriveFolderOptions, DriveClient } from './drive.ts';
 export { inferResourceType, buildFilename, parseGeneration, buildGenerationAttributes } from './drive.ts';
+
+// ── Polling defaults ──────────────────────────────────────────────────
+
+/**
+ * Mode-aware defaults for the async status loop. Video generations run long,
+ * so they poll every 2s for up to an hour; image, audio and text land fast, so
+ * they poll twice as often on a 20-minute deadline.
+ *
+ * Precedence, widest to narrowest: mode default → model `pollOptions` →
+ * per-call `intervalMs` / `maxAttempts`.
+ */
+const MODE_POLL_DEFAULTS: Record<GenerationMode, { intervalMs: number; maxAttempts: number }> = {
+  video: { intervalMs: 2000, maxAttempts: 1800 }, // 2s × 1800 = 1 hour
+  image: { intervalMs: 1000, maxAttempts: 1200 }, // 1s × 1200 = 20 min
+  audio: { intervalMs: 1000, maxAttempts: 1200 }, // 1s × 1200 = 20 min
+  text: { intervalMs: 1000, maxAttempts: 1200 },  // 1s × 1200 = 20 min
+};
+
+/**
+ * Merge mode default → model `pollOptions` → caller overrides. Spread alone
+ * won't do: an override object carrying an explicit `undefined` would clobber
+ * the layer beneath it, so each field is copied only when actually set.
+ */
+function resolvePollOptions(
+  model: ModelDefinition,
+  overrides?: WorkflowPollOptions,
+): WorkflowPollOptions {
+  const resolved: WorkflowPollOptions = { ...MODE_POLL_DEFAULTS[model.mode], ...model.pollOptions };
+  if (overrides?.intervalMs !== undefined) resolved.intervalMs = overrides.intervalMs;
+  if (overrides?.maxAttempts !== undefined) resolved.maxAttempts = overrides.maxAttempts;
+  if (overrides?.signal !== undefined) resolved.signal = overrides.signal;
+  return resolved;
+}
 
 /**
  * Create an AI SDK client.
@@ -70,8 +103,9 @@ export function createClient(config: ClientConfig | SdkTransport) {
     model: ModelDefinition,
     workflow: string,
     payload: unknown,
-    signal?: AbortSignal,
+    options?: GenerateOptions,
   ): Promise<WorkflowStatusResult<unknown>> {
+    const signal = options?.signal;
     if (model.syncExecute || !supportsSubmit) {
       const syncResponse = await client.run(
         { workflow, payload, signal },
@@ -84,7 +118,7 @@ export function createClient(config: ClientConfig | SdkTransport) {
         syncResponse.usage,
       );
     }
-    return client.run({ workflow, payload, signal }, model.pollOptions);
+    return client.run({ workflow, payload, signal }, resolvePollOptions(model, options));
   }
 
   /**
@@ -143,7 +177,7 @@ export function createClient(config: ClientConfig | SdkTransport) {
       const { workflow, payload, contract } = prepareRequest(resolved, params);
       const drive = buildDrivePayloadOptions(resolved, params, options);
       const finalPayload = injectDriveOptions(payload, drive);
-      const completed = await executeModel(resolved, workflow, finalPayload, options?.signal);
+      const completed = await executeModel(resolved, workflow, finalPayload, options);
       return parseResult(completed, resolved, contract);
     },
 
@@ -165,7 +199,7 @@ export function createClient(config: ClientConfig | SdkTransport) {
         throw new Error(`${resolved.name} is not a text model — use generate() instead.`);
       }
       const { workflow, payload } = prepareRequest(resolved, params);
-      const completed = await executeModel(resolved, workflow, payload, options?.signal);
+      const completed = await executeModel(resolved, workflow, payload, options);
       return parseTextResult(completed, resolved);
     },
 
@@ -236,7 +270,7 @@ export function createClient(config: ClientConfig | SdkTransport) {
     ): Promise<GenerateResult> {
       const resolved = resolveModel(model);
       const contract = getModelContract(resolved.id);
-      const completed = await client.result(handle, { ...resolved.pollOptions, ...options });
+      const completed = await client.result(handle, resolvePollOptions(resolved, options));
       return parseResult(completed, resolved, contract);
     },
 

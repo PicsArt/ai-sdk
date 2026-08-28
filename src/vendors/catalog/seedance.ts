@@ -358,6 +358,12 @@ export const { MODELS } = defineModels('seedance', [
     badge: ['new', 'premium', 'hot'],
     description: 'Latest cinematic video with audio, multi-reference input, and mp4/mov output. Up to 30s.',
     features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
+    // 1080p / 30s runs, and the whole extend path, outlast the global 10-min
+    // polling default: measured p90 for seedance-2.5-video-extend sits above
+    // the 600s ceiling. Widened to 5s × 360 attempts (30 min), same request
+    // count, 3x the wall clock. Deliberately NOT derived from estimatedTime,
+    // which understates seedance latency by ~10x.
+    pollOptions: { intervalMs: 5000, maxAttempts: 360 },
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
@@ -384,6 +390,7 @@ export const { MODELS } = defineModels('seedance', [
     badge: ['new', 'premium', 'hot'],
     description: 'Edit video — replace subjects, add or remove objects, restyle scenes with reference images.',
     features: [feat('Video Input', 'input'), feat('Multi-Image Input', 'input'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('Source length', 'duration')],
+    pollOptions: { intervalMs: 5000, maxAttempts: 360 },
     paramConfig: {
       ...params.prompt(),
       // Editing mode: aspect ratio is fixed to 'adaptive' and duration is
@@ -407,6 +414,7 @@ export const { MODELS } = defineModels('seedance', [
     badge: ['new', 'premium', 'hot'],
     description: 'Stitch up to 10 clips into one continuous, extended video.',
     features: [feat('Multi-Video Input', 'input'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
+    pollOptions: { intervalMs: 5000, maxAttempts: 360 },
     paramConfig: {
       ...params.prompt(),
       // Extension mode: aspect ratio is locked to 'adaptive' (vendor rule);

@@ -56,7 +56,6 @@ export type ModelInputById = {
   "grok-imagine-video": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3"; resolution?: "480p" | "720p"; duration?: 3 | 5 | 6 | 8 | 10 | 12 | 15; imageUrls?: string[]; };
   "grok-imagine-video-1.5": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3"; resolution?: "480p" | "720p" | "1080p"; duration?: 3 | 5 | 6 | 8 | 10 | 12 | 15; imageUrls?: string[]; };
   "grok-tts": { language?: string; accent?: string; prompt: string; voiceId?: string; };
-  "hailuo-03": { prompt: string; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; duration?: 5 | 10 | 15; aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; };
   "hailuo-2.3": { prompt: string; enhancePrompt?: boolean; duration?: 6 | 10; imageUrls?: string[]; };
   "hailuo-2.3-fast": { prompt: string; enhancePrompt?: boolean; duration?: 6 | 10; imageUrls: [string, ...string[]]; };
   "hailuo-2.3-fast-pro": { prompt: string; enhancePrompt?: boolean; imageUrls: [string, ...string[]]; };
@@ -109,6 +108,7 @@ export type ModelInputById = {
   "lyria-3-clip": { prompt: string; imageUrls?: string[]; };
   "lyria-3-pro": { prompt: string; imageUrls?: string[]; };
   "minimax-02-hd": { language?: string; accent?: string; prompt: string; };
+  "minimax-h3": { prompt: string; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; duration?: 5 | 10 | 15; aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; };
   "minimax-music-v2": { prompt: string; lyricsPrompt?: string; lyricsOptimizer?: boolean; isInstrumental?: boolean; outputFormat?: "url" | "hex"; };
   "minimax-music-v3": { prompt: string; lyricsPrompt?: string; lyricsOptimizer?: boolean; isInstrumental?: boolean; sampleRate?: 16000 | 24000 | 32000 | 44100; bitrate?: 32000 | 64000 | 128000 | 256000; format?: "mp3" | "wav" | "pcm"; };
   "ovi": { prompt: string; size?: "9:16" | "16:9" | "1:1" | "9:16+" | "16:9+" | "2:5" | "5:2"; imageUrls?: string[]; };

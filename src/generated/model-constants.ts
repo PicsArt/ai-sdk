@@ -118,8 +118,6 @@ export const GrokImagineVideo = 'grok-imagine-video' as const;
 export const GrokImagineVideo15 = 'grok-imagine-video-1.5' as const;
 /** Grok TTS — grok (audio) */
 export const GrokTts = 'grok-tts' as const;
-/** Hailuo 03 — minimax (video) */
-export const Hailuo03 = 'hailuo-03' as const;
 /** Hailuo 2.3 — minimax (video) */
 export const Hailuo23 = 'hailuo-2.3' as const;
 /** Hailuo 2.3 Fast — minimax (video) */
@@ -231,6 +229,8 @@ export const Lyria3Pro = 'lyria-3-pro' as const;
 /** MiniMax 02 HD — minimax (audio) */
 /** @deprecated This model is currently unavailable (disabled). */
 export const Minimax02Hd = 'minimax-02-hd' as const;
+/** MiniMax H3 — minimax (video) */
+export const MinimaxH3 = 'minimax-h3' as const;
 /** MiniMax Music v2 — minimax (audio) */
 export const MinimaxMusicV2 = 'minimax-music-v2' as const;
 /** MiniMax Music v3 — minimax (audio) */
@@ -514,7 +514,6 @@ export const Models = {
   GrokImagineVideo,
   GrokImagineVideo15,
   GrokTts,
-  Hailuo03,
   Hailuo23,
   Hailuo23Fast,
   Hailuo23FastPro,
@@ -567,6 +566,7 @@ export const Models = {
   Lyria3Clip,
   Lyria3Pro,
   Minimax02Hd,
+  MinimaxH3,
   MinimaxMusicV2,
   MinimaxMusicV3,
   Ovi,

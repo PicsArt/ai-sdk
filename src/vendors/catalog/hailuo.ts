@@ -22,7 +22,7 @@ const buildI2V = (withDuration: boolean): PayloadBuilder => (ctx) => ({
 });
 
 /**
- * Hailuo 03 / MiniMax-H3 — single unified `minimax/v2/video-generation` endpoint.
+ * MiniMax H3 (formerly Hailuo 03) — single unified `minimax/v2/video-generation` endpoint.
  * The mode is inferred from the discriminated `content[]` array roles:
  *   - one required `text` item (the prompt);
  *   - `first_frame` / `last_frame` image roles → i2v / keyframe;
@@ -55,7 +55,7 @@ const FRAME_REF_EXCLUSIVE = 'First/last frame and reference inputs cannot be com
 const LAST_NEEDS_FIRST = 'An end frame requires a start frame.';
 const AUDIO_NEEDS_VISUAL = 'Reference audio needs a reference image or video.';
 
-const hailuo03Constraints: Constraint[] = [
+const minimaxH3Constraints: Constraint[] = [
   // Frame roles ⊥ reference roles (declared both ways so either input disables the other).
   { when: { startFrame: { exists: true } }, then: {
     imageUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
@@ -162,7 +162,7 @@ export const { MODELS } = defineModels('minimax', [
     },
   },
   {
-    ...base, id: 'hailuo-03', name: 'Hailuo 03', modelId: 'minimax-h3',
+    ...base, id: 'minimax-h3', name: 'MiniMax H3', modelId: 'minimax-h3',
     addedAt: '2026-07-30',
     inputType: 't2v' as const,
     workflow: 'minimax/v2/video-generation',
@@ -183,6 +183,6 @@ export const { MODELS } = defineModels('minimax', [
       ...params.duration([5, 10, 15]),
       ...p.aspectRatio(['adaptive', '21:9', '16:9', '4:3', '1:1', '3:4', '9:16'], 'adaptive'),
     },
-    constraints: hailuo03Constraints,
+    constraints: minimaxH3Constraints,
   },
 ]);

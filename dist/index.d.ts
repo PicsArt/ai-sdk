@@ -395,16 +395,6 @@ type ModelInputById = {
         prompt: string;
         voiceId?: string;
     };
-    "hailuo-03": {
-        prompt: string;
-        startFrame?: string;
-        endFrame?: string;
-        imageUrls?: string[];
-        videoUrls?: string[];
-        audioUrls?: string[];
-        duration?: 5 | 10 | 15;
-        aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
-    };
     "hailuo-2.3": {
         prompt: string;
         enhancePrompt?: boolean;
@@ -790,6 +780,16 @@ type ModelInputById = {
         language?: string;
         accent?: string;
         prompt: string;
+    };
+    "minimax-h3": {
+        prompt: string;
+        startFrame?: string;
+        endFrame?: string;
+        imageUrls?: string[];
+        videoUrls?: string[];
+        audioUrls?: string[];
+        duration?: 5 | 10 | 15;
+        aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
     };
     "minimax-music-v2": {
         prompt: string;
@@ -2537,7 +2537,6 @@ declare const Models: {
     readonly GrokImagineVideo: "grok-imagine-video";
     readonly GrokImagineVideo15: "grok-imagine-video-1.5";
     readonly GrokTts: "grok-tts";
-    readonly Hailuo03: "hailuo-03";
     readonly Hailuo23: "hailuo-2.3";
     readonly Hailuo23Fast: "hailuo-2.3-fast";
     readonly Hailuo23FastPro: "hailuo-2.3-fast-pro";
@@ -2590,6 +2589,7 @@ declare const Models: {
     readonly Lyria3Clip: "lyria-3-clip";
     readonly Lyria3Pro: "lyria-3-pro";
     readonly Minimax02Hd: "minimax-02-hd";
+    readonly MinimaxH3: "minimax-h3";
     readonly MinimaxMusicV2: "minimax-music-v2";
     readonly MinimaxMusicV3: "minimax-music-v3";
     readonly Ovi: "ovi";

@@ -2667,7 +2667,7 @@ var buildMinimaxH3 = (ctx) => {
 var FRAME_REF_EXCLUSIVE = "First/last frame and reference inputs cannot be combined.";
 var LAST_NEEDS_FIRST = "An end frame requires a start frame.";
 var AUDIO_NEEDS_VISUAL = "Reference audio needs a reference image or video.";
-var hailuo03Constraints = [
+var minimaxH3Constraints = [
   // Frame roles ⊥ reference roles (declared both ways so either input disables the other).
   { when: { startFrame: { exists: true } }, then: {
     imageUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE },
@@ -2784,8 +2784,8 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
   },
   {
     ...base,
-    id: "hailuo-03",
-    name: "Hailuo 03",
+    id: "minimax-h3",
+    name: "MiniMax H3",
     modelId: "minimax-h3",
     addedAt: "2026-07-30",
     inputType: "t2v",
@@ -2810,7 +2810,7 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
       ...params.duration([5, 10, 15]),
       ...p.aspectRatio(["adaptive", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "adaptive")
     },
-    constraints: hailuo03Constraints
+    constraints: minimaxH3Constraints
   }
 ]);
 
@@ -10571,7 +10571,6 @@ var GrokImagineImageQuality = "grok-imagine-image-quality";
 var GrokImagineVideo = "grok-imagine-video";
 var GrokImagineVideo15 = "grok-imagine-video-1.5";
 var GrokTts = "grok-tts";
-var Hailuo03 = "hailuo-03";
 var Hailuo23 = "hailuo-2.3";
 var Hailuo23Fast = "hailuo-2.3-fast";
 var Hailuo23FastPro = "hailuo-2.3-fast-pro";
@@ -10624,6 +10623,7 @@ var LumaUni1Max = "luma-uni-1-max";
 var Lyria3Clip = "lyria-3-clip";
 var Lyria3Pro = "lyria-3-pro";
 var Minimax02Hd = "minimax-02-hd";
+var MinimaxH3 = "minimax-h3";
 var MinimaxMusicV2 = "minimax-music-v2";
 var MinimaxMusicV3 = "minimax-music-v3";
 var Ovi = "ovi";
@@ -10780,7 +10780,6 @@ var Models = {
   GrokImagineVideo,
   GrokImagineVideo15,
   GrokTts,
-  Hailuo03,
   Hailuo23,
   Hailuo23Fast,
   Hailuo23FastPro,
@@ -10833,6 +10832,7 @@ var Models = {
   Lyria3Clip,
   Lyria3Pro,
   Minimax02Hd,
+  MinimaxH3,
   MinimaxMusicV2,
   MinimaxMusicV3,
   Ovi,

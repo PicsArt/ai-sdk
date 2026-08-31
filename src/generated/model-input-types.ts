@@ -109,6 +109,7 @@ export type ModelInputById = {
   "lyria-3-pro": { prompt: string; imageUrls?: string[]; };
   "minimax-02-hd": { language?: string; accent?: string; prompt: string; };
   "minimax-h3": { prompt: string; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; duration?: 5 | 10 | 15; aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; };
+  "minimax-h3-max": { prompt: string; startFrame?: string; endFrame?: string; resolution?: "480p" | "768p"; duration?: number; aspectRatio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; promptExpansionMode?: "disabled" | "balanced" | "quality"; seed?: number; enableSafetyChecker?: boolean; };
   "minimax-music-v2": { prompt: string; lyricsPrompt?: string; lyricsOptimizer?: boolean; isInstrumental?: boolean; outputFormat?: "url" | "hex"; };
   "minimax-music-v3": { prompt: string; lyricsPrompt?: string; lyricsOptimizer?: boolean; isInstrumental?: boolean; sampleRate?: 16000 | 24000 | 32000 | 44100; bitrate?: 32000 | 64000 | 128000 | 256000; format?: "mp3" | "wav" | "pcm"; };
   "ovi": { prompt: string; size?: "9:16" | "16:9" | "1:1" | "9:16+" | "16:9+" | "2:5" | "5:2"; imageUrls?: string[]; };

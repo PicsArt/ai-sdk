@@ -231,6 +231,8 @@ export const Lyria3Pro = 'lyria-3-pro' as const;
 export const Minimax02Hd = 'minimax-02-hd' as const;
 /** MiniMax H3 — minimax (video) */
 export const MinimaxH3 = 'minimax-h3' as const;
+/** MiniMax H3 Max — minimax (video) */
+export const MinimaxH3Max = 'minimax-h3-max' as const;
 /** MiniMax Music v2 — minimax (audio) */
 export const MinimaxMusicV2 = 'minimax-music-v2' as const;
 /** MiniMax Music v3 — minimax (audio) */
@@ -567,6 +569,7 @@ export const Models = {
   Lyria3Pro,
   Minimax02Hd,
   MinimaxH3,
+  MinimaxH3Max,
   MinimaxMusicV2,
   MinimaxMusicV3,
   Ovi,

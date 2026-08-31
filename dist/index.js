@@ -6413,6 +6413,52 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
       ...p.enum("bitrate", [32e3, 64e3, 128e3, 256e3], 256e3, { label: "Bitrate" }),
       ...p.enum("format", ["mp3", "wav", "pcm"], "mp3", { label: "Format" })
     }
+  },
+  {
+    // Combined T2V/I2V — fal.ai-hosted (pa-fal-ai-pluggable-worker), unlike
+    // the Hailuo/H3 entries in hailuo.ts which route through the minimax
+    // worker. A start frame switches to the image-to-video edit workflow.
+    id: "minimax-h3-max",
+    name: "MiniMax H3 Max",
+    modelId: "fal-ai-h3-max",
+    addedAt: "2026-08-28",
+    workflow: "minimax/h3-max/text-to-video",
+    editWorkflow: "minimax/h3-max/image-to-video",
+    estimatedTime: 180,
+    mode: "video",
+    inputType: "t2v",
+    description: "Top-tier MiniMax H3 Max video from text or a start/end frame, with prompt expansion. Up to 15s at 768p.",
+    features: [
+      feat("Image Input", "input"),
+      feat("Start/End Frame", "frame"),
+      feat("768p", "resolution"),
+      feat("5-15 sec", "duration")
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.startFrame(),
+      ...params.endFrame(),
+      // Lowercase on purpose: the worker uppercases for the fal wire ('768P')
+      // and the pricing qualities are lowercase, so this casing serves both.
+      ...params.resolution(["480p", "768p"], "768p"),
+      ...params.durationRange(5, 15, 5),
+      ...params.aspectRatio(["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "16:9"),
+      ...p.enum("promptExpansionMode", ["disabled", "balanced", "quality"], "balanced", { label: "Prompt Expansion" }),
+      // -1 (sentinel) means "pick a random seed"; the builder drops it.
+      ...p.range("seed", -1, 2147483647, -1),
+      ...p.boolean("enableSafetyChecker", true, "Safety Checker")
+    },
+    constraints: [
+      // The T2V wire has no end_image_url — an end frame only reaches the
+      // vendor on the I2V route, which needs a start frame to trigger.
+      { when: { startFrame: { exists: false } }, then: {
+        endFrame: { disabled: true, reason: "An end frame requires a start frame." }
+      } },
+      // I2V derives the ratio from the input image (no aspect_ratio on that wire).
+      { when: { startFrame: { exists: true } }, then: {
+        aspectRatio: { disabled: true, reason: "Aspect ratio follows the start frame image." }
+      } }
+    ]
   }
 ]);
 
@@ -6431,8 +6477,25 @@ var buildMinimaxMusicV3Payload = (input) => ({
     format: input.format ?? "mp3"
   }
 });
+var buildMinimaxH3MaxPayload = (input) => ({
+  prompt: input.prompt,
+  prompt_expansion_mode: input.promptExpansionMode ?? "balanced",
+  duration: input.duration ?? 5,
+  resolution: input.resolution ?? "768p",
+  ...input.startFrame ? {
+    image_url: input.startFrame,
+    ...input.endFrame ? { end_image_url: input.endFrame } : {}
+  } : { aspect_ratio: input.aspectRatio ?? "16:9" },
+  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
+  ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
+  enable_safety_checker: input.enableSafetyChecker ?? true
+});
 registerPayloads(MODELS26, {
-  "minimax-music-v3": buildMinimaxMusicV3Payload
+  "minimax-music-v3": buildMinimaxMusicV3Payload,
+  "minimax-h3-max": buildMinimaxH3MaxPayload
+});
+registerEditPayloads(MODELS26, {
+  "minimax-h3-max": buildMinimaxH3MaxPayload
 });
 
 // src/vendors/catalog/ideogram.ts
@@ -10624,6 +10687,7 @@ var Lyria3Clip = "lyria-3-clip";
 var Lyria3Pro = "lyria-3-pro";
 var Minimax02Hd = "minimax-02-hd";
 var MinimaxH3 = "minimax-h3";
+var MinimaxH3Max = "minimax-h3-max";
 var MinimaxMusicV2 = "minimax-music-v2";
 var MinimaxMusicV3 = "minimax-music-v3";
 var Ovi = "ovi";
@@ -10833,6 +10897,7 @@ var Models = {
   Lyria3Pro,
   Minimax02Hd,
   MinimaxH3,
+  MinimaxH3Max,
   MinimaxMusicV2,
   MinimaxMusicV3,
   Ovi,

@@ -51,6 +51,8 @@ import { MODELS as asyncAiMODELS } from './async-ai.ts';
 import './async-ai.payloads.ts'; // registers payload builders after model definitions
 import { MODELS as llmMODELS } from './llm.ts';
 import './llm.payloads.ts'; // registers LLM payload builders after model definitions
+import { MODELS as captionsaiMODELS } from './captionsai.ts';
+import './captionsai.payloads.ts'; // registers the video-captions payload builder after model definitions
 
 /** All models from all vendors. */
 export const ALL_MODELS: ModelDefinition[] = [
@@ -90,6 +92,7 @@ export const ALL_MODELS: ModelDefinition[] = [
   ...pixverseMODELS,
   ...asyncAiMODELS,
   ...llmMODELS,
+  ...captionsaiMODELS,
 ];
 
 /**

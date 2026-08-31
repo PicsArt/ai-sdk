@@ -31,6 +31,7 @@ type AppProvider =
   | 'pixverse'
   | 'anthropic'
   | 'async'
+  | 'captionsai'
 
 
 /** Provider used by model definitions. */

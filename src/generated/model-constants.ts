@@ -22,6 +22,8 @@ export const BytedanceVideoEnhance = 'bytedance-video-enhance' as const;
 /** ByteDance Upscaler — bytedance (video) */
 /** @deprecated This model is retired (deprecated). */
 export const BytedanceVideoUpscaler = 'bytedance-video-upscaler' as const;
+/** Captions — captionsai (video) */
+export const CaptionsaiVideoCaptions = 'captionsai-video-captions' as const;
 /** Claude Haiku 4.5 — anthropic (text) */
 export const ClaudeHaiku45 = 'claude-haiku-4-5' as const;
 /** Claude Opus 4.8 — anthropic (text) */
@@ -471,6 +473,7 @@ export const Models = {
   BytedanceOmnihumanV15,
   BytedanceVideoEnhance,
   BytedanceVideoUpscaler,
+  CaptionsaiVideoCaptions,
   ClaudeHaiku45,
   ClaudeOpus48,
   ClaudeSonnet46,

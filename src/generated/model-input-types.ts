@@ -9,6 +9,7 @@ export type ModelInputById = {
   "bytedance-omnihuman-v1.5": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; resolution?: "720p" | "1080p"; turboMode?: boolean; seed?: number; };
   "bytedance-video-enhance": { videoUrl: string; quality?: "standard" | "professional"; resolution?: "source" | "720p" | "1080p" | "2k" | "4k" | "8k"; fps?: 30 | 60 | 120; scene?: "common" | "ugc" | "short_series" | "aigc" | "old_film"; bitrateLevel?: "low" | "medium" | "high"; };
   "bytedance-video-upscaler": { videoUrl: string; };
+  "captionsai-video-captions": { videoUrl: string; templateId?: string; };
   "claude-haiku-4-5": { prompt: string; imageUrls?: string[]; };
   "claude-opus-4-8": { prompt: string; imageUrls?: string[]; };
   "claude-sonnet-4-6": { prompt: string; imageUrls?: string[]; };

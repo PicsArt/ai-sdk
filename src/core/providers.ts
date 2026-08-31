@@ -39,6 +39,7 @@ export const providers: Record<Provider, ProviderMeta> = {
   pixverse: { color: '#7C3AED', label: 'PV', name: 'PixVerse' },
   anthropic: { color: '#D97757', label: 'CL', name: 'Anthropic' },
   async: { color: '#5E5CE6', label: 'AA', name: 'Async AI' },
+  captionsai: { color: '#1D1F20', label: 'MR', name: 'Mirage' },
 };
 
 export const getProviderColor = (provider: Provider): string =>

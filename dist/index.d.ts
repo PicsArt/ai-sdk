@@ -112,6 +112,10 @@ type ModelInputById = {
     "bytedance-video-upscaler": {
         videoUrl: string;
     };
+    "captionsai-video-captions": {
+        videoUrl: string;
+        templateId?: string;
+    };
     "claude-haiku-4-5": {
         prompt: string;
         imageUrls?: string[];
@@ -2013,7 +2017,7 @@ interface ModelFilter$1 {
     release?: ReleaseTag[];
 }
 
-type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async';
+type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async' | 'captionsai';
 /** Provider used by model definitions. */
 type Provider = AppProvider;
 /** App generation modes. */
@@ -2514,6 +2518,7 @@ declare const Models: {
     readonly BytedanceOmnihumanV15: "bytedance-omnihuman-v1.5";
     readonly BytedanceVideoEnhance: "bytedance-video-enhance";
     readonly BytedanceVideoUpscaler: "bytedance-video-upscaler";
+    readonly CaptionsaiVideoCaptions: "captionsai-video-captions";
     readonly ClaudeHaiku45: "claude-haiku-4-5";
     readonly ClaudeOpus48: "claude-opus-4-8";
     readonly ClaudeSonnet46: "claude-sonnet-4-6";

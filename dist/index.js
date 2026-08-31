@@ -820,7 +820,8 @@ var providers = {
   happyhorse: { color: "#FF6A00", label: "HH", name: "Happy Horse" },
   pixverse: { color: "#7C3AED", label: "PV", name: "PixVerse" },
   anthropic: { color: "#D97757", label: "CL", name: "Anthropic" },
-  async: { color: "#5E5CE6", label: "AA", name: "Async AI" }
+  async: { color: "#5E5CE6", label: "AA", name: "Async AI" },
+  captionsai: { color: "#1D1F20", label: "MR", name: "Mirage" }
 };
 
 // src/core/descriptors/presets.ts
@@ -1175,7 +1176,7 @@ var passthroughPayload = (paramConfig) => (ctx) => {
   return payload;
 };
 function defineModels(provider, configs) {
-  const MODELS37 = [];
+  const MODELS38 = [];
   for (const c of configs) {
     const prov = c.provider ?? provider;
     const resolvedPayload = c.buildPayload ?? passthroughPayload(c.paramConfig);
@@ -1211,19 +1212,19 @@ function defineModels(provider, configs) {
     if (c.constraints !== void 0) model.constraints = c.constraints;
     const contract = createModelContract(model);
     model.outputSchema = c.outputSchema ?? contract.output;
-    MODELS37.push(model);
+    MODELS38.push(model);
   }
-  return { MODELS: MODELS37 };
+  return { MODELS: MODELS38 };
 }
-function registerPayloads(MODELS37, payloads) {
+function registerPayloads(MODELS38, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS37.find((m) => m.id === id);
+    const model = MODELS38.find((m) => m.id === id);
     if (model) model.buildPayload = builder;
   }
 }
-function registerEditPayloads(MODELS37, payloads) {
+function registerEditPayloads(MODELS38, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS37.find((m) => m.id === id);
+    const model = MODELS38.find((m) => m.id === id);
     if (model) model.buildEditPayload = builder;
   }
 }
@@ -8481,6 +8482,54 @@ registerPayloads(MODELS36, {
   "gemini-3.5-flash-lite": buildOpenAiPayload("gemini-3.5-flash-lite")
 });
 
+// src/vendors/catalog/captionsai.ts
+var CAPTIONS_MAX_DURATION_SEC = 300;
+var CAPTIONS_MAX_BYTES = 50 * 1024 * 1024;
+var DEFAULT_CAPTION_TEMPLATE_ID = "ctpl_DxflLOnuKkb198FNdI9E";
+var { MODELS: MODELS37 } = defineModels("captionsai", [
+  {
+    id: "captionsai-video-captions",
+    name: "Captions",
+    modelId: "mirage-captions",
+    addedAt: "2026-08-27",
+    workflow: "captionsai/v1/videos/captions",
+    // ~26s measured for an 8s clip on the live API; scales with clip length.
+    estimatedTime: 60,
+    mode: "video",
+    inputType: "v2v",
+    // Stage-only until the worker is deployed to prod and the pricing record
+    // (mirage-captions / video-to-video) exists — flip to production then.
+    release: "preview",
+    description: "Auto-transcribes a vertical video and burns in animated captions from 67 style templates \u2014 up to 5 minutes, 9:16.",
+    features: [
+      feat("Video Required", "input"),
+      feat("9:16", "resolution"),
+      feat("Up to 5 min", "duration"),
+      feat("67 Templates", "style")
+    ],
+    paramConfig: {
+      ...params.videoInput("Source Video", "asset", true, CAPTIONS_MAX_DURATION_SEC, void 0, CAPTIONS_MAX_BYTES),
+      ...params.catalog("templateId", {
+        label: "Caption Style",
+        // Not `required`: the declared default fills it, and request validation runs
+        // before the payload builder — a required flag would reject the very
+        // calls the default exists for (same shape as Kling's effect templateId).
+        source: { workflow: "captionsai/v1/catalog/caption-templates" },
+        default: DEFAULT_CAPTION_TEMPLATE_ID
+      })
+    }
+  }
+]);
+
+// src/vendors/catalog/captionsai.payloads.ts
+var buildCaptionsPayload = (input) => ({
+  video: { url: input.videoUrl },
+  caption_template_id: input.templateId ?? DEFAULT_CAPTION_TEMPLATE_ID
+});
+registerPayloads(MODELS37, {
+  "captionsai-video-captions": buildCaptionsPayload
+});
+
 // src/vendors/catalog/index.ts
 var ALL_MODELS = [
   ...MODELS,
@@ -8518,7 +8567,8 @@ var ALL_MODELS = [
   ...MODELS33,
   ...MODELS34,
   ...MODELS35,
-  ...MODELS36
+  ...MODELS36,
+  ...MODELS37
 ];
 var getModelsByMode = (mode, includeDisabled = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeDisabled || isVisibleForReleases(m)));
 
@@ -10610,6 +10660,7 @@ var AsyncFlashV1 = "async-flash-v1";
 var BytedanceOmnihumanV15 = "bytedance-omnihuman-v1.5";
 var BytedanceVideoEnhance = "bytedance-video-enhance";
 var BytedanceVideoUpscaler = "bytedance-video-upscaler";
+var CaptionsaiVideoCaptions = "captionsai-video-captions";
 var ClaudeHaiku45 = "claude-haiku-4-5";
 var ClaudeOpus48 = "claude-opus-4-8";
 var ClaudeSonnet46 = "claude-sonnet-4-6";
@@ -10821,6 +10872,7 @@ var Models = {
   BytedanceOmnihumanV15,
   BytedanceVideoEnhance,
   BytedanceVideoUpscaler,
+  CaptionsaiVideoCaptions,
   ClaudeHaiku45,
   ClaudeOpus48,
   ClaudeSonnet46,

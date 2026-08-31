@@ -144,10 +144,10 @@ catalog.find({ output: 'text' })
 image/video model throws, and `generate()` throws on a text model — use the matching
 method for each.
 
-## Voice & Avatar Catalogs
+## Voice, Avatar & Template Catalogs
 
-Models with catalog-backed params (voices, avatars) serve their option lists
-from platform catalog tasks (`<vendor>/v1/catalog/<voices|avatars>`) — nothing
+Models with catalog-backed params (voices, avatars, effect / caption templates) serve their option lists
+from platform catalog tasks (`<vendor>/v1/catalog/<voices|avatars|templates|…>`) — nothing
 is bundled; the workers cache the lists and answer fast. Fetch them via
 `ai.catalogs`:
 

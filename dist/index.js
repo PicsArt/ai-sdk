@@ -6735,6 +6735,7 @@ var buildQwen2Payload = (ctx) => {
 };
 var buildQwenV1 = (model) => (ctx) => {
   const hasImages = Array.isArray(ctx.imageUrls) && ctx.imageUrls.length > 0;
+  const promptExtendMode = ctx.promptExtendMode === "agent" && hasImages && model === "qwen-image-3.0-pro" ? void 0 : ctx.promptExtendMode;
   return {
     prompt: ctx.prompt,
     model,
@@ -6743,8 +6744,10 @@ var buildQwenV1 = (model) => (ctx) => {
     size: (ctx.resolution ?? "2048x2048").replace("x", "*"),
     n: ctx.count ?? 1,
     prompt_extend: ctx.enhancePrompt ?? true,
-    // Qwen 3.0 only — prompt-rewrite strategy (direct/agent); 2.x ignores it.
-    ...ctx.promptExtendMode ? { prompt_extend_mode: ctx.promptExtendMode } : {},
+    // Qwen 3.0 family only — prompt-rewrite strategy (direct/agent); 2.x ignores it.
+    ...promptExtendMode ? { prompt_extend_mode: promptExtendMode } : {},
+    // Qwen 3.0 family only — thinking mode (requires prompt_extend).
+    ...ctx.enableThinking != null ? { enable_thinking: ctx.enableThinking } : {},
     watermark: false,
     ...ctx.seed != null ? { seed: ctx.seed } : {}
   };
@@ -6759,7 +6762,8 @@ var qwenV1Params = {
 };
 var qwenV1Params3 = {
   ...qwenV1Params,
-  ...p.enum("promptExtendMode", ["direct", "agent"], "direct")
+  ...p.enum("promptExtendMode", ["direct", "agent"], "direct"),
+  ...p.boolean("enableThinking", true, "Deep Thinking")
 };
 var { MODELS: MODELS28 } = defineModels("qwen", [
   {
@@ -6831,6 +6835,25 @@ var { MODELS: MODELS28 } = defineModels("qwen", [
     mode: "image",
     inputType: "t2i",
     description: "Qwen-Image 3.0 \u2014 highest-fidelity text-to-image and image editing with a selectable prompt-rewrite mode.",
+    features: [
+      feat("Image Input", "input"),
+      feat("Negative Prompt", "characteristic"),
+      feat("2K", "resolution")
+    ],
+    paramConfig: qwenV1Params3
+  },
+  {
+    id: "qwen-image-3.0-pro",
+    name: "Qwen 3.0 Pro",
+    addedAt: "2026-08-31",
+    workflow: "qwen/v1/text-to-image",
+    editWorkflow: "qwen/v1/image-to-image",
+    buildPayload: buildQwenV1("qwen-image-3.0-pro"),
+    estimatedTime: 90,
+    mode: "image",
+    inputType: "t2i",
+    badge: ["premium"],
+    description: "Qwen-Image 3.0 Pro (GA) \u2014 flagship text-to-image and image editing with prompt-rewrite modes and thinking mode.",
     features: [
       feat("Image Input", "input"),
       feat("Negative Prompt", "characteristic"),
@@ -10716,6 +10739,7 @@ var Qwen = "qwen";
 var QwenImage2 = "qwen-image-2";
 var QwenImage2Pro = "qwen-image-2-pro";
 var QwenImage30 = "qwen-image-3.0";
+var QwenImage30Pro = "qwen-image-3.0-pro";
 var RecraftCreativeUpscale = "recraft-creative-upscale";
 var RecraftCrispUpscale = "recraft-crisp-upscale";
 var RecraftExplore = "recraft-explore";
@@ -10926,6 +10950,7 @@ var Models = {
   QwenImage2,
   QwenImage2Pro,
   QwenImage30,
+  QwenImage30Pro,
   RecraftCreativeUpscale,
   RecraftCrispUpscale,
   RecraftExplore,

@@ -293,6 +293,8 @@ export const QwenImage2 = 'qwen-image-2' as const;
 export const QwenImage2Pro = 'qwen-image-2-pro' as const;
 /** Qwen 3.0 — qwen (image) */
 export const QwenImage30 = 'qwen-image-3.0' as const;
+/** Qwen 3.0 Pro — qwen (image) */
+export const QwenImage30Pro = 'qwen-image-3.0-pro' as const;
 /** Recraft Creative Upscale — recraft (image) */
 export const RecraftCreativeUpscale = 'recraft-creative-upscale' as const;
 /** Recraft Crisp Upscale — recraft (image) */
@@ -598,6 +600,7 @@ export const Models = {
   QwenImage2,
   QwenImage2Pro,
   QwenImage30,
+  QwenImage30Pro,
   RecraftCreativeUpscale,
   RecraftCrispUpscale,
   RecraftExplore,

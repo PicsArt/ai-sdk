@@ -31,6 +31,12 @@ export const buildQwen2Payload: PayloadBuilder = (ctx) => {
 /** Qwen v1 T2I/I2I — shared builder parameterised by model name. */
 const buildQwenV1 = (model: string): PayloadBuilder => (ctx) => {
   const hasImages = Array.isArray(ctx.imageUrls) && ctx.imageUrls.length > 0;
+  // 'agent' rewrite is T2I-only for qwen-image-3.0-pro — the vendor rejects
+  // it on image-edit requests, so fall back to the default mode there.
+  const promptExtendMode =
+    ctx.promptExtendMode === 'agent' && hasImages && model === 'qwen-image-3.0-pro'
+      ? undefined
+      : ctx.promptExtendMode;
   return {
     prompt: ctx.prompt,
     model,
@@ -39,8 +45,10 @@ const buildQwenV1 = (model: string): PayloadBuilder => (ctx) => {
     size: (ctx.resolution ?? '2048x2048').replace('x', '*'),
     n: ctx.count ?? 1,
     prompt_extend: ctx.enhancePrompt ?? true,
-    // Qwen 3.0 only — prompt-rewrite strategy (direct/agent); 2.x ignores it.
-    ...(ctx.promptExtendMode ? { prompt_extend_mode: ctx.promptExtendMode } : {}),
+    // Qwen 3.0 family only — prompt-rewrite strategy (direct/agent); 2.x ignores it.
+    ...(promptExtendMode ? { prompt_extend_mode: promptExtendMode } : {}),
+    // Qwen 3.0 family only — thinking mode (requires prompt_extend).
+    ...(ctx.enableThinking != null ? { enable_thinking: ctx.enableThinking } : {}),
     watermark: false,
     ...(ctx.seed != null ? { seed: ctx.seed } : {}),
   };
@@ -55,10 +63,12 @@ const qwenV1Params = {
   ...params.imageInput(3, 'Source Images'),
 };
 
-// Qwen 3.0 adds the prompt-rewrite mode selector on top of the v1 params.
+// Qwen 3.0 family adds the prompt-rewrite mode selector and thinking mode
+// on top of the v1 params.
 const qwenV1Params3 = {
   ...qwenV1Params,
   ...p.enum('promptExtendMode', ['direct', 'agent'], 'direct'),
+  ...p.boolean('enableThinking', true, 'Deep Thinking'),
 };
 
 export const { MODELS } = defineModels('qwen', [
@@ -120,6 +130,23 @@ export const { MODELS } = defineModels('qwen', [
     estimatedTime: 90,
     mode: 'image', inputType: 't2i',
     description: 'Qwen-Image 3.0 — highest-fidelity text-to-image and image editing with a selectable prompt-rewrite mode.',
+    features: [
+      feat('Image Input', 'input'),
+      feat('Negative Prompt', 'characteristic'),
+      feat('2K', 'resolution'),
+    ],
+    paramConfig: qwenV1Params3,
+  },
+  {
+    id: 'qwen-image-3.0-pro', name: 'Qwen 3.0 Pro',
+    addedAt: '2026-08-31',
+    workflow: 'qwen/v1/text-to-image',
+    editWorkflow: 'qwen/v1/image-to-image',
+    buildPayload: buildQwenV1('qwen-image-3.0-pro'),
+    estimatedTime: 90,
+    mode: 'image', inputType: 't2i',
+    badge: ['premium'],
+    description: 'Qwen-Image 3.0 Pro (GA) — flagship text-to-image and image editing with prompt-rewrite modes and thinking mode.',
     features: [
       feat('Image Input', 'input'),
       feat('Negative Prompt', 'characteristic'),

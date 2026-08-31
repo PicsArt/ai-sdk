@@ -137,7 +137,8 @@ export type ModelInputById = {
   "qwen": { prompt: string; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "qwen-image-2": { prompt: string; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "qwen-image-2-pro": { prompt: string; negativePrompt?: string; resolution?: "2048x2048" | "2688x1536" | "1536x2688" | "2368x1728" | "1728x2368"; count?: 1 | 2 | 4 | 6; enhancePrompt?: boolean; imageUrls?: string[]; };
-  "qwen-image-3.0": { prompt: string; negativePrompt?: string; resolution?: "2048x2048" | "2688x1536" | "1536x2688" | "2368x1728" | "1728x2368"; count?: 1 | 2 | 4 | 6; enhancePrompt?: boolean; imageUrls?: string[]; promptExtendMode?: "direct" | "agent"; };
+  "qwen-image-3.0": { prompt: string; negativePrompt?: string; resolution?: "2048x2048" | "2688x1536" | "1536x2688" | "2368x1728" | "1728x2368"; count?: 1 | 2 | 4 | 6; enhancePrompt?: boolean; imageUrls?: string[]; promptExtendMode?: "direct" | "agent"; enableThinking?: boolean; };
+  "qwen-image-3.0-pro": { prompt: string; negativePrompt?: string; resolution?: "2048x2048" | "2688x1536" | "1536x2688" | "2368x1728" | "1728x2368"; count?: 1 | 2 | 4 | 6; enhancePrompt?: boolean; imageUrls?: string[]; promptExtendMode?: "direct" | "agent"; enableThinking?: boolean; };
   "recraft-creative-upscale": { imageUrls: [string, ...string[]]; };
   "recraft-crisp-upscale": { imageUrls: [string, ...string[]]; };
   "recraft-explore": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; };

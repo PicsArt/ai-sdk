@@ -32,6 +32,7 @@ type AppProvider =
   | 'anthropic'
   | 'async'
   | 'captionsai'
+  | 'meta'
 
 
 /** Provider used by model definitions. */

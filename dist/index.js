@@ -821,7 +821,8 @@ var providers = {
   pixverse: { color: "#7C3AED", label: "PV", name: "PixVerse" },
   anthropic: { color: "#D97757", label: "CL", name: "Anthropic" },
   async: { color: "#5E5CE6", label: "AA", name: "Async AI" },
-  captionsai: { color: "#1D1F20", label: "MR", name: "Mirage" }
+  captionsai: { color: "#1D1F20", label: "MR", name: "Mirage" },
+  meta: { color: "#0081FB", label: "MT", name: "Meta" }
 };
 
 // src/core/descriptors/presets.ts
@@ -1177,7 +1178,7 @@ var passthroughPayload = (paramConfig) => (ctx) => {
   return payload;
 };
 function defineModels(provider, configs) {
-  const MODELS38 = [];
+  const MODELS39 = [];
   for (const c of configs) {
     const prov = c.provider ?? provider;
     const resolvedPayload = c.buildPayload ?? passthroughPayload(c.paramConfig);
@@ -1213,19 +1214,19 @@ function defineModels(provider, configs) {
     if (c.constraints !== void 0) model.constraints = c.constraints;
     const contract = createModelContract(model);
     model.outputSchema = c.outputSchema ?? contract.output;
-    MODELS38.push(model);
+    MODELS39.push(model);
   }
-  return { MODELS: MODELS38 };
+  return { MODELS: MODELS39 };
 }
-function registerPayloads(MODELS38, payloads) {
+function registerPayloads(MODELS39, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS38.find((m) => m.id === id);
+    const model = MODELS39.find((m) => m.id === id);
     if (model) model.buildPayload = builder;
   }
 }
-function registerEditPayloads(MODELS38, payloads) {
+function registerEditPayloads(MODELS39, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS38.find((m) => m.id === id);
+    const model = MODELS39.find((m) => m.id === id);
     if (model) model.buildEditPayload = builder;
   }
 }
@@ -8561,6 +8562,74 @@ registerPayloads(MODELS37, {
   "captionsai-video-captions": buildCaptionsPayload
 });
 
+// src/vendors/catalog/meta.ts
+var { MODELS: MODELS38 } = defineModels("meta", [
+  // ── Image ─────────────────────────────────────────
+  {
+    id: "muse-image-1.0",
+    name: "Muse Image 1.0",
+    addedAt: "2026-08-31",
+    workflow: "meta/v1/images/generations",
+    editWorkflow: "meta/v1/images/edits",
+    estimatedTime: 60,
+    mode: "image",
+    inputType: "t2i",
+    description: "Meta's agentic image model \u2014 plans with reasoning, web and image search before rendering.",
+    features: [feat("Multi-Image Input", "input"), feat("Web Search", "characteristic"), feat("High Quality", "quality")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(["1:1", "3:2", "2:3", "16:9", "9:16", "4:3", "3:4"], "1:1"),
+      // Vendor-side reasoning tier for the agentic planner; vendor default high.
+      ...p.enum("reasoningStrength", ["low", "high"], "high", { label: "Reasoning" }),
+      ...p.enum("moderation", ["auto", "low", "none"], "auto", { label: "Moderation" }),
+      // Per-tool planner controls — all-true matches the vendor default
+      // (omitting tool_enablement enables every tool).
+      ...p.boolean("enableImageSearch", true, "Image Search"),
+      ...p.boolean("enableWebSearch", true, "Web Search"),
+      ...p.boolean("enableShell", true, "Layout & Chart Tools"),
+      ...p.enum("outputFormat", ["png", "jpeg", "webp"], "png", { label: "Format" }),
+      ...params.count(),
+      ...params.imageInput(5, "Source Images")
+    }
+  }
+]);
+
+// src/vendors/catalog/meta.payloads.ts
+var MUSE_AR_TO_SIZE = {
+  "1:1": "1024x1024",
+  "3:2": "1536x1024",
+  "2:3": "1024x1536",
+  "16:9": "1820x1024",
+  "9:16": "1024x1820",
+  "4:3": "1365x1024",
+  "3:4": "1024x1365"
+};
+var buildMuseCommonPayload = (input) => ({
+  model: "muse-image-1.0",
+  prompt: input.prompt,
+  n: input.count ?? 1,
+  size: MUSE_AR_TO_SIZE[input.aspectRatio ?? ""] ?? "1024x1024",
+  ...input.outputFormat ? { output_format: input.outputFormat } : {},
+  ...input.reasoningStrength ? { reasoning_strength: input.reasoningStrength } : {},
+  ...input.moderation ? { moderation: input.moderation } : {},
+  tool_enablement: {
+    enable_image_search: input.enableImageSearch ?? true,
+    enable_web_search: input.enableWebSearch ?? true,
+    enable_shell: input.enableShell ?? true
+  }
+});
+var buildMuseImagePayload = (input) => buildMuseCommonPayload(input);
+var buildMuseImageEditPayload = (input) => ({
+  ...buildMuseCommonPayload(input),
+  images: input.imageUrls ?? []
+});
+registerPayloads(MODELS38, {
+  "muse-image-1.0": buildMuseImagePayload
+});
+registerEditPayloads(MODELS38, {
+  "muse-image-1.0": buildMuseImageEditPayload
+});
+
 // src/vendors/catalog/index.ts
 var ALL_MODELS = [
   ...MODELS,
@@ -8599,7 +8668,8 @@ var ALL_MODELS = [
   ...MODELS34,
   ...MODELS35,
   ...MODELS36,
-  ...MODELS37
+  ...MODELS37,
+  ...MODELS38
 ];
 var getModelsByMode = (mode, includeDisabled = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeDisabled || isVisibleForReleases(m)));
 
@@ -10795,6 +10865,7 @@ var MinimaxH3 = "minimax-h3";
 var MinimaxH3Max = "minimax-h3-max";
 var MinimaxMusicV2 = "minimax-music-v2";
 var MinimaxMusicV3 = "minimax-music-v3";
+var MuseImage10 = "muse-image-1.0";
 var Ovi = "ovi";
 var PicsartChangeBg = "picsart-change-bg";
 var PicsartEnhance = "picsart-enhance";
@@ -11007,6 +11078,7 @@ var Models = {
   MinimaxH3Max,
   MinimaxMusicV2,
   MinimaxMusicV3,
+  MuseImage10,
   Ovi,
   PicsartChangeBg,
   PicsartEnhance,

@@ -239,6 +239,8 @@ export const MinimaxH3Max = 'minimax-h3-max' as const;
 export const MinimaxMusicV2 = 'minimax-music-v2' as const;
 /** MiniMax Music v3 — minimax (audio) */
 export const MinimaxMusicV3 = 'minimax-music-v3' as const;
+/** Muse Image 1.0 — meta (image) */
+export const MuseImage10 = 'muse-image-1.0' as const;
 /** OVI — ovi (video) */
 export const Ovi = 'ovi' as const;
 /** Picsart Change Background — picsart (image) */
@@ -577,6 +579,7 @@ export const Models = {
   MinimaxH3Max,
   MinimaxMusicV2,
   MinimaxMusicV3,
+  MuseImage10,
   Ovi,
   PicsartChangeBg,
   PicsartEnhance,

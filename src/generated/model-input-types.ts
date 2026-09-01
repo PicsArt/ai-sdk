@@ -113,6 +113,7 @@ export type ModelInputById = {
   "minimax-h3-max": { prompt: string; startFrame?: string; endFrame?: string; resolution?: "480p" | "768p"; duration?: number; aspectRatio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; promptExpansionMode?: "disabled" | "balanced" | "quality"; seed?: number; enableSafetyChecker?: boolean; };
   "minimax-music-v2": { prompt: string; lyricsPrompt?: string; lyricsOptimizer?: boolean; isInstrumental?: boolean; outputFormat?: "url" | "hex"; };
   "minimax-music-v3": { prompt: string; lyricsPrompt?: string; lyricsOptimizer?: boolean; isInstrumental?: boolean; sampleRate?: 16000 | 24000 | 32000 | 44100; bitrate?: 32000 | 64000 | 128000 | 256000; format?: "mp3" | "wav" | "pcm"; };
+  "muse-image-1.0": { prompt: string; aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4"; reasoningStrength?: "low" | "high"; moderation?: "auto" | "low" | "none"; enableImageSearch?: boolean; enableWebSearch?: boolean; enableShell?: boolean; outputFormat?: "png" | "jpeg" | "webp"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "ovi": { prompt: string; size?: "9:16" | "16:9" | "1:1" | "9:16+" | "16:9+" | "2:5" | "5:2"; imageUrls?: string[]; };
   "picsart-change-bg": { imageUrls: [string, ...string[]]; prompt: string; };
   "picsart-enhance": { imageUrls: [string, ...string[]]; };

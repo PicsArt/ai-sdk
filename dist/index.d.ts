@@ -822,6 +822,18 @@ type ModelInputById = {
         bitrate?: 32000 | 64000 | 128000 | 256000;
         format?: "mp3" | "wav" | "pcm";
     };
+    "muse-image-1.0": {
+        prompt: string;
+        aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4";
+        reasoningStrength?: "low" | "high";
+        moderation?: "auto" | "low" | "none";
+        enableImageSearch?: boolean;
+        enableWebSearch?: boolean;
+        enableShell?: boolean;
+        outputFormat?: "png" | "jpeg" | "webp";
+        count?: 1 | 2 | 4 | 6 | 8 | 10;
+        imageUrls?: string[];
+    };
     "ovi": {
         prompt: string;
         size?: "9:16" | "16:9" | "1:1" | "9:16+" | "16:9+" | "2:5" | "5:2";
@@ -2026,7 +2038,7 @@ interface ModelFilter$1 {
     release?: ReleaseTag[];
 }
 
-type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async' | 'captionsai';
+type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async' | 'captionsai' | 'meta';
 /** Provider used by model definitions. */
 type Provider = AppProvider;
 /** App generation modes. */
@@ -2631,6 +2643,7 @@ declare const Models: {
     readonly MinimaxH3Max: "minimax-h3-max";
     readonly MinimaxMusicV2: "minimax-music-v2";
     readonly MinimaxMusicV3: "minimax-music-v3";
+    readonly MuseImage10: "muse-image-1.0";
     readonly Ovi: "ovi";
     readonly PicsartChangeBg: "picsart-change-bg";
     readonly PicsartEnhance: "picsart-enhance";

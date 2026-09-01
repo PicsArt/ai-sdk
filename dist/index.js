@@ -6529,7 +6529,7 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
     addedAt: "2026-08-28",
     workflow: "minimax/h3-max/text-to-video",
     editWorkflow: "minimax/h3-max/image-to-video",
-    estimatedTime: 180,
+    estimatedTime: 5,
     mode: "video",
     inputType: "t2v",
     description: "Top-tier MiniMax H3 Max video from text or a start/end frame, with prompt expansion. Up to 15s at 768p.",
@@ -6564,6 +6564,49 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
         aspectRatio: { disabled: true, reason: "Aspect ratio follows the start frame image." }
       } }
     ]
+  },
+  {
+    // Reference-to-video sibling of minimax-h3-max (same fal.ai worker).
+    // The prompt addresses references by modality and order — Image 1,
+    // Video 1, Audio 1, … Reference clips are 2-15s each (≤15s combined per
+    // modality) and images + videos + audios must add up to ≤12 files —
+    // backend-enforced; paramConfig only carries the per-array maxima.
+    id: "minimax-h3-max-r2v",
+    name: "MiniMax H3 Max Ref-to-Video",
+    modelId: "fal-ai-h3-max",
+    addedAt: "2026-09-01",
+    workflow: "minimax/h3-max/reference-to-video",
+    estimatedTime: 5,
+    mode: "video",
+    inputType: "i2v",
+    description: "MiniMax H3 Max video from reference images, videos, and audio \u2014 refer to them in the prompt as Image 1, Video 1, Audio 1, in input order. Up to 15s at 768p.",
+    features: [
+      feat("Multi-Image Input", "input"),
+      feat("Video Input", "input"),
+      feat("Audio Input", "input"),
+      feat("768p", "resolution"),
+      feat("5-15 sec", "duration")
+    ],
+    paramConfig: {
+      ...params.prompt({ placeholder: "Image 1 is the protagonist. Keep her consistent with the reference while she walks through a sunlit garden..." }),
+      ...params.imageInput(9, "Reference Images"),
+      ...params.videoInputs(3, "Reference Videos"),
+      ...params.audioInputs(3, "Reference Audios"),
+      // Lowercase on purpose — same worker normalization as minimax-h3-max.
+      ...params.resolution(["480p", "768p"], "768p"),
+      ...params.durationRange(5, 15, 5),
+      ...params.aspectRatio(["adaptive", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "adaptive"),
+      // Unlike the T2V/I2V entry, this wire has no 'disabled' expansion mode.
+      ...p.enum("promptExpansionMode", ["balanced", "quality"], "balanced", { label: "Prompt Expansion" }),
+      // -1 (sentinel) means "pick a random seed"; the builder drops it.
+      ...p.range("seed", -1, 2147483647, -1),
+      ...p.boolean("enableSafetyChecker", true, "Safety Checker")
+    },
+    constraints: [
+      { when: { imageUrls: { exists: false }, videoUrls: { exists: false } }, then: {
+        audioUrls: { disabled: true, reason: "Audio cannot be the only reference \u2014 add an image or video." }
+      } }
+    ]
   }
 ]);
 
@@ -6595,9 +6638,23 @@ var buildMinimaxH3MaxPayload = (input) => ({
   ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
   enable_safety_checker: input.enableSafetyChecker ?? true
 });
+var buildMinimaxH3MaxR2VPayload = (input) => ({
+  prompt: input.prompt,
+  prompt_expansion_mode: input.promptExpansionMode ?? "balanced",
+  duration: input.duration ?? 5,
+  resolution: input.resolution ?? "768p",
+  aspect_ratio: input.aspectRatio ?? "adaptive",
+  ...input.imageUrls?.length ? { reference_image_urls: input.imageUrls } : {},
+  ...input.videoUrls?.length ? { reference_video_urls: input.videoUrls } : {},
+  ...input.audioUrls?.length ? { reference_audio_urls: input.audioUrls } : {},
+  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
+  ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
+  enable_safety_checker: input.enableSafetyChecker ?? true
+});
 registerPayloads(MODELS26, {
   "minimax-music-v3": buildMinimaxMusicV3Payload,
-  "minimax-h3-max": buildMinimaxH3MaxPayload
+  "minimax-h3-max": buildMinimaxH3MaxPayload,
+  "minimax-h3-max-r2v": buildMinimaxH3MaxR2VPayload
 });
 registerEditPayloads(MODELS26, {
   "minimax-h3-max": buildMinimaxH3MaxPayload
@@ -10995,6 +11052,7 @@ var Lyria3Pro = "lyria-3-pro";
 var Minimax02Hd = "minimax-02-hd";
 var MinimaxH3 = "minimax-h3";
 var MinimaxH3Max = "minimax-h3-max";
+var MinimaxH3MaxR2v = "minimax-h3-max-r2v";
 var MinimaxMusicV2 = "minimax-music-v2";
 var MinimaxMusicV3 = "minimax-music-v3";
 var MuseImage10 = "muse-image-1.0";
@@ -11208,6 +11266,7 @@ var Models = {
   Minimax02Hd,
   MinimaxH3,
   MinimaxH3Max,
+  MinimaxH3MaxR2v,
   MinimaxMusicV2,
   MinimaxMusicV3,
   MuseImage10,

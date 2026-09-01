@@ -235,6 +235,8 @@ export const Minimax02Hd = 'minimax-02-hd' as const;
 export const MinimaxH3 = 'minimax-h3' as const;
 /** MiniMax H3 Max — minimax (video) */
 export const MinimaxH3Max = 'minimax-h3-max' as const;
+/** MiniMax H3 Max Ref-to-Video — minimax (video) */
+export const MinimaxH3MaxR2v = 'minimax-h3-max-r2v' as const;
 /** MiniMax Music v2 — minimax (audio) */
 export const MinimaxMusicV2 = 'minimax-music-v2' as const;
 /** MiniMax Music v3 — minimax (audio) */
@@ -577,6 +579,7 @@ export const Models = {
   Minimax02Hd,
   MinimaxH3,
   MinimaxH3Max,
+  MinimaxH3MaxR2v,
   MinimaxMusicV2,
   MinimaxMusicV3,
   MuseImage10,

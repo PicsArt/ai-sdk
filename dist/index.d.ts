@@ -810,6 +810,18 @@ type ModelInputById = {
         seed?: number;
         enableSafetyChecker?: boolean;
     };
+    "minimax-h3-max-r2v": {
+        prompt: string;
+        imageUrls?: string[];
+        videoUrls?: string[];
+        audioUrls?: string[];
+        resolution?: "480p" | "768p";
+        duration?: number;
+        aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
+        promptExpansionMode?: "balanced" | "quality";
+        seed?: number;
+        enableSafetyChecker?: boolean;
+    };
     "minimax-music-v2": {
         prompt: string;
         lyricsPrompt?: string;
@@ -2645,6 +2657,7 @@ declare const Models: {
     readonly Minimax02Hd: "minimax-02-hd";
     readonly MinimaxH3: "minimax-h3";
     readonly MinimaxH3Max: "minimax-h3-max";
+    readonly MinimaxH3MaxR2v: "minimax-h3-max-r2v";
     readonly MinimaxMusicV2: "minimax-music-v2";
     readonly MinimaxMusicV3: "minimax-music-v3";
     readonly MuseImage10: "muse-image-1.0";

@@ -1,5 +1,5 @@
 /**
- * MiniMax payload builders (Music v3, H3 Max).
+ * MiniMax payload builders (Music v3, H3 Max, H3 Max Ref-to-Video).
  *
  * Music v3: renames the unified SDK fields to the backend `MinimaxMusicV3Command`
  * wire shape (`lyricsPrompt` → `lyrics`) and nests the audio knobs under
@@ -42,10 +42,16 @@ const buildMinimaxMusicV3Payload = (input: MinimaxMusicV3Input): MinimaxMusicV3P
 
 type MinimaxH3MaxInput = ModelInput<'minimax-h3-max'>;
 
-// `minimax/h3-max/*` is not in @picsart/workflows-types yet (worker branch
-// pending) — the return stays inferred; annotate with
-// WorkflowTypes['minimax/h3-max/image-to-video']['params'] once published.
-const buildMinimaxH3MaxPayload = (input: MinimaxH3MaxInput) => ({
+// Upstream cases `resolution` for the fal wire ('768P'); the worker also
+// accepts the lowercase form the SDK sends (which pricing needs), so widen
+// that one field. Remove once upstream carries both casings.
+type FalResolutionCasing<T> = Omit<T, 'resolution'> & { resolution?: '480p' | '768p' };
+// One builder serves both routes, so the return is the T2V | I2V union.
+type MinimaxH3MaxPayload =
+  | FalResolutionCasing<WorkflowTypes['minimax/h3-max/text-to-video']['params']>
+  | FalResolutionCasing<WorkflowTypes['minimax/h3-max/image-to-video']['params']>;
+
+const buildMinimaxH3MaxPayload = (input: MinimaxH3MaxInput): MinimaxH3MaxPayload => ({
   prompt: input.prompt,
   prompt_expansion_mode: input.promptExpansionMode ?? 'balanced',
   duration: input.duration ?? 5,
@@ -61,9 +67,30 @@ const buildMinimaxH3MaxPayload = (input: MinimaxH3MaxInput) => ({
   enable_safety_checker: input.enableSafetyChecker ?? true,
 });
 
+type MinimaxH3MaxR2VInput = ModelInput<'minimax-h3-max-r2v'>;
+
+// `minimax/h3-max/reference-to-video` is not in @picsart/workflows-types yet
+// (t2v/i2v landed in 1.1.123, r2v pending) — the return stays inferred;
+// annotate with WorkflowTypes['minimax/h3-max/reference-to-video']['params']
+// (via FalResolutionCasing) once published.
+const buildMinimaxH3MaxR2VPayload = (input: MinimaxH3MaxR2VInput) => ({
+  prompt: input.prompt,
+  prompt_expansion_mode: input.promptExpansionMode ?? 'balanced',
+  duration: input.duration ?? 5,
+  resolution: input.resolution ?? '768p',
+  aspect_ratio: input.aspectRatio ?? 'adaptive',
+  ...(input.imageUrls?.length ? { reference_image_urls: input.imageUrls } : {}),
+  ...(input.videoUrls?.length ? { reference_video_urls: input.videoUrls } : {}),
+  ...(input.audioUrls?.length ? { reference_audio_urls: input.audioUrls } : {}),
+  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
+  ...(input.seed != null && input.seed !== -1 ? { seed: input.seed } : {}),
+  enable_safety_checker: input.enableSafetyChecker ?? true,
+});
+
 registerPayloads(MODELS, {
   'minimax-music-v3': buildMinimaxMusicV3Payload,
   'minimax-h3-max': buildMinimaxH3MaxPayload,
+  'minimax-h3-max-r2v': buildMinimaxH3MaxR2VPayload,
 });
 
 // Edit slot — same builder; startFrame presence already shapes the payload.

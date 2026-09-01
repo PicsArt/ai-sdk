@@ -245,6 +245,8 @@ export const p = {
       maxDurationSec?: number;
       /** Client-side min pixel count (width × height) for an image/video slot. */
       minPixels?: number;
+      /** Client-side min short-side length (pixels) for an image/video slot. */
+      minSidePixels?: number;
       /** Client-side max short-side length (pixels) for an image/video slot. */
       maxShortSidePixels?: number;
       /** Client-side max file size (bytes) for this slot. */
@@ -262,6 +264,7 @@ export const p = {
           ...(opts?.array ? { array: opts.array } : {}),
           ...(opts?.maxDurationSec != null ? { maxDurationSec: opts.maxDurationSec } : {}),
           ...(opts?.minPixels != null ? { minPixels: opts.minPixels } : {}),
+          ...(opts?.minSidePixels != null ? { minSidePixels: opts.minSidePixels } : {}),
           ...(opts?.maxShortSidePixels != null ? { maxShortSidePixels: opts.maxShortSidePixels } : {}),
           ...(opts?.maxBytes != null ? { maxBytes: opts.maxBytes } : {}),
         },

@@ -1829,6 +1829,15 @@ interface FileDescriptor {
      */
     minPixels?: number;
     /**
+     * Min intrinsic short-side length (pixels) accepted for an image/video file —
+     * `min(width, height)` must be at least this. Most vendors specify input limits
+     * per side rather than by total pixel count (e.g. Seedance reference images:
+     * width and height each in [300, 6000]). Enforced client-side at upload by
+     * measuring the media before it is sent; the backend worker stays the
+     * authoritative gate. Omit for no client-side floor.
+     */
+    minSidePixels?: number;
+    /**
      * Max intrinsic short-side length (pixels) accepted for an image/video file —
      * `min(width, height)` must not exceed this. Used by upscalers whose source
      * must stay below the target resolution. Enforced client-side at upload by

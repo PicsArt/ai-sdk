@@ -18,9 +18,19 @@ import { p } from '../../core/descriptors/presets.ts'; // p for output_format en
  *    frame slots (backend rejects mixed first_frame + reference_* content).
  */
 const SEEDANCE_FRAME_REF_REASON = 'Start/End frames cannot be combined with reference images, videos, or audios';
-/** Backend rejects reference image/video content below 409,600 px (640×640):
- *  "video pixel count ... must be greater than or equal to 409600". */
-const SEEDANCE_MIN_PIXELS = 409_600;
+/** Vendor floor on each side of a reference image or video: width and height
+ *  must each land in [300, 6000] px. From ModelArk "Create a video generation
+ *  task", content.image_url.url → "Requirements for uploading a single image";
+ *  applies to every Seedance model. Images have no total-pixel rule at all.
+ *  TODO: the matching 6000px ceiling and the [0.4, 2.5] aspect-ratio bound are
+ *  the other half of this vendor rule; both need new descriptor fields. */
+const SEEDANCE_MIN_SIDE_PIXELS = 300;
+/** Vendor floor on a reference VIDEO's total pixel count: width × height must
+ *  land in [614×664 = 407,696 , 3326×2494 = 8,295,044]. Videos only. This is
+ *  the rule behind "video pixel count ... must be greater than or equal to
+ *  407696", and it was previously (and wrongly) applied to image slots too.
+ *  TODO: the matching 8,295,044 ceiling needs a `maxPixels` field. */
+const SEEDANCE_VIDEO_MIN_PIXELS = 407_696;
 /** Vendor caps each video file at 200 MiB: "the parameter video size (bytes)
  *  specified in the request must be less than or equal to 209715200 for model
  *  dreamina-seedance-2-5 in r2v". Observed on the 2.5 reference-video path; the
@@ -367,8 +377,12 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
-      ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(10, 'Reference Videos', false, SEEDANCE_MIN_PIXELS, SEEDANCE_25_MAX_VIDEO_BYTES),
+      ...params.imageInput(30, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(10, 'Reference Videos', false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+        maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES,
+      }),
       ...params.audioInputs(10, 'Reference Audios'),
       ...params.startFrame(),
       ...params.endFrame(),
@@ -416,7 +430,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
       ...params.generateAudio(),
       ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
-      ...params.videoInputs(10, 'Source Videos', true, undefined, SEEDANCE_25_MAX_VIDEO_BYTES),
+      ...params.videoInputs(10, 'Source Videos', true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES }),
     },
   },
   {
@@ -439,8 +453,11 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(3, 'Reference Videos', false, SEEDANCE_MIN_PIXELS),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(3, 'Reference Videos', false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+      }),
       ...params.audioInputs(3, 'Reference Audios'),
       ...params.startFrame(),
       ...params.endFrame(),
@@ -470,8 +487,11 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(3, 'Reference Videos', false, SEEDANCE_MIN_PIXELS),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(3, 'Reference Videos', false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+      }),
       ...params.audioInputs(3, 'Reference Audios'),
       ...params.startFrame(),
       ...params.endFrame(),
@@ -497,8 +517,11 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(3, 'Reference Videos', false, SEEDANCE_MIN_PIXELS),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(3, 'Reference Videos', false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+      }),
       ...params.audioInputs(3, 'Reference Audios'),
       ...params.startFrame(),
       ...params.endFrame(),
@@ -524,8 +547,11 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(3, 'Reference Videos', false, SEEDANCE_MIN_PIXELS),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(3, 'Reference Videos', false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+      }),
       ...params.audioInputs(3, 'Reference Audios'),
       ...params.startFrame(),
       ...params.endFrame(),

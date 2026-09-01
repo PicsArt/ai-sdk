@@ -1,5 +1,7 @@
 import assert from 'node:assert';
 import { Model, catalog } from '../../src/core/descriptors/model-accessor.ts';
+import { p as presets } from '../../src/core/descriptors/presets.ts';
+import type { FileDescriptor } from '../../src/core/descriptors/types.ts';
 
 // ── Top-level: id and name ──────────────────────────────────────────
 
@@ -176,6 +178,36 @@ for (const [modelId, key] of [
   const videoSlot = Model(modelId).params().file(key);
   assert(videoSlot, `${modelId} should have a ${key} file param`);
   assert.strictEqual(videoSlot!.maxBytes, 209_715_200, `${modelId} video slot must cap files at 200 MiB`);
+}
+
+// ── FileDescriptor.minSidePixels: per-side vendor floor ─────────────
+// p.file() threads the bound through, and leaves it off when unset.
+
+const sideBound = presets.file('imageUrls', 'image', { minSidePixels: 300 }).imageUrls
+  .descriptor as FileDescriptor;
+assert.strictEqual(sideBound.minSidePixels, 300, 'p.file should thread minSidePixels through');
+assert.strictEqual(sideBound.minPixels, undefined, 'p.file should not invent a total-pixel floor');
+
+const noBound = presets.file('imageUrls', 'image').imageUrls.descriptor as FileDescriptor;
+assert.strictEqual(noBound.minSidePixels, undefined, 'p.file should omit minSidePixels when unset');
+
+// Seedance reference images: the vendor rule is per side (width and height each
+// in [300, 6000]) with no total-pixel floor. A 600×600 reference is 360,000 px,
+// so the old 409,600 total-pixel floor rejected an image the vendor accepts.
+
+for (const modelId of ['seedance-2.5', 'seedance-2.0', 'seedance-2.0-fast', 'seedance-2.0-mini'] as const) {
+  const imageSlot = Model(modelId).params().file('imageUrls');
+  assert(imageSlot, `${modelId} should have an imageUrls file param`);
+  assert.strictEqual(imageSlot!.minSidePixels, 300, `${modelId} reference images must floor each side at 300px`);
+  assert.strictEqual(imageSlot!.minPixels, undefined, `${modelId} reference images must not carry a total-pixel floor`);
+
+  // Reference videos keep the total-pixel floor, corrected to the vendor's
+  // 614×664, and pick up the same per-side floor.
+  const videoRefs = Model(modelId).params().file('videoUrls');
+  if (videoRefs) {
+    assert.strictEqual(videoRefs.minPixels, 407_696, `${modelId} reference videos must floor total pixels at 407,696`);
+    assert.strictEqual(videoRefs.minSidePixels, 300, `${modelId} reference videos must floor each side at 300px`);
+  }
 }
 
 // \u2500\u2500 duration() shorthand spans both descriptor kinds \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500

@@ -1019,6 +1019,7 @@ var p = {
           ...opts?.array ? { array: opts.array } : {},
           ...opts?.maxDurationSec != null ? { maxDurationSec: opts.maxDurationSec } : {},
           ...opts?.minPixels != null ? { minPixels: opts.minPixels } : {},
+          ...opts?.minSidePixels != null ? { minSidePixels: opts.minSidePixels } : {},
           ...opts?.maxShortSidePixels != null ? { maxShortSidePixels: opts.maxShortSidePixels } : {},
           ...opts?.maxBytes != null ? { maxBytes: opts.maxBytes } : {}
         }
@@ -1252,7 +1253,18 @@ var params = {
   // `category` defaults to the most common role for the slot (overridable per call):
   //   asset    → start/end frame, sync audio (direct inputs to the output)
   //   reference → ref images/videos/audios (guidance signals)
-  imageInput: (max = 1, label = "Start Image", required = false, category = "reference", minPixels) => p.file("imageUrls", "image", { array: { max }, label, required, category, ...minPixels != null ? { minPixels } : {} }),
+  /** Array of image inputs (writes to `imageUrls`). `bounds` carries the
+   *  client-side dimension floors enforced at upload: `minPixels` for a vendor
+   *  rule stated as a total pixel count, `minSidePixels` for one stated per
+   *  side (width and height each), which is what most vendors publish. */
+  imageInput: (max = 1, label = "Start Image", required = false, category = "reference", bounds) => p.file("imageUrls", "image", {
+    array: { max },
+    label,
+    required,
+    category,
+    ...bounds?.minPixels != null ? { minPixels: bounds.minPixels } : {},
+    ...bounds?.minSidePixels != null ? { minSidePixels: bounds.minSidePixels } : {}
+  }),
   /** Single source-video slot (v2v / video edit). Writes to `videoUrl`.
    *  `maxDurationSec` caps the source clip length, `maxShortSidePixels` caps
    *  the shorter side (upscaler sources) and `maxBytes` caps the file size,
@@ -1268,15 +1280,17 @@ var params = {
   /** Single driving / sync-audio slot. Writes to `audioUrl`. */
   audioInput: (label = "Audio Track", required = false, category = "asset") => p.file("audioUrl", "audio", { label, required, category }),
   /** Array of reference videos (writes to `videoUrls`). Backend enforces
-   *  per-model total-duration caps (e.g. ≤ 15s for seedance). `maxBytes` caps
-   *  each individual clip's file size, enforced client-side at upload. */
-  videoInputs: (max = 3, label = "Reference Videos", required = false, minPixels, maxBytes) => p.file("videoUrls", "video", {
+   *  per-model total-duration caps (e.g. ≤ 15s for seedance). `bounds` carries
+   *  the client-side checks run at upload: `minPixels` for a total-pixel floor,
+   *  `minSidePixels` for a per-side one, `maxBytes` for each clip's file size. */
+  videoInputs: (max = 3, label = "Reference Videos", required = false, bounds) => p.file("videoUrls", "video", {
     array: { max },
     label,
     required,
     category: "reference",
-    ...minPixels != null ? { minPixels } : {},
-    ...maxBytes != null ? { maxBytes } : {}
+    ...bounds?.minPixels != null ? { minPixels: bounds.minPixels } : {},
+    ...bounds?.minSidePixels != null ? { minSidePixels: bounds.minSidePixels } : {},
+    ...bounds?.maxBytes != null ? { maxBytes: bounds.maxBytes } : {}
   }),
   /** Array of reference audios (writes to `audioUrls`). Backend enforces
    *  per-model total-duration caps. */
@@ -3541,7 +3555,8 @@ registerPayloads(MODELS11, {
 
 // src/vendors/catalog/seedance.ts
 var SEEDANCE_FRAME_REF_REASON = "Start/End frames cannot be combined with reference images, videos, or audios";
-var SEEDANCE_MIN_PIXELS = 409600;
+var SEEDANCE_MIN_SIDE_PIXELS = 300;
+var SEEDANCE_VIDEO_MIN_PIXELS = 407696;
 var SEEDANCE_25_MAX_VIDEO_BYTES = 209715200;
 var seedance20Constraints = [
   {
@@ -3792,8 +3807,12 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
-      ...params.imageInput(30, "Reference Images", false, "reference", SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(10, "Reference Videos", false, SEEDANCE_MIN_PIXELS, SEEDANCE_25_MAX_VIDEO_BYTES),
+      ...params.imageInput(30, "Reference Images", false, "reference", { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(10, "Reference Videos", false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+        maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES
+      }),
       ...params.audioInputs(10, "Reference Audios"),
       ...params.startFrame(),
       ...params.endFrame()
@@ -3847,7 +3866,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
       ...params.generateAudio(),
       ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
-      ...params.videoInputs(10, "Source Videos", true, void 0, SEEDANCE_25_MAX_VIDEO_BYTES)
+      ...params.videoInputs(10, "Source Videos", true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES })
     }
   },
   {
@@ -3873,8 +3892,11 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, "Reference Images", false, "reference", SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(3, "Reference Videos", false, SEEDANCE_MIN_PIXELS),
+      ...params.imageInput(9, "Reference Images", false, "reference", { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(3, "Reference Videos", false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS
+      }),
       ...params.audioInputs(3, "Reference Audios"),
       ...params.startFrame(),
       ...params.endFrame()
@@ -3907,8 +3929,11 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, "Reference Images", false, "reference", SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(3, "Reference Videos", false, SEEDANCE_MIN_PIXELS),
+      ...params.imageInput(9, "Reference Images", false, "reference", { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(3, "Reference Videos", false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS
+      }),
       ...params.audioInputs(3, "Reference Audios"),
       ...params.startFrame(),
       ...params.endFrame()
@@ -3937,8 +3962,11 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, "Reference Images", false, "reference", SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(3, "Reference Videos", false, SEEDANCE_MIN_PIXELS),
+      ...params.imageInput(9, "Reference Images", false, "reference", { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(3, "Reference Videos", false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS
+      }),
       ...params.audioInputs(3, "Reference Audios"),
       ...params.startFrame(),
       ...params.endFrame()
@@ -3967,8 +3995,11 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, "Reference Images", false, "reference", SEEDANCE_MIN_PIXELS),
-      ...params.videoInputs(3, "Reference Videos", false, SEEDANCE_MIN_PIXELS),
+      ...params.imageInput(9, "Reference Images", false, "reference", { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(3, "Reference Videos", false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS
+      }),
       ...params.audioInputs(3, "Reference Audios"),
       ...params.startFrame(),
       ...params.endFrame()

@@ -1,5 +1,6 @@
 import type { GenerationContext, ModelDefinition } from './types.ts';
 import { validateAll } from './descriptors/utils.ts';
+import { ApiError } from './errors.ts';
 
 interface Schema<T> {
   parse(input: unknown): T;
@@ -13,7 +14,7 @@ export interface ModelContract<TInput = GenerationContext, TOutput = unknown> {
 
 function requireObject(value: unknown, message: string): asserts value is Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(message);
+    throw new ApiError(message, { status: 400, code: 'validation_error' });
   }
 }
 
@@ -21,7 +22,15 @@ function buildInputSchema(model: ModelDefinition): Schema<GenerationContext> {
   return {
     parse(input: unknown): GenerationContext {
       requireObject(input, `Invalid input for model "${model.id}"`);
-      validateAll(model.paramConfig, input);
+      try {
+        validateAll(model.paramConfig, input);
+      } catch (err: unknown) {
+        if (err instanceof ApiError) throw err;
+        throw new ApiError(err instanceof Error ? err.message : String(err), {
+          status: 400,
+          code: 'validation_error',
+        });
+      }
       return input as unknown as GenerationContext;
     },
   };
@@ -31,7 +40,10 @@ function buildOutputSchema(model: ModelDefinition): Schema<unknown> {
   return {
     parse(output: unknown): unknown {
       if (output == null) {
-        throw new Error(`Model "${model.id}" returned empty output`);
+        throw new ApiError(`Model "${model.id}" returned empty output`, {
+          status: 502,
+          code: 'invalid_response',
+        });
       }
       return output;
     },

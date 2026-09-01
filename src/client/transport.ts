@@ -1,4 +1,5 @@
 import type { AuthenticatedFetch, ClientConfig, SdkTransport } from './types.ts';
+import { ApiError, readErrorBody, reasonFrom } from '../core/errors.ts';
 
 /**
  * Attribution headers the gateway requires on every request. The `apiKey` fetch
@@ -55,19 +56,42 @@ export function buildTransport(config: ClientConfig): SdkTransport {
         { params: request.payload },
         request.signal,
       );
-      const data = await res.json() as Record<string, unknown>;
+      // Read the body before branching on `ok`: a non-JSON error body (a gateway
+      // HTML page, an empty 401) used to surface as a JSON SyntaxError that lost
+      // the status entirely.
+      const { text, json } = await readErrorBody(res);
       if (!res.ok) {
-        throw new Error(`Submit failed (${res.status}): ${(data as Record<string, unknown>).message ?? JSON.stringify(data)}`);
+        const detail = json ? json.message ?? JSON.stringify(json) : text;
+        throw new ApiError(`Submit failed (${res.status}): ${detail}`, {
+          status: res.status,
+          code: reasonFrom(json, res.status),
+        });
       }
-      const response = data.response as Record<string, unknown> | undefined;
-      const id = response?.id ?? data.id;
-      if (!id) throw new Error(`No task id in response: ${JSON.stringify(data)}`);
+      const response = json?.response as Record<string, unknown> | undefined;
+      const id = response?.id ?? json?.id;
+      if (!id) {
+        throw new ApiError(`No task id in response: ${json ? JSON.stringify(json) : text}`, {
+          status: 502,
+          code: 'invalid_response',
+        });
+      }
       return { workflow: request.workflow, id: String(id) };
     },
 
     async status(handle, signal) {
       const res = await f(`${apiUrl}/workflows/${handle.workflow}/${handle.id}/result`, { signal });
-      if (!res.ok) throw new Error(`Status check failed (${res.status}): ${await res.text()}`);
+      if (!res.ok) {
+        const { text, json } = await readErrorBody(res);
+        // Prefer the platform's own `message` over the raw body — a task failure
+        // returns `{ status: 'error', reason, message }`, and dumping the whole
+        // JSON here is what a caller ends up showing a user. Falls back to the
+        // raw text when the body carries no `message`.
+        const detail = json ? json.message ?? text : text;
+        throw new ApiError(`Status check failed (${res.status}): ${detail}`, {
+          status: res.status,
+          code: reasonFrom(json, res.status),
+        });
+      }
       return res.json();
     },
 
@@ -77,7 +101,18 @@ export function buildTransport(config: ClientConfig): SdkTransport {
         { params: request.payload },
         request.signal,
       );
-      if (!res.ok) throw new Error(`Execute failed (${res.status}): ${await res.text()}`);
+      if (!res.ok) {
+        const { text, json } = await readErrorBody(res);
+        // Prefer the platform's own `message` over the raw body — a task failure
+        // returns `{ status: 'error', reason, message }`, and dumping the whole
+        // JSON here is what a caller ends up showing a user. Falls back to the
+        // raw text when the body carries no `message`.
+        const detail = json ? json.message ?? text : text;
+        throw new ApiError(`Execute failed (${res.status}): ${detail}`, {
+          status: res.status,
+          code: reasonFrom(json, res.status),
+        });
+      }
       return res.json();
     },
 

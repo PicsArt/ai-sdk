@@ -49,6 +49,10 @@ interface WorkflowStatusResult<TResult = unknown> {
     status: WorkflowStatus;
     result?: TResult;
     error?: string;
+    /** Platform error `reason` on a failed task, when the response carried one. */
+    reason?: string;
+    /** Numeric status on the error payload, when the response carried one. */
+    statusCode?: number;
     progress?: WorkflowProgress;
     /** Credit usage reported by the platform, when present on the response. */
     usage?: CreditUsage;
@@ -2775,6 +2779,59 @@ declare function getVoiceById(id: string): VoiceOption | undefined;
 declare function getVoiceById(id: string, extra: VoiceOption[] | undefined): VoiceOption | undefined;
 
 /**
+ * Failure codes the SDK synthesizes when the platform supplies no `reason`.
+ * An API-supplied `reason` passes through unchanged, so the open `string`
+ * member keeps arbitrary platform reasons assignable while preserving
+ * autocomplete on the known set.
+ */
+type ApiErrorCode = 'unknown_model' | 'wrong_model_mode' | 'validation_error' | 'unsupported_transport' | 'timeout' | 'aborted' | 'canceled' | 'generation_failed' | 'invalid_response' | 'bad_request' | 'unauthorized' | 'payment_required' | 'forbidden' | 'not_found' | 'rate_limited' | 'server_error' | (string & {});
+/** Everything but the message needed to build a {@link ApiError}. */
+interface ApiErrorInit {
+    /**
+     * HTTP status of the failing response. When no HTTP exchange took place the
+     * SDK synthesizes the semantically matching code: 400 for input the SDK
+     * itself rejects, 408 for a poll deadline, 499 for an abort or cancel, 502
+     * for a response it cannot make sense of.
+     */
+    status: number;
+    /** Platform `reason` when present, otherwise an SDK-synthesized code. */
+    code: ApiErrorCode;
+}
+/**
+ * The single error type thrown by the SDK's generation surface —
+ * `generate()`, `generateText()`, `submit()`, and `result()`.
+ *
+ * Unrelated to the `Api*` types (`ApiResponse`, `ApiRunOptions`, …), which
+ * describe the low-level `ai.apis` surface. `ai.apis.run()` throws the
+ * workflows client's own errors, not this.
+ *
+ * ```ts
+ * try {
+ *   await ai.generate(Models.Flux2Pro, { prompt: 'a cat' });
+ * } catch (err) {
+ *   if (err instanceof ApiError) {
+ *     if (err.status === 402) return topUpCredits();
+ *     if (err.status === 429 || err.status >= 500) return retry();
+ *     if (err.code === 'validation_error') return showFormError(err.message);
+ *   }
+ *   throw err;
+ * }
+ * ```
+ *
+ * Aborts raised by `fetch` itself are never wrapped — a caller checking
+ * `err.name === 'AbortError'` on a `DOMException` keeps working.
+ */
+declare class ApiError extends Error {
+    /** HTTP status, or the synthesized equivalent for non-HTTP failures. */
+    readonly status: number;
+    /** Platform `reason`, or an SDK-synthesized code. Always equal to {@link reason}. */
+    readonly code: ApiErrorCode;
+    /** Alias of {@link code}, named after the platform's own error field. */
+    readonly reason: ApiErrorCode;
+    constructor(message: string, init: ApiErrorInit);
+}
+
+/**
  * Pricing internals — owns the ModelPricingClient, the per-model cache, and
  * the credit-range lookup. The Model accessor delegates to the helpers below
  * so that model-accessor.ts stays focused on descriptor logic.
@@ -2902,4 +2959,4 @@ declare const findModel: (ref: string) => ModelDefinition | undefined;
  */
 declare const KLING_DUAL_IMAGE_EFFECTS: ReadonlySet<string>;
 
-export { ALL_MODELS, type AiClient, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogKind, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogKind, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };

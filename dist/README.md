@@ -188,9 +188,61 @@ for await (const update of ai.subscribe(handle)) {
 const status = await ai.status(handle)
 ```
 
+## Error Handling
+
+Every failure thrown by `generate()`, `generateText()`, `submit()`, and `result()`
+is an `ApiError` with the same four fields, so you can branch on the error
+instead of pattern-matching its message:
+
+```typescript
+import { createClient, Models, ApiError } from '@picsart/ai-sdk'
+
+try {
+  const result = await ai.generate(Models.Flux2Pro, { prompt: 'a cat on mars' })
+} catch (err) {
+  if (err instanceof ApiError) {
+    err.status   // 402            — HTTP status, or its synthesized equivalent
+    err.code     // 'payment_required' — platform `reason`, else an SDK code
+    err.reason   // same value as `code`, named after the platform's own field
+    err.message  // 'Submit failed (402): Not enough credits'
+
+    if (err.status === 402) return topUpCredits()
+    if (err.status === 429 || err.status >= 500) return retry()
+    if (err.code === 'validation_error') return showFormError(err.message)
+  }
+  throw err
+}
+```
+
+`code` carries the platform's `reason` verbatim whenever the API supplies one
+(`content_moderation`, `unauthorized`, …). When it doesn't, the SDK fills in a
+conventional slug for the status — `payment_required` for 402, `rate_limited`
+for 429, and so on.
+
+Failures that never reach the network get the status they semantically deserve,
+so one retry predicate covers every case:
+
+| Failure | `status` | `code` |
+|---------|----------|--------|
+| Unknown model id | 400 | `unknown_model` |
+| `generate()` on a text model (or the reverse) | 400 | `wrong_model_mode` |
+| Parameter validation | 400 | `validation_error` |
+| Async lifecycle on an execute-only transport | 400 | `unsupported_transport` |
+| HTTP error from the API | the response's status | platform `reason`, else the status slug |
+| Poll deadline exceeded | 408 | `timeout` |
+| Aborted via `options.signal`, or a canceled job | 499 | `aborted` / `canceled` |
+| Job finished `FAILED` | the task's `statusCode`, else 502 | platform `reason`, else `generation_failed` |
+| Response the SDK can't parse | 502 | `invalid_response` |
+
+Aborts raised by `fetch` itself are deliberately **not** wrapped, so
+`err.name === 'AbortError'` keeps working on the `DOMException`.
+
+`message` is human-readable and may change between versions — branch on `status`
+and `code`, not on the message text.
+
 ## Public API
 
-The SDK exports 7 symbols:
+The SDK exports 8 symbols:
 
 | Export | Type | Description |
 |--------|------|-------------|
@@ -201,6 +253,7 @@ The SDK exports 7 symbols:
 | `AuthenticatedFetch` | type | `(url, init?) => Promise<Response>` — for the custom-`fetch` path |
 | `SdkTransport` | type | Advanced: custom transport interface |
 | `WorkflowJobHandle` | type | Job handle for submit/status/cancel |
+| `ApiError` | class | Unified error: `{ status, code, reason, message }` — see [Error Handling](#error-handling) |
 
 ## Package Structure
 

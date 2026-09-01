@@ -1,4 +1,5 @@
 import type { WorkflowJobHandle, WorkflowStatusResult, CreditUsage } from './workflow.ts';
+import { ApiError, codeForStatus } from './errors.ts';
 
 export function throwIfErrorResult(result: unknown, modelName: string): void {
   if (!result || typeof result !== 'object' || Array.isArray(result)) return;
@@ -12,7 +13,14 @@ export function throwIfErrorResult(result: unknown, modelName: string): void {
   if (isError) {
     const code = typeof status === 'number' ? ` (${status})` : '';
     const detail = message ? String(message) : 'unknown error';
-    throw new Error(`${modelName} failed${code}: ${detail}`);
+    // A 200 carrying an error payload: trust its own status when numeric,
+    // otherwise call it a bad gateway response.
+    const httpStatus = typeof status === 'number' ? status : 502;
+    const reason = obj.reason;
+    throw new ApiError(`${modelName} failed${code}: ${detail}`, {
+      status: httpStatus,
+      code: typeof reason === 'string' && reason.length > 0 ? reason : codeForStatus(httpStatus),
+    });
   }
 }
 

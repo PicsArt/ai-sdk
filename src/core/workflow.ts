@@ -1,6 +1,8 @@
 // ── Workflow Client Engine ────────────────────────────────────────────
 // Pure workflow polling/execution engine with no model dependencies.
 
+import { ApiError } from './errors.ts';
+
 // ── Types ────────────────────────────────────────────────────────────
 
 export interface WorkflowSubmitRequest<TPayload = Record<string, unknown>> {
@@ -62,6 +64,10 @@ export interface WorkflowStatusResult<TResult = unknown> {
   status: WorkflowStatus;
   result?: TResult;
   error?: string;
+  /** Platform error `reason` on a failed task, when the response carried one. */
+  reason?: string;
+  /** Numeric status on the error payload, when the response carried one. */
+  statusCode?: number;
   progress?: WorkflowProgress;
   /** Credit usage reported by the platform, when present on the response. */
   usage?: CreditUsage;
@@ -158,7 +164,9 @@ export function parseWorkflowStatus<TResult = unknown>(
       || Array.isArray((usageRaw as Record<string, unknown>).details)))
     ? usageRaw as CreditUsage
     : undefined;
-  const errorRaw = pickFirst(raw, [['response', 'error'], ['error'], ['message'], ['reason']]);
+  const errorRaw = pickFirst(raw, [['response', 'error'], ['response', 'message'], ['error'], ['message'], ['reason']]);
+  const reasonRaw = pickFirst(raw, [['response', 'reason'], ['reason']]);
+  const statusCodeRaw = pickFirst(raw, [['response', 'statusCode'], ['statusCode']]);
   const progressRaw = pickFirst(raw, [['response', 'progress'], ['progress']]);
   const progress = (progressRaw && typeof progressRaw === 'object')
     ? {
@@ -177,6 +185,8 @@ export function parseWorkflowStatus<TResult = unknown>(
     status,
     result,
     error: typeof errorRaw === 'string' ? errorRaw : undefined,
+    reason: typeof reasonRaw === 'string' ? reasonRaw : undefined,
+    statusCode: typeof statusCodeRaw === 'number' ? statusCodeRaw : undefined,
     progress,
     usage,
     raw,
@@ -202,7 +212,10 @@ export function createWorkflowClient<TPayload = Record<string, unknown>>(
 
   const submit = async (request: WorkflowSubmitRequest<TPayload>): Promise<WorkflowJobHandle> => {
     if (!transport.submit) {
-      throw new Error('Transport does not support submit (execute-only transport)');
+      throw new ApiError('Transport does not support submit (execute-only transport)', {
+        status: 400,
+        code: 'unsupported_transport',
+      });
     }
     return transport.submit(request);
   };
@@ -212,7 +225,10 @@ export function createWorkflowClient<TPayload = Record<string, unknown>>(
     signal?: AbortSignal,
   ): Promise<WorkflowStatusResult<TResult>> => {
     if (!transport.status) {
-      throw new Error('Transport does not support status (execute-only transport)');
+      throw new ApiError('Transport does not support status (execute-only transport)', {
+        status: 400,
+        code: 'unsupported_transport',
+      });
     }
     const raw = await transport.status(handle, signal);
     return parseStatus<TResult>(handle, raw);
@@ -227,13 +243,16 @@ export function createWorkflowClient<TPayload = Record<string, unknown>>(
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       if (pollOptions.signal?.aborted) {
-        throw new Error('Operation aborted');
+        throw new ApiError('Operation aborted', { status: 499, code: 'aborted' });
       }
       const next = await status<TResult>(handle, pollOptions.signal);
       if (isTerminal(next.status)) return next;
       await sleep(intervalMs);
     }
-    throw new Error(`Timed out waiting for workflow ${handle.workflow}:${handle.id}`);
+    throw new ApiError(
+      `Timed out waiting for workflow ${handle.workflow}:${handle.id}`,
+      { status: 408, code: 'timeout' },
+    );
   };
 
   const run = async <TResult = unknown>(
@@ -268,14 +287,17 @@ export function createWorkflowClient<TPayload = Record<string, unknown>>(
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       if (subscribeOptions.signal?.aborted) {
-        throw new Error('Operation aborted');
+        throw new ApiError('Operation aborted', { status: 499, code: 'aborted' });
       }
       const next = await status<TResult>(handle, subscribeOptions.signal);
       yield next;
       if (isTerminal(next.status)) return next;
       await sleep(intervalMs);
     }
-    throw new Error(`Timed out waiting for workflow ${handle.workflow}:${handle.id}`);
+    throw new ApiError(
+      `Timed out waiting for workflow ${handle.workflow}:${handle.id}`,
+      { status: 408, code: 'timeout' },
+    );
   };
 
   return { submit, status, result, run, subscribe };

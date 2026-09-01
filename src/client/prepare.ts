@@ -2,6 +2,7 @@ import type { ModelDefinition, GenerationContext } from '../core/types.ts';
 import type { WorkflowStatusResult } from '../core/workflow.ts';
 import { getModelContract } from '../core/contracts.ts';
 import { extractUrl, extractText, extractAllResults, throwIfErrorResult } from '../core/response.ts';
+import { ApiError } from '../core/errors.ts';
 import type { GenerateResult, GenerateResultItem, GenerateTextResult } from './types.ts';
 
 /** Resolve whether to use the edit or generate payload builder based on context. */
@@ -37,6 +38,25 @@ export function prepareRequest(model: ModelDefinition, params: Partial<Generatio
 }
 
 /**
+ * Throw on a terminal non-success state, carrying the platform's own status
+ * and reason through when the response supplied them.
+ */
+function throwIfTerminalFailure(
+  completed: WorkflowStatusResult<unknown>,
+  model: ModelDefinition,
+): void {
+  if (completed.status === 'FAILED') {
+    throw new ApiError(`${model.name} failed: ${completed.error ?? 'unknown error'}`, {
+      status: completed.statusCode ?? 502,
+      code: completed.reason ?? 'generation_failed',
+    });
+  }
+  if (completed.status === 'CANCELED') {
+    throw new ApiError(`${model.name} was canceled`, { status: 499, code: 'canceled' });
+  }
+}
+
+/**
  * Parse a completed workflow result into a GenerateResult.
  * Handles error checking, output parsing, and URL extraction.
  */
@@ -45,12 +65,7 @@ export function parseResult(
   model: ModelDefinition,
   contract: ReturnType<typeof getModelContract>,
 ): GenerateResult {
-  if (completed.status === 'FAILED') {
-    throw new Error(`${model.name} failed: ${completed.error ?? 'unknown error'}`);
-  }
-  if (completed.status === 'CANCELED') {
-    throw new Error(`${model.name} was canceled`);
-  }
+  throwIfTerminalFailure(completed, model);
 
   throwIfErrorResult(completed.result, model.name);
 
@@ -71,7 +86,10 @@ export function parseResult(
   // Single-result models — extract URL
   const url = extractUrl(parsed);
   if (!url) {
-    throw new Error(`${model.name}: unexpected response — no result URL`);
+    throw new ApiError(`${model.name}: unexpected response — no result URL`, {
+      status: 502,
+      code: 'invalid_response',
+    });
   }
 
   return { url, results: [{ url }], model: model.id, handle: completed.handle, raw: parsed, usage: completed.usage };
@@ -92,19 +110,17 @@ export function parseTextResult(
   completed: WorkflowStatusResult<unknown>,
   model: ModelDefinition,
 ): GenerateTextResult {
-  if (completed.status === 'FAILED') {
-    throw new Error(`${model.name} failed: ${completed.error ?? 'unknown error'}`);
-  }
-  if (completed.status === 'CANCELED') {
-    throw new Error(`${model.name} was canceled`);
-  }
+  throwIfTerminalFailure(completed, model);
 
   throwIfErrorResult(completed.result, model.name);
   throwIfErrorResult(completed.raw, model.name);
 
   const text = extractText(completed.result) ?? extractText(completed.raw);
   if (text == null) {
-    throw new Error(`${model.name}: unexpected response — no text`);
+    throw new ApiError(`${model.name}: unexpected response — no text`, {
+      status: 502,
+      code: 'invalid_response',
+    });
   }
 
   return { text, model: model.id, handle: completed.handle, raw: completed.raw ?? completed.result, usage: completed.usage };

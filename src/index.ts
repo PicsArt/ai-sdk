@@ -5,6 +5,14 @@ export { ApiRunMode } from './client/index.ts';
 export { Models } from './generated/model-constants.ts';
 export { getVoiceById } from './core/voices.ts';
 
+// ── Errors ──────────────────────────────────────────────────────────
+// Every failure out of generate/generateText/submit/result is an ApiError
+// carrying { status, code, reason, message }. Note this is the generation
+// surface's error — the Api* types below belong to `ai.apis`, which throws the
+// workflows client's own errors instead.
+export { ApiError } from './core/errors.ts';
+export type { ApiErrorCode, ApiErrorInit } from './core/errors.ts';
+
 export type {
   GenerateResult,
   GenerateResultItem,

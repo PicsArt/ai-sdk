@@ -10,6 +10,7 @@ import {
 import { getModelContract } from '../core/contracts.ts';
 import { extractSyncResult, toCompletedStatus } from '../core/response.ts';
 import { resolveModel } from '../core/resolve.ts';
+import { ApiError } from '../core/errors.ts';
 
 import type { ClientConfig, SdkTransport, GenerateResult, GenerateTextResult, GenerateOptions, AiClient } from './types.ts';
 import type { PayloadDriveOptions } from './drive.ts';
@@ -172,7 +173,10 @@ export function createClient(config: ClientConfig | SdkTransport) {
     ): Promise<GenerateResult> {
       const resolved = resolveModel(model);
       if (resolved.mode === 'text') {
-        throw new Error(`${resolved.name} is a text model — use generateText() instead.`);
+        throw new ApiError(`${resolved.name} is a text model — use generateText() instead.`, {
+          status: 400,
+          code: 'wrong_model_mode',
+        });
       }
       const { workflow, payload, contract } = prepareRequest(resolved, params);
       const drive = buildDrivePayloadOptions(resolved, params, options);
@@ -196,7 +200,10 @@ export function createClient(config: ClientConfig | SdkTransport) {
     ): Promise<GenerateTextResult> {
       const resolved = resolveModel(model);
       if (resolved.mode !== 'text') {
-        throw new Error(`${resolved.name} is not a text model — use generate() instead.`);
+        throw new ApiError(`${resolved.name} is not a text model — use generate() instead.`, {
+          status: 400,
+          code: 'wrong_model_mode',
+        });
       }
       const { workflow, payload } = prepareRequest(resolved, params);
       const completed = await executeModel(resolved, workflow, payload, options);
@@ -307,10 +314,16 @@ export function createClient(config: ClientConfig | SdkTransport) {
         options,
       );
       if (done.status === 'FAILED' || done.status === 'CANCELED') {
-        throw new Error(done.error ?? `${workflow} failed with status ${done.status}`);
+        throw new ApiError(done.error ?? `${workflow} failed with status ${done.status}`, {
+          status: done.statusCode ?? (done.status === 'CANCELED' ? 499 : 502),
+          code: done.reason ?? (done.status === 'CANCELED' ? 'canceled' : 'generation_failed'),
+        });
       }
       if (done.result === undefined) {
-        throw new Error(`${workflow} completed but returned no result`);
+        throw new ApiError(`${workflow} completed but returned no result`, {
+          status: 502,
+          code: 'invalid_response',
+        });
       }
       return done.result as TResult;
     },

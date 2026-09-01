@@ -441,6 +441,62 @@ var require_build = __commonJS({
   }
 });
 
+// src/core/errors.ts
+var ApiError = class extends Error {
+  /** HTTP status, or the synthesized equivalent for non-HTTP failures. */
+  status;
+  /** Platform `reason`, or an SDK-synthesized code. Always equal to {@link reason}. */
+  code;
+  /** Alias of {@link code}, named after the platform's own error field. */
+  reason;
+  constructor(message, init) {
+    super(message);
+    this.name = "ApiError";
+    this.status = init.status;
+    this.code = init.code;
+    this.reason = init.code;
+  }
+};
+var CODE_BY_STATUS = {
+  400: "bad_request",
+  401: "unauthorized",
+  402: "payment_required",
+  403: "forbidden",
+  404: "not_found",
+  408: "timeout",
+  409: "conflict",
+  413: "payload_too_large",
+  422: "unprocessable_entity",
+  429: "rate_limited",
+  500: "server_error",
+  502: "bad_gateway",
+  503: "service_unavailable",
+  504: "gateway_timeout"
+};
+function codeForStatus(status) {
+  return CODE_BY_STATUS[status] ?? (status >= 500 ? "server_error" : `http_${status}`);
+}
+async function readErrorBody(res) {
+  let text = "";
+  try {
+    text = await res.text();
+  } catch {
+    return { text: "" };
+  }
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return { text, json: parsed };
+    }
+  } catch {
+  }
+  return { text };
+}
+function reasonFrom(json, status) {
+  const raw = json?.reason ?? json?.code;
+  return typeof raw === "string" && raw.length > 0 ? raw : codeForStatus(status);
+}
+
 // src/core/workflow.ts
 var DEFAULT_POLL_INTERVAL_MS = 2e3;
 var DEFAULT_MAX_ATTEMPTS = 300;
@@ -476,7 +532,9 @@ function parseWorkflowStatus(handle, raw) {
   const result = pickFirst(raw, [["response", "result"], ["result"]]);
   const usageRaw = pickFirst(raw, [["response", "usage"], ["usage"]]);
   const usage = usageRaw && typeof usageRaw === "object" && (typeof usageRaw.credits === "number" || Array.isArray(usageRaw.details)) ? usageRaw : void 0;
-  const errorRaw = pickFirst(raw, [["response", "error"], ["error"], ["message"], ["reason"]]);
+  const errorRaw = pickFirst(raw, [["response", "error"], ["response", "message"], ["error"], ["message"], ["reason"]]);
+  const reasonRaw = pickFirst(raw, [["response", "reason"], ["reason"]]);
+  const statusCodeRaw = pickFirst(raw, [["response", "statusCode"], ["statusCode"]]);
   const progressRaw = pickFirst(raw, [["response", "progress"], ["progress"]]);
   const progress = progressRaw && typeof progressRaw === "object" ? {
     percent: typeof progressRaw.percent === "number" ? progressRaw.percent : void 0,
@@ -487,6 +545,8 @@ function parseWorkflowStatus(handle, raw) {
     status,
     result,
     error: typeof errorRaw === "string" ? errorRaw : void 0,
+    reason: typeof reasonRaw === "string" ? reasonRaw : void 0,
+    statusCode: typeof statusCodeRaw === "number" ? statusCodeRaw : void 0,
     progress,
     usage,
     raw
@@ -502,13 +562,19 @@ function createWorkflowClient(transport, options = {}) {
   const defaultMaxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
   const submit = async (request) => {
     if (!transport.submit) {
-      throw new Error("Transport does not support submit (execute-only transport)");
+      throw new ApiError("Transport does not support submit (execute-only transport)", {
+        status: 400,
+        code: "unsupported_transport"
+      });
     }
     return transport.submit(request);
   };
   const status = async (handle, signal) => {
     if (!transport.status) {
-      throw new Error("Transport does not support status (execute-only transport)");
+      throw new ApiError("Transport does not support status (execute-only transport)", {
+        status: 400,
+        code: "unsupported_transport"
+      });
     }
     const raw = await transport.status(handle, signal);
     return parseStatus(handle, raw);
@@ -518,13 +584,16 @@ function createWorkflowClient(transport, options = {}) {
     const maxAttempts = pollOptions.maxAttempts ?? defaultMaxAttempts;
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       if (pollOptions.signal?.aborted) {
-        throw new Error("Operation aborted");
+        throw new ApiError("Operation aborted", { status: 499, code: "aborted" });
       }
       const next = await status(handle, pollOptions.signal);
       if (isTerminal(next.status)) return next;
       await sleep2(intervalMs);
     }
-    throw new Error(`Timed out waiting for workflow ${handle.workflow}:${handle.id}`);
+    throw new ApiError(
+      `Timed out waiting for workflow ${handle.workflow}:${handle.id}`,
+      { status: 408, code: "timeout" }
+    );
   };
   const run = async (request, runOptions = {}) => {
     const runMode = runOptions.mode;
@@ -543,14 +612,17 @@ function createWorkflowClient(transport, options = {}) {
     const maxAttempts = subscribeOptions.maxAttempts ?? defaultMaxAttempts;
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       if (subscribeOptions.signal?.aborted) {
-        throw new Error("Operation aborted");
+        throw new ApiError("Operation aborted", { status: 499, code: "aborted" });
       }
       const next = await status(handle, subscribeOptions.signal);
       yield next;
       if (isTerminal(next.status)) return next;
       await sleep2(intervalMs);
     }
-    throw new Error(`Timed out waiting for workflow ${handle.workflow}:${handle.id}`);
+    throw new ApiError(
+      `Timed out waiting for workflow ${handle.workflow}:${handle.id}`,
+      { status: 408, code: "timeout" }
+    );
   };
   return { submit, status, result, run, subscribe };
 }
@@ -8676,14 +8748,22 @@ var getModelsByMode = (mode, includeDisabled = false) => ALL_MODELS.filter((m) =
 // src/core/contracts.ts
 function requireObject(value, message) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new Error(message);
+    throw new ApiError(message, { status: 400, code: "validation_error" });
   }
 }
 function buildInputSchema(model) {
   return {
     parse(input) {
       requireObject(input, `Invalid input for model "${model.id}"`);
-      validateAll(model.paramConfig, input);
+      try {
+        validateAll(model.paramConfig, input);
+      } catch (err) {
+        if (err instanceof ApiError) throw err;
+        throw new ApiError(err instanceof Error ? err.message : String(err), {
+          status: 400,
+          code: "validation_error"
+        });
+      }
       return input;
     }
   };
@@ -8692,7 +8772,10 @@ function buildOutputSchema(model) {
   return {
     parse(output) {
       if (output == null) {
-        throw new Error(`Model "${model.id}" returned empty output`);
+        throw new ApiError(`Model "${model.id}" returned empty output`, {
+          status: 502,
+          code: "invalid_response"
+        });
       }
       return output;
     }
@@ -8735,7 +8818,12 @@ function throwIfErrorResult(result, modelName) {
   if (isError) {
     const code = typeof status === "number" ? ` (${status})` : "";
     const detail = message ? String(message) : "unknown error";
-    throw new Error(`${modelName} failed${code}: ${detail}`);
+    const httpStatus = typeof status === "number" ? status : 502;
+    const reason = obj.reason;
+    throw new ApiError(`${modelName} failed${code}: ${detail}`, {
+      status: httpStatus,
+      code: typeof reason === "string" && reason.length > 0 ? reason : codeForStatus(httpStatus)
+    });
   }
 }
 function extractSyncResult(raw) {
@@ -8937,7 +9025,9 @@ var findModel = (ref) => {
 // src/core/resolve.ts
 function resolveModel(id) {
   const found = findModel(id);
-  if (!found) throw new Error(`Unknown model: "${id}"`);
+  if (!found) {
+    throw new ApiError(`Unknown model: "${id}"`, { status: 400, code: "unknown_model" });
+  }
   return found;
 }
 
@@ -8977,18 +9067,34 @@ function buildTransport(config) {
         { params: request.payload },
         request.signal
       );
-      const data = await res.json();
+      const { text, json } = await readErrorBody(res);
       if (!res.ok) {
-        throw new Error(`Submit failed (${res.status}): ${data.message ?? JSON.stringify(data)}`);
+        const detail = json ? json.message ?? JSON.stringify(json) : text;
+        throw new ApiError(`Submit failed (${res.status}): ${detail}`, {
+          status: res.status,
+          code: reasonFrom(json, res.status)
+        });
       }
-      const response = data.response;
-      const id = response?.id ?? data.id;
-      if (!id) throw new Error(`No task id in response: ${JSON.stringify(data)}`);
+      const response = json?.response;
+      const id = response?.id ?? json?.id;
+      if (!id) {
+        throw new ApiError(`No task id in response: ${json ? JSON.stringify(json) : text}`, {
+          status: 502,
+          code: "invalid_response"
+        });
+      }
       return { workflow: request.workflow, id: String(id) };
     },
     async status(handle, signal) {
       const res = await f(`${apiUrl}/workflows/${handle.workflow}/${handle.id}/result`, { signal });
-      if (!res.ok) throw new Error(`Status check failed (${res.status}): ${await res.text()}`);
+      if (!res.ok) {
+        const { text, json } = await readErrorBody(res);
+        const detail = json ? json.message ?? text : text;
+        throw new ApiError(`Status check failed (${res.status}): ${detail}`, {
+          status: res.status,
+          code: reasonFrom(json, res.status)
+        });
+      }
       return res.json();
     },
     async execute(request) {
@@ -8997,7 +9103,14 @@ function buildTransport(config) {
         { params: request.payload },
         request.signal
       );
-      if (!res.ok) throw new Error(`Execute failed (${res.status}): ${await res.text()}`);
+      if (!res.ok) {
+        const { text, json } = await readErrorBody(res);
+        const detail = json ? json.message ?? text : text;
+        throw new ApiError(`Execute failed (${res.status}): ${detail}`, {
+          status: res.status,
+          code: reasonFrom(json, res.status)
+        });
+      }
       return res.json();
     },
     async options(workflow, payload) {
@@ -9035,13 +9148,19 @@ function prepareRequest(model, params2) {
   const payload = resolved.buildPayload(validatedCtx);
   return { ctx, workflow: resolved.workflow, payload, contract };
 }
-function parseResult(completed, model, contract) {
+function throwIfTerminalFailure(completed, model) {
   if (completed.status === "FAILED") {
-    throw new Error(`${model.name} failed: ${completed.error ?? "unknown error"}`);
+    throw new ApiError(`${model.name} failed: ${completed.error ?? "unknown error"}`, {
+      status: completed.statusCode ?? 502,
+      code: completed.reason ?? "generation_failed"
+    });
   }
   if (completed.status === "CANCELED") {
-    throw new Error(`${model.name} was canceled`);
+    throw new ApiError(`${model.name} was canceled`, { status: 499, code: "canceled" });
   }
+}
+function parseResult(completed, model, contract) {
+  throwIfTerminalFailure(completed, model);
   throwIfErrorResult(completed.result, model.name);
   const parsed = contract?.output ? contract.output.parse(completed.result) : completed.result;
   const multiItems = extractAllResults(parsed);
@@ -9054,22 +9173,23 @@ function parseResult(completed, model, contract) {
   }
   const url = extractUrl(parsed);
   if (!url) {
-    throw new Error(`${model.name}: unexpected response \u2014 no result URL`);
+    throw new ApiError(`${model.name}: unexpected response \u2014 no result URL`, {
+      status: 502,
+      code: "invalid_response"
+    });
   }
   return { url, results: [{ url }], model: model.id, handle: completed.handle, raw: parsed, usage: completed.usage };
 }
 function parseTextResult(completed, model) {
-  if (completed.status === "FAILED") {
-    throw new Error(`${model.name} failed: ${completed.error ?? "unknown error"}`);
-  }
-  if (completed.status === "CANCELED") {
-    throw new Error(`${model.name} was canceled`);
-  }
+  throwIfTerminalFailure(completed, model);
   throwIfErrorResult(completed.result, model.name);
   throwIfErrorResult(completed.raw, model.name);
   const text = extractText(completed.result) ?? extractText(completed.raw);
   if (text == null) {
-    throw new Error(`${model.name}: unexpected response \u2014 no text`);
+    throw new ApiError(`${model.name}: unexpected response \u2014 no text`, {
+      status: 502,
+      code: "invalid_response"
+    });
   }
   return { text, model: model.id, handle: completed.handle, raw: completed.raw ?? completed.result, usage: completed.usage };
 }
@@ -10204,7 +10324,10 @@ function createClient(config) {
     async generate(model, params2, options) {
       const resolved = resolveModel(model);
       if (resolved.mode === "text") {
-        throw new Error(`${resolved.name} is a text model \u2014 use generateText() instead.`);
+        throw new ApiError(`${resolved.name} is a text model \u2014 use generateText() instead.`, {
+          status: 400,
+          code: "wrong_model_mode"
+        });
       }
       const { workflow, payload, contract } = prepareRequest(resolved, params2);
       const drive = buildDrivePayloadOptions(resolved, params2, options);
@@ -10223,7 +10346,10 @@ function createClient(config) {
     async generateText(model, params2, options) {
       const resolved = resolveModel(model);
       if (resolved.mode !== "text") {
-        throw new Error(`${resolved.name} is not a text model \u2014 use generate() instead.`);
+        throw new ApiError(`${resolved.name} is not a text model \u2014 use generate() instead.`, {
+          status: 400,
+          code: "wrong_model_mode"
+        });
       }
       const { workflow, payload } = prepareRequest(resolved, params2);
       const completed = await executeModel(resolved, workflow, payload, options);
@@ -10297,10 +10423,16 @@ function createClient(config) {
         options
       );
       if (done.status === "FAILED" || done.status === "CANCELED") {
-        throw new Error(done.error ?? `${workflow} failed with status ${done.status}`);
+        throw new ApiError(done.error ?? `${workflow} failed with status ${done.status}`, {
+          status: done.statusCode ?? (done.status === "CANCELED" ? 499 : 502),
+          code: done.reason ?? (done.status === "CANCELED" ? "canceled" : "generation_failed")
+        });
       }
       if (done.result === void 0) {
-        throw new Error(`${workflow} completed but returned no result`);
+        throw new ApiError(`${workflow} completed but returned no result`, {
+          status: 502,
+          code: "invalid_response"
+        });
       }
       return done.result;
     },
@@ -11397,4 +11529,4 @@ function decodeDeepLinkPayload(encoded) {
   return deserializePayload(encoded);
 }
 
-export { ALL_MODELS, ExecutionMode as ApiRunMode, DEFAULT_VISIBLE_RELEASES, KLING_DUAL_IMAGE_EFFECTS, Model, Models, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, ApiError, ExecutionMode as ApiRunMode, DEFAULT_VISIBLE_RELEASES, KLING_DUAL_IMAGE_EFFECTS, Model, Models, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };

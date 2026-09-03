@@ -91,6 +91,8 @@ export const Gemini35FlashLite = 'gemini-3.5-flash-lite' as const;
 export const Gemini36Flash = 'gemini-3.6-flash' as const;
 /** Gemini 3.7 Flash — google (text) */
 export const Gemini37Flash = 'gemini-3.7-flash' as const;
+/** Gemini 3.8 Flash — google (text) */
+export const Gemini38Flash = 'gemini-3.8-flash' as const;
 /** Gemini Omni 1.1 Flash — google (video) */
 export const GeminiOmni11FlashPreview = 'gemini-omni-1.1-flash-preview' as const;
 /** Gemini Omni — google (video) */
@@ -514,6 +516,7 @@ export const Models = {
   Gemini35FlashLite,
   Gemini36Flash,
   Gemini37Flash,
+  Gemini38Flash,
   GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,
   Gpt55,

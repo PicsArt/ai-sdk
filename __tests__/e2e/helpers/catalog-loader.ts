@@ -121,6 +121,10 @@ function buildDefaultContext(model: ModelDefinition): Record<string, unknown> {
         break;
       case 'text':
         if (key === 'prompt') ctx[key] = 'A calm ocean at sunset';
+        // Required text params need a valid sample too (e.g. eleven-dubbing's
+        // target language) — otherwise contract validation rejects the default
+        // context before the pricing call.
+        else if (entry.required) ctx[key] = key === 'language' ? 'es' : 'sample text';
         break;
       case 'file':
         if (entry.required) {

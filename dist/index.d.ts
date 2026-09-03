@@ -142,19 +142,14 @@ type ModelInputById = {
     };
     "eleven-dubbing": {
         audioUrl: string;
-        language?: string;
-        accent?: string;
+        language: string;
     };
     "eleven-multilingual-sts-v2": {
         audioUrl: string;
         voiceId?: string;
-        language?: string;
-        accent?: string;
         removeBackgroundNoise?: boolean;
     };
     "eleven-multilingual-v2": {
-        language?: string;
-        accent?: string;
         prompt: string;
         voiceId?: string;
     };
@@ -165,7 +160,6 @@ type ModelInputById = {
     };
     "eleven-v3": {
         language?: string;
-        accent?: string;
         prompt: string;
         voiceId?: string;
     };
@@ -179,7 +173,7 @@ type ModelInputById = {
         prompt: string;
     };
     "eleven-voice-remix": {
-        voiceId?: string;
+        voiceId: string;
         prompt: string;
     };
     "elevenlabs-music-v2": {
@@ -189,7 +183,7 @@ type ModelInputById = {
     };
     "elevenlabs-sfx": {
         prompt: string;
-        duration?: 1 | 3 | 5 | 8 | 10 | 15;
+        duration?: number;
     };
     "flux-2-flex": {
         prompt: string;

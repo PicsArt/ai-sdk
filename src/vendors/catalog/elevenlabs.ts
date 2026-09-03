@@ -54,10 +54,14 @@ const buildElevenLabsDubbingPayload: PayloadBuilder = (ctx) => ({
   target_lang: ctx.language,
 });
 
-/** Voice Remix — voice_id + description as prompt. */
+/** Voice Remix — voice_id + description as prompt. The vendor requires one of
+ *  text / auto_generate_text (400 without), and remixes ONLY voices from the
+ *  caller's own workspace — premade/catalog voices are rejected, so there is
+ *  deliberately no default voice here. */
 const buildElevenLabsVoiceRemixPayload: PayloadBuilder = (ctx) => ({
-  voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
+  voice_id: ctx.voiceId,
   voice_description: ctx.prompt,
+  auto_generate_text: true,
 });
 
 /** Voice Design — voice_description + model_id. */
@@ -89,8 +93,11 @@ const buildElevenLabsVoicePreviewsPayload: PayloadBuilder = (ctx) => ({
  * scripts/api-tests/audio-charlimit-boundary-probe.mjs.
  * ~1 char ≈ 70ms of speech, so the higher cap is what unlocks long-form narration.
  */
-const ttsParamConfig = (promptMaxLength: number) => ({
-  ...params.language(true),
+const ttsParamConfig = (promptMaxLength: number, withLanguage: boolean) => ({
+  // language_code is honoured by eleven_v3 only — the vendor documents it as
+  // "not supported for multilingual_v2 models" (silently ignored there).
+  // No accent param anywhere: no builder ever read it.
+  ...(withLanguage ? params.language(false) : {}),
   ...params.prompt({ maxLength: promptMaxLength }),
   ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: 'elevenlabs/v1/catalog/voices' } }),
 });
@@ -107,7 +114,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     badge: ['popular'] as const,
     description: 'Latest voice engine with expanded tone and pacing control.',
     features: [feat('Experimental', 'characteristic'), feat('Creative Control', 'characteristic')],
-    paramConfig: ttsParamConfig(5000),
+    paramConfig: ttsParamConfig(5000, true),
   },
   {
     id: 'eleven-multilingual-v2', name: 'Eleven Multilingual v2', modelId: 'eleven_multilingual_v2',
@@ -119,7 +126,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     badge: ['popular', 'fast'] as const,
     description: 'Stable multilingual speech across 29+ languages with natural rhythm.',
     features: [feat('Stable', 'characteristic'), feat('Professional', 'characteristic')],
-    paramConfig: ttsParamConfig(10000),
+    paramConfig: ttsParamConfig(10000, false),
   },
   // ── Sound Effects ─────────────────────────────────────────────────
   {
@@ -130,9 +137,9 @@ export const { MODELS } = defineModels('elevenlabs', [
     estimatedTime: 6,
     mode: 'audio', inputType: 'sfx',
     badge: ['popular'] as const,
-    description: 'Create custom sound effects from a text description — up to 15 seconds.',
+    description: 'Create custom sound effects from a text description — up to 30 seconds.',
     features: [feat('Sound Effects', 'characteristic')],
-    paramConfig: { ...params.prompt(), ...params.duration([1, 3, 5, 8, 10, 15], 5) },
+    paramConfig: { ...params.prompt(), ...params.durationRange(0.5, 30, 5, 0.5) },
   },
   // ── Music ─────────────────────────────────────────────────────────
   {
@@ -177,7 +184,6 @@ export const { MODELS } = defineModels('elevenlabs', [
     paramConfig: {
       ...params.audioInput('Speech Audio', true),
       ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: 'elevenlabs/v1/catalog/voices' } }),
-      ...params.language(true),
       ...p.boolean('removeBackgroundNoise', false, 'Remove Background Noise'),
     },
   },
@@ -204,7 +210,12 @@ export const { MODELS } = defineModels('elevenlabs', [
     features: [feat('Multilingual', 'characteristic'), feat('Dubbing', 'characteristic')],
     paramConfig: {
       ...params.audioInput('Source Audio', true),
-      ...params.language(true),
+      // target_lang is the vendor's only required field (ISO 639-1/639-3 code).
+      language: {
+        label: 'Target Language (ISO 639 code)',
+        required: true,
+        descriptor: { kind: 'text', placeholder: 'e.g. es, fr, de' },
+      },
     },
   },
   // ── Voice Design ────────────────────────────────────────────────
@@ -218,8 +229,14 @@ export const { MODELS } = defineModels('elevenlabs', [
     description: 'Remix voice characteristics by describing the desired vocal style.',
     features: [feat('Voice Design', 'characteristic'), feat('Remix', 'characteristic')],
     paramConfig: {
-      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: 'elevenlabs/v1/catalog/voices' } }),
-      ...params.prompt({ maxLength: 1000 }),
+      // Vendor: "Only your own custom voices can be remixed" — the premade
+      // voices catalog cannot serve this model, so voiceId is a plain id input.
+      voiceId: {
+        label: 'Voice ID (a custom voice from your workspace)',
+        required: true,
+        descriptor: { kind: 'text', placeholder: 'Premade/catalog voices are rejected by ElevenLabs' },
+      },
+      ...params.prompt({ minLength: 5, maxLength: 1000 }),
     },
   },
   {
@@ -232,7 +249,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     mode: 'audio', inputType: 'tts',
     description: 'Design a new voice from a text description using v3 engine.',
     features: [feat('Voice Design', 'characteristic'), feat('Preview', 'characteristic')],
-    paramConfig: { ...params.prompt({ maxLength: 1000 }) },
+    paramConfig: { ...params.prompt({ minLength: 20, maxLength: 1000 }) },
   },
   {
     id: 'eleven-voice-design-v2', name: 'Eleven Voice Design Multilingual v2',
@@ -244,7 +261,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     mode: 'audio', inputType: 'tts',
     description: 'Design a new voice from a text description with multilingual support.',
     features: [feat('Voice Design', 'characteristic'), feat('Multilingual', 'characteristic'), feat('Preview', 'characteristic')],
-    paramConfig: { ...params.prompt({ maxLength: 1000 }) },
+    paramConfig: { ...params.prompt({ minLength: 20, maxLength: 1000 }) },
   },
   {
     id: 'eleven-voice-create', name: 'Eleven Voice Previews',
@@ -255,6 +272,6 @@ export const { MODELS } = defineModels('elevenlabs', [
     mode: 'audio', inputType: 'tts',
     description: 'Generate voice previews from a description to audition before committing.',
     features: [feat('Voice Design', 'characteristic'), feat('Preview', 'characteristic')],
-    paramConfig: { ...params.prompt({ maxLength: 1000 }) },
+    paramConfig: { ...params.prompt({ minLength: 20, maxLength: 1000 }) },
   },
 ]);

@@ -10,6 +10,10 @@ import { defineModels, feat, params } from '../define.ts';
 // otherwise stamp "Happy Horse" in the bottom-right corner. Backend forwarding
 // and Alibaba honoring confirmed via boundary probe on 2026-05-11
 // (scripts/api-tests/happyhorse-boundary-probe.mjs).
+//
+// Resolution default: the SDK deliberately defaults to 720P (cost) while the
+// vendor default is 1080P — every builder sends the value explicitly, so the
+// vendor default never applies.
 export const buildHHT2VPayload: PayloadBuilder = (ctx) => ({
   prompt: ctx.prompt,
   resolution: ctx.resolution ?? '720P',
@@ -103,7 +107,6 @@ export const buildHH11R2VPayload: PayloadBuilder = (ctx) => {
 
 const HH_AR = ['16:9', '9:16', '1:1', '4:3', '3:4'];
 const HH_RES = ['720P', '1080P'];
-const HH_DURATIONS = [5, 10, 15];
 
 export const { MODELS } = defineModels('happyhorse', [
   {
@@ -119,13 +122,15 @@ export const { MODELS } = defineModels('happyhorse', [
     features: [
       feat('Start Frame', 'frame'),
       feat('1080P', 'resolution'),
-      feat('5/10/15 sec', 'duration'),
+      feat('3-15 sec', 'duration'),
     ],
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
+      ...params.seed(),
       ...params.aspectRatio(HH_AR, '16:9'),
       ...params.resolution(HH_RES, '720P'),
-      ...params.duration(HH_DURATIONS, 5),
+      // Vendor/worker accept any integer 3-15 (docs: default 5).
+      ...params.durationRange(3, 15, 5),
       ...params.startFrame(),
     },
   },
@@ -141,13 +146,15 @@ export const { MODELS } = defineModels('happyhorse', [
     features: [
       feat('Multi-Image Input', 'input'),
       feat('1080P', 'resolution'),
-      feat('5/10/15 sec', 'duration'),
+      feat('3-15 sec', 'duration'),
     ],
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
+      ...params.seed(),
       ...params.aspectRatio(HH_AR, '16:9'),
       ...params.resolution(HH_RES, '720P'),
-      ...params.duration(HH_DURATIONS, 5),
+      // Vendor/worker accept any integer 3-15 (docs: default 5).
+      ...params.durationRange(3, 15, 5),
       ...params.imageInput(9, 'Reference Images', true),
     },
   },
@@ -167,6 +174,7 @@ export const { MODELS } = defineModels('happyhorse', [
     ],
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
+      ...params.seed(),
       ...params.resolution(HH_RES, '720P'),
       ...params.audioSetting(),
       ...params.videoInput('Source Video'),
@@ -186,13 +194,15 @@ export const { MODELS } = defineModels('happyhorse', [
     features: [
       feat('Start Frame', 'frame'),
       feat('1080P', 'resolution'),
-      feat('5/10/15 sec', 'duration'),
+      feat('3-15 sec', 'duration'),
     ],
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
+      ...params.seed(),
       ...params.aspectRatio(HH_AR, '16:9'),
       ...params.resolution(HH_RES, '720P'),
-      ...params.duration(HH_DURATIONS, 5),
+      // Vendor/worker accept any integer 3-15 (docs: default 5).
+      ...params.durationRange(3, 15, 5),
       ...params.startFrame(),
     },
   },
@@ -207,13 +217,15 @@ export const { MODELS } = defineModels('happyhorse', [
     features: [
       feat('Multi-Image Input', 'input'),
       feat('1080P', 'resolution'),
-      feat('5/10/15 sec', 'duration'),
+      feat('3-15 sec', 'duration'),
     ],
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
+      ...params.seed(),
       ...params.aspectRatio(HH_AR, '16:9'),
       ...params.resolution(HH_RES, '720P'),
-      ...params.duration(HH_DURATIONS, 5),
+      // Vendor/worker accept any integer 3-15 (docs: default 5).
+      ...params.durationRange(3, 15, 5),
       ...params.imageInput(9, 'Reference Images', true),
     },
   },

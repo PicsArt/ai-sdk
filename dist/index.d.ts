@@ -421,20 +421,23 @@ type ModelInputById = {
     };
     "happyhorse-1.0-r2v": {
         prompt: string;
+        seed?: number;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
         resolution?: "720P" | "1080P";
-        duration?: 5 | 10 | 15;
+        duration?: number;
         imageUrls: [string, ...string[]];
     };
     "happyhorse-1.0-t2v": {
         prompt: string;
+        seed?: number;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
         resolution?: "720P" | "1080P";
-        duration?: 5 | 10 | 15;
+        duration?: number;
         startFrame?: string;
     };
     "happyhorse-1.0-video-edit": {
         prompt: string;
+        seed?: number;
         resolution?: "720P" | "1080P";
         audioSetting?: "auto" | "origin";
         videoUrl: string;
@@ -442,16 +445,18 @@ type ModelInputById = {
     };
     "happyhorse-1.1-r2v": {
         prompt: string;
+        seed?: number;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
         resolution?: "720P" | "1080P";
-        duration?: 5 | 10 | 15;
+        duration?: number;
         imageUrls: [string, ...string[]];
     };
     "happyhorse-1.1-t2v": {
         prompt: string;
+        seed?: number;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
         resolution?: "720P" | "1080P";
-        duration?: 5 | 10 | 15;
+        duration?: number;
         startFrame?: string;
     };
     "heygen-talking-photo": {
@@ -960,7 +965,6 @@ type ModelInputById = {
     };
     "qwen": {
         prompt: string;
-        count?: 1 | 2 | 4 | 6 | 8 | 10;
         imageUrls?: string[];
     };
     "qwen-image-2": {
@@ -975,6 +979,7 @@ type ModelInputById = {
         count?: 1 | 2 | 4 | 6;
         enhancePrompt?: boolean;
         imageUrls?: string[];
+        seed?: number;
     };
     "qwen-image-3.0": {
         prompt: string;
@@ -983,6 +988,7 @@ type ModelInputById = {
         count?: 1 | 2 | 4 | 6;
         enhancePrompt?: boolean;
         imageUrls?: string[];
+        seed?: number;
         promptExtendMode?: "direct" | "agent";
         enableThinking?: boolean;
     };
@@ -993,6 +999,7 @@ type ModelInputById = {
         count?: 1 | 2 | 4 | 6;
         enhancePrompt?: boolean;
         imageUrls?: string[];
+        seed?: number;
         promptExtendMode?: "direct" | "agent";
         enableThinking?: boolean;
     };
@@ -1517,7 +1524,6 @@ type ModelInputById = {
         resolution?: "480p" | "720p" | "1080p";
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
         negativePrompt?: string;
-        cfgScale?: number;
         startFrame?: string;
     };
     "wan-2.7-i2v": {
@@ -1529,6 +1535,7 @@ type ModelInputById = {
         startFrame: string;
         endFrame?: string;
         audioUrl?: string;
+        seed?: number;
     };
     "wan-2.7-r2v": {
         prompt: string;
@@ -1538,6 +1545,7 @@ type ModelInputById = {
         negativePrompt?: string;
         imageUrls: [string, ...string[]];
         videoUrl: string;
+        seed?: number;
     };
     "wan-2.7-t2v": {
         prompt: string;
@@ -1548,6 +1556,7 @@ type ModelInputById = {
         enhancePrompt?: boolean;
         audioUrl?: string;
         startFrame?: string;
+        seed?: number;
     };
     "wan-2.7-video-edit": {
         prompt?: string;
@@ -1556,10 +1565,13 @@ type ModelInputById = {
         negativePrompt?: string;
         videoUrl: string;
         imageUrls?: string[];
+        audioSetting?: "auto" | "origin";
+        duration?: number;
+        seed?: number;
     };
     "wan-3.0-video": {
-        prompt: string;
-        duration?: 5 | 10 | 15 | 30;
+        prompt?: string;
+        duration?: -1 | 5 | 10 | 15 | 30;
         resolution?: "480P" | "720P" | "1080P";
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "adaptive";
         generateAudio?: boolean;
@@ -1573,8 +1585,8 @@ type ModelInputById = {
         seed?: number;
     };
     "wan-3.0-video-prime": {
-        prompt: string;
-        duration?: 5 | 10 | 15 | 30;
+        prompt?: string;
+        duration?: -1 | 5 | 10 | 15 | 30;
         resolution?: "480P" | "720P" | "1080P";
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "adaptive";
         generateAudio?: boolean;
@@ -1808,7 +1820,8 @@ interface RangeDescriptor {
     min: number;
     max: number;
     step?: number;
-    default: number;
+    /** Optional: default-less ranges (e.g. seed) are sent only when set. */
+    default?: number;
 }
 interface BooleanDescriptor {
     kind: 'boolean';

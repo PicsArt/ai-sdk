@@ -216,6 +216,7 @@ export const params = {
   count: p.count,
   resolution: p.resolution,
   negativePrompt: p.negativePrompt,
+  seed: p.seed,
   generateAudio: p.generateAudio,
   returnLastFrame: p.returnLastFrame,
   audioSetting: p.audioSetting,

@@ -24,6 +24,7 @@ export const buildQwen2Payload: PayloadBuilder = (ctx) => {
   const hasImages = Array.isArray(ctx.imageUrls) && ctx.imageUrls.length > 0;
   return {
     prompt: ctx.prompt,
+    num_images: ctx.count ?? 1,
     ...(hasImages ? { image_urls: ctx.imageUrls } : {}),
   };
 };
@@ -31,24 +32,27 @@ export const buildQwen2Payload: PayloadBuilder = (ctx) => {
 /** Qwen v1 T2I/I2I — shared builder parameterised by model name. */
 const buildQwenV1 = (model: string): PayloadBuilder => (ctx) => {
   const hasImages = Array.isArray(ctx.imageUrls) && ctx.imageUrls.length > 0;
-  // 'agent' rewrite is T2I-only for qwen-image-3.0-pro — the vendor rejects
-  // it on image-edit requests, so fall back to the default mode there.
+  // 'agent' rewrite (APE) is T2I-only for the whole 3.0 family — the vendor
+  // returns 400 when it is used on image-edit requests.
   const promptExtendMode =
-    ctx.promptExtendMode === 'agent' && hasImages && model === 'qwen-image-3.0-pro'
+    ctx.promptExtendMode === 'agent' && hasImages && model.startsWith('qwen-image-3.0')
       ? undefined
       : ctx.promptExtendMode;
+  const promptExtend = ctx.enhancePrompt ?? true;
   return {
     prompt: ctx.prompt,
     model,
     ...(hasImages ? { image_urls: ctx.imageUrls } : {}),
     ...(ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {}),
-    size: (ctx.resolution ?? '2048x2048').replace('x', '*'),
+    // I2I: omit size — the vendor auto-matches the input image's aspect ratio,
+    // and the SDK's ~4MP presets exceed the current I2I ceiling.
+    ...(hasImages ? {} : { size: (ctx.resolution ?? '2048x2048').replace('x', '*') }),
     n: ctx.count ?? 1,
-    prompt_extend: ctx.enhancePrompt ?? true,
+    prompt_extend: promptExtend,
     // Qwen 3.0 family only — prompt-rewrite strategy (direct/agent); 2.x ignores it.
     ...(promptExtendMode ? { prompt_extend_mode: promptExtendMode } : {}),
-    // Qwen 3.0 family only — thinking mode (requires prompt_extend).
-    ...(ctx.enableThinking != null ? { enable_thinking: ctx.enableThinking } : {}),
+    // Qwen 3.0 family only — thinking mode; the vendor requires prompt_extend=true.
+    ...(ctx.enableThinking != null && promptExtend ? { enable_thinking: ctx.enableThinking } : {}),
     watermark: false,
     ...(ctx.seed != null ? { seed: ctx.seed } : {}),
   };
@@ -56,11 +60,12 @@ const buildQwenV1 = (model: string): PayloadBuilder => (ctx) => {
 
 const qwenV1Params = {
   ...params.prompt({ maxLength: 800 }),
-  ...params.negativePrompt(),
+  ...params.negativePrompt(undefined, 500),
   ...params.resolution(QWEN_V1_SIZES, '2048x2048'),
   ...params.count([1, 2, 4, 6]),
   ...params.enhancePrompt(true),
   ...params.imageInput(3, 'Source Images'),
+  ...params.seed(),
 };
 
 // Qwen 3.0 family adds the prompt-rewrite mode selector and thinking mode
@@ -84,13 +89,13 @@ export const { MODELS } = defineModels('qwen', [
     features: [feat('Image Input', 'input'), feat('1K', 'resolution')],
     paramConfig: {
       ...params.prompt(),
-      ...params.count(),
       ...params.imageInput(1, 'Source Image'),
     },
   },
   {
     id: 'qwen-image-2', name: 'Qwen 2',
     addedAt: '2026-03-27',
+    deprecated: true, // fal marks both endpoints 'no longer supported' — use qwen-image-3.0
     workflow: 'qwen-image-2/text-to-image', editWorkflow: 'qwen-image-2/edit',
     buildPayload: buildQwen2Payload,
     estimatedTime: 30,

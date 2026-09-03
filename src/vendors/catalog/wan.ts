@@ -4,6 +4,7 @@
 import type { Constraint, PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
+import { ApiError } from '../../core/errors.ts';
 
 export const buildWanT2VPayload: PayloadBuilder = (ctx) => ({
   prompt: ctx.prompt,
@@ -14,19 +15,22 @@ export const buildWanT2VPayload: PayloadBuilder = (ctx) => ({
   ...(ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}),
 });
 
+// fal V26ImageToVideoInput: duration is a STRING enum, resolution 720p/1080p
+// (default 1080p), NO aspect_ratio (output follows the input image), and
+// negative_prompt is supported. '480p' exists only on the t2v schema — clamp.
 export const buildWanI2VPayload: PayloadBuilder = (ctx) => ({
   prompt: ctx.prompt,
   image_url: ctx.startFrame,
-  resolution: '720p',
-  duration: ctx.duration ?? 5,
-  ...(ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}),
+  resolution: ctx.resolution === '1080p' ? '1080p' : '720p',
+  duration: String(ctx.duration ?? 5),
+  ...(ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {}),
 });
 
 export const buildWanR2VPayload: PayloadBuilder = (ctx) => ({
   prompt: ctx.prompt,
   video_urls: [ctx.videoUrl],
-  resolution: '720p',
-  duration: ctx.duration ?? 5,
+  resolution: ctx.resolution === '1080p' ? '1080p' : '720p',
+  duration: String(ctx.duration ?? 5),
 });
 
 const buildWanImagePayload: PayloadBuilder = (ctx) => ({
@@ -75,6 +79,12 @@ export const buildWan27R2VPayload: PayloadBuilder = (ctx) => {
     for (const url of ctx.imageUrls) media.push({ type: 'reference_image', url });
   }
   if (ctx.videoUrl) media.push({ type: 'reference_video', url: ctx.videoUrl });
+  // Vendor cap: reference images + reference videos ≤ 5 combined.
+  if (media.length > 5) {
+    throw new ApiError('Wan 2.7 R2V accepts at most 5 reference items (images + video combined).', {
+      status: 400, code: 'validation_error',
+    });
+  }
   return {
     prompt: ctx.prompt,
     media,
@@ -90,7 +100,8 @@ export const buildWan27VideoEditPayload: PayloadBuilder = (ctx) => {
   const media: Array<{ type: string; url: string }> = [];
   if (ctx.videoUrl) media.push({ type: 'video', url: ctx.videoUrl });
   if (ctx.imageUrls?.length) {
-    for (const url of ctx.imageUrls.slice(0, 3)) media.push({ type: 'reference_image', url });
+    // Vendor: up to 4 reference images alongside the source video.
+    for (const url of ctx.imageUrls.slice(0, 4)) media.push({ type: 'reference_image', url });
   }
   return {
     media,
@@ -98,6 +109,9 @@ export const buildWan27VideoEditPayload: PayloadBuilder = (ctx) => {
     ...(ctx.prompt ? { prompt: ctx.prompt } : {}),
     ...(ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {}),
     ...(ctx.aspectRatio ? { ratio: ctx.aspectRatio } : {}),
+    // duration is truncation-only: unset (vendor default 0) keeps the input length.
+    ...(ctx.duration ? { duration: ctx.duration } : {}),
+    ...(ctx.audioSetting ? { audio_setting: ctx.audioSetting } : {}),
     ...(ctx.seed != null ? { seed: ctx.seed } : {}),
   };
 };
@@ -141,10 +155,21 @@ const wanV3Constraints: Constraint[] = [
 // Shared by wan-3.0-video and wan-3.0-video-prime — identical models, prime is faster.
 const wanV3Features = [feat('Image Input', 'input'), feat('Video Input', 'input'), feat('Audio', 'audio'), feat('Start/End Frame', 'frame'), feat('1080P', 'resolution'), feat('Adaptive Ratio', 'resolution')];
 const wanV3ParamConfig = {
-  ...params.prompt(),
-  ...params.duration([5, 10, 15, 30], 5),
+  // Vendor: 'either prompt or media' — the builder enforces the cross-field rule.
+  ...params.prompt({ required: false, maxLength: 5000 }),
+  // Vendor: integer 2-30, or -1 = Smart duration mode (model picks the length).
+  duration: {
+    label: 'Duration (s)',
+    descriptor: {
+      kind: 'enum' as const,
+      valueType: 'number' as const,
+      options: [{ id: -1, label: 'Auto' }, { id: 5 }, { id: 10 }, { id: 15 }, { id: 30 }],
+      default: 5,
+    },
+  },
   ...params.resolution(['480P', '720P', '1080P'], '1080P'),
-  ...params.aspectRatio(['16:9', '9:16', '1:1', '4:3', '3:4', 'adaptive']),
+  // Vendor default is 'adaptive' (model chooses from intent and input media).
+  ...params.aspectRatio(['16:9', '9:16', '1:1', '4:3', '3:4', 'adaptive'], 'adaptive'),
   ...params.generateAudio(true),
   ...params.startFrame(),
   ...params.endFrame(),
@@ -153,7 +178,8 @@ const wanV3ParamConfig = {
   ...params.audioInputs(5, 'Reference Audios'),
   ...p.boolean('enableThinking', false, 'Deep Thinking'),
   ...p.boolean('watermark', false, 'Watermark'),
-  ...p.range('seed', 0, 2147483647, 0, { label: 'Seed' }),
+  // No default: a materialized seed would pin every generation to one value.
+  ...params.seed(),
 };
 
 export const { MODELS } = defineModels('wan', [
@@ -166,7 +192,7 @@ export const { MODELS } = defineModels('wan', [
     buildPayload: buildWanT2VPayload, buildEditPayload: buildWanI2VPayload,
     estimatedTime: { '480p': 40, '720p': 50, '1080p': 50 }, editEstimatedTime: 14,
     mode: 'video', inputType: 't2v',
-    description: 'Painterly artistic look with audio — up to 15s at 1080p, cfg adjustable.',
+    description: 'Painterly artistic look with audio — up to 15s at 1080p.',
     features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('5/10/15 sec', 'duration')],
     paramConfig: {
       ...params.prompt(),
@@ -174,7 +200,6 @@ export const { MODELS } = defineModels('wan', [
       ...params.resolution(['480p', '720p', '1080p'], '720p'),
       ...params.aspectRatio(['16:9', '9:16', '1:1', '4:3', '3:4']),
       ...params.negativePrompt(),
-      ...params.cfgScale(1, 10, 5, 0.5),
       ...params.startFrame(),
     },
   },
@@ -220,14 +245,15 @@ export const { MODELS } = defineModels('wan', [
     description: 'Wan 2.7 T2V — up to 15s at 1080p with audio input and prompt enhancement.',
     features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('Audio', 'audio'), feat('1080P', 'resolution'), feat('5/10/15 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 5000 }),
       ...params.duration([5, 10, 15], 5),
       ...params.resolution(WAN27_RES, '720P'),
       ...params.aspectRatio(WAN27_AR),
-      ...params.negativePrompt(),
+      ...params.negativePrompt(undefined, 500),
       ...params.enhancePrompt(true),
       ...params.audioInput('Audio Track'),
       ...params.startFrame(),
+      ...params.seed(),
     },
   },
   {
@@ -241,14 +267,15 @@ export const { MODELS } = defineModels('wan', [
     description: 'Wan 2.7 I2V — animate images with start/end frame and optional driving audio.',
     features: [feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('1080P', 'resolution'), feat('5/10/15 sec', 'duration')],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: 5000 }),
       ...params.duration([5, 10, 15], 5),
       ...params.resolution(WAN27_RES, '720P'),
-      ...params.negativePrompt(),
+      ...params.negativePrompt(undefined, 500),
       ...params.enhancePrompt(true),
       ...params.startFrame('Start Frame', true),
       ...params.endFrame(),
       ...params.audioInput('Driving Audio'),
+      ...params.seed(),
     },
   },
   {
@@ -262,13 +289,16 @@ export const { MODELS } = defineModels('wan', [
     description: 'Wan 2.7 R2V — generate video from reference images/video with style direction.',
     features: [feat('Multi-Image Input', 'input'), feat('Video Input', 'input'), feat('1080P', 'resolution'), feat('5/10 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 5000 }),
       ...params.duration([5, 10], 5),
       ...params.resolution(WAN27_RES, '720P'),
       ...params.aspectRatio(WAN27_AR),
-      ...params.negativePrompt(),
+      ...params.negativePrompt(undefined, 500),
+      // Vendor: reference images + reference video combined ≤ 5 (the builder
+      // fails fast when a video pushes the total over the cap).
       ...params.imageInput(5, 'Reference Images', true),
       ...params.videoInput('Reference Video'),
+      ...params.seed(),
     },
   },
   {
@@ -282,12 +312,21 @@ export const { MODELS } = defineModels('wan', [
     description: 'Wan 2.7 Video Edit — restyle or modify existing video with reference images.',
     features: [feat('Video Input', 'input'), feat('Image Input', 'input'), feat('1080P', 'resolution')],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: 5000 }),
       ...params.resolution(WAN27_RES, '720P'),
       ...params.aspectRatio(WAN27_AR),
-      ...params.negativePrompt(),
+      ...params.negativePrompt(undefined, 500),
       ...params.videoInput('Source Video'),
-      ...params.imageInput(3, 'Reference Images'),
+      // Vendor: 1 video + up to 4 reference images.
+      ...params.imageInput(4, 'Reference Images'),
+      ...params.audioSetting(),
+      // Optional truncation: unset keeps the input video's length (vendor
+      // default 0); set 2-10 to cut the output.
+      duration: {
+        label: 'Output Duration (s)',
+        descriptor: { kind: 'range', min: 2, max: 10, step: 1 },
+      },
+      ...params.seed(),
     },
   },
   // ── Wan 3.0 all-in-one Video ─────────────────────────

@@ -40,7 +40,8 @@ export interface RangeDescriptor {
   min: number;
   max: number;
   step?: number;
-  default: number;
+  /** Optional: default-less ranges (e.g. seed) are sent only when set. */
+  default?: number;
 }
 
 export interface BooleanDescriptor {

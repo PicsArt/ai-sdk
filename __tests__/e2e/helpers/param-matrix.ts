@@ -111,7 +111,8 @@ function extractValues(entry: ParamEntry): Array<string | number | boolean> {
     case 'boolean':
       return [true, false];
     case 'range':
-      return [...new Set([d.min, d.default, d.max])];
+      // default is optional (e.g. seed) — expand only the defined values.
+      return [...new Set([d.min, d.default, d.max])].filter((v): v is number => v !== undefined);
     default:
       return [];
   }

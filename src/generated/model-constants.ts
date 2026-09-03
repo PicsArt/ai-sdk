@@ -294,6 +294,7 @@ export const PixverseV6Image = 'pixverse-v6-image' as const;
 /** @deprecated This model is retired (deprecated). */
 export const Qwen = 'qwen' as const;
 /** Qwen 2 — qwen (image) */
+/** @deprecated This model is retired (deprecated). */
 export const QwenImage2 = 'qwen-image-2' as const;
 /** Qwen 2 Pro — qwen (image) */
 export const QwenImage2Pro = 'qwen-image-2-pro' as const;

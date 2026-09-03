@@ -1052,14 +1052,25 @@ var p = {
       }
     };
   },
-  negativePrompt(placeholder) {
+  negativePrompt(placeholder, maxLength) {
     return {
       negativePrompt: {
         label: "Negative Prompt",
         descriptor: {
           kind: "text",
-          placeholder
+          placeholder,
+          maxLength
         }
+      }
+    };
+  },
+  /** Generation seed — optional, no default: sent only when the user sets it,
+   *  so the vendor's own randomization applies otherwise. */
+  seed(max = 2147483647) {
+    return {
+      seed: {
+        label: "Seed",
+        descriptor: { kind: "range", min: 0, max, step: 1 }
       }
     };
   },
@@ -1310,6 +1321,7 @@ var params = {
   count: p.count,
   resolution: p.resolution,
   negativePrompt: p.negativePrompt,
+  seed: p.seed,
   generateAudio: p.generateAudio,
   returnLastFrame: p.returnLastFrame,
   audioSetting: p.audioSetting,
@@ -3000,15 +3012,15 @@ var buildWanT2VPayload = (ctx) => ({
 var buildWanI2VPayload = (ctx) => ({
   prompt: ctx.prompt,
   image_url: ctx.startFrame,
-  resolution: "720p",
-  duration: ctx.duration ?? 5,
-  ...ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}
+  resolution: ctx.resolution === "1080p" ? "1080p" : "720p",
+  duration: String(ctx.duration ?? 5),
+  ...ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {}
 });
 var buildWanR2VPayload = (ctx) => ({
   prompt: ctx.prompt,
   video_urls: [ctx.videoUrl],
-  resolution: "720p",
-  duration: ctx.duration ?? 5
+  resolution: ctx.resolution === "1080p" ? "1080p" : "720p",
+  duration: String(ctx.duration ?? 5)
 });
 var buildWanImagePayload = (ctx) => ({
   prompt: ctx.prompt,
@@ -3048,6 +3060,12 @@ var buildWan27R2VPayload = (ctx) => {
     for (const url of ctx.imageUrls) media.push({ type: "reference_image", url });
   }
   if (ctx.videoUrl) media.push({ type: "reference_video", url: ctx.videoUrl });
+  if (media.length > 5) {
+    throw new ApiError("Wan 2.7 R2V accepts at most 5 reference items (images + video combined).", {
+      status: 400,
+      code: "validation_error"
+    });
+  }
   return {
     prompt: ctx.prompt,
     media,
@@ -3062,7 +3080,7 @@ var buildWan27VideoEditPayload = (ctx) => {
   const media = [];
   if (ctx.videoUrl) media.push({ type: "video", url: ctx.videoUrl });
   if (ctx.imageUrls?.length) {
-    for (const url of ctx.imageUrls.slice(0, 3)) media.push({ type: "reference_image", url });
+    for (const url of ctx.imageUrls.slice(0, 4)) media.push({ type: "reference_image", url });
   }
   return {
     media,
@@ -3070,6 +3088,9 @@ var buildWan27VideoEditPayload = (ctx) => {
     ...ctx.prompt ? { prompt: ctx.prompt } : {},
     ...ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {},
     ...ctx.aspectRatio ? { ratio: ctx.aspectRatio } : {},
+    // duration is truncation-only: unset (vendor default 0) keeps the input length.
+    ...ctx.duration ? { duration: ctx.duration } : {},
+    ...ctx.audioSetting ? { audio_setting: ctx.audioSetting } : {},
     ...ctx.seed != null ? { seed: ctx.seed } : {}
   };
 };
@@ -3104,10 +3125,21 @@ var wanV3Constraints = [
 ];
 var wanV3Features = [feat("Image Input", "input"), feat("Video Input", "input"), feat("Audio", "audio"), feat("Start/End Frame", "frame"), feat("1080P", "resolution"), feat("Adaptive Ratio", "resolution")];
 var wanV3ParamConfig = {
-  ...params.prompt(),
-  ...params.duration([5, 10, 15, 30], 5),
+  // Vendor: 'either prompt or media' — the builder enforces the cross-field rule.
+  ...params.prompt({ required: false, maxLength: 5e3 }),
+  // Vendor: integer 2-30, or -1 = Smart duration mode (model picks the length).
+  duration: {
+    label: "Duration (s)",
+    descriptor: {
+      kind: "enum",
+      valueType: "number",
+      options: [{ id: -1, label: "Auto" }, { id: 5 }, { id: 10 }, { id: 15 }, { id: 30 }],
+      default: 5
+    }
+  },
   ...params.resolution(["480P", "720P", "1080P"], "1080P"),
-  ...params.aspectRatio(["16:9", "9:16", "1:1", "4:3", "3:4", "adaptive"]),
+  // Vendor default is 'adaptive' (model chooses from intent and input media).
+  ...params.aspectRatio(["16:9", "9:16", "1:1", "4:3", "3:4", "adaptive"], "adaptive"),
   ...params.generateAudio(true),
   ...params.startFrame(),
   ...params.endFrame(),
@@ -3116,7 +3148,8 @@ var wanV3ParamConfig = {
   ...params.audioInputs(5, "Reference Audios"),
   ...p.boolean("enableThinking", false, "Deep Thinking"),
   ...p.boolean("watermark", false, "Watermark"),
-  ...p.range("seed", 0, 2147483647, 0, { label: "Seed" })
+  // No default: a materialized seed would pin every generation to one value.
+  ...params.seed()
 };
 var { MODELS: MODELS10 } = defineModels("wan", [
   // ── Video ─────────────────────────────────────────
@@ -3135,7 +3168,7 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     editEstimatedTime: 14,
     mode: "video",
     inputType: "t2v",
-    description: "Painterly artistic look with audio \u2014 up to 15s at 1080p, cfg adjustable.",
+    description: "Painterly artistic look with audio \u2014 up to 15s at 1080p.",
     features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("5/10/15 sec", "duration")],
     paramConfig: {
       ...params.prompt(),
@@ -3143,7 +3176,6 @@ var { MODELS: MODELS10 } = defineModels("wan", [
       ...params.resolution(["480p", "720p", "1080p"], "720p"),
       ...params.aspectRatio(["16:9", "9:16", "1:1", "4:3", "3:4"]),
       ...params.negativePrompt(),
-      ...params.cfgScale(1, 10, 5, 0.5),
       ...params.startFrame()
     }
   },
@@ -3205,14 +3237,15 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     description: "Wan 2.7 T2V \u2014 up to 15s at 1080p with audio input and prompt enhancement.",
     features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("Audio", "audio"), feat("1080P", "resolution"), feat("5/10/15 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 5e3 }),
       ...params.duration([5, 10, 15], 5),
       ...params.resolution(WAN27_RES, "720P"),
       ...params.aspectRatio(WAN27_AR),
-      ...params.negativePrompt(),
+      ...params.negativePrompt(void 0, 500),
       ...params.enhancePrompt(true),
       ...params.audioInput("Audio Track"),
-      ...params.startFrame()
+      ...params.startFrame(),
+      ...params.seed()
     }
   },
   {
@@ -3229,14 +3262,15 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     description: "Wan 2.7 I2V \u2014 animate images with start/end frame and optional driving audio.",
     features: [feat("Start/End Frame", "frame"), feat("Audio", "audio"), feat("1080P", "resolution"), feat("5/10/15 sec", "duration")],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: 5e3 }),
       ...params.duration([5, 10, 15], 5),
       ...params.resolution(WAN27_RES, "720P"),
-      ...params.negativePrompt(),
+      ...params.negativePrompt(void 0, 500),
       ...params.enhancePrompt(true),
       ...params.startFrame("Start Frame", true),
       ...params.endFrame(),
-      ...params.audioInput("Driving Audio")
+      ...params.audioInput("Driving Audio"),
+      ...params.seed()
     }
   },
   {
@@ -3253,13 +3287,16 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     description: "Wan 2.7 R2V \u2014 generate video from reference images/video with style direction.",
     features: [feat("Multi-Image Input", "input"), feat("Video Input", "input"), feat("1080P", "resolution"), feat("5/10 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 5e3 }),
       ...params.duration([5, 10], 5),
       ...params.resolution(WAN27_RES, "720P"),
       ...params.aspectRatio(WAN27_AR),
-      ...params.negativePrompt(),
+      ...params.negativePrompt(void 0, 500),
+      // Vendor: reference images + reference video combined ≤ 5 (the builder
+      // fails fast when a video pushes the total over the cap).
       ...params.imageInput(5, "Reference Images", true),
-      ...params.videoInput("Reference Video")
+      ...params.videoInput("Reference Video"),
+      ...params.seed()
     }
   },
   {
@@ -3276,12 +3313,21 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     description: "Wan 2.7 Video Edit \u2014 restyle or modify existing video with reference images.",
     features: [feat("Video Input", "input"), feat("Image Input", "input"), feat("1080P", "resolution")],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: 5e3 }),
       ...params.resolution(WAN27_RES, "720P"),
       ...params.aspectRatio(WAN27_AR),
-      ...params.negativePrompt(),
+      ...params.negativePrompt(void 0, 500),
       ...params.videoInput("Source Video"),
-      ...params.imageInput(3, "Reference Images")
+      // Vendor: 1 video + up to 4 reference images.
+      ...params.imageInput(4, "Reference Images"),
+      ...params.audioSetting(),
+      // Optional truncation: unset keeps the input video's length (vendor
+      // default 0); set 2-10 to cut the output.
+      duration: {
+        label: "Output Duration (s)",
+        descriptor: { kind: "range", min: 2, max: 10, step: 1 }
+      },
+      ...params.seed()
     }
   },
   // ── Wan 3.0 all-in-one Video ─────────────────────────
@@ -3335,10 +3381,17 @@ var makeWanV3VideoPayload = (model) => (input) => {
   if (input.audioUrls?.length) {
     for (const url of input.audioUrls) media.push({ type: "reference_audio", url });
   }
+  if (!input.prompt && media.length === 0) {
+    throw new ApiError("Wan 3.0: provide a prompt or at least one media input (frames or references).", {
+      status: 400,
+      code: "validation_error"
+    });
+  }
   return {
     model,
     resolution: input.resolution ?? "1080P",
-    ratio: input.aspectRatio ?? "16:9",
+    // Vendor default: adaptive — the model picks the ratio from intent/media.
+    ratio: input.aspectRatio ?? "adaptive",
     duration: input.duration ?? 5,
     audio: input.generateAudio ?? true,
     enable_thinking: input.enableThinking ?? false,
@@ -6937,35 +6990,40 @@ var buildQwen2Payload = (ctx) => {
   const hasImages = Array.isArray(ctx.imageUrls) && ctx.imageUrls.length > 0;
   return {
     prompt: ctx.prompt,
+    num_images: ctx.count ?? 1,
     ...hasImages ? { image_urls: ctx.imageUrls } : {}
   };
 };
 var buildQwenV1 = (model) => (ctx) => {
   const hasImages = Array.isArray(ctx.imageUrls) && ctx.imageUrls.length > 0;
-  const promptExtendMode = ctx.promptExtendMode === "agent" && hasImages && model === "qwen-image-3.0-pro" ? void 0 : ctx.promptExtendMode;
+  const promptExtendMode = ctx.promptExtendMode === "agent" && hasImages && model.startsWith("qwen-image-3.0") ? void 0 : ctx.promptExtendMode;
+  const promptExtend = ctx.enhancePrompt ?? true;
   return {
     prompt: ctx.prompt,
     model,
     ...hasImages ? { image_urls: ctx.imageUrls } : {},
     ...ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {},
-    size: (ctx.resolution ?? "2048x2048").replace("x", "*"),
+    // I2I: omit size — the vendor auto-matches the input image's aspect ratio,
+    // and the SDK's ~4MP presets exceed the current I2I ceiling.
+    ...hasImages ? {} : { size: (ctx.resolution ?? "2048x2048").replace("x", "*") },
     n: ctx.count ?? 1,
-    prompt_extend: ctx.enhancePrompt ?? true,
+    prompt_extend: promptExtend,
     // Qwen 3.0 family only — prompt-rewrite strategy (direct/agent); 2.x ignores it.
     ...promptExtendMode ? { prompt_extend_mode: promptExtendMode } : {},
-    // Qwen 3.0 family only — thinking mode (requires prompt_extend).
-    ...ctx.enableThinking != null ? { enable_thinking: ctx.enableThinking } : {},
+    // Qwen 3.0 family only — thinking mode; the vendor requires prompt_extend=true.
+    ...ctx.enableThinking != null && promptExtend ? { enable_thinking: ctx.enableThinking } : {},
     watermark: false,
     ...ctx.seed != null ? { seed: ctx.seed } : {}
   };
 };
 var qwenV1Params = {
   ...params.prompt({ maxLength: 800 }),
-  ...params.negativePrompt(),
+  ...params.negativePrompt(void 0, 500),
   ...params.resolution(QWEN_V1_SIZES, "2048x2048"),
   ...params.count([1, 2, 4, 6]),
   ...params.enhancePrompt(true),
-  ...params.imageInput(3, "Source Images")
+  ...params.imageInput(3, "Source Images"),
+  ...params.seed()
 };
 var qwenV1Params3 = {
   ...qwenV1Params,
@@ -6989,7 +7047,6 @@ var { MODELS: MODELS28 } = defineModels("qwen", [
     features: [feat("Image Input", "input"), feat("1K", "resolution")],
     paramConfig: {
       ...params.prompt(),
-      ...params.count(),
       ...params.imageInput(1, "Source Image")
     }
   },
@@ -6997,6 +7054,8 @@ var { MODELS: MODELS28 } = defineModels("qwen", [
     id: "qwen-image-2",
     name: "Qwen 2",
     addedAt: "2026-03-27",
+    deprecated: true,
+    // fal marks both endpoints 'no longer supported' — use qwen-image-3.0
     workflow: "qwen-image-2/text-to-image",
     editWorkflow: "qwen-image-2/edit",
     buildPayload: buildQwen2Payload,
@@ -8171,7 +8230,6 @@ var buildHH11R2VPayload = (ctx) => {
 };
 var HH_AR = ["16:9", "9:16", "1:1", "4:3", "3:4"];
 var HH_RES = ["720P", "1080P"];
-var HH_DURATIONS = [5, 10, 15];
 var { MODELS: MODELS33 } = defineModels("happyhorse", [
   {
     id: "happyhorse-1.0-t2v",
@@ -8189,13 +8247,15 @@ var { MODELS: MODELS33 } = defineModels("happyhorse", [
     features: [
       feat("Start Frame", "frame"),
       feat("1080P", "resolution"),
-      feat("5/10/15 sec", "duration")
+      feat("3-15 sec", "duration")
     ],
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
+      ...params.seed(),
       ...params.aspectRatio(HH_AR, "16:9"),
       ...params.resolution(HH_RES, "720P"),
-      ...params.duration(HH_DURATIONS, 5),
+      // Vendor/worker accept any integer 3-15 (docs: default 5).
+      ...params.durationRange(3, 15, 5),
       ...params.startFrame()
     }
   },
@@ -8214,13 +8274,15 @@ var { MODELS: MODELS33 } = defineModels("happyhorse", [
     features: [
       feat("Multi-Image Input", "input"),
       feat("1080P", "resolution"),
-      feat("5/10/15 sec", "duration")
+      feat("3-15 sec", "duration")
     ],
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
+      ...params.seed(),
       ...params.aspectRatio(HH_AR, "16:9"),
       ...params.resolution(HH_RES, "720P"),
-      ...params.duration(HH_DURATIONS, 5),
+      // Vendor/worker accept any integer 3-15 (docs: default 5).
+      ...params.durationRange(3, 15, 5),
       ...params.imageInput(9, "Reference Images", true)
     }
   },
@@ -8243,6 +8305,7 @@ var { MODELS: MODELS33 } = defineModels("happyhorse", [
     ],
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
+      ...params.seed(),
       ...params.resolution(HH_RES, "720P"),
       ...params.audioSetting(),
       ...params.videoInput("Source Video"),
@@ -8265,13 +8328,15 @@ var { MODELS: MODELS33 } = defineModels("happyhorse", [
     features: [
       feat("Start Frame", "frame"),
       feat("1080P", "resolution"),
-      feat("5/10/15 sec", "duration")
+      feat("3-15 sec", "duration")
     ],
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
+      ...params.seed(),
       ...params.aspectRatio(HH_AR, "16:9"),
       ...params.resolution(HH_RES, "720P"),
-      ...params.duration(HH_DURATIONS, 5),
+      // Vendor/worker accept any integer 3-15 (docs: default 5).
+      ...params.durationRange(3, 15, 5),
       ...params.startFrame()
     }
   },
@@ -8289,13 +8354,15 @@ var { MODELS: MODELS33 } = defineModels("happyhorse", [
     features: [
       feat("Multi-Image Input", "input"),
       feat("1080P", "resolution"),
-      feat("5/10/15 sec", "duration")
+      feat("3-15 sec", "duration")
     ],
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
+      ...params.seed(),
       ...params.aspectRatio(HH_AR, "16:9"),
       ...params.resolution(HH_RES, "720P"),
-      ...params.duration(HH_DURATIONS, 5),
+      // Vendor/worker accept any integer 3-15 (docs: default 5).
+      ...params.durationRange(3, 15, 5),
       ...params.imageInput(9, "Reference Images", true)
     }
   }

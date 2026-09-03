@@ -8,6 +8,7 @@
  */
 import type { WorkflowTypes } from '@picsart/workflows-types';
 import type { ModelInput } from '../../generated/model-input-types.ts';
+import { ApiError } from '../../core/errors.ts';
 import { registerPayloads } from '../define.ts';
 import { MODELS } from './wan.ts';
 
@@ -50,10 +51,17 @@ const makeWanV3VideoPayload = (model: WanV3Model) => (input: WanV3Input): WanV3P
     for (const url of input.audioUrls) media.push({ type: 'reference_audio', url });
   }
 
+  // Vendor cross-field rule: either prompt or media is required.
+  if (!input.prompt && media.length === 0) {
+    throw new ApiError('Wan 3.0: provide a prompt or at least one media input (frames or references).', {
+      status: 400, code: 'validation_error',
+    });
+  }
   return {
     model,
     resolution: input.resolution ?? '1080P',
-    ratio: input.aspectRatio ?? '16:9',
+    // Vendor default: adaptive — the model picks the ratio from intent/media.
+    ratio: input.aspectRatio ?? 'adaptive',
     duration: input.duration ?? 5,
     audio: input.generateAudio ?? true,
     enable_thinking: input.enableThinking ?? false,

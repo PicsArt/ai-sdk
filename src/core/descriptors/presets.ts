@@ -190,14 +190,26 @@ export const p = {
     };
   },
 
-  negativePrompt(placeholder?: string): ModelParams {
+  negativePrompt(placeholder?: string, maxLength?: number): ModelParams {
     return {
       negativePrompt: {
         label: 'Negative Prompt',
         descriptor: {
           kind: 'text',
           placeholder: placeholder,
+          maxLength,
         },
+      },
+    };
+  },
+
+  /** Generation seed — optional, no default: sent only when the user sets it,
+   *  so the vendor's own randomization applies otherwise. */
+  seed(max = 2147483647): ModelParams {
+    return {
+      seed: {
+        label: 'Seed',
+        descriptor: { kind: 'range', min: 0, max, step: 1 },
       },
     };
   },

@@ -6664,6 +6664,54 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
     ]
   },
   {
+    // Turbo sibling of minimax-h3-max — same fal.ai worker, same wire shape,
+    // tuned for speed (faster-than-realtime generation). The only schema
+    // difference: prompt expansion has no 'disabled' mode on this endpoint.
+    id: "minimax-h3-max-turbo",
+    name: "MiniMax H3 Max Turbo",
+    modelId: "fal-ai-h3-max-turbo",
+    addedAt: "2026-09-03",
+    workflow: "minimax/h3-max-turbo/text-to-video",
+    editWorkflow: "minimax/h3-max-turbo/image-to-video",
+    estimatedTime: 5,
+    mode: "video",
+    inputType: "t2v",
+    description: "Faster-than-realtime MiniMax H3 Max Turbo video from text or a start/end frame, with prompt expansion. Up to 15s at 768p.",
+    features: [
+      feat("Fast", "characteristic"),
+      feat("Image Input", "input"),
+      feat("Start/End Frame", "frame"),
+      feat("768p", "resolution"),
+      feat("5-15 sec", "duration")
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.startFrame(),
+      ...params.endFrame(),
+      // Lowercase on purpose: the worker uppercases for the fal wire ('768P')
+      // and the pricing qualities are lowercase, so this casing serves both.
+      ...params.resolution(["480p", "768p"], "768p"),
+      ...params.durationRange(5, 15, 5),
+      ...params.aspectRatio(["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "16:9"),
+      // Unlike minimax-h3-max, the turbo wire has no 'disabled' expansion mode.
+      ...p.enum("promptExpansionMode", ["balanced", "quality"], "balanced", { label: "Prompt Expansion" }),
+      // -1 (sentinel) means "pick a random seed"; the builder drops it.
+      ...p.range("seed", -1, 2147483647, -1),
+      ...p.boolean("enableSafetyChecker", true, "Safety Checker")
+    },
+    constraints: [
+      // The T2V wire has no end_image_url — an end frame only reaches the
+      // vendor on the I2V route, which needs a start frame to trigger.
+      { when: { startFrame: { exists: false } }, then: {
+        endFrame: { disabled: true, reason: "An end frame requires a start frame." }
+      } },
+      // I2V derives the ratio from the input image (no aspect_ratio on that wire).
+      { when: { startFrame: { exists: true } }, then: {
+        aspectRatio: { disabled: true, reason: "Aspect ratio follows the start frame image." }
+      } }
+    ]
+  },
+  {
     // Reference-to-video sibling of minimax-h3-max (same fal.ai worker).
     // The prompt addresses references by modality and order — Image 1,
     // Video 1, Audio 1, … Reference clips are 2-15s each (≤15s combined per
@@ -6736,6 +6784,19 @@ var buildMinimaxH3MaxPayload = (input) => ({
   ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
   enable_safety_checker: input.enableSafetyChecker ?? true
 });
+var buildMinimaxH3MaxTurboPayload = (input) => ({
+  prompt: input.prompt,
+  prompt_expansion_mode: input.promptExpansionMode ?? "balanced",
+  duration: input.duration ?? 5,
+  resolution: input.resolution ?? "768p",
+  ...input.startFrame ? {
+    image_url: input.startFrame,
+    ...input.endFrame ? { end_image_url: input.endFrame } : {}
+  } : { aspect_ratio: input.aspectRatio ?? "16:9" },
+  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
+  ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
+  enable_safety_checker: input.enableSafetyChecker ?? true
+});
 var buildMinimaxH3MaxR2VPayload = (input) => ({
   prompt: input.prompt,
   prompt_expansion_mode: input.promptExpansionMode ?? "balanced",
@@ -6752,10 +6813,12 @@ var buildMinimaxH3MaxR2VPayload = (input) => ({
 registerPayloads(MODELS26, {
   "minimax-music-v3": buildMinimaxMusicV3Payload,
   "minimax-h3-max": buildMinimaxH3MaxPayload,
+  "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload,
   "minimax-h3-max-r2v": buildMinimaxH3MaxR2VPayload
 });
 registerEditPayloads(MODELS26, {
-  "minimax-h3-max": buildMinimaxH3MaxPayload
+  "minimax-h3-max": buildMinimaxH3MaxPayload,
+  "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload
 });
 
 // src/vendors/catalog/ideogram.ts
@@ -11165,6 +11228,7 @@ var Minimax02Hd = "minimax-02-hd";
 var MinimaxH3 = "minimax-h3";
 var MinimaxH3Max = "minimax-h3-max";
 var MinimaxH3MaxR2v = "minimax-h3-max-r2v";
+var MinimaxH3MaxTurbo = "minimax-h3-max-turbo";
 var MinimaxMusicV2 = "minimax-music-v2";
 var MinimaxMusicV3 = "minimax-music-v3";
 var MuseImage10 = "muse-image-1.0";
@@ -11379,6 +11443,7 @@ var Models = {
   MinimaxH3,
   MinimaxH3Max,
   MinimaxH3MaxR2v,
+  MinimaxH3MaxTurbo,
   MinimaxMusicV2,
   MinimaxMusicV3,
   MuseImage10,

@@ -119,6 +119,48 @@ export const { MODELS } = defineModels('minimax', [
     ],
   },
   {
+    // Turbo sibling of minimax-h3-max — same fal.ai worker, same wire shape,
+    // tuned for speed (faster-than-realtime generation). The only schema
+    // difference: prompt expansion has no 'disabled' mode on this endpoint.
+    id: 'minimax-h3-max-turbo', name: 'MiniMax H3 Max Turbo', modelId: 'fal-ai-h3-max-turbo',
+    addedAt: '2026-09-03',
+    workflow: 'minimax/h3-max-turbo/text-to-video',
+    editWorkflow: 'minimax/h3-max-turbo/image-to-video',
+    estimatedTime: 5,
+    mode: 'video', inputType: 't2v',
+    description: 'Faster-than-realtime MiniMax H3 Max Turbo video from text or a start/end frame, with prompt expansion. Up to 15s at 768p.',
+    features: [
+      feat('Fast', 'characteristic'), feat('Image Input', 'input'), feat('Start/End Frame', 'frame'),
+      feat('768p', 'resolution'), feat('5-15 sec', 'duration'),
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.startFrame(),
+      ...params.endFrame(),
+      // Lowercase on purpose: the worker uppercases for the fal wire ('768P')
+      // and the pricing qualities are lowercase, so this casing serves both.
+      ...params.resolution(['480p', '768p'], '768p'),
+      ...params.durationRange(5, 15, 5),
+      ...params.aspectRatio(['21:9', '16:9', '4:3', '1:1', '3:4', '9:16'], '16:9'),
+      // Unlike minimax-h3-max, the turbo wire has no 'disabled' expansion mode.
+      ...p.enum('promptExpansionMode', ['balanced', 'quality'], 'balanced', { label: 'Prompt Expansion' }),
+      // -1 (sentinel) means "pick a random seed"; the builder drops it.
+      ...p.range('seed', -1, 2147483647, -1),
+      ...p.boolean('enableSafetyChecker', true, 'Safety Checker'),
+    },
+    constraints: [
+      // The T2V wire has no end_image_url — an end frame only reaches the
+      // vendor on the I2V route, which needs a start frame to trigger.
+      { when: { startFrame: { exists: false } }, then: {
+        endFrame: { disabled: true, reason: 'An end frame requires a start frame.' },
+      } },
+      // I2V derives the ratio from the input image (no aspect_ratio on that wire).
+      { when: { startFrame: { exists: true } }, then: {
+        aspectRatio: { disabled: true, reason: 'Aspect ratio follows the start frame image.' },
+      } },
+    ],
+  },
+  {
     // Reference-to-video sibling of minimax-h3-max (same fal.ai worker).
     // The prompt addresses references by modality and order — Image 1,
     // Video 1, Audio 1, … Reference clips are 2-15s each (≤15s combined per

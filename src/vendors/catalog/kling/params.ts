@@ -8,14 +8,6 @@
  */
 import type { ModelParams } from '../../../core/descriptors';
 
-/** Face-similarity strength — Kling V2.1 image generations. */
-export const klingHumanFidelity: ModelParams = {
-  humanFidelity: {
-    label: 'Face Fidelity',
-    descriptor: { kind: 'range', min: 0, max: 1, step: 0.05, default: 0.45 },
-  },
-};
-
 /** Character orientation — Kling Motion Control. 'image' caps ref video at 10s,
  *  'video' caps at 30s. */
 export const klingCharacterOrientation: ModelParams = {
@@ -65,7 +57,7 @@ export const klingOmniReferType: ModelParams = {
 };
 
 /** V3 advanced params (KlingTextToVideoCommand + KlingImageToVideoCommand).
- *  Some are I2V-only (elementList, staticMask) — the builder gates those
+ *  Some are I2V-only (elementList, voiceList) — the builder gates those
  *  on startFrame. */
 export const klingV3AdvancedParams: ModelParams = {
   multiShot: {
@@ -118,11 +110,6 @@ export const klingV3AdvancedParams: ModelParams = {
         element_id: { kind: 'text' },
       },
     },
-  },
-  staticMask: {
-    label: 'Static Mask',
-    category: 'reference',
-    descriptor: { kind: 'file', accept: 'image' },
   },
 };
 

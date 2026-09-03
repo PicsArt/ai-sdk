@@ -8,7 +8,6 @@
 import { defineModels, feat, params, paramPresets } from '../../define.ts';
 import {
   klingCharacterOrientation,
-  klingHumanFidelity,
   klingKeepOriginalSound,
   klingOmniAdvancedParams,
   klingOmniReferType,
@@ -65,12 +64,13 @@ const klingV3ProVideoBase = {
 
 // Kling V3 Turbo — shares the kling-text/image-to-video workflows with V3 but
 // is a REDUCED model: it exposes a `resolution` knob (720p/1080p) and accepts
-// only prompt / negative_prompt / aspect_ratio / duration / image (I2V source) /
-// static_mask. The backend rejects V3-only knobs for kling-v3-turbo — `sound`
-// (audio), `image_tail` (end frame), and `multi_shot` / `shot_type` /
-// `multi_prompt` / `voice_list` / `element_list`. Declaring those descriptors
-// would leak their defaults via buildDefaultContext and break OPTIONS, so they
-// are intentionally omitted (cf. the kling-video-o1 note above).
+// only prompt / aspect_ratio / duration / image (I2V source). The vendor turbo
+// API has no negative_prompt field — negative wording is folded into the
+// prompt by the builder. The backend rejects V3-only knobs for kling-v3-turbo —
+// `sound` (audio), `image_tail` (end frame), `static_mask`, and `multi_shot` /
+// `shot_type` / `multi_prompt` / `voice_list` / `element_list`. Declaring those
+// descriptors would leak their defaults via buildDefaultContext and break
+// OPTIONS, so they are intentionally omitted (cf. the kling-video-o1 note).
 const klingV3TurboVideoBase = {
   workflow: 'kling-text-to-video' as const,
   editWorkflow: 'kling-image-to-video' as const,
@@ -88,11 +88,6 @@ const klingV3TurboVideoBase = {
     ...params.negativePrompt(),
     ...params.resolution(['720p', '1080p'], '720p'),
     ...params.startFrame('Start Frame'),
-    staticMask: {
-      label: 'Static Mask',
-      category: 'reference' as const,
-      descriptor: { kind: 'file' as const, accept: 'image' as const },
-    },
   },
 };
 
@@ -111,8 +106,6 @@ const klingV26VideoBase = {
       durations: V26_DURATIONS,
       defaultDuration: 5,
     }),
-    ...params.cfgScale(0, 1, 0.5, 0.1),
-    ...params.renderingSpeed([{ id: 'std', label: 'Standard' }, { id: 'pro', label: 'Pro' }], 'std'),
   },
 };
 
@@ -128,11 +121,15 @@ export const { MODELS } = defineModels('kling', [
     badge: ['popular', 'premium'] as const,
     description: 'Long-form video up to 15s with native audio and start/end frame control.',
     constraints: [
-      { when: { renderingSpeed: { is: 'std' } }, then: { endFrame: { disabled: true, reason: 'End frame requires Pro or 4K mode.' } } },
       // Backend: `voice_list` requires `sound=on`. Two rules because the
       // `is` operator does not match an unset value (see core/constraints.ts).
       { when: { generateAudio: { is: false } }, then: { voiceList: { disabled: true, reason: 'Voice references require generated audio.' } } },
       { when: { generateAudio: { exists: false } }, then: { voiceList: { disabled: true, reason: 'Voice references require generated audio.' } } },
+      // Vendor: first/end frames are unsupported in multi-shot mode.
+      { when: { multiShot: { is: true } }, then: {
+        startFrame: { disabled: true, reason: 'Frames are unavailable in multi-shot mode.' },
+        endFrame: { disabled: true, reason: 'Frames are unavailable in multi-shot mode.' },
+      } },
     ],
   },
   // ── Video: Kling V3 Turbo (resolution-tiered T2V + I2V) ───────────
@@ -150,7 +147,7 @@ export const { MODELS } = defineModels('kling', [
     id: 'kling-v2-6', name: 'Kling V2.6', modelId: 'kling-v2-6',
     addedAt: '2026-02-11',
     estimatedTime: 60,
-    description: 'Mature pipeline with audio, adjustable cfg, and standard/pro rendering.',
+    description: 'Mature pipeline with audio and pro-tier rendering.',
   },
   // ── Video: Kling Omni ─────────────────────────────────────────────
   {
@@ -170,14 +167,14 @@ export const { MODELS } = defineModels('kling', [
       ...params.prompt({ maxLength: 2500 }),
       ...params.aspectRatio(['16:9', '9:16', '1:1']),
       ...params.duration(V3_DURATIONS, 5),
+      // Quality tier maps straight to the wire `mode`: 720p→std, 1080p→pro, 4k→4k.
       ...params.resolution(['720p', '1080p', '4k'], '720p'),
-      ...params.renderingSpeed([{ id: 'std', label: 'Standard' }, { id: 'pro', label: 'Pro' }], 'std'),
       ...params.generateAudio(false),
       ...params.startFrame('First Frame'),
       ...params.endFrame('End Frame'),
-      // Backend states no explicit cap for omni `image_list`; 10 mirrors the
-      // omni-image contract. The worker stays the authoritative gate.
-      ...params.imageInput(10, 'Reference Images'),
+      // Vendor cap: reference images + frames + multi-image elements ≤ 7
+      // (4 when a reference video is supplied).
+      ...params.imageInput(7, 'Reference Images'),
       ...params.videoInput('Reference Video', 'reference', false),
       ...klingOmniReferType,
       ...klingKeepOriginalSound,
@@ -189,6 +186,15 @@ export const { MODELS } = defineModels('kling', [
       { when: { videoUrl: { exists: true } }, then: {
         resolution: { allowed: ['720p', '1080p'], reason: '4K output is unavailable with a reference video.' },
         generateAudio: { disabled: true, reason: 'Kling disables generated sound when a reference video is supplied.' },
+      } },
+      // Vendor: an end frame requires a first frame.
+      { when: { startFrame: { exists: false } }, then: { endFrame: { disabled: true, reason: 'End frame requires a first frame.' } } },
+      // Vendor: base-video editing cannot be combined with frames or multi-shot.
+      { when: { referType: { is: 'base' }, videoUrl: { exists: true } }, then: {
+        startFrame: { disabled: true, reason: 'Base video editing cannot be combined with frames.' },
+        endFrame: { disabled: true, reason: 'Base video editing cannot be combined with frames.' },
+        multiShot: { disabled: true, reason: 'Base video editing does not support multi-shot.' },
+        multiPrompt: { disabled: true, reason: 'Base video editing does not support multi-shot.' },
       } },
     ],
   },
@@ -211,7 +217,6 @@ export const { MODELS } = defineModels('kling', [
       ...params.prompt({ maxLength: 2500 }),
       ...params.aspectRatio(['16:9', '9:16', '1:1']),
       ...params.duration([5, 10], 5),
-      ...params.resolution(['720p', '1080p'], '720p'),
       ...params.renderingSpeed([{ id: 'std', label: 'Standard' }, { id: 'pro', label: 'Pro' }], 'std'),
       ...params.generateAudio(false),
     },
@@ -228,7 +233,6 @@ export const { MODELS } = defineModels('kling', [
     features: [feat('Image + Video', 'input'), feat('Motion Transfer', 'characteristic'), feat('V3', 'resolution')],
     paramConfig: {
       ...params.prompt({ required: false, maxLength: 2500 }),
-      ...params.resolution(['720p', '1080p'], '720p'),
       ...params.renderingSpeed([{ id: 'std', label: 'Standard' }, { id: 'pro', label: 'Pro' }], 'std'),
       ...klingCharacterOrientation,
       ...klingKeepOriginalSound,
@@ -247,7 +251,6 @@ export const { MODELS } = defineModels('kling', [
     features: [feat('Image + Video', 'input'), feat('Motion Transfer', 'characteristic'), feat('2.6', 'resolution')],
     paramConfig: {
       ...params.prompt({ required: false, maxLength: 2500 }),
-      ...params.resolution(['720p', '1080p'], '720p'),
       ...params.renderingSpeed([{ id: 'std', label: 'Standard' }, { id: 'pro', label: 'Pro' }], 'std'),
       ...klingCharacterOrientation,
       ...klingKeepOriginalSound,
@@ -268,10 +271,10 @@ export const { MODELS } = defineModels('kling', [
       ...params.prompt({ required: false, maxLength: 2500 }),
       ...params.renderingSpeed([{ id: 'std', label: 'Standard' }, { id: 'pro', label: 'Pro' }], 'std'),
       ...params.imageInput(1, 'Face Portrait', true),
-      // Swagger marks both sound_file and audio_id individually optional, but the
-      // backend requires at least one. UI keeps sound_file required; audio_id
-      // remains exposed as an additive alternative for SDK / batch users who
-      // pass a TTS-generated reference instead of an uploaded file.
+      // Vendor: exactly ONE of sound_file / audio_id. The UI path keeps the
+      // audio file required; audio_id stays an additive alternative for raw
+      // API callers. The builder never emits both keys (file wins) and the
+      // worker enforces the XOR for un-typed callers.
       ...params.audioInput('Speech Audio', true),
       audioId: {
         label: 'TTS Audio ID',
@@ -329,9 +332,11 @@ export const { MODELS } = defineModels('kling', [
       ...params.count([1, 2, 3, 4, 5, 6, 7, 8, 9]),
       ...params.negativePrompt(),
       ...params.imageInput(1, 'Restyle Image'),
-      ...params.imageWeight(0, 100, 50, 5),
-      ...klingHumanFidelity,
     },
+    constraints: [
+      // Vendor: negative prompts are not supported in image-to-image mode.
+      { when: { imageUrls: { exists: true } }, then: { negativePrompt: { disabled: true, reason: 'Negative prompt is ignored in image-to-image mode.' } } },
+    ],
   },
   // ── Image: Multi-Image-to-Image ─────────────────────────────────
   {
@@ -394,13 +399,20 @@ export const { MODELS } = defineModels('kling', [
           default: 'image_refer',
         },
       },
-      ...params.imageInput(4, 'Reference Images (1st = frontal)', false),
+      // Vendor: image_refer requires a frontal image + 1-3 extra angles
+      // (min 2 uploads total — the builder enforces the minimum).
+      ...params.imageInput(4, 'Reference Images (1st = frontal, plus 1-3 angles)', false),
       ...params.videoInput('Reference Video', 'reference', false),
       elementVoiceId: {
-        label: 'Voice ID (video elements only)',
+        label: 'Voice ID (character/humanoid elements)',
         descriptor: { kind: 'text' },
       },
     },
+    constraints: [
+      { when: { referenceType: { is: 'video_refer' } }, then: { imageUrls: { disabled: true, reason: 'Video reference uses the reference video, not images.' } } },
+      { when: { referenceType: { is: 'image_refer' } }, then: { videoUrl: { disabled: true, reason: 'Image reference uses reference images, not a video.' } } },
+      { when: { referenceType: { exists: false } }, then: { videoUrl: { disabled: true, reason: 'Image reference uses reference images, not a video.' } } },
+    ],
   },
   {
     id: 'kling-video-effects', name: 'Kling Video Effects',
@@ -409,7 +421,7 @@ export const { MODELS } = defineModels('kling', [
     estimatedTime: 30,
     mode: 'video', inputType: 'i2v',
     badge: ['new'] as const,
-    description: 'Apply 190+ visual effects to photos — single or dual-image scenes.',
+    description: 'Apply curated Kling visual effects to photos — single or dual-image scenes.',
     features: [feat('Image Input', 'input'), feat('Video Effects', 'characteristic')],
     paramConfig: {
       ...params.catalog('templateId', {
@@ -417,7 +429,8 @@ export const { MODELS } = defineModels('kling', [
         source: { workflow: 'kling/v1/catalog/templates' },
         default: 'korean_baseball',
       }),
-      ...params.imageInput(2, 'Effect Images', true),
+      // Vendor: ≥300px per side (10MB / aspect-ratio checks stay vendor-side).
+      ...params.imageInput(2, 'Effect Images', true, 'reference', { minSidePixels: 300 }),
     },
   },
   // ── Audio ─────────────────────────────────────────────────────────
@@ -443,7 +456,9 @@ export const { MODELS } = defineModels('kling', [
     description: 'Extract or generate a matching audio track from an uploaded video.',
     features: [feat('Video Input', 'input')],
     paramConfig: {
-      ...params.videoInput('Source Video'),
+      // Vendor: .mp4/.mov only, ≤100MB, 3.0-20.0s — duration and size are
+      // enforced at upload; the 3s floor and container check stay vendor-side.
+      ...params.videoInput('Source Video (3-20s, ≤100MB)', 'reference', true, 20, undefined, 100 * 1024 * 1024),
     },
   },
 ]);

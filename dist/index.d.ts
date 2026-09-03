@@ -534,7 +534,6 @@ type ModelInputById = {
     };
     "kling-motion-control": {
         prompt?: string;
-        resolution?: "720p" | "1080p";
         renderingSpeed?: "std" | "pro";
         characterOrientation?: "image" | "video";
         keepOriginalSound?: "yes" | "no";
@@ -543,7 +542,6 @@ type ModelInputById = {
     };
     "kling-motion-control-v3": {
         prompt?: string;
-        resolution?: "720p" | "1080p";
         renderingSpeed?: "std" | "pro";
         characterOrientation?: "image" | "video";
         keepOriginalSound?: "yes" | "no";
@@ -575,8 +573,6 @@ type ModelInputById = {
         count?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
         negativePrompt?: string;
         imageUrls?: string[];
-        imageWeight?: number;
-        humanFidelity?: number;
     };
     "kling-v2-6": {
         prompt: string;
@@ -586,8 +582,6 @@ type ModelInputById = {
         endFrame?: string;
         negativePrompt?: string;
         generateAudio?: boolean;
-        cfgScale?: number;
-        renderingSpeed?: "std" | "pro";
     };
     "kling-v2a": {
         videoUrl: string;
@@ -613,7 +607,6 @@ type ModelInputById = {
         elementList?: Array<{
             element_id: string;
         }>;
-        staticMask?: string;
         renderingSpeed?: "std" | "pro" | "4k";
     };
     "kling-v3-omni": {
@@ -621,7 +614,6 @@ type ModelInputById = {
         aspectRatio?: "16:9" | "9:16" | "1:1";
         duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         resolution?: "720p" | "1080p" | "4k";
-        renderingSpeed?: "std" | "pro";
         generateAudio?: boolean;
         startFrame?: string;
         endFrame?: string;
@@ -647,7 +639,6 @@ type ModelInputById = {
         negativePrompt?: string;
         resolution?: "720p" | "1080p";
         startFrame?: string;
-        staticMask?: string;
     };
     "kling-video-effects": {
         templateId?: string;
@@ -657,7 +648,6 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1";
         duration?: 5 | 10;
-        resolution?: "720p" | "1080p";
         renderingSpeed?: "std" | "pro";
         generateAudio?: boolean;
     };

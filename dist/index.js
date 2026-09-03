@@ -1377,12 +1377,6 @@ var paramPresets = {
 var feat = (label, variant) => ({ label, variant });
 
 // src/vendors/catalog/kling/params.ts
-var klingHumanFidelity = {
-  humanFidelity: {
-    label: "Face Fidelity",
-    descriptor: { kind: "range", min: 0, max: 1, step: 0.05, default: 0.45 }
-  }
-};
 var klingCharacterOrientation = {
   characterOrientation: {
     label: "Character Orientation",
@@ -1473,11 +1467,6 @@ var klingV3AdvancedParams = {
         element_id: { kind: "text" }
       }
     }
-  },
-  staticMask: {
-    label: "Static Mask",
-    category: "reference",
-    descriptor: { kind: "file", accept: "image" }
   }
 };
 var klingOmniAdvancedParams = {
@@ -1580,12 +1569,7 @@ var klingV3TurboVideoBase = {
     ...params.duration(V3_DURATIONS, 5),
     ...params.negativePrompt(),
     ...params.resolution(["720p", "1080p"], "720p"),
-    ...params.startFrame("Start Frame"),
-    staticMask: {
-      label: "Static Mask",
-      category: "reference",
-      descriptor: { kind: "file", accept: "image" }
-    }
+    ...params.startFrame("Start Frame")
   }
 };
 var klingV26VideoBase = {
@@ -1602,9 +1586,7 @@ var klingV26VideoBase = {
     ...paramPresets.videoStartEndWithAudio({
       durations: V26_DURATIONS,
       defaultDuration: 5
-    }),
-    ...params.cfgScale(0, 1, 0.5, 0.1),
-    ...params.renderingSpeed([{ id: "std", label: "Standard" }, { id: "pro", label: "Pro" }], "std")
+    })
   }
 };
 var { MODELS } = defineModels("kling", [
@@ -1620,11 +1602,15 @@ var { MODELS } = defineModels("kling", [
     badge: ["popular", "premium"],
     description: "Long-form video up to 15s with native audio and start/end frame control.",
     constraints: [
-      { when: { renderingSpeed: { is: "std" } }, then: { endFrame: { disabled: true, reason: "End frame requires Pro or 4K mode." } } },
       // Backend: `voice_list` requires `sound=on`. Two rules because the
       // `is` operator does not match an unset value (see core/constraints.ts).
       { when: { generateAudio: { is: false } }, then: { voiceList: { disabled: true, reason: "Voice references require generated audio." } } },
-      { when: { generateAudio: { exists: false } }, then: { voiceList: { disabled: true, reason: "Voice references require generated audio." } } }
+      { when: { generateAudio: { exists: false } }, then: { voiceList: { disabled: true, reason: "Voice references require generated audio." } } },
+      // Vendor: first/end frames are unsupported in multi-shot mode.
+      { when: { multiShot: { is: true } }, then: {
+        startFrame: { disabled: true, reason: "Frames are unavailable in multi-shot mode." },
+        endFrame: { disabled: true, reason: "Frames are unavailable in multi-shot mode." }
+      } }
     ]
   },
   // ── Video: Kling V3 Turbo (resolution-tiered T2V + I2V) ───────────
@@ -1647,7 +1633,7 @@ var { MODELS } = defineModels("kling", [
     modelId: "kling-v2-6",
     addedAt: "2026-02-11",
     estimatedTime: 60,
-    description: "Mature pipeline with audio, adjustable cfg, and standard/pro rendering."
+    description: "Mature pipeline with audio and pro-tier rendering."
   },
   // ── Video: Kling Omni ─────────────────────────────────────────────
   {
@@ -1670,14 +1656,14 @@ var { MODELS } = defineModels("kling", [
       ...params.prompt({ maxLength: 2500 }),
       ...params.aspectRatio(["16:9", "9:16", "1:1"]),
       ...params.duration(V3_DURATIONS, 5),
+      // Quality tier maps straight to the wire `mode`: 720p→std, 1080p→pro, 4k→4k.
       ...params.resolution(["720p", "1080p", "4k"], "720p"),
-      ...params.renderingSpeed([{ id: "std", label: "Standard" }, { id: "pro", label: "Pro" }], "std"),
       ...params.generateAudio(false),
       ...params.startFrame("First Frame"),
       ...params.endFrame("End Frame"),
-      // Backend states no explicit cap for omni `image_list`; 10 mirrors the
-      // omni-image contract. The worker stays the authoritative gate.
-      ...params.imageInput(10, "Reference Images"),
+      // Vendor cap: reference images + frames + multi-image elements ≤ 7
+      // (4 when a reference video is supplied).
+      ...params.imageInput(7, "Reference Images"),
       ...params.videoInput("Reference Video", "reference", false),
       ...klingOmniReferType,
       ...klingKeepOriginalSound,
@@ -1689,6 +1675,15 @@ var { MODELS } = defineModels("kling", [
       { when: { videoUrl: { exists: true } }, then: {
         resolution: { allowed: ["720p", "1080p"], reason: "4K output is unavailable with a reference video." },
         generateAudio: { disabled: true, reason: "Kling disables generated sound when a reference video is supplied." }
+      } },
+      // Vendor: an end frame requires a first frame.
+      { when: { startFrame: { exists: false } }, then: { endFrame: { disabled: true, reason: "End frame requires a first frame." } } },
+      // Vendor: base-video editing cannot be combined with frames or multi-shot.
+      { when: { referType: { is: "base" }, videoUrl: { exists: true } }, then: {
+        startFrame: { disabled: true, reason: "Base video editing cannot be combined with frames." },
+        endFrame: { disabled: true, reason: "Base video editing cannot be combined with frames." },
+        multiShot: { disabled: true, reason: "Base video editing does not support multi-shot." },
+        multiPrompt: { disabled: true, reason: "Base video editing does not support multi-shot." }
       } }
     ]
   },
@@ -1714,7 +1709,6 @@ var { MODELS } = defineModels("kling", [
       ...params.prompt({ maxLength: 2500 }),
       ...params.aspectRatio(["16:9", "9:16", "1:1"]),
       ...params.duration([5, 10], 5),
-      ...params.resolution(["720p", "1080p"], "720p"),
       ...params.renderingSpeed([{ id: "std", label: "Standard" }, { id: "pro", label: "Pro" }], "std"),
       ...params.generateAudio(false)
     }
@@ -1733,7 +1727,6 @@ var { MODELS } = defineModels("kling", [
     features: [feat("Image + Video", "input"), feat("Motion Transfer", "characteristic"), feat("V3", "resolution")],
     paramConfig: {
       ...params.prompt({ required: false, maxLength: 2500 }),
-      ...params.resolution(["720p", "1080p"], "720p"),
       ...params.renderingSpeed([{ id: "std", label: "Standard" }, { id: "pro", label: "Pro" }], "std"),
       ...klingCharacterOrientation,
       ...klingKeepOriginalSound,
@@ -1754,7 +1747,6 @@ var { MODELS } = defineModels("kling", [
     features: [feat("Image + Video", "input"), feat("Motion Transfer", "characteristic"), feat("2.6", "resolution")],
     paramConfig: {
       ...params.prompt({ required: false, maxLength: 2500 }),
-      ...params.resolution(["720p", "1080p"], "720p"),
       ...params.renderingSpeed([{ id: "std", label: "Standard" }, { id: "pro", label: "Pro" }], "std"),
       ...klingCharacterOrientation,
       ...klingKeepOriginalSound,
@@ -1777,10 +1769,10 @@ var { MODELS } = defineModels("kling", [
       ...params.prompt({ required: false, maxLength: 2500 }),
       ...params.renderingSpeed([{ id: "std", label: "Standard" }, { id: "pro", label: "Pro" }], "std"),
       ...params.imageInput(1, "Face Portrait", true),
-      // Swagger marks both sound_file and audio_id individually optional, but the
-      // backend requires at least one. UI keeps sound_file required; audio_id
-      // remains exposed as an additive alternative for SDK / batch users who
-      // pass a TTS-generated reference instead of an uploaded file.
+      // Vendor: exactly ONE of sound_file / audio_id. The UI path keeps the
+      // audio file required; audio_id stays an additive alternative for raw
+      // API callers. The builder never emits both keys (file wins) and the
+      // worker enforces the XOR for un-typed callers.
       ...params.audioInput("Speech Audio", true),
       audioId: {
         label: "TTS Audio ID",
@@ -1846,10 +1838,12 @@ var { MODELS } = defineModels("kling", [
       ...params.aspectRatio(KLING_IMAGE_AR),
       ...params.count([1, 2, 3, 4, 5, 6, 7, 8, 9]),
       ...params.negativePrompt(),
-      ...params.imageInput(1, "Restyle Image"),
-      ...params.imageWeight(0, 100, 50, 5),
-      ...klingHumanFidelity
-    }
+      ...params.imageInput(1, "Restyle Image")
+    },
+    constraints: [
+      // Vendor: negative prompts are not supported in image-to-image mode.
+      { when: { imageUrls: { exists: true } }, then: { negativePrompt: { disabled: true, reason: "Negative prompt is ignored in image-to-image mode." } } }
+    ]
   },
   // ── Image: Multi-Image-to-Image ─────────────────────────────────
   {
@@ -1919,13 +1913,20 @@ var { MODELS } = defineModels("kling", [
           default: "image_refer"
         }
       },
-      ...params.imageInput(4, "Reference Images (1st = frontal)", false),
+      // Vendor: image_refer requires a frontal image + 1-3 extra angles
+      // (min 2 uploads total — the builder enforces the minimum).
+      ...params.imageInput(4, "Reference Images (1st = frontal, plus 1-3 angles)", false),
       ...params.videoInput("Reference Video", "reference", false),
       elementVoiceId: {
-        label: "Voice ID (video elements only)",
+        label: "Voice ID (character/humanoid elements)",
         descriptor: { kind: "text" }
       }
-    }
+    },
+    constraints: [
+      { when: { referenceType: { is: "video_refer" } }, then: { imageUrls: { disabled: true, reason: "Video reference uses the reference video, not images." } } },
+      { when: { referenceType: { is: "image_refer" } }, then: { videoUrl: { disabled: true, reason: "Image reference uses reference images, not a video." } } },
+      { when: { referenceType: { exists: false } }, then: { videoUrl: { disabled: true, reason: "Image reference uses reference images, not a video." } } }
+    ]
   },
   {
     id: "kling-video-effects",
@@ -1936,7 +1937,7 @@ var { MODELS } = defineModels("kling", [
     mode: "video",
     inputType: "i2v",
     badge: ["new"],
-    description: "Apply 190+ visual effects to photos \u2014 single or dual-image scenes.",
+    description: "Apply curated Kling visual effects to photos \u2014 single or dual-image scenes.",
     features: [feat("Image Input", "input"), feat("Video Effects", "characteristic")],
     paramConfig: {
       ...params.catalog("templateId", {
@@ -1944,7 +1945,8 @@ var { MODELS } = defineModels("kling", [
         source: { workflow: "kling/v1/catalog/templates" },
         default: "korean_baseball"
       }),
-      ...params.imageInput(2, "Effect Images", true)
+      // Vendor: ≥300px per side (10MB / aspect-ratio checks stay vendor-side).
+      ...params.imageInput(2, "Effect Images", true, "reference", { minSidePixels: 300 })
     }
   },
   // ── Audio ─────────────────────────────────────────────────────────
@@ -1974,21 +1976,96 @@ var { MODELS } = defineModels("kling", [
     description: "Extract or generate a matching audio track from an uploaded video.",
     features: [feat("Video Input", "input")],
     paramConfig: {
-      ...params.videoInput("Source Video")
+      // Vendor: .mp4/.mov only, ≤100MB, 3.0-20.0s — duration and size are
+      // enforced at upload; the 3s floor and container check stay vendor-side.
+      ...params.videoInput("Source Video (3-20s, \u2264100MB)", "reference", true, 20, void 0, 100 * 1024 * 1024)
     }
   }
 ]);
 
+// src/core/catalogs.ts
+var metaString = (item, key) => {
+  const v = item.meta?.[key];
+  return typeof v === "string" ? v : void 0;
+};
+function toVoiceOption(item, provider) {
+  return {
+    id: item.id,
+    name: item.name,
+    description: item.description ?? "",
+    tags: item.tags,
+    provider,
+    previewUrl: item.preview?.audioUrl
+  };
+}
+function toAvatarOption(item, provider) {
+  return {
+    id: item.id,
+    name: item.name,
+    description: item.description ?? "",
+    tags: item.tags,
+    provider,
+    previewImageUrl: item.preview?.imageUrl,
+    previewVideoUrl: item.preview?.videoUrl,
+    gender: metaString(item, "gender"),
+    defaultVoiceId: metaString(item, "defaultVoiceId")
+  };
+}
+var registry = /* @__PURE__ */ new Map();
+var keyOf = (s) => `${s.workflow} ${s.modelId ?? ""}`;
+var OPTION_ADAPTERS = {
+  voiceId: toVoiceOption,
+  videoId: toAvatarOption
+};
+function installHydratedCatalog(source, paramKey, items, provider, version) {
+  const adapt = OPTION_ADAPTERS[paramKey];
+  registry.set(keyOf(source), {
+    paramKey,
+    items,
+    options: items.map((i) => ({ id: i.id, label: i.name })),
+    catalogOptions: adapt ? items.map((i) => adapt(i, provider)) : items,
+    version
+  });
+}
+function getHydratedCatalog(source) {
+  return registry.get(keyOf(source));
+}
+function getHydratedVoices() {
+  const out = [];
+  for (const c of registry.values()) {
+    if (c.paramKey === "voiceId") out.push(...c.catalogOptions);
+  }
+  return out;
+}
+
 // src/vendors/catalog/kling/payloads.ts
+function assertMultiPrompt(multiPrompt, totalDuration, model) {
+  if (!multiPrompt?.length || multiPrompt.length > 6) {
+    throw new ApiError(`${model}: multi-shot mode requires 1-6 storyboard entries in multiPrompt.`, { status: 400, code: "validation_error" });
+  }
+  const durations = multiPrompt.map((s) => Number(s.duration));
+  if (durations.some((d) => !Number.isFinite(d) || d < 1 || d > totalDuration)) {
+    throw new ApiError(`${model}: each storyboard duration must be between 1 and the total duration (${totalDuration}s).`, { status: 400, code: "validation_error" });
+  }
+  const sum = durations.reduce((a, b) => a + b, 0);
+  if (sum !== totalDuration) {
+    throw new ApiError(`${model}: storyboard durations must add up to the total duration (${sum}s \u2260 ${totalDuration}s).`, { status: 400, code: "validation_error" });
+  }
+}
 var buildKlingV3Payload = (defaultMode = "std") => (input) => {
-  const hasEndFrame = !!(input.startFrame && input.endFrame && input.renderingSpeed !== "std");
-  const hasSound = !!input.generateAudio && !hasEndFrame;
-  const mode = defaultMode === "4k" ? "4k" : hasEndFrame ? "pro" : input.renderingSpeed ?? defaultMode;
+  const hasEndFrame = !!(input.startFrame && input.endFrame);
+  const hasSound = !!input.generateAudio;
+  const mode = input.renderingSpeed ?? defaultMode;
+  const totalDuration = input.duration ?? 5;
+  if (input.multiShot && (input.shotType ?? "customize") !== "intelligence") {
+    assertMultiPrompt(input.multiPrompt, totalDuration, "Kling V3");
+  }
+  const voiceList = hasSound && input.startFrame ? input.voiceList : void 0;
   return {
     ...input.multiShot ? {} : { prompt: input.prompt },
     aspect_ratio: input.aspectRatio ?? "16:9",
     // String(n) is just `string`; wire expects '3'|'5'|...|'15'. Narrowing cast.
-    duration: String(input.duration ?? 5),
+    duration: String(totalDuration),
     model_name: "kling-v3",
     ...input.startFrame ? { image: input.startFrame } : {},
     ...hasEndFrame ? { image_tail: input.endFrame } : {},
@@ -1998,26 +2075,25 @@ var buildKlingV3Payload = (defaultMode = "std") => (input) => {
     ...input.multiShot != null ? { multi_shot: input.multiShot } : {},
     ...input.shotType ? { shot_type: input.shotType } : {},
     ...input.multiPrompt ? { multi_prompt: input.multiPrompt } : {},
-    // voice_list and element_list are mutex in I2V — voice_list wins
-    // when both are set (matches backend behavior, per the workflow schema).
-    ...input.voiceList ? { voice_list: input.voiceList } : {},
-    ...input.startFrame && input.elementList && !input.voiceList ? { element_list: input.elementList } : {},
-    ...input.startFrame && input.staticMask ? { static_mask: input.staticMask } : {}
+    // voice_list requires sound 'on' and exists only on the I2V spec;
+    // element_list is I2V-only and mutex with voice_list (voice_list wins).
+    ...voiceList ? { voice_list: voiceList } : {},
+    ...input.startFrame && input.elementList && !voiceList ? { element_list: input.elementList } : {}
   };
 };
 var buildKlingV3TurboPayload = (input) => ({
-  prompt: input.prompt,
+  // Cap the folded string at the declared 2500-char prompt limit: the prompt
+  // alone passed validation, so trimming can only ever hit the negative tail.
+  prompt: input.negativePrompt ? `${input.prompt}. Avoid: ${input.negativePrompt}`.slice(0, 2500) : input.prompt,
   aspect_ratio: input.aspectRatio ?? "16:9",
   // String(n) is just `string`; wire expects '3'|'5'|...|'15'. Narrowing cast.
   duration: String(input.duration ?? 5),
   model_name: "kling-v3-turbo",
   resolution: input.resolution ?? "720p",
-  ...input.startFrame ? { image: input.startFrame } : {},
-  ...input.negativePrompt ? { negative_prompt: input.negativePrompt } : {},
-  ...input.startFrame && input.staticMask ? { static_mask: input.staticMask } : {}
+  ...input.startFrame ? { image: input.startFrame } : {}
 });
 var buildKlingV26Payload = (input) => {
-  const hasEndFrame = !!(input.startFrame && input.endFrame && input.renderingSpeed !== "std");
+  const hasEndFrame = !!(input.startFrame && input.endFrame);
   const hasSound = !!input.generateAudio && !hasEndFrame;
   return {
     prompt: input.prompt,
@@ -2028,8 +2104,7 @@ var buildKlingV26Payload = (input) => {
     ...hasEndFrame ? { image_tail: input.endFrame } : {},
     ...input.negativePrompt ? { negative_prompt: input.negativePrompt } : {},
     ...hasSound ? { sound: "on" } : {},
-    mode: "pro",
-    ...input.cfgScale !== void 0 ? { cfg_scale: input.cfgScale } : {}
+    mode: "pro"
   };
 };
 var stringElementList = (list) => list?.length ? { element_list: list.map((e) => ({ element_id: String(e.element_id) })) } : {};
@@ -2046,15 +2121,19 @@ var buildOmniV3 = (input) => {
   }] : [];
   const hasBaseEdit = videoList[0]?.refer_type === "base";
   const hasReferenceVideo = videoList.length > 0;
-  const fourK = input.resolution === "4k" && !hasReferenceVideo;
   const hasSound = !!input.generateAudio && !hasReferenceVideo;
+  const mode = input.resolution === "4k" ? hasReferenceVideo ? "pro" : "4k" : input.resolution === "1080p" ? "pro" : "std";
+  const totalDuration = input.duration ?? 5;
+  if (input.multiShot && !hasBaseEdit) {
+    assertMultiPrompt(input.multiPrompt, totalDuration, "Kling V3 Omni");
+  }
   return {
     ...input.multiShot ? {} : { prompt: input.prompt },
     model_name: "kling-v3-omni",
     ...hasBaseEdit || input.startFrame ? {} : { aspect_ratio: input.aspectRatio ?? "16:9" },
     // String(n) is just `string`; wire expects literal union. Narrowing cast.
-    ...hasBaseEdit ? {} : { duration: String(input.duration ?? 5) },
-    ...fourK ? { mode: "4k" } : input.renderingSpeed ? { mode: input.renderingSpeed } : {},
+    ...hasBaseEdit ? {} : { duration: String(totalDuration) },
+    mode,
     ...input.multiShot != null ? { multi_shot: input.multiShot } : {},
     ...input.shotType ? { shot_type: input.shotType } : {},
     ...input.multiPrompt ? { multi_prompt: input.multiPrompt } : {},
@@ -2088,8 +2167,7 @@ var buildMotionControl = (backendModelName) => (input) => ({
 var buildKlingAvatarPayload = (input) => ({
   // imageUrls is typed [string, ...string[]] (required tuple).
   image: input.imageUrls[0],
-  ...input.audioUrl ? { sound_file: input.audioUrl } : {},
-  ...input.audioId ? { audio_id: input.audioId } : {},
+  ...input.audioUrl ? { sound_file: input.audioUrl } : input.audioId ? { audio_id: input.audioId } : {},
   prompt: input.prompt,
   ...input.renderingSpeed ? { mode: input.renderingSpeed } : {}
 });
@@ -2108,10 +2186,8 @@ var buildGenerations = (input) => {
     model_name: "kling-v2-1",
     n: input.count ?? 1,
     ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
-    ...input.negativePrompt ? { negative_prompt: input.negativePrompt } : {},
-    ...hasImage ? { image: input.imageUrls[0] } : {},
-    ...hasImage && input.imageWeight != null ? { image_fidelity: input.imageWeight / 100 } : {},
-    ...input.humanFidelity != null ? { human_fidelity: input.humanFidelity } : {}
+    ...input.negativePrompt && !hasImage ? { negative_prompt: input.negativePrompt } : {},
+    ...hasImage ? { image: input.imageUrls[0] } : {}
   };
 };
 var buildMultiImage = (input) => ({
@@ -2125,26 +2201,36 @@ var buildMultiImage = (input) => ({
 });
 var buildKlingElementsPayload = (input) => {
   const isVideo = input.referenceType === "video_refer";
+  if (isVideo && !input.videoUrl) {
+    throw new ApiError("Kling Elements: video reference requires a reference video.", { status: 400, code: "validation_error" });
+  }
+  if (!isVideo && (input.imageUrls?.length ?? 0) < 2) {
+    throw new ApiError("Kling Elements: image reference requires at least 2 images \u2014 a frontal image plus 1-3 additional angles.", { status: 400, code: "validation_error" });
+  }
   return {
     element_name: input.elementName,
     element_description: input.elementDescription,
     reference_type: input.referenceType ?? "image_refer",
-    ...isVideo ? input.videoUrl ? { element_video_list: { refer_videos: [{ video_url: input.videoUrl }] } } : {} : input.imageUrls?.length ? {
+    ...isVideo ? { element_video_list: { refer_videos: [{ video_url: input.videoUrl }] } } : {
       element_image_list: {
         frontal_image: input.imageUrls[0],
-        refer_images: (input.imageUrls.slice(1) ?? []).map((url) => ({ image_url: url }))
+        refer_images: input.imageUrls.slice(1).map((url) => ({ image_url: url }))
       }
-    } : {},
+    },
     ...input.elementVoiceId ? { element_voice_id: input.elementVoiceId } : {}
   };
 };
 var buildKlingVideoEffectsPayload = (input) => {
-  const isDualEffect = input.imageUrls && input.imageUrls.length >= 2;
+  const scene = input.templateId ?? input.style;
+  const catalogItem = getHydratedCatalog({ workflow: "kling/v1/catalog/templates" })?.items.find((item) => item.id === scene);
+  const slots = typeof catalogItem?.meta?.imageSlots === "number" ? catalogItem.meta.imageSlots : scene && KLING_DUAL_IMAGE_EFFECTS.has(scene) ? 2 : 1;
+  const uploaded = input.imageUrls?.length ?? 0;
+  if (uploaded < slots) {
+    throw new ApiError(`Kling Video Effects: the "${scene}" effect requires ${slots} image${slots > 1 ? "s" : ""} (got ${uploaded}).`, { status: 400, code: "validation_error" });
+  }
   return {
-    // `style` carried the effect id before the catalog-bound `templateId` param
-    // (4.1); persisted history still sends it. Alias removed in the next major.
-    effect_scene: input.templateId ?? input.style,
-    ...isDualEffect ? { images: input.imageUrls.slice(0, 2) } : input.imageUrls?.[0] ? { image: input.imageUrls[0] } : {}
+    effect_scene: scene,
+    ...slots === 2 ? { images: input.imageUrls.slice(0, 2) } : { image: input.imageUrls[0] }
   };
 };
 var buildKlingT2APayload = (input) => ({
@@ -4530,61 +4616,6 @@ var { MODELS: MODELS14 } = defineModels("seedream", [
     }
   }
 ]);
-
-// src/core/catalogs.ts
-var metaString = (item, key) => {
-  const v = item.meta?.[key];
-  return typeof v === "string" ? v : void 0;
-};
-function toVoiceOption(item, provider) {
-  return {
-    id: item.id,
-    name: item.name,
-    description: item.description ?? "",
-    tags: item.tags,
-    provider,
-    previewUrl: item.preview?.audioUrl
-  };
-}
-function toAvatarOption(item, provider) {
-  return {
-    id: item.id,
-    name: item.name,
-    description: item.description ?? "",
-    tags: item.tags,
-    provider,
-    previewImageUrl: item.preview?.imageUrl,
-    previewVideoUrl: item.preview?.videoUrl,
-    gender: metaString(item, "gender"),
-    defaultVoiceId: metaString(item, "defaultVoiceId")
-  };
-}
-var registry = /* @__PURE__ */ new Map();
-var keyOf = (s) => `${s.workflow} ${s.modelId ?? ""}`;
-var OPTION_ADAPTERS = {
-  voiceId: toVoiceOption,
-  videoId: toAvatarOption
-};
-function installHydratedCatalog(source, paramKey, items, provider, version) {
-  const adapt = OPTION_ADAPTERS[paramKey];
-  registry.set(keyOf(source), {
-    paramKey,
-    items,
-    options: items.map((i) => ({ id: i.id, label: i.name })),
-    catalogOptions: adapt ? items.map((i) => adapt(i, provider)) : items,
-    version
-  });
-}
-function getHydratedCatalog(source) {
-  return registry.get(keyOf(source));
-}
-function getHydratedVoices() {
-  const out = [];
-  for (const c of registry.values()) {
-    if (c.paramKey === "voiceId") out.push(...c.catalogOptions);
-  }
-  return out;
-}
 
 // src/core/voices.ts
 var DEFAULT_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb";

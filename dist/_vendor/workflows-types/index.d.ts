@@ -130,7 +130,7 @@ interface GeminiResponseContent$1 {
 }
 
 interface ChatCompletionsCommand$1 {
-    model: "gpt-5" | "gpt-5-search-api" | "gpt-5.1" | "gpt-5.1-chat-latest" | "gpt-5.2" | "gpt-5.2-pro" | "gpt-5.3-codex" | "gpt-5.4" | "gpt-5.4-pro" | "gpt-5.4-mini" | "gpt-5.4-nano" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5-pro" | "gpt-5-mini" | "gpt-5-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-4.1" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o-search-preview" | "gpt-o3" | "gpt-o3-mini" | "claude-sonnet-4-0" | "claude-opus-4-0" | "claude-3-7-sonnet-latest" | "claude-3-5-sonnet-latest" | "claude-sonnet-4-5" | "claude-sonnet-4-5-latest" | "claude-sonnet-4-6" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-3-5-haiku-latest" | "claude-haiku-4-5" | "claude-fable-5" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.7-flash" | "gemini-3.6-flash" | "gemini-3.5-flash" | "gemini-3.5-flash-lite" | "gemini-3.1-flash-lite" | "gemini-2.0-flash-001" | "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-2.0-flash-lite";
+    model: "gpt-5" | "gpt-5-search-api" | "gpt-5.1" | "gpt-5.1-chat-latest" | "gpt-5.2" | "gpt-5.2-pro" | "gpt-5.3-codex" | "gpt-5.4" | "gpt-5.4-pro" | "gpt-5.4-mini" | "gpt-5.4-nano" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5-pro" | "gpt-5-mini" | "gpt-5-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-4.1" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o-search-preview" | "gpt-o3" | "gpt-o3-mini" | "claude-sonnet-4-0" | "claude-opus-4-0" | "claude-3-7-sonnet-latest" | "claude-3-5-sonnet-latest" | "claude-sonnet-4-5" | "claude-sonnet-4-5-latest" | "claude-sonnet-4-6" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-3-5-haiku-latest" | "claude-haiku-4-5" | "claude-fable-5" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.8-flash" | "gemini-3.7-flash" | "gemini-3.6-flash" | "gemini-3.5-flash" | "gemini-3.5-flash-lite" | "gemini-3.1-flash-lite" | "gemini-2.0-flash-001" | "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-2.0-flash-lite";
     messages: MessageParam[];
     temperature?: number;
     max_completion_tokens?: number;
@@ -181,7 +181,7 @@ interface ChatCompletionResponse {
 interface ChatCompletionResult {
     id: string;
     created: number;
-    model: "gpt-5" | "gpt-5-search-api" | "gpt-5.1" | "gpt-5.1-chat-latest" | "gpt-5.2" | "gpt-5.2-pro" | "gpt-5.3-codex" | "gpt-5.4" | "gpt-5.4-pro" | "gpt-5.4-mini" | "gpt-5.4-nano" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5-pro" | "gpt-5-mini" | "gpt-5-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-4.1" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o-search-preview" | "gpt-o3" | "gpt-o3-mini" | "claude-sonnet-4-0" | "claude-opus-4-0" | "claude-3-7-sonnet-latest" | "claude-3-5-sonnet-latest" | "claude-sonnet-4-5" | "claude-sonnet-4-5-latest" | "claude-sonnet-4-6" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-3-5-haiku-latest" | "claude-haiku-4-5" | "claude-fable-5" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.7-flash" | "gemini-3.6-flash" | "gemini-3.5-flash" | "gemini-3.5-flash-lite" | "gemini-3.1-flash-lite" | "gemini-2.0-flash-001" | "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-2.0-flash-lite";
+    model: "gpt-5" | "gpt-5-search-api" | "gpt-5.1" | "gpt-5.1-chat-latest" | "gpt-5.2" | "gpt-5.2-pro" | "gpt-5.3-codex" | "gpt-5.4" | "gpt-5.4-pro" | "gpt-5.4-mini" | "gpt-5.4-nano" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5-pro" | "gpt-5-mini" | "gpt-5-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-4.1" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o-search-preview" | "gpt-o3" | "gpt-o3-mini" | "claude-sonnet-4-0" | "claude-opus-4-0" | "claude-3-7-sonnet-latest" | "claude-3-5-sonnet-latest" | "claude-sonnet-4-5" | "claude-sonnet-4-5-latest" | "claude-sonnet-4-6" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-3-5-haiku-latest" | "claude-haiku-4-5" | "claude-fable-5" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.8-flash" | "gemini-3.7-flash" | "gemini-3.6-flash" | "gemini-3.5-flash" | "gemini-3.5-flash-lite" | "gemini-3.1-flash-lite" | "gemini-2.0-flash-001" | "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-2.0-flash-lite";
     choices: Choice[];
     usage: Usage$1;
 }
@@ -4685,6 +4685,7 @@ interface WanV2ReferenceToVideoCommand {
     prompt: string;
     media: WanV2R2VMediaItem[];
     negative_prompt?: string;
+    prompt_extend?: boolean;
     model?: "wan2.7-r2v";
     resolution?: "720P" | "1080P";
     ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
@@ -4731,6 +4732,7 @@ interface WanV2ReferenceToVideoResult {
 interface WanV2VideoEditCommand {
     prompt?: string;
     negative_prompt?: string;
+    prompt_extend?: boolean;
     media: WanV2VideoEditMediaItem[];
     model?: "wan2.7-videoedit";
     resolution?: "720P" | "1080P";
@@ -10578,7 +10580,7 @@ interface VoiceDeleteResult {
     deleted: boolean;
 }
 
-interface TurboTextToVideoHailuo03Input {
+interface TurboTextToVideoHailuo03Input$1 {
     prompt_expansion_mode: string;
     resolution?: "480P" | "768P";
     enable_safety_checker?: boolean;
@@ -10604,9 +10606,9 @@ interface TurboTextToVideoHailuo03Input {
 interface MinimaxH3MaxTextToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: TurboTextToVideoHailuo03Output;
+    result: TurboTextToVideoHailuo03Output$1;
 }
-interface TurboTextToVideoHailuo03Output {
+interface TurboTextToVideoHailuo03Output$1 {
     timings?: Record<string, number> | unknown;
     expanded_prompt?: string | unknown;
     video: {
@@ -10617,7 +10619,7 @@ interface TurboTextToVideoHailuo03Output {
     };
 }
 
-interface TurboImageToVideoHailuo03Input {
+interface TurboImageToVideoHailuo03Input$1 {
     prompt_expansion_mode: string;
     resolution?: "480P" | "768P";
     enable_safety_checker?: boolean;
@@ -10644,9 +10646,9 @@ interface TurboImageToVideoHailuo03Input {
 interface MinimaxH3MaxImageToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: TurboImageToVideoHailuo03Output;
+    result: TurboImageToVideoHailuo03Output$1;
 }
-interface TurboImageToVideoHailuo03Output {
+interface TurboImageToVideoHailuo03Output$1 {
     timings?: Record<string, number> | unknown;
     expanded_prompt?: string | unknown;
     video: {
@@ -10905,6 +10907,85 @@ interface MultipleAnglesOutput {
     })[];
     seed: number;
     prompt: string;
+}
+
+interface TurboTextToVideoHailuo03Input {
+    prompt_expansion_mode: string;
+    resolution?: "480P" | "768P";
+    enable_safety_checker?: boolean;
+    seed?: number | unknown;
+    duration?: number;
+    prompt: string;
+    sync_mode?: boolean;
+    aspect_ratio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
+    options?: {
+        safety_checks?: {
+            enabled?: boolean;
+        };
+        drive?: {
+            name: string;
+            attributes?: Record<string, string>;
+            folder?: {
+                path?: string;
+                id?: string;
+            };
+        };
+    };
+}
+interface MinimaxH3MaxTurboTextToVideoResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: TurboTextToVideoHailuo03Output;
+}
+interface TurboTextToVideoHailuo03Output {
+    timings?: Record<string, number> | unknown;
+    expanded_prompt?: string | unknown;
+    video: {
+        file_size?: number | unknown;
+        url: string;
+        content_type?: string | unknown;
+        file_name?: string | unknown;
+    };
+}
+
+interface TurboImageToVideoHailuo03Input {
+    prompt_expansion_mode: string;
+    resolution?: "480P" | "768P";
+    enable_safety_checker?: boolean;
+    seed?: number | unknown;
+    end_image_url?: string | unknown;
+    duration?: number;
+    prompt: string;
+    sync_mode?: boolean;
+    image_url?: string | unknown;
+    options?: {
+        safety_checks?: {
+            enabled?: boolean;
+        };
+        drive?: {
+            name: string;
+            attributes?: Record<string, string>;
+            folder?: {
+                path?: string;
+                id?: string;
+            };
+        };
+    };
+}
+interface MinimaxH3MaxTurboImageToVideoResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: TurboImageToVideoHailuo03Output;
+}
+interface TurboImageToVideoHailuo03Output {
+    timings?: Record<string, number> | unknown;
+    expanded_prompt?: string | unknown;
+    video: {
+        file_size?: number | unknown;
+        url: string;
+        content_type?: string | unknown;
+        file_name?: string | unknown;
+    };
 }
 
 interface WorkflowTypes {
@@ -11933,11 +12014,11 @@ interface WorkflowTypes {
         result: VoiceDeleteResponse;
     };
     'minimax/h3-max/text-to-video': {
-        params: TurboTextToVideoHailuo03Input;
+        params: TurboTextToVideoHailuo03Input$1;
         result: MinimaxH3MaxTextToVideoResponse;
     };
     'minimax/h3-max/image-to-video': {
-        params: TurboImageToVideoHailuo03Input;
+        params: TurboImageToVideoHailuo03Input$1;
         result: MinimaxH3MaxImageToVideoResponse;
     };
     'meta/v1/images/generations': {
@@ -11963,6 +12044,14 @@ interface WorkflowTypes {
     'qwen-image-edit-2511-multiple-angles': {
         params: MultipleAnglesInput;
         result: QwenImageEdit2511MultipleAnglesResponse;
+    };
+    'minimax/h3-max-turbo/text-to-video': {
+        params: TurboTextToVideoHailuo03Input;
+        result: MinimaxH3MaxTurboTextToVideoResponse;
+    };
+    'minimax/h3-max-turbo/image-to-video': {
+        params: TurboImageToVideoHailuo03Input;
+        result: MinimaxH3MaxTurboImageToVideoResponse;
     };
 }
 

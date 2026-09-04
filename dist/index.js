@@ -8725,6 +8725,23 @@ var { MODELS: ANTHROPIC } = defineModels("anthropic", [
 ]);
 var { MODELS: OPENAI_LLM } = defineModels("openai", [
   {
+    id: "gpt-6-astra",
+    name: "GPT-6 Astra",
+    workflow: "chat-completions",
+    addedAt: "2026-09-04",
+    estimatedTime: 10,
+    mode: "text",
+    inputType: "i2t",
+    release: "preview",
+    description: "OpenAI\u2019s next-generation flagship model for advanced reasoning and multimodal tasks.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  {
     id: "gpt-5.6-sol",
     name: "GPT-5.6 Sol",
     workflow: "chat-completions",
@@ -8936,6 +8953,7 @@ registerPayloads(MODELS36, {
   "claude-opus-4-8": buildClaudePayload("claude-opus-4-8"),
   "claude-sonnet-4-6": buildClaudePayload("claude-sonnet-4-6"),
   "claude-haiku-4-5": buildClaudePayload("claude-haiku-4-5"),
+  "gpt-6-astra": buildOpenAiPayload("gpt-6-astra"),
   "gpt-5.6-sol": buildOpenAiPayload("gpt-5.6-sol"),
   "gpt-5.6-terra": buildOpenAiPayload("gpt-5.6-terra"),
   "gpt-5.6-luna": buildOpenAiPayload("gpt-5.6-luna"),
@@ -11297,6 +11315,7 @@ var Gpt55 = "gpt-5.5";
 var Gpt56Luna = "gpt-5.6-luna";
 var Gpt56Sol = "gpt-5.6-sol";
 var Gpt56Terra = "gpt-5.6-terra";
+var Gpt6Astra = "gpt-6-astra";
 var GptImage1 = "gpt-image-1";
 var GptImage15 = "gpt-image-1.5";
 var GptImage2 = "gpt-image-2";
@@ -11516,6 +11535,7 @@ var Models = {
   Gpt56Luna,
   Gpt56Sol,
   Gpt56Terra,
+  Gpt6Astra,
   GptImage1,
   GptImage15,
   GptImage2,

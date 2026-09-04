@@ -16,11 +16,11 @@ type ChatParams = WorkflowTypes['chat-completions']['params'];
 type ClaudeParams = WorkflowTypes['claude/v1/messages']['params'];
 type GeminiParams = WorkflowTypes['gemini']['params'];
 
-// The live chat-completions workflow accepts the newest Gemini flash models,
-// but the published @picsart/workflows-types (1.1.125) doesn't list them in its
-// `model` enum yet. Widen locally until the types package catches up, then
-// drop ChatModel/ChatPayload and revert to ChatParams.
-type ChatModel = ChatParams['model'] | 'gemini-3.8-flash';
+// The live chat-completions workflow accepts gpt-6-astra, but the published
+// @picsart/workflows-types (1.1.126) doesn't list it in its `model` enum yet.
+// Widen locally until the types package catches up, then drop
+// ChatModel/ChatPayload and revert to ChatParams.
+type ChatModel = ChatParams['model'] | 'gpt-6-astra';
 type ChatPayload = Omit<ChatParams, 'model'> & { model: ChatModel };
 
 const CLAUDE_MAX_TOKENS = 8192;
@@ -94,6 +94,7 @@ registerPayloads(MODELS, {
   'claude-opus-4-8': buildClaudePayload('claude-opus-4-8'),
   'claude-sonnet-4-6': buildClaudePayload('claude-sonnet-4-6'),
   'claude-haiku-4-5': buildClaudePayload('claude-haiku-4-5'),
+  'gpt-6-astra': buildOpenAiPayload('gpt-6-astra'),
   'gpt-5.6-sol': buildOpenAiPayload('gpt-5.6-sol'),
   'gpt-5.6-terra': buildOpenAiPayload('gpt-5.6-terra'),
   'gpt-5.6-luna': buildOpenAiPayload('gpt-5.6-luna'),

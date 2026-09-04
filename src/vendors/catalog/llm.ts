@@ -60,6 +60,18 @@ const { MODELS: ANTHROPIC } = defineModels('anthropic', [
 
 const { MODELS: OPENAI_LLM } = defineModels('openai', [
   {
+    id: 'gpt-6-astra', name: 'GPT-6 Astra',
+    workflow: 'chat-completions', addedAt: '2026-09-04', estimatedTime: 10,
+    mode: 'text', inputType: 'i2t', release: 'preview',
+    description: 'OpenAI’s next-generation flagship model for advanced reasoning and multimodal tasks.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high'])
+    },
+  },
+  {
     id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol',
     workflow: 'chat-completions', addedAt: '2026-09-04', estimatedTime: 10,
     mode: 'text', inputType: 'i2t', badge: ['premium'],

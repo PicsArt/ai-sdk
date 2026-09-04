@@ -123,10 +123,18 @@ export interface GenerationContext {
   videoId?: string;
   modelId?: string;
   removeBackgroundNoise?: boolean;
-  /** MiniMax Music v2 worker field, sent as `lyrics_prompt` (min 10 chars). */
+  /** MiniMax Music — user lyrics, sent as the worker `lyrics` field. */
   lyricsPrompt?: string;
   lyricsOptimizer?: boolean;
   isInstrumental?: boolean;
+  /** LTX 2.3 — output frame rate (24/25/48/50; >10s Fast videos require 25). */
+  fps?: number;
+  /** LTX 2.3 Extend — direction: 'end' extends forward, 'start' backward. */
+  mode?: string;
+  /** LTX 2.3 Retake — which tracks to regenerate. */
+  retakeMode?: string;
+  /** LTX 2.3 Retake — segment start offset in seconds. */
+  startTime?: number;
   language?: string;
   accent?: string;
   style?: string;
@@ -160,6 +168,10 @@ export interface GenerationContext {
   // off `GenerationContext` and read via per-model `ModelInput<'<id>'>` (the
   // generated input type derived from each model's paramConfig).
   audioSetting?: 'auto' | 'origin';
+  /** MiniMax Music — audio_setting knobs. */
+  sampleRate?: number;
+  bitrate?: number;
+  format?: string;
   returnLastFrame?: boolean;
   background?: string;
   outputFormat?: string;

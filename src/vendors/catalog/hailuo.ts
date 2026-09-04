@@ -10,7 +10,7 @@ import { p } from '../../core/descriptors/presets.ts';
 const buildT2V = (withDuration: boolean): PayloadBuilder => (ctx) => ({
   prompt: ctx.prompt,
   ...(ctx.enhancePrompt !== undefined ? { prompt_optimizer: ctx.enhancePrompt } : {}),
-  ...(withDuration && ctx.duration ? { duration: String(ctx.duration) } : {}),
+  ...(withDuration && ctx.duration ? { duration: ctx.duration } : {}),
 });
 
 /** I2V payload — prompt + image_url + prompt_optimizer + optional duration (standard only). */
@@ -18,7 +18,7 @@ const buildI2V = (withDuration: boolean): PayloadBuilder => (ctx) => ({
   prompt: ctx.prompt,
   image_url: ctx.imageUrls?.[0],
   ...(ctx.enhancePrompt !== undefined ? { prompt_optimizer: ctx.enhancePrompt } : {}),
-  ...(withDuration && ctx.duration ? { duration: String(ctx.duration) } : {}),
+  ...(withDuration && ctx.duration ? { duration: ctx.duration } : {}),
 });
 
 /**
@@ -40,7 +40,7 @@ const buildMinimaxH3: PayloadBuilder = (ctx) => {
     model: 'MiniMax-H3',
     content,
     resolution: '2K',
-    ...(ctx.duration ? { duration: ctx.duration } : {}),
+    duration: ctx.duration ?? 5,
     ...(ctx.aspectRatio ? { ratio: ctx.aspectRatio } : {}),
   };
 };
@@ -104,10 +104,10 @@ export const { MODELS } = defineModels('minimax', [
     buildPayload: buildT2V(true),
     buildEditPayload: buildI2V(true),
     estimatedTime: 150,
-    description: 'Stylized 720p animation with strong character expression and emotion.',
-    features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('720p', 'resolution'), feat('10 sec', 'duration')],
+    description: 'Stylized 768p animation with strong character expression and emotion.',
+    features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('768p', 'resolution'), feat('10 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 2000 }),
       ...params.enhancePrompt(),
       ...params.duration([6, 10]),
       ...params.imageInput(),
@@ -125,7 +125,7 @@ export const { MODELS } = defineModels('minimax', [
     description: '1080p output focused on detailed scenes and polished short-form content.',
     features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('1080p', 'resolution'), feat('6 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 2000 }),
       ...params.enhancePrompt(),
       ...params.imageInput(),
     },
@@ -137,10 +137,10 @@ export const { MODELS } = defineModels('minimax', [
     workflow: 'minimax/hailuo-2.3-fast/standard/image-to-video',
     buildPayload: buildI2V(true),
     estimatedTime: 173,
-    description: 'Quick 720p previews with expressive characters for rapid experimentation.',
-    features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('720p', 'resolution'), feat('10 sec', 'duration')],
+    description: 'Quick 768p previews with expressive characters for rapid experimentation.',
+    features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('768p', 'resolution'), feat('10 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 2000 }),
       ...params.enhancePrompt(),
       ...params.duration([6, 10]),
       ...params.imageInput(1, 'Start Image', true),
@@ -156,7 +156,7 @@ export const { MODELS } = defineModels('minimax', [
     description: 'Fast 1080p output for short, polished clips with varied styles.',
     features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('1080p', 'resolution'), feat('6 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 2000 }),
       ...params.enhancePrompt(),
       ...params.imageInput(1, 'Start Image', true),
     },
@@ -174,13 +174,13 @@ export const { MODELS } = defineModels('minimax', [
       feat('Reference Video', 'input'), feat('2K', 'resolution'), feat('15 sec', 'duration'),
     ],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 7000 }),
       ...params.startFrame(),
       ...params.endFrame(),
-      ...params.imageInput(3, 'Reference Images', false),
-      ...params.videoInputs(1, 'Reference Videos', false),
-      ...params.audioInputs(1, 'Reference Audios', false),
-      ...params.duration([5, 10, 15]),
+      ...params.imageInput(9, 'Reference Images', false),
+      ...params.videoInputs(3, 'Reference Videos', false),
+      ...params.audioInputs(3, 'Reference Audios', false),
+      ...params.durationRange(5, 15, 5),
       ...p.aspectRatio(['adaptive', '21:9', '16:9', '4:3', '1:1', '3:4', '9:16'], 'adaptive'),
     },
     constraints: minimaxH3Constraints,

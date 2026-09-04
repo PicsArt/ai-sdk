@@ -11,13 +11,18 @@ export const buildMinimaxTTSPayload: PayloadBuilder = (ctx) => ({
   text: ctx.prompt,
 });
 
-/** Music — worker requires `lyrics_prompt` even when using instrumental mode. */
+/** Music v2 — worker field is `lyrics` (optional: instrumental mode and the
+ * lyrics optimizer both run without it); output_format is worker-owned. */
 export const buildMinimaxMusicPayload: PayloadBuilder = (ctx) => ({
   prompt: ctx.prompt,
-  lyrics_prompt: ctx.lyricsPrompt ?? ctx.prompt,
+  ...(ctx.lyricsPrompt ? { lyrics: ctx.lyricsPrompt } : {}),
   ...(ctx.lyricsOptimizer != null ? { lyrics_optimizer: ctx.lyricsOptimizer } : {}),
   ...(ctx.isInstrumental != null ? { is_instrumental: ctx.isInstrumental } : {}),
-  ...(ctx.outputFormat ? { output_format: ctx.outputFormat } : { output_format: 'url' }),
+  audio_setting: {
+    sample_rate: ctx.sampleRate ?? 44100,
+    bitrate: ctx.bitrate ?? 256000,
+    format: ctx.format ?? 'mp3',
+  },
 });
 
 export const { MODELS } = defineModels('minimax', [
@@ -46,13 +51,15 @@ export const { MODELS } = defineModels('minimax', [
     paramConfig: {
       ...params.prompt({ maxLength: 2000, placeholder: 'Describe the genre, mood, instruments, tempo, and production style...' }),
       ...p.text('lyricsPrompt', {
-        maxLength: 2000,
-        label: 'Lyrics Prompt',
-        placeholder: 'Write lyrics, or describe the lyrical theme. Minimum 10 characters.',
+        maxLength: 3500,
+        label: 'Lyrics',
+        placeholder: 'Write lyrics, or describe the lyrical theme. Optional for instrumental or optimizer-generated lyrics.',
       }),
       ...p.boolean('lyricsOptimizer', false, 'Lyrics Optimizer'),
       ...p.boolean('isInstrumental', false, 'Instrumental'),
-      ...p.enum('outputFormat', ['url', 'hex'], 'url', { label: 'Output Format' }),
+      ...p.enum('sampleRate', [16000, 24000, 32000, 44100], 44100, { label: 'Sample Rate' }),
+      ...p.enum('bitrate', [32000, 64000, 128000, 256000], 256000, { label: 'Bitrate' }),
+      ...p.enum('format', ['mp3', 'wav', 'pcm'], 'mp3', { label: 'Format' }),
     },
   },
   {
@@ -66,7 +73,7 @@ export const { MODELS } = defineModels('minimax', [
     paramConfig: {
       ...params.prompt({ maxLength: 2000, placeholder: 'Describe the genre, mood, instruments, tempo, and production style...' }),
       ...p.text('lyricsPrompt', {
-        maxLength: 2000,
+        maxLength: 3500,
         label: 'Lyrics',
         placeholder: 'Write lyrics; \\n separates lines, [Intro]/[Verse]/[Chorus] tags supported. Optional for instrumental or optimizer-generated lyrics.',
       }),

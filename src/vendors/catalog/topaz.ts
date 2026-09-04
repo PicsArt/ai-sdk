@@ -47,13 +47,12 @@ export const TOPAZ_VIDEO_MODEL_OPTIONS = [
   'Gaia HQ',
   'Gaia CG',
   'Gaia 2',
-  'Starlight Precise 1',
-  'Starlight Precise 2',
+  // 'Starlight Precise 1' / 'Starlight Precise 2' / 'Starlight Fast 1' removed:
+  // deprecated upstream (developer.topazlabs.com) — Precise 2.5 / Fast 2 succeed them.
   'Starlight Precise 2.5',
   'Starlight HQ',
   'Starlight Mini',
   'Starlight Sharp',
-  'Starlight Fast 1',
   'Starlight Fast 2',
 ] as const;
 

@@ -659,6 +659,7 @@ type ModelInputById = {
         prompt?: string;
         audioUrl: string;
         imageUrls?: string[];
+        aspectRatio?: "auto" | "16:9" | "9:16";
         cfgScale?: number;
     };
     "ltx-pro-t2v": {
@@ -682,7 +683,8 @@ type ModelInputById = {
     };
     "ltx-v2.3-extend": {
         prompt?: string;
-        duration?: 5 | 10 | 15 | 20;
+        duration?: number;
+        mode?: "end" | "start";
         videoUrl: string;
     };
     "ltx-v2.3-fast": {
@@ -690,20 +692,26 @@ type ModelInputById = {
         duration?: 6 | 8 | 10 | 12 | 14 | 16 | 18 | 20;
         resolution?: "1080p" | "1440p" | "2160p";
         aspectRatio?: "16:9" | "9:16";
+        fps?: 24 | 25 | 48 | 50;
         generateAudio?: boolean;
         imageUrls?: string[];
+        endFrame?: string;
     };
     "ltx-v2.3-pro": {
         prompt: string;
         duration?: 6 | 8 | 10;
         resolution?: "1080p" | "1440p" | "2160p";
         aspectRatio?: "16:9" | "9:16";
+        fps?: 24 | 25 | 48 | 50;
         generateAudio?: boolean;
         imageUrls?: string[];
+        endFrame?: string;
     };
     "ltx-v2.3-retake": {
         prompt: string;
-        duration?: 5 | 10 | 15 | 20;
+        duration?: number;
+        retakeMode?: "replace_audio_and_video" | "replace_audio" | "replace_video";
+        startTime?: number;
         videoUrl: string;
     };
     "luma-ray-2": {
@@ -790,7 +798,7 @@ type ModelInputById = {
         imageUrls?: string[];
         videoUrls?: string[];
         audioUrls?: string[];
-        duration?: 5 | 10 | 15;
+        duration?: number;
         aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
     };
     "minimax-h3-max": {
@@ -832,7 +840,9 @@ type ModelInputById = {
         lyricsPrompt?: string;
         lyricsOptimizer?: boolean;
         isInstrumental?: boolean;
-        outputFormat?: "url" | "hex";
+        sampleRate?: 16000 | 24000 | 32000 | 44100;
+        bitrate?: 32000 | 64000 | 128000 | 256000;
+        format?: "mp3" | "wav" | "pcm";
     };
     "minimax-music-v3": {
         prompt: string;
@@ -1183,7 +1193,7 @@ type ModelInputById = {
     "reve": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3";
-        count?: 1 | 2 | 4 | 6 | 8 | 10;
+        count?: 1 | 2 | 4;
         imageUrls?: string[];
     };
     "runway-aleph2": {
@@ -1480,7 +1490,7 @@ type ModelInputById = {
     };
     "topaz-upscale-video": {
         videoUrl: string;
-        model?: "Proteus" | "Artemis HQ" | "Artemis MQ" | "Artemis LQ" | "Nyx" | "Nyx Fast" | "Nyx XL" | "Nyx HF" | "Gaia HQ" | "Gaia CG" | "Gaia 2" | "Starlight Precise 1" | "Starlight Precise 2" | "Starlight Precise 2.5" | "Starlight HQ" | "Starlight Mini" | "Starlight Sharp" | "Starlight Fast 1" | "Starlight Fast 2";
+        model?: "Proteus" | "Artemis HQ" | "Artemis MQ" | "Artemis LQ" | "Nyx" | "Nyx Fast" | "Nyx XL" | "Nyx HF" | "Gaia HQ" | "Gaia CG" | "Gaia 2" | "Starlight Precise 2.5" | "Starlight HQ" | "Starlight Mini" | "Starlight Sharp" | "Starlight Fast 2";
     };
     "veed-fabric-v1": {
         prompt?: string;
@@ -2124,10 +2134,18 @@ interface GenerationContext {
     videoId?: string;
     modelId?: string;
     removeBackgroundNoise?: boolean;
-    /** MiniMax Music v2 worker field, sent as `lyrics_prompt` (min 10 chars). */
+    /** MiniMax Music — user lyrics, sent as the worker `lyrics` field. */
     lyricsPrompt?: string;
     lyricsOptimizer?: boolean;
     isInstrumental?: boolean;
+    /** LTX 2.3 — output frame rate (24/25/48/50; >10s Fast videos require 25). */
+    fps?: number;
+    /** LTX 2.3 Extend — direction: 'end' extends forward, 'start' backward. */
+    mode?: string;
+    /** LTX 2.3 Retake — which tracks to regenerate. */
+    retakeMode?: string;
+    /** LTX 2.3 Retake — segment start offset in seconds. */
+    startTime?: number;
     language?: string;
     accent?: string;
     style?: string;
@@ -2157,6 +2175,10 @@ interface GenerationContext {
     sourceImageUrl?: string;
     similarity?: number;
     audioSetting?: 'auto' | 'origin';
+    /** MiniMax Music — audio_setting knobs. */
+    sampleRate?: number;
+    bitrate?: number;
+    format?: string;
     returnLastFrame?: boolean;
     background?: string;
     outputFormat?: string;

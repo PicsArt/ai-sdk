@@ -2292,6 +2292,15 @@ var PRO_DURATIONS = [6, 8, 10];
 var FAST_DURATIONS = [6, 8, 10, 12, 14, 16, 18, 20];
 var LTX_RESOLUTIONS = ["1080p", "1440p", "2160p"];
 var LTX_23_AR = ["16:9", "9:16"];
+var LTX_23_FPS = [24, 25, 48, 50];
+var FAST_LONG = "Videos longer than 10s render at 1080p / 25 fps.";
+var ltxFastLongConstraints = [12, 14, 16, 18, 20].map((d) => ({
+  when: { duration: { is: d } },
+  then: {
+    resolution: { allowed: ["1080p"], reason: FAST_LONG },
+    fps: { allowed: [25], reason: FAST_LONG }
+  }
+}));
 var buildLtxT2VPayload = (ctx) => ({
   prompt: ctx.prompt,
   ...ctx.imageUrls?.[0] ? { image_url: ctx.imageUrls[0] } : {},
@@ -2318,34 +2327,48 @@ var buildLtx23T2VPayload = (ctx) => ({
   ...ctx.duration != null ? { duration: ctx.duration } : {},
   ...ctx.resolution ? { resolution: ctx.resolution } : {},
   ...ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {},
+  ...ctx.fps != null ? { fps: ctx.fps } : {},
   generate_audio: ctx.generateAudio ?? true
 });
 var buildLtx23I2VPayload = (ctx) => ({
   prompt: ctx.prompt,
   image_url: ctx.imageUrls?.[0],
+  ...ctx.endFrame ? { end_image_url: ctx.endFrame } : {},
   ...ctx.duration != null ? { duration: ctx.duration } : {},
   ...ctx.resolution ? { resolution: ctx.resolution } : {},
   ...ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {},
+  ...ctx.fps != null ? { fps: ctx.fps } : {},
   generate_audio: ctx.generateAudio ?? true
 });
 var buildLtx23FastPayload = buildLtx23T2VPayload;
-var buildLtx23A2VPayload = (ctx) => ({
-  audio_url: ctx.audioUrl,
-  ...ctx.prompt ? { prompt: ctx.prompt } : {},
-  ...ctx.imageUrls?.[0] ? { image_url: ctx.imageUrls[0] } : {},
-  ...ctx.cfgScale != null ? { guidance_scale: ctx.cfgScale } : {}
-});
+var buildLtx23A2VPayload = (ctx) => {
+  if (!ctx.prompt && !ctx.imageUrls?.[0]) {
+    throw new ApiError("LTX 2.3 Audio-to-Video: provide a prompt or a first-frame image.", {
+      status: 400,
+      code: "validation_error"
+    });
+  }
+  return {
+    audio_url: ctx.audioUrl,
+    ...ctx.prompt ? { prompt: ctx.prompt } : {},
+    ...ctx.imageUrls?.[0] ? { image_url: ctx.imageUrls[0] } : {},
+    ...ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {},
+    // No client default: the vendor picks 5 (with image) / 9 (without) contextually.
+    ...ctx.cfgScale != null ? { guidance_scale: ctx.cfgScale } : {}
+  };
+};
 var buildLtx23ExtendPayload = (ctx) => ({
   video_url: ctx.videoUrl,
   ...ctx.prompt ? { prompt: ctx.prompt } : {},
   ...ctx.duration != null ? { duration: ctx.duration } : {},
-  mode: "end"
+  mode: ctx.mode ?? "end"
 });
 var buildLtx23RetakePayload = (ctx) => ({
   prompt: ctx.prompt,
   video_url: ctx.videoUrl,
   ...ctx.duration != null ? { duration: ctx.duration } : {},
-  retake_mode: "replace_audio_and_video"
+  retake_mode: ctx.retakeMode ?? "replace_audio_and_video",
+  ...ctx.startTime != null ? { start_time: ctx.startTime } : {}
 });
 var { MODELS: MODELS2 } = defineModels("ltx", [
   // ── LTX 2.0 ──────────────────────────────────────────────────────
@@ -2437,9 +2460,17 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
       ...params.duration(PRO_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.aspectRatio(LTX_23_AR),
+      ...p.enum("fps", LTX_23_FPS, 25, { label: "FPS" }),
       ...params.generateAudio(),
-      ...params.imageInput()
-    }
+      ...params.imageInput(),
+      ...params.endFrame()
+    },
+    constraints: [
+      // end_image_url exists only on the I2V route, which a start image triggers.
+      { when: { imageUrls: { exists: false } }, then: {
+        endFrame: { disabled: true, reason: "An end frame requires a start image." }
+      } }
+    ]
   },
   {
     id: "ltx-v2.3-fast",
@@ -2460,9 +2491,18 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
       ...params.duration(FAST_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.aspectRatio(LTX_23_AR),
+      ...p.enum("fps", LTX_23_FPS, 25, { label: "FPS" }),
       ...params.generateAudio(),
-      ...params.imageInput()
-    }
+      ...params.imageInput(),
+      ...params.endFrame()
+    },
+    constraints: [
+      ...ltxFastLongConstraints,
+      // end_image_url exists only on the I2V route, which a start image triggers.
+      { when: { imageUrls: { exists: false } }, then: {
+        endFrame: { disabled: true, reason: "An end frame requires a start image." }
+      } }
+    ]
   },
   {
     id: "ltx-2.3-a2v",
@@ -2480,7 +2520,13 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
       ...params.prompt({ required: false }),
       ...params.audioInput("Audio Track", true),
       ...params.imageInput(1, "First Frame Image", false),
-      ...params.cfgScale(1, 50, 5)
+      ...params.aspectRatio(["auto", ...LTX_23_AR]),
+      // Default-less on purpose: the vendor default is contextual (5 with an
+      // image, 9 without), so the SDK only sends a user-chosen value.
+      cfgScale: {
+        label: "CFG Scale",
+        descriptor: { kind: "range", min: 1, max: 50, step: 1 }
+      }
     }
   },
   {
@@ -2496,7 +2542,8 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
     features: [feat("Video Input", "input"), feat("Up to 20s", "duration")],
     paramConfig: {
       ...params.prompt({ required: false }),
-      ...params.duration([5, 10, 15, 20], 5),
+      ...params.durationRange(2, 20, 5, 1),
+      ...p.enum("mode", ["end", "start"], "end", { label: "Extend Direction" }),
       ...params.videoInput("Source Video")
     }
   },
@@ -2513,7 +2560,13 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
     features: [feat("Video Input", "input"), feat("Up to 20s", "duration")],
     paramConfig: {
       ...params.prompt(),
-      ...params.duration([5, 10, 15, 20], 5),
+      ...params.durationRange(2, 20, 5, 1),
+      ...p.enum("retakeMode", ["replace_audio_and_video", "replace_audio", "replace_video"], "replace_audio_and_video", { label: "Retake Mode" }),
+      // Default-less: when unset the retake starts at 0 (vendor default).
+      startTime: {
+        label: "Start Time (s)",
+        descriptor: { kind: "range", min: 0, max: 20, step: 1 }
+      },
       ...params.videoInput("Source Video")
     }
   }
@@ -2827,13 +2880,13 @@ var { MODELS: MODELS8 } = defineModels("hunyuan", [
 var buildT2V = (withDuration) => (ctx) => ({
   prompt: ctx.prompt,
   ...ctx.enhancePrompt !== void 0 ? { prompt_optimizer: ctx.enhancePrompt } : {},
-  ...withDuration && ctx.duration ? { duration: String(ctx.duration) } : {}
+  ...withDuration && ctx.duration ? { duration: ctx.duration } : {}
 });
 var buildI2V = (withDuration) => (ctx) => ({
   prompt: ctx.prompt,
   image_url: ctx.imageUrls?.[0],
   ...ctx.enhancePrompt !== void 0 ? { prompt_optimizer: ctx.enhancePrompt } : {},
-  ...withDuration && ctx.duration ? { duration: String(ctx.duration) } : {}
+  ...withDuration && ctx.duration ? { duration: ctx.duration } : {}
 });
 var buildMinimaxH3 = (ctx) => {
   const content = [{ type: "text", text: ctx.prompt }];
@@ -2846,7 +2899,7 @@ var buildMinimaxH3 = (ctx) => {
     model: "MiniMax-H3",
     content,
     resolution: "2K",
-    ...ctx.duration ? { duration: ctx.duration } : {},
+    duration: ctx.duration ?? 5,
     ...ctx.aspectRatio ? { ratio: ctx.aspectRatio } : {}
   };
 };
@@ -2902,10 +2955,10 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
     buildPayload: buildT2V(true),
     buildEditPayload: buildI2V(true),
     estimatedTime: 150,
-    description: "Stylized 720p animation with strong character expression and emotion.",
-    features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("720p", "resolution"), feat("10 sec", "duration")],
+    description: "Stylized 768p animation with strong character expression and emotion.",
+    features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("768p", "resolution"), feat("10 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 2e3 }),
       ...params.enhancePrompt(),
       ...params.duration([6, 10]),
       ...params.imageInput()
@@ -2926,7 +2979,7 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
     description: "1080p output focused on detailed scenes and polished short-form content.",
     features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("1080p", "resolution"), feat("6 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 2e3 }),
       ...params.enhancePrompt(),
       ...params.imageInput()
     }
@@ -2941,10 +2994,10 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
     workflow: "minimax/hailuo-2.3-fast/standard/image-to-video",
     buildPayload: buildI2V(true),
     estimatedTime: 173,
-    description: "Quick 720p previews with expressive characters for rapid experimentation.",
-    features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("720p", "resolution"), feat("10 sec", "duration")],
+    description: "Quick 768p previews with expressive characters for rapid experimentation.",
+    features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("768p", "resolution"), feat("10 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 2e3 }),
       ...params.enhancePrompt(),
       ...params.duration([6, 10]),
       ...params.imageInput(1, "Start Image", true)
@@ -2963,7 +3016,7 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
     description: "Fast 1080p output for short, polished clips with varied styles.",
     features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("1080p", "resolution"), feat("6 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 2e3 }),
       ...params.enhancePrompt(),
       ...params.imageInput(1, "Start Image", true)
     }
@@ -2987,13 +3040,13 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
       feat("15 sec", "duration")
     ],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 7e3 }),
       ...params.startFrame(),
       ...params.endFrame(),
-      ...params.imageInput(3, "Reference Images", false),
-      ...params.videoInputs(1, "Reference Videos", false),
-      ...params.audioInputs(1, "Reference Audios", false),
-      ...params.duration([5, 10, 15]),
+      ...params.imageInput(9, "Reference Images", false),
+      ...params.videoInputs(3, "Reference Videos", false),
+      ...params.audioInputs(3, "Reference Audios", false),
+      ...params.durationRange(5, 15, 5),
       ...p.aspectRatio(["adaptive", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "adaptive")
     },
     constraints: minimaxH3Constraints
@@ -4790,7 +4843,7 @@ var buildRevePayload = (ctx) => {
   return {
     prompt: ctx.prompt,
     num_images: ctx.count ?? 1,
-    ...ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {},
+    ...ctx.aspectRatio && !hasImages ? { aspect_ratio: ctx.aspectRatio } : {},
     ...hasImages ? { image_url: ctx.imageUrls[0] } : {}
   };
 };
@@ -4808,9 +4861,10 @@ var { MODELS: MODELS16 } = defineModels("reve", [
     description: "Stylized 1K images with optional reference input.",
     features: [feat("Image Input", "input"), feat("1K", "resolution")],
     paramConfig: {
-      ...params.prompt(),
+      // fal enforces prompt <= 2560 chars and num_images <= 4 on both routes.
+      ...params.prompt({ maxLength: 2560 }),
       ...params.aspectRatio(REVE_AR),
-      ...params.count(),
+      ...params.count([1, 2, 4]),
       ...params.imageInput(1, "Source Image")
     }
   }
@@ -6545,10 +6599,14 @@ var buildMinimaxTTSPayload = (ctx) => ({
 });
 var buildMinimaxMusicPayload = (ctx) => ({
   prompt: ctx.prompt,
-  lyrics_prompt: ctx.lyricsPrompt ?? ctx.prompt,
+  ...ctx.lyricsPrompt ? { lyrics: ctx.lyricsPrompt } : {},
   ...ctx.lyricsOptimizer != null ? { lyrics_optimizer: ctx.lyricsOptimizer } : {},
   ...ctx.isInstrumental != null ? { is_instrumental: ctx.isInstrumental } : {},
-  ...ctx.outputFormat ? { output_format: ctx.outputFormat } : { output_format: "url" }
+  audio_setting: {
+    sample_rate: ctx.sampleRate ?? 44100,
+    bitrate: ctx.bitrate ?? 256e3,
+    format: ctx.format ?? "mp3"
+  }
 });
 var { MODELS: MODELS26 } = defineModels("minimax", [
   {
@@ -6584,13 +6642,15 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
     paramConfig: {
       ...params.prompt({ maxLength: 2e3, placeholder: "Describe the genre, mood, instruments, tempo, and production style..." }),
       ...p.text("lyricsPrompt", {
-        maxLength: 2e3,
-        label: "Lyrics Prompt",
-        placeholder: "Write lyrics, or describe the lyrical theme. Minimum 10 characters."
+        maxLength: 3500,
+        label: "Lyrics",
+        placeholder: "Write lyrics, or describe the lyrical theme. Optional for instrumental or optimizer-generated lyrics."
       }),
       ...p.boolean("lyricsOptimizer", false, "Lyrics Optimizer"),
       ...p.boolean("isInstrumental", false, "Instrumental"),
-      ...p.enum("outputFormat", ["url", "hex"], "url", { label: "Output Format" })
+      ...p.enum("sampleRate", [16e3, 24e3, 32e3, 44100], 44100, { label: "Sample Rate" }),
+      ...p.enum("bitrate", [32e3, 64e3, 128e3, 256e3], 256e3, { label: "Bitrate" }),
+      ...p.enum("format", ["mp3", "wav", "pcm"], "mp3", { label: "Format" })
     }
   },
   {
@@ -6606,7 +6666,7 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
     paramConfig: {
       ...params.prompt({ maxLength: 2e3, placeholder: "Describe the genre, mood, instruments, tempo, and production style..." }),
       ...p.text("lyricsPrompt", {
-        maxLength: 2e3,
+        maxLength: 3500,
         label: "Lyrics",
         placeholder: "Write lyrics; \\n separates lines, [Intro]/[Verse]/[Chorus] tags supported. Optional for instrumental or optimizer-generated lyrics."
       }),
@@ -7795,13 +7855,12 @@ var TOPAZ_VIDEO_MODEL_OPTIONS = [
   "Gaia HQ",
   "Gaia CG",
   "Gaia 2",
-  "Starlight Precise 1",
-  "Starlight Precise 2",
+  // 'Starlight Precise 1' / 'Starlight Precise 2' / 'Starlight Fast 1' removed:
+  // deprecated upstream (developer.topazlabs.com) — Precise 2.5 / Fast 2 succeed them.
   "Starlight Precise 2.5",
   "Starlight HQ",
   "Starlight Mini",
   "Starlight Sharp",
-  "Starlight Fast 1",
   "Starlight Fast 2"
 ];
 var { MODELS: MODELS30 } = defineModels("topaz", [

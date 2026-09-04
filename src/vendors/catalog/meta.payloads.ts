@@ -8,19 +8,19 @@
  * enable* booleans assemble into `tool_enablement`. `aspectRatio` maps to the
  * wire `size` ("widthxheight" — the backend accepts any size string).
  *
- * NOTE: `@picsart/workflows-types` (checked 1.1.122) does not carry the
- * `meta/v1/images/*` workflows yet, so the builder returns stay inferred.
- * Follow-up: annotate them as WorkflowTypes['meta/v1/images/generations'|
- * 'meta/v1/images/edits']['params'] once the worker team republishes.
  */
+import type { WorkflowTypes } from '@picsart/workflows-types';
 import type { ModelInput } from '../../generated/model-input-types.ts';
 import { registerEditPayloads, registerPayloads } from '../define.ts';
 import { MODELS } from './meta.ts';
 
 type MuseImageInput = ModelInput<'muse-image-1.0'>;
+type MuseGenerationsPayload = WorkflowTypes['meta/v1/images/generations']['params'];
+type MuseEditsPayload = WorkflowTypes['meta/v1/images/edits']['params'];
 
-// The backend `size` is a free-form "widthxheight"; keep the short side at
-// 1024 and derive the long side from the aspect ratio.
+// The backend `size` is a free-form "widthxheight" *aspect-ratio hint* — the
+// vendor renders at its own resolution. Keep the short side at 1024 and derive
+// the long side from the ratio.
 const MUSE_AR_TO_SIZE: Record<string, string> = {
   '1:1': '1024x1024',
   '3:2': '1536x1024',
@@ -32,7 +32,7 @@ const MUSE_AR_TO_SIZE: Record<string, string> = {
 };
 
 const buildMuseCommonPayload = (input: MuseImageInput) => ({
-  model: 'muse-image-1.0',
+  model: 'muse-image-1.0' as const,
   prompt: input.prompt,
   n: input.count ?? 1,
   size: MUSE_AR_TO_SIZE[input.aspectRatio ?? ''] ?? '1024x1024',
@@ -47,10 +47,11 @@ const buildMuseCommonPayload = (input: MuseImageInput) => ({
 });
 
 /** Text-to-Image (meta/v1/images/generations). */
-const buildMuseImagePayload = (input: MuseImageInput) => buildMuseCommonPayload(input);
+const buildMuseImagePayload = (input: MuseImageInput): MuseGenerationsPayload =>
+  buildMuseCommonPayload(input);
 
 /** Image edit / compose (meta/v1/images/edits — requires images[]). */
-const buildMuseImageEditPayload = (input: MuseImageInput) => ({
+const buildMuseImageEditPayload = (input: MuseImageInput): MuseEditsPayload => ({
   ...buildMuseCommonPayload(input),
   images: input.imageUrls ?? [],
 });

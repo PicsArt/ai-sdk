@@ -9,14 +9,27 @@
  * NOTE: Fast long videos (>10s) require 25 FPS and 1080p resolution.
  * NOTE: 2.3 adds aspect_ratio and fps params to Pro/Fast workflows.
  */
-import type { PayloadBuilder } from '../../core/types.ts';
+import type { Constraint, PayloadBuilder } from '../../core/types.ts';
+import { ApiError } from '../../core/errors.ts';
 import { defineModels, feat, params } from '../define.ts';
+import { p } from '../../core/descriptors/presets.ts';
 
 // ── Shared constants ─────────────────────────────────────────────────
 const PRO_DURATIONS = [6, 8, 10];
 const FAST_DURATIONS = [6, 8, 10, 12, 14, 16, 18, 20];
 const LTX_RESOLUTIONS = ['1080p', '1440p', '2160p'] as const;
 const LTX_23_AR = ['16:9', '9:16'];
+const LTX_23_FPS = [24, 25, 48, 50];
+
+// fal rule: Fast videos longer than 10s render only at 1080p / 25 fps.
+const FAST_LONG = 'Videos longer than 10s render at 1080p / 25 fps.';
+const ltxFastLongConstraints: Constraint[] = [12, 14, 16, 18, 20].map((d) => ({
+  when: { duration: { is: d } },
+  then: {
+    resolution: { allowed: ['1080p'], reason: FAST_LONG },
+    fps: { allowed: [25], reason: FAST_LONG },
+  },
+}));
 
 // ── LTX 2.0 payload builders ────────────────────────────────────────
 
@@ -57,6 +70,7 @@ export const buildLtx23T2VPayload: PayloadBuilder = (ctx) => ({
   ...(ctx.duration != null ? { duration: ctx.duration } : {}),
   ...(ctx.resolution ? { resolution: ctx.resolution } : {}),
   ...(ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}),
+  ...(ctx.fps != null ? { fps: ctx.fps } : {}),
   generate_audio: ctx.generateAudio ?? true,
 });
 
@@ -64,9 +78,11 @@ export const buildLtx23T2VPayload: PayloadBuilder = (ctx) => ({
 export const buildLtx23I2VPayload: PayloadBuilder = (ctx) => ({
   prompt: ctx.prompt,
   image_url: ctx.imageUrls?.[0],
+  ...(ctx.endFrame ? { end_image_url: ctx.endFrame } : {}),
   ...(ctx.duration != null ? { duration: ctx.duration } : {}),
   ...(ctx.resolution ? { resolution: ctx.resolution } : {}),
   ...(ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}),
+  ...(ctx.fps != null ? { fps: ctx.fps } : {}),
   generate_audio: ctx.generateAudio ?? true,
 });
 
@@ -74,27 +90,38 @@ export const buildLtx23I2VPayload: PayloadBuilder = (ctx) => ({
 export const buildLtx23FastPayload = buildLtx23T2VPayload;
 
 /** 2.3 Audio-to-Video — audio_url required, optional prompt/image_url/guidance_scale. */
-export const buildLtx23A2VPayload: PayloadBuilder = (ctx) => ({
-  audio_url: ctx.audioUrl,
-  ...(ctx.prompt ? { prompt: ctx.prompt } : {}),
-  ...(ctx.imageUrls?.[0] ? { image_url: ctx.imageUrls[0] } : {}),
-  ...(ctx.cfgScale != null ? { guidance_scale: ctx.cfgScale } : {}),
-});
+export const buildLtx23A2VPayload: PayloadBuilder = (ctx) => {
+  // Vendor rule: a prompt is required unless a first-frame image drives the scene.
+  if (!ctx.prompt && !ctx.imageUrls?.[0]) {
+    throw new ApiError('LTX 2.3 Audio-to-Video: provide a prompt or a first-frame image.', {
+      status: 400, code: 'validation_error',
+    });
+  }
+  return {
+    audio_url: ctx.audioUrl,
+    ...(ctx.prompt ? { prompt: ctx.prompt } : {}),
+    ...(ctx.imageUrls?.[0] ? { image_url: ctx.imageUrls[0] } : {}),
+    ...(ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}),
+    // No client default: the vendor picks 5 (with image) / 9 (without) contextually.
+    ...(ctx.cfgScale != null ? { guidance_scale: ctx.cfgScale } : {}),
+  };
+};
 
-/** 2.3 Extend — video_url required, optional prompt/duration. Mode defaults to 'end'. */
+/** 2.3 Extend — video_url required, optional prompt/duration/mode ('end' = forward, 'start' = backward). */
 export const buildLtx23ExtendPayload: PayloadBuilder = (ctx) => ({
   video_url: ctx.videoUrl,
   ...(ctx.prompt ? { prompt: ctx.prompt } : {}),
   ...(ctx.duration != null ? { duration: ctx.duration } : {}),
-  mode: 'end',
+  mode: ctx.mode ?? 'end',
 });
 
-/** 2.3 Retake — video_url + prompt required, duration/retake_mode. */
+/** 2.3 Retake — video_url + prompt required, duration/retake_mode/start_time. */
 export const buildLtx23RetakePayload: PayloadBuilder = (ctx) => ({
   prompt: ctx.prompt,
   video_url: ctx.videoUrl,
   ...(ctx.duration != null ? { duration: ctx.duration } : {}),
-  retake_mode: 'replace_audio_and_video',
+  retake_mode: ctx.retakeMode ?? 'replace_audio_and_video',
+  ...(ctx.startTime != null ? { start_time: ctx.startTime } : {}),
 });
 
 // ── Model definitions ────────────────────────────────────────────────
@@ -168,9 +195,17 @@ export const { MODELS } = defineModels('ltx', [
       ...params.duration(PRO_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.aspectRatio(LTX_23_AR),
+      ...p.enum('fps', LTX_23_FPS, 25, { label: 'FPS' }),
       ...params.generateAudio(),
       ...params.imageInput(),
+      ...params.endFrame(),
     },
+    constraints: [
+      // end_image_url exists only on the I2V route, which a start image triggers.
+      { when: { imageUrls: { exists: false } }, then: {
+        endFrame: { disabled: true, reason: 'An end frame requires a start image.' },
+      } },
+    ],
   },
   {
     id: 'ltx-v2.3-fast', name: 'LTX 2.3 Fast',
@@ -186,9 +221,18 @@ export const { MODELS } = defineModels('ltx', [
       ...params.duration(FAST_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.aspectRatio(LTX_23_AR),
+      ...p.enum('fps', LTX_23_FPS, 25, { label: 'FPS' }),
       ...params.generateAudio(),
       ...params.imageInput(),
+      ...params.endFrame(),
     },
+    constraints: [
+      ...ltxFastLongConstraints,
+      // end_image_url exists only on the I2V route, which a start image triggers.
+      { when: { imageUrls: { exists: false } }, then: {
+        endFrame: { disabled: true, reason: 'An end frame requires a start image.' },
+      } },
+    ],
   },
   {
     id: 'ltx-2.3-a2v', name: 'LTX 2.3 Audio-to-Video', modelId: 'ltx-v2.3-pro',
@@ -202,7 +246,13 @@ export const { MODELS } = defineModels('ltx', [
       ...params.prompt({ required: false }),
       ...params.audioInput('Audio Track', true),
       ...params.imageInput(1, 'First Frame Image', false),
-      ...params.cfgScale(1, 50, 5),
+      ...params.aspectRatio(['auto', ...LTX_23_AR]),
+      // Default-less on purpose: the vendor default is contextual (5 with an
+      // image, 9 without), so the SDK only sends a user-chosen value.
+      cfgScale: {
+        label: 'CFG Scale',
+        descriptor: { kind: 'range', min: 1, max: 50, step: 1 },
+      },
     },
   },
   {
@@ -215,7 +265,8 @@ export const { MODELS } = defineModels('ltx', [
     features: [feat('Video Input', 'input'), feat('Up to 20s', 'duration')],
     paramConfig: {
       ...params.prompt({ required: false }),
-      ...params.duration([5, 10, 15, 20], 5),
+      ...params.durationRange(2, 20, 5, 1),
+      ...p.enum('mode', ['end', 'start'], 'end', { label: 'Extend Direction' }),
       ...params.videoInput('Source Video'),
     },
   },
@@ -229,7 +280,13 @@ export const { MODELS } = defineModels('ltx', [
     features: [feat('Video Input', 'input'), feat('Up to 20s', 'duration')],
     paramConfig: {
       ...params.prompt(),
-      ...params.duration([5, 10, 15, 20], 5),
+      ...params.durationRange(2, 20, 5, 1),
+      ...p.enum('retakeMode', ['replace_audio_and_video', 'replace_audio', 'replace_video'], 'replace_audio_and_video', { label: 'Retake Mode' }),
+      // Default-less: when unset the retake starts at 0 (vendor default).
+      startTime: {
+        label: 'Start Time (s)',
+        descriptor: { kind: 'range', min: 0, max: 20, step: 1 },
+      },
       ...params.videoInput('Source Video'),
     },
   },

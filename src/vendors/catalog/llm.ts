@@ -60,6 +60,42 @@ const { MODELS: ANTHROPIC } = defineModels('anthropic', [
 
 const { MODELS: OPENAI_LLM } = defineModels('openai', [
   {
+    id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol',
+    workflow: 'chat-completions', addedAt: '2026-09-04', estimatedTime: 10,
+    mode: 'text', inputType: 'i2t', badge: ['premium'],
+    description: 'OpenAI’s most capable GPT-5.6 model for deep reasoning and complex tasks.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high'])
+    },
+  },
+  {
+    id: 'gpt-5.6-terra', name: 'GPT-5.6 Terra',
+    workflow: 'chat-completions', addedAt: '2026-09-04', estimatedTime: 8,
+    mode: 'text', inputType: 'i2t', badge: ['popular'],
+    description: 'Balanced GPT-5.6 model — strong general-purpose quality at moderate latency.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high'])
+    },
+  },
+  {
+    id: 'gpt-5.6-luna', name: 'GPT-5.6 Luna',
+    workflow: 'chat-completions', addedAt: '2026-09-04', estimatedTime: 5,
+    mode: 'text', inputType: 'i2t', badge: ['fast'],
+    description: 'Fast, lightweight GPT-5.6 model for low-latency, high-volume text tasks.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high'])
+    },
+  },
+  {
     id: 'gpt-5.5', name: 'GPT-5.5',
     workflow: 'chat-completions', addedAt: ADDED, estimatedTime: 8,
     mode: 'text', inputType: 'i2t', badge: ['popular'],

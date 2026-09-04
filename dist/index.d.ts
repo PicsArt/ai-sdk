@@ -325,6 +325,21 @@ type ModelInputById = {
         imageUrls?: string[];
         thinking?: "off" | "low" | "medium" | "high";
     };
+    "gpt-5.6-luna": {
+        prompt: string;
+        imageUrls?: string[];
+        thinking?: "off" | "low" | "medium" | "high";
+    };
+    "gpt-5.6-sol": {
+        prompt: string;
+        imageUrls?: string[];
+        thinking?: "off" | "low" | "medium" | "high";
+    };
+    "gpt-5.6-terra": {
+        prompt: string;
+        imageUrls?: string[];
+        thinking?: "off" | "low" | "medium" | "high";
+    };
     "gpt-image-1": {
         prompt: string;
         aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4";
@@ -1629,7 +1644,7 @@ type ModelInputById = {
 type TypedModelId = keyof ModelInputById;
 type ModelInput<M extends TypedModelId> = ModelInputById[M];
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-type TextModelId = "claude-haiku-4-5" | "claude-opus-4-8" | "claude-sonnet-4-6" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-5.5";
+type TextModelId = "claude-haiku-4-5" | "claude-opus-4-8" | "claude-sonnet-4-6" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra";
 type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /**
@@ -2628,6 +2643,9 @@ declare const Models: {
     readonly GeminiOmni11FlashPreview: "gemini-omni-1.1-flash-preview";
     readonly GeminiOmniFlashPreview: "gemini-omni-flash-preview";
     readonly Gpt55: "gpt-5.5";
+    readonly Gpt56Luna: "gpt-5.6-luna";
+    readonly Gpt56Sol: "gpt-5.6-sol";
+    readonly Gpt56Terra: "gpt-5.6-terra";
     readonly GptImage1: "gpt-image-1";
     readonly GptImage15: "gpt-image-1.5";
     readonly GptImage2: "gpt-image-2";

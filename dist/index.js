@@ -8725,6 +8725,57 @@ var { MODELS: ANTHROPIC } = defineModels("anthropic", [
 ]);
 var { MODELS: OPENAI_LLM } = defineModels("openai", [
   {
+    id: "gpt-5.6-sol",
+    name: "GPT-5.6 Sol",
+    workflow: "chat-completions",
+    addedAt: "2026-09-04",
+    estimatedTime: 10,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["premium"],
+    description: "OpenAI\u2019s most capable GPT-5.6 model for deep reasoning and complex tasks.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  {
+    id: "gpt-5.6-terra",
+    name: "GPT-5.6 Terra",
+    workflow: "chat-completions",
+    addedAt: "2026-09-04",
+    estimatedTime: 8,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["popular"],
+    description: "Balanced GPT-5.6 model \u2014 strong general-purpose quality at moderate latency.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  {
+    id: "gpt-5.6-luna",
+    name: "GPT-5.6 Luna",
+    workflow: "chat-completions",
+    addedAt: "2026-09-04",
+    estimatedTime: 5,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["fast"],
+    description: "Fast, lightweight GPT-5.6 model for low-latency, high-volume text tasks.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  {
     id: "gpt-5.5",
     name: "GPT-5.5",
     workflow: "chat-completions",
@@ -8885,6 +8936,9 @@ registerPayloads(MODELS36, {
   "claude-opus-4-8": buildClaudePayload("claude-opus-4-8"),
   "claude-sonnet-4-6": buildClaudePayload("claude-sonnet-4-6"),
   "claude-haiku-4-5": buildClaudePayload("claude-haiku-4-5"),
+  "gpt-5.6-sol": buildOpenAiPayload("gpt-5.6-sol"),
+  "gpt-5.6-terra": buildOpenAiPayload("gpt-5.6-terra"),
+  "gpt-5.6-luna": buildOpenAiPayload("gpt-5.6-luna"),
   "gpt-5.5": buildOpenAiPayload("gpt-5.5"),
   "gemini-3-pro": buildGeminiPayload("gemini-3-pro-preview"),
   // Flash models route through chat-completions (OpenAI-shaped), not the
@@ -11240,6 +11294,9 @@ var Gemini38Flash = "gemini-3.8-flash";
 var GeminiOmni11FlashPreview = "gemini-omni-1.1-flash-preview";
 var GeminiOmniFlashPreview = "gemini-omni-flash-preview";
 var Gpt55 = "gpt-5.5";
+var Gpt56Luna = "gpt-5.6-luna";
+var Gpt56Sol = "gpt-5.6-sol";
+var Gpt56Terra = "gpt-5.6-terra";
 var GptImage1 = "gpt-image-1";
 var GptImage15 = "gpt-image-1.5";
 var GptImage2 = "gpt-image-2";
@@ -11456,6 +11513,9 @@ var Models = {
   GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,
   Gpt55,
+  Gpt56Luna,
+  Gpt56Sol,
+  Gpt56Terra,
   GptImage1,
   GptImage15,
   GptImage2,

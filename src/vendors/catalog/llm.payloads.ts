@@ -94,6 +94,9 @@ registerPayloads(MODELS, {
   'claude-opus-4-8': buildClaudePayload('claude-opus-4-8'),
   'claude-sonnet-4-6': buildClaudePayload('claude-sonnet-4-6'),
   'claude-haiku-4-5': buildClaudePayload('claude-haiku-4-5'),
+  'gpt-5.6-sol': buildOpenAiPayload('gpt-5.6-sol'),
+  'gpt-5.6-terra': buildOpenAiPayload('gpt-5.6-terra'),
+  'gpt-5.6-luna': buildOpenAiPayload('gpt-5.6-luna'),
   'gpt-5.5': buildOpenAiPayload('gpt-5.5'),
   'gemini-3-pro': buildGeminiPayload('gemini-3-pro-preview'),
   // Flash models route through chat-completions (OpenAI-shaped), not the

@@ -99,6 +99,12 @@ export const GeminiOmni11FlashPreview = 'gemini-omni-1.1-flash-preview' as const
 export const GeminiOmniFlashPreview = 'gemini-omni-flash-preview' as const;
 /** GPT-5.5 — openai (text) */
 export const Gpt55 = 'gpt-5.5' as const;
+/** GPT-5.6 Luna — openai (text) */
+export const Gpt56Luna = 'gpt-5.6-luna' as const;
+/** GPT-5.6 Sol — openai (text) */
+export const Gpt56Sol = 'gpt-5.6-sol' as const;
+/** GPT-5.6 Terra — openai (text) */
+export const Gpt56Terra = 'gpt-5.6-terra' as const;
 /** GPT Image 1 — openai (image) */
 /** @deprecated This model is retired (deprecated). */
 export const GptImage1 = 'gpt-image-1' as const;
@@ -520,6 +526,9 @@ export const Models = {
   GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,
   Gpt55,
+  Gpt56Luna,
+  Gpt56Sol,
+  Gpt56Terra,
   GptImage1,
   GptImage15,
   GptImage2,

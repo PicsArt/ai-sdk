@@ -62,7 +62,7 @@ const { MODELS: OPENAI_LLM } = defineModels('openai', [
   {
     id: 'gpt-6-astra', name: 'GPT-6 Astra',
     workflow: 'chat-completions', addedAt: '2026-09-04', estimatedTime: 10,
-    mode: 'text', inputType: 'i2t', release: 'preview',
+    mode: 'text', inputType: 'i2t', badge: ['new'],
     description: 'OpenAI’s next-generation flagship model for advanced reasoning and multimodal tasks.',
     features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
     paramConfig: {

@@ -8732,7 +8732,7 @@ var { MODELS: OPENAI_LLM } = defineModels("openai", [
     estimatedTime: 10,
     mode: "text",
     inputType: "i2t",
-    release: "preview",
+    badge: ["new"],
     description: "OpenAI\u2019s next-generation flagship model for advanced reasoning and multimodal tasks.",
     features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
     paramConfig: {

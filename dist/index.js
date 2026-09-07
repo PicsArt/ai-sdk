@@ -4855,6 +4855,7 @@ var { MODELS: MODELS16 } = defineModels("reve", [
     workflow: "reve/text-to-image",
     editWorkflow: "reve/edit",
     buildPayload: buildRevePayload,
+    release: "preview",
     estimatedTime: 20,
     mode: "image",
     inputType: "t2i",

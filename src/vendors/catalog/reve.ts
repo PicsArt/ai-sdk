@@ -26,6 +26,7 @@ export const { MODELS } = defineModels('reve', [
     addedAt: '2026-02-06',
     workflow: 'reve/text-to-image', editWorkflow: 'reve/edit',
     buildPayload: buildRevePayload,
+    release: "preview",
     estimatedTime: 20,
     mode: 'image', inputType: 't2i',
     description: 'Stylized 1K images with optional reference input.',

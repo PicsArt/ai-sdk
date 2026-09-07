@@ -8681,6 +8681,45 @@ var ADDED = "2026-06-16";
 var thinkingParam = (levels) => p.enum("thinking", ["off", ...levels], "off", { label: "Thinking" });
 var { MODELS: ANTHROPIC } = defineModels("anthropic", [
   {
+    id: "claude-fable-5-1",
+    name: "Claude Fable 5.1",
+    workflow: "claude/v1/messages",
+    addedAt: "2026-09-07",
+    estimatedTime: 12,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["new"],
+    description: "Anthropic\u2019s newest flagship \u2014 frontier reasoning above the Opus tier.",
+    features: [feat("Vision", "input")],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
+  },
+  {
+    id: "claude-fable-5",
+    name: "Claude Fable 5",
+    workflow: "claude/v1/messages",
+    addedAt: "2026-09-07",
+    estimatedTime: 12,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["new"],
+    description: "Anthropic\u2019s Fable-tier model for the most demanding reasoning and agentic tasks.",
+    features: [feat("Vision", "input")],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
+  },
+  {
+    id: "claude-opus-5",
+    name: "Claude Opus 5",
+    workflow: "claude/v1/messages",
+    addedAt: "2026-09-07",
+    estimatedTime: 10,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["new"],
+    description: "Next-generation Opus model for complex reasoning and long-form analysis.",
+    features: [feat("Vision", "input")],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
+  },
+  {
     id: "claude-opus-4-8",
     name: "Claude Opus 4.8",
     workflow: "claude/v1/messages",
@@ -8950,6 +8989,9 @@ var buildGeminiPayload = (modelId) => (input) => {
   };
 };
 registerPayloads(MODELS36, {
+  "claude-fable-5-1": buildClaudePayload("claude-fable-5-1"),
+  "claude-fable-5": buildClaudePayload("claude-fable-5"),
+  "claude-opus-5": buildClaudePayload("claude-opus-5"),
   "claude-opus-4-8": buildClaudePayload("claude-opus-4-8"),
   "claude-sonnet-4-6": buildClaudePayload("claude-sonnet-4-6"),
   "claude-haiku-4-5": buildClaudePayload("claude-haiku-4-5"),
@@ -11275,8 +11317,11 @@ var BytedanceOmnihumanV15 = "bytedance-omnihuman-v1.5";
 var BytedanceVideoEnhance = "bytedance-video-enhance";
 var BytedanceVideoUpscaler = "bytedance-video-upscaler";
 var CaptionsaiVideoCaptions = "captionsai-video-captions";
+var ClaudeFable5 = "claude-fable-5";
+var ClaudeFable51 = "claude-fable-5-1";
 var ClaudeHaiku45 = "claude-haiku-4-5";
 var ClaudeOpus48 = "claude-opus-4-8";
+var ClaudeOpus5 = "claude-opus-5";
 var ClaudeSonnet46 = "claude-sonnet-4-6";
 var CreatifyAurora = "creatify-aurora";
 var ElevenAudioIsolation = "eleven-audio-isolation";
@@ -11495,8 +11540,11 @@ var Models = {
   BytedanceVideoEnhance,
   BytedanceVideoUpscaler,
   CaptionsaiVideoCaptions,
+  ClaudeFable5,
+  ClaudeFable51,
   ClaudeHaiku45,
   ClaudeOpus48,
+  ClaudeOpus5,
   ClaudeSonnet46,
   CreatifyAurora,
   ElevenAudioIsolation,

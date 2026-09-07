@@ -16,12 +16,12 @@ type ChatParams = WorkflowTypes['chat-completions']['params'];
 type ClaudeParams = WorkflowTypes['claude/v1/messages']['params'];
 type GeminiParams = WorkflowTypes['gemini']['params'];
 
-// The live chat-completions workflow accepts gpt-6-astra, but the published
-// @picsart/workflows-types (1.1.126) doesn't list it in its `model` enum yet.
-// Widen locally until the types package catches up, then drop
-// ChatModel/ChatPayload and revert to ChatParams.
-type ChatModel = ChatParams['model'] | 'gpt-6-astra';
-type ChatPayload = Omit<ChatParams, 'model'> & { model: ChatModel };
+// The live claude/v1/messages workflow accepts claude-fable-5-1, but the
+// published @picsart/workflows-types (1.1.128) doesn't list it in its `model`
+// enum yet. Widen locally until the types package catches up, then drop
+// ClaudeModel/ClaudePayload and revert to ClaudeParams.
+type ClaudeModel = ClaudeParams['model'] | 'claude-fable-5-1';
+type ClaudePayload = Omit<ClaudeParams, 'model'> & { model: ClaudeModel };
 
 const CLAUDE_MAX_TOKENS = 8192;
 
@@ -41,7 +41,7 @@ function geminiThinkingLevel(thinking?: string): 'LOW' | 'HIGH' | undefined {
 // ── OpenAI (chat-completions) — shared by all OpenAI text models ─────
 type OpenAiInput = ModelInput<'gpt-5.5'>;
 
-const buildOpenAiPayload = (modelId: ChatModel) => (input: OpenAiInput): ChatPayload => {
+const buildOpenAiPayload = (modelId: ChatParams['model']) => (input: OpenAiInput): ChatParams => {
   const content: ChatParams['messages'][number]['content'] = [{ type: 'text', text: input.prompt }];
   for (const url of input.imageUrls ?? []) {
     content.push({ type: 'image_url', image_url: { url } });
@@ -56,7 +56,7 @@ const buildOpenAiPayload = (modelId: ChatModel) => (input: OpenAiInput): ChatPay
 // ── Claude (claude/v1/messages) — shared by all Claude text models ──
 type ClaudeInput = ModelInput<'claude-opus-4-8'>;
 
-const buildClaudePayload = (modelId: ClaudeParams['model']) => (input: ClaudeInput): ClaudeParams => {
+const buildClaudePayload = (modelId: ClaudeModel) => (input: ClaudeInput): ClaudePayload => {
   const content: ClaudeParams['messages'][number]['content'] = [{ type: 'text', text: input.prompt }];
   for (const url of input.imageUrls ?? []) {
     content.push({ type: 'image', source: { type: 'url', url } });
@@ -91,6 +91,9 @@ const buildGeminiPayload = (modelId: GeminiParams['model']) => (input: GeminiInp
 };
 
 registerPayloads(MODELS, {
+  'claude-fable-5-1': buildClaudePayload('claude-fable-5-1'),
+  'claude-fable-5': buildClaudePayload('claude-fable-5'),
+  'claude-opus-5': buildClaudePayload('claude-opus-5'),
   'claude-opus-4-8': buildClaudePayload('claude-opus-4-8'),
   'claude-sonnet-4-6': buildClaudePayload('claude-sonnet-4-6'),
   'claude-haiku-4-5': buildClaudePayload('claude-haiku-4-5'),

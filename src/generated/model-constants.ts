@@ -24,10 +24,16 @@ export const BytedanceVideoEnhance = 'bytedance-video-enhance' as const;
 export const BytedanceVideoUpscaler = 'bytedance-video-upscaler' as const;
 /** Captions — captionsai (video) */
 export const CaptionsaiVideoCaptions = 'captionsai-video-captions' as const;
+/** Claude Fable 5 — anthropic (text) */
+export const ClaudeFable5 = 'claude-fable-5' as const;
+/** Claude Fable 5.1 — anthropic (text) */
+export const ClaudeFable51 = 'claude-fable-5-1' as const;
 /** Claude Haiku 4.5 — anthropic (text) */
 export const ClaudeHaiku45 = 'claude-haiku-4-5' as const;
 /** Claude Opus 4.8 — anthropic (text) */
 export const ClaudeOpus48 = 'claude-opus-4-8' as const;
+/** Claude Opus 5 — anthropic (text) */
+export const ClaudeOpus5 = 'claude-opus-5' as const;
 /** Claude Sonnet 4.6 — anthropic (text) */
 export const ClaudeSonnet46 = 'claude-sonnet-4-6' as const;
 /** Creatify Aurora HD — creatify (video) */
@@ -491,8 +497,11 @@ export const Models = {
   BytedanceVideoEnhance,
   BytedanceVideoUpscaler,
   CaptionsaiVideoCaptions,
+  ClaudeFable5,
+  ClaudeFable51,
   ClaudeHaiku45,
   ClaudeOpus48,
+  ClaudeOpus5,
   ClaudeSonnet46,
   CreatifyAurora,
   ElevenAudioIsolation,

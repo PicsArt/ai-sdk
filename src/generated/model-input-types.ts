@@ -10,8 +10,11 @@ export type ModelInputById = {
   "bytedance-video-enhance": { videoUrl: string; quality?: "standard" | "professional"; resolution?: "source" | "720p" | "1080p" | "2k" | "4k" | "8k"; fps?: 30 | 60 | 120; scene?: "common" | "ugc" | "short_series" | "aigc" | "old_film"; bitrateLevel?: "low" | "medium" | "high"; };
   "bytedance-video-upscaler": { videoUrl: string; };
   "captionsai-video-captions": { videoUrl: string; templateId?: string; };
+  "claude-fable-5": { prompt: string; imageUrls?: string[]; };
+  "claude-fable-5-1": { prompt: string; imageUrls?: string[]; };
   "claude-haiku-4-5": { prompt: string; imageUrls?: string[]; };
   "claude-opus-4-8": { prompt: string; imageUrls?: string[]; };
+  "claude-opus-5": { prompt: string; imageUrls?: string[]; };
   "claude-sonnet-4-6": { prompt: string; imageUrls?: string[]; };
   "creatify-aurora": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; };
   "eleven-audio-isolation": { audioUrl: string; };
@@ -230,7 +233,7 @@ export type TypedModelId = keyof ModelInputById;
 export type ModelInput<M extends TypedModelId> = ModelInputById[M];
 
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-export type TextModelId = "claude-haiku-4-5" | "claude-opus-4-8" | "claude-sonnet-4-6" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
+export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-6" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
 export type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /** Ensure caller does not pass keys unsupported by the target model input shape. */

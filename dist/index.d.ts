@@ -120,11 +120,23 @@ type ModelInputById = {
         videoUrl: string;
         templateId?: string;
     };
+    "claude-fable-5": {
+        prompt: string;
+        imageUrls?: string[];
+    };
+    "claude-fable-5-1": {
+        prompt: string;
+        imageUrls?: string[];
+    };
     "claude-haiku-4-5": {
         prompt: string;
         imageUrls?: string[];
     };
     "claude-opus-4-8": {
+        prompt: string;
+        imageUrls?: string[];
+    };
+    "claude-opus-5": {
         prompt: string;
         imageUrls?: string[];
     };
@@ -1649,7 +1661,7 @@ type ModelInputById = {
 type TypedModelId = keyof ModelInputById;
 type ModelInput<M extends TypedModelId> = ModelInputById[M];
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-type TextModelId = "claude-haiku-4-5" | "claude-opus-4-8" | "claude-sonnet-4-6" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
+type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-6" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
 type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /**
@@ -2611,8 +2623,11 @@ declare const Models: {
     readonly BytedanceVideoEnhance: "bytedance-video-enhance";
     readonly BytedanceVideoUpscaler: "bytedance-video-upscaler";
     readonly CaptionsaiVideoCaptions: "captionsai-video-captions";
+    readonly ClaudeFable5: "claude-fable-5";
+    readonly ClaudeFable51: "claude-fable-5-1";
     readonly ClaudeHaiku45: "claude-haiku-4-5";
     readonly ClaudeOpus48: "claude-opus-4-8";
+    readonly ClaudeOpus5: "claude-opus-5";
     readonly ClaudeSonnet46: "claude-sonnet-4-6";
     readonly CreatifyAurora: "creatify-aurora";
     readonly ElevenAudioIsolation: "eleven-audio-isolation";

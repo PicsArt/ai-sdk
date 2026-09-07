@@ -30,6 +30,30 @@ const thinkingParam = (levels: string[]) =>
 
 const { MODELS: ANTHROPIC } = defineModels('anthropic', [
   {
+    id: 'claude-fable-5-1', name: 'Claude Fable 5.1',
+    workflow: 'claude/v1/messages', addedAt: '2026-09-07', estimatedTime: 12,
+    mode: 'text', inputType: 'i2t', badge: ['new'],
+    description: 'Anthropic’s newest flagship — frontier reasoning above the Opus tier.',
+    features: [feat('Vision', 'input')],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
+  },
+  {
+    id: 'claude-fable-5', name: 'Claude Fable 5',
+    workflow: 'claude/v1/messages', addedAt: '2026-09-07', estimatedTime: 12,
+    mode: 'text', inputType: 'i2t', badge: ['new'],
+    description: 'Anthropic’s Fable-tier model for the most demanding reasoning and agentic tasks.',
+    features: [feat('Vision', 'input')],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
+  },
+  {
+    id: 'claude-opus-5', name: 'Claude Opus 5',
+    workflow: 'claude/v1/messages', addedAt: '2026-09-07', estimatedTime: 10,
+    mode: 'text', inputType: 'i2t', badge: ['new'],
+    description: 'Next-generation Opus model for complex reasoning and long-form analysis.',
+    features: [feat('Vision', 'input')],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
+  },
+  {
     id: 'claude-opus-4-8', name: 'Claude Opus 4.8',
     workflow: 'claude/v1/messages', addedAt: ADDED, estimatedTime: 10,
     mode: 'text', inputType: 'i2t', badge: ['premium'],

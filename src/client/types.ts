@@ -113,6 +113,18 @@ export interface GenerateTextResult {
   usage?: CreditUsage;
 }
 
+/** Input-transformation settings injected into the workflow payload as
+ *  `options.inputs_transformation` (GenAIOptions, alongside `drive`). */
+export interface PayloadInputsTransformationOptions {
+  /**
+   * Downscale input images that exceed the vendor's download size cap
+   * (e.g. ByteDance's 30 MiB) and retry the generation once, instead of
+   * failing with an input-limit error. Defaults to true; workers without
+   * input transformation ignore it.
+   */
+  downscaleOversizedImages?: boolean;
+}
+
 /** Options for individual generate() / submit() calls. */
 export interface GenerateOptions {
   signal?: AbortSignal;
@@ -131,6 +143,9 @@ export interface GenerateOptions {
   folder?: DriveFolder;
   /** Save result to Picsart Drive via backend. Injected into the workflow payload. */
   drive?: PayloadDriveOptions;
+  /** Input-transformation settings. Injected into the workflow payload; when
+   *  omitted, oversized-image downscaling defaults to enabled. */
+  inputsTransformation?: PayloadInputsTransformationOptions;
   /**
    * App identity stamped onto the saved generation (appId/appType).
    * TODO(backend-autosave): temporary — remove once the backend stamps these.

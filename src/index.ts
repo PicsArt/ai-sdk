@@ -32,6 +32,7 @@ export type {
   AppIdentity,
   PayloadDriveOptions,
   PayloadDriveFolderOptions,
+  PayloadInputsTransformationOptions,
   DriveMediaItem,
   DriveFileDetails,
   ListOptions,

@@ -10746,9 +10746,19 @@ function createClient(config) {
       folder: explicit?.folder ?? (folderPath ? { path: folderPath } : void 0)
     };
   }
-  function injectDriveOptions(payload, drive) {
-    if (!drive) return payload;
-    return { ...payload, options: { drive } };
+  function injectPayloadOptions(payload, drive, inputsTransformation) {
+    const record = payload;
+    const existing = record.options ?? {};
+    return {
+      ...record,
+      options: {
+        ...existing,
+        inputs_transformation: {
+          downscale_oversized_images: inputsTransformation?.downscaleOversizedImages ?? true
+        },
+        ...drive ? { drive } : {}
+      }
+    };
   }
   return {
     // ── Simple path ──────────────────────────────────────────────────
@@ -10770,7 +10780,7 @@ function createClient(config) {
       }
       const { workflow, payload, contract } = prepareRequest(resolved, params2);
       const drive = buildDrivePayloadOptions(resolved, params2, options);
-      const finalPayload = injectDriveOptions(payload, drive);
+      const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
       const completed = await executeModel(resolved, workflow, finalPayload, options);
       return parseResult(completed, resolved, contract);
     },
@@ -10824,7 +10834,7 @@ function createClient(config) {
       const resolved = resolveModel(model);
       const { workflow, payload } = prepareRequest(resolved, params2);
       const drive = buildDrivePayloadOptions(resolved, params2, options);
-      const finalPayload = injectDriveOptions(payload, drive);
+      const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
       return client.submit({ workflow, payload: finalPayload, signal: options?.signal });
     },
     /** Check the current status of a submitted job. */

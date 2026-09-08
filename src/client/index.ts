@@ -12,7 +12,7 @@ import { extractSyncResult, toCompletedStatus } from '../core/response.ts';
 import { resolveModel } from '../core/resolve.ts';
 import { ApiError } from '../core/errors.ts';
 
-import type { ClientConfig, SdkTransport, GenerateResult, GenerateTextResult, GenerateOptions, AiClient } from './types.ts';
+import type { ClientConfig, SdkTransport, GenerateResult, GenerateTextResult, GenerateOptions, PayloadInputsTransformationOptions, AiClient } from './types.ts';
 import type { PayloadDriveOptions } from './drive.ts';
 import { buildTransport, isClientConfig, resolveFetch } from './transport.ts';
 import { prepareRequest, parseResult, parseTextResult } from './prepare.ts';
@@ -21,7 +21,7 @@ import { createApis } from './apis.ts';
 import { createCatalogs } from './catalogs.ts';
 
 // ── Re-export types for the public API ──
-export type { ClientConfig, AuthenticatedFetch, SdkTransport, GenerateResult, GenerateResultItem, GenerateTextResult, GenerateOptions, WorkflowJobHandle, CreditUsage, ToolUsage, AiClient, MediaModelId } from './types.ts';
+export type { ClientConfig, AuthenticatedFetch, SdkTransport, GenerateResult, GenerateResultItem, GenerateTextResult, GenerateOptions, PayloadInputsTransformationOptions, WorkflowJobHandle, CreditUsage, ToolUsage, AiClient, MediaModelId } from './types.ts';
 export type { ApiResponse, ApiRunOptions, ApiSchemas, ApisClient } from './apis.ts';
 export type { CatalogsClient, CatalogPage, CatalogPageOptions, CatalogsOptions } from './catalogs.ts';
 export { ExecutionMode as ApiRunMode } from '@picsart/workflows-client';
@@ -149,10 +149,28 @@ export function createClient(config: ClientConfig | SdkTransport) {
     };
   }
 
-  /** Merge drive options into the workflow payload. */
-  function injectDriveOptions(payload: unknown, drive: PayloadDriveOptions | undefined): unknown {
-    if (!drive) return payload;
-    return { ...(payload as Record<string, unknown>), options: { drive } };
+  /** Merge the SDK-level options (drive, inputs transformation) into the
+   *  workflow payload's `options` object (GenAIOptions on the backend).
+   *  Oversized-image downscaling defaults to enabled; workers without input
+   *  transformation ignore the field. Preserves any `options` already emitted
+   *  by the model's payload builder. */
+  function injectPayloadOptions(
+    payload: unknown,
+    drive: PayloadDriveOptions | undefined,
+    inputsTransformation: PayloadInputsTransformationOptions | undefined,
+  ): unknown {
+    const record = payload as Record<string, unknown>;
+    const existing = (record.options ?? {}) as Record<string, unknown>;
+    return {
+      ...record,
+      options: {
+        ...existing,
+        inputs_transformation: {
+          downscale_oversized_images: inputsTransformation?.downscaleOversizedImages ?? true,
+        },
+        ...(drive ? { drive } : {}),
+      },
+    };
   }
 
   return {
@@ -180,7 +198,7 @@ export function createClient(config: ClientConfig | SdkTransport) {
       }
       const { workflow, payload, contract } = prepareRequest(resolved, params);
       const drive = buildDrivePayloadOptions(resolved, params, options);
-      const finalPayload = injectDriveOptions(payload, drive);
+      const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
       const completed = await executeModel(resolved, workflow, finalPayload, options);
       return parseResult(completed, resolved, contract);
     },
@@ -257,7 +275,7 @@ export function createClient(config: ClientConfig | SdkTransport) {
       const resolved = resolveModel(model);
       const { workflow, payload } = prepareRequest(resolved, params);
       const drive = buildDrivePayloadOptions(resolved, params, options);
-      const finalPayload = injectDriveOptions(payload, drive);
+      const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
       return client.submit({ workflow, payload: finalPayload, signal: options?.signal });
     },
 

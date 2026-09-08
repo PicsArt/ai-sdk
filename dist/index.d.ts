@@ -2483,6 +2483,11 @@ interface ClientConfig {
     /** Enable Drive integration — auto-save generations to a Drive folder. */
     drive?: DriveConfig;
     /**
+     * Input-transformation defaults applied to every generation. A per-call
+     * `options.inputsTransformation` overrides this field by field.
+     */
+    inputsTransformation?: PayloadInputsTransformationOptions;
+    /**
      * Voice/avatar catalog behavior. `{ preload: true }` loads the first page
      * of every catalog-bound param in the background at client creation.
      */
@@ -2527,8 +2532,9 @@ interface PayloadInputsTransformationOptions {
     /**
      * Downscale input images that exceed the vendor's download size cap
      * (e.g. ByteDance's 30 MiB) and retry the generation once, instead of
-     * failing with an input-limit error. Defaults to true; workers without
-     * input transformation ignore it.
+     * failing with an input-limit error. Opt-in — defaults to false, so an
+     * oversized input fails fast unless you set this; workers without input
+     * transformation ignore it.
      */
     downscaleOversizedImages?: boolean;
 }
@@ -2550,8 +2556,9 @@ interface GenerateOptions {
     folder?: DriveFolder;
     /** Save result to Picsart Drive via backend. Injected into the workflow payload. */
     drive?: PayloadDriveOptions;
-    /** Input-transformation settings. Injected into the workflow payload; when
-     *  omitted, oversized-image downscaling defaults to enabled. */
+    /** Input-transformation settings for this call — overrides the client-level
+     *  `inputsTransformation`. When neither is set, oversized-image downscaling
+     *  stays off (opt-in). */
     inputsTransformation?: PayloadInputsTransformationOptions;
     /**
      * App identity stamped onto the saved generation (appId/appType).

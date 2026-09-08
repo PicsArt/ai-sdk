@@ -10712,6 +10712,7 @@ function createClient(config) {
   const supportsSubmit = typeof transport.submit === "function";
   const apis = createApis(isConfig ? config : null);
   const catalogs = createCatalogs(transport, isConfig ? config.catalogs : void 0);
+  const inputsTransformationConfig = isConfig ? config.inputsTransformation : void 0;
   const driveConfig = isConfig ? config.drive : void 0;
   const driveClient = isConfig && driveConfig ? createDriveClient(resolveFetch(config), config.apiUrl, driveConfig.folder) : null;
   async function executeModel(model, workflow, payload, options) {
@@ -10754,7 +10755,7 @@ function createClient(config) {
       options: {
         ...existing,
         inputs_transformation: {
-          downscale_oversized_images: inputsTransformation?.downscaleOversizedImages ?? true
+          downscale_oversized_images: inputsTransformation?.downscaleOversizedImages ?? inputsTransformationConfig?.downscaleOversizedImages ?? false
         },
         ...drive ? { drive } : {}
       }

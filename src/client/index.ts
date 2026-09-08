@@ -93,6 +93,9 @@ export function createClient(config: ClientConfig | SdkTransport) {
   // ai.catalogs — voice/avatar catalogs served by the platform catalog tasks.
   const catalogs = createCatalogs(transport, isConfig ? config.catalogs : undefined);
 
+  // Client-level input-transformation defaults; per-call options win.
+  const inputsTransformationConfig = isConfig ? config.inputsTransformation : undefined;
+
   // Drive client — only created when drive config is provided
   const driveConfig = isConfig ? config.drive : undefined;
   const driveClient = (isConfig && driveConfig)
@@ -151,7 +154,8 @@ export function createClient(config: ClientConfig | SdkTransport) {
 
   /** Merge the SDK-level options (drive, inputs transformation) into the
    *  workflow payload's `options` object (GenAIOptions on the backend).
-   *  Oversized-image downscaling defaults to enabled; workers without input
+   *  Oversized-image downscaling is opt-in: per-call options win, then the
+   *  client-level `inputsTransformation`, then disabled. Workers without input
    *  transformation ignore the field. Preserves any `options` already emitted
    *  by the model's payload builder. */
   function injectPayloadOptions(
@@ -166,7 +170,10 @@ export function createClient(config: ClientConfig | SdkTransport) {
       options: {
         ...existing,
         inputs_transformation: {
-          downscale_oversized_images: inputsTransformation?.downscaleOversizedImages ?? true,
+          downscale_oversized_images:
+            inputsTransformation?.downscaleOversizedImages
+            ?? inputsTransformationConfig?.downscaleOversizedImages
+            ?? false,
         },
         ...(drive ? { drive } : {}),
       },

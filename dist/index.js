@@ -6619,7 +6619,44 @@ var buildMinimaxMusicPayload = (ctx) => ({
     format: ctx.format ?? "mp3"
   }
 });
-var MINIMAX_H3_PROMPT_MAX = 7e3;
+var H3_MAX_PROMPT_MAX = 5e4;
+var FRAME_REF_EXCLUSIVE2 = "References and start/end frames cannot be combined.";
+var AUDIO_NEEDS_VISUAL2 = "Audio cannot be the only reference \u2014 add an image or video.";
+var RATIO_FOLLOWS_FRAME = "Aspect ratio follows the frame image.";
+var ADAPTIVE_NEEDS_REFS = "Adaptive aspect ratio requires reference inputs.";
+var H3_MAX_RATIOS = ["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"];
+var REFERENCE_EXCLUDES_FRAMES = {
+  startFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE2 },
+  endFrame: { disabled: true, reason: FRAME_REF_EXCLUSIVE2 }
+};
+var FRAME_EXCLUDES_REFERENCES = {
+  imageUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE2 },
+  videoUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE2 },
+  audioUrls: { disabled: true, reason: FRAME_REF_EXCLUSIVE2 }
+};
+var h3MaxConstraints = [
+  { when: { startFrame: { exists: true } }, then: FRAME_EXCLUDES_REFERENCES },
+  { when: { endFrame: { exists: true } }, then: FRAME_EXCLUDES_REFERENCES },
+  { when: { imageUrls: { exists: true } }, then: REFERENCE_EXCLUDES_FRAMES },
+  { when: { videoUrls: { exists: true } }, then: REFERENCE_EXCLUDES_FRAMES },
+  { when: { audioUrls: { exists: true } }, then: REFERENCE_EXCLUDES_FRAMES },
+  // With a frame the output follows that image, so the ratio is not a choice.
+  // An end frame alone is valid — it generates towards that keyframe.
+  { when: { startFrame: { exists: true } }, then: {
+    aspectRatio: { disabled: true, reason: RATIO_FOLLOWS_FRAME }
+  } },
+  { when: { endFrame: { exists: true } }, then: {
+    aspectRatio: { disabled: true, reason: RATIO_FOLLOWS_FRAME }
+  } },
+  // 'adaptive' means "follow the references" — no meaning without them.
+  { when: { imageUrls: { exists: false }, videoUrls: { exists: false }, audioUrls: { exists: false } }, then: {
+    aspectRatio: { allowed: [...H3_MAX_RATIOS], reason: ADAPTIVE_NEEDS_REFS }
+  } },
+  // Audio carries no visual signal, so it cannot be the only reference.
+  { when: { imageUrls: { exists: false }, videoUrls: { exists: false } }, then: {
+    audioUrls: { disabled: true, reason: AUDIO_NEEDS_VISUAL2 }
+  } }
+];
 var { MODELS: MODELS26 } = defineModels("minimax", [
   {
     id: "minimax-02-hd",
@@ -6690,55 +6727,51 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
     }
   },
   {
-    // Combined T2V/I2V — fal.ai-hosted (pa-fal-ai-pluggable-worker), unlike
-    // the Hailuo/H3 entries in hailuo.ts which route through the minimax
-    // worker. A start frame switches to the image-to-video edit workflow.
+    // One entry for all three H3 Max modes: the inputs pick it — reference
+    // images, videos or audio generate from references; a start and/or end
+    // frame animates those frames; neither generates from the prompt alone.
     id: "minimax-h3-max",
     name: "MiniMax H3 Max",
     modelId: "fal-ai-h3-max",
     addedAt: "2026-08-28",
-    workflow: "minimax/h3-max/text-to-video",
-    editWorkflow: "minimax/h3-max/image-to-video",
+    workflow: "minimax/h3-max/video-generation",
     estimatedTime: 5,
     mode: "video",
     inputType: "t2v",
-    description: "Top-tier MiniMax H3 Max video from text or a start/end frame, with prompt expansion. Up to 15s at 768p.",
+    description: "Top-tier MiniMax H3 Max video from text, a start/end frame, or reference images, videos, and audio \u2014 refer to references in the prompt as Image 1, Video 1, Audio 1, in input order. Up to 15s at 1080p.",
     features: [
-      feat("Image Input", "input"),
       feat("Start/End Frame", "frame"),
-      feat("768p", "resolution"),
+      feat("Multi-Image Input", "input"),
+      feat("Video Input", "input"),
+      feat("Audio Input", "input"),
+      feat("1080p", "resolution"),
       feat("5-15 sec", "duration")
     ],
     paramConfig: {
-      ...params.prompt({ maxLength: MINIMAX_H3_PROMPT_MAX }),
+      ...params.prompt({ maxLength: H3_MAX_PROMPT_MAX }),
       ...params.startFrame(),
       ...params.endFrame(),
-      // Lowercase on purpose: the worker uppercases for the fal wire ('768P')
-      // and the pricing qualities are lowercase, so this casing serves both.
-      ...params.resolution(["480p", "768p"], "768p"),
+      // Reference slots — reference-to-video route. Clips are 2-15s each
+      // (≤15s combined per modality) and images + videos + audios must add up
+      // to ≤12 files — backend-enforced; only the per-array maxima live here.
+      ...params.imageInput(9, "Reference Images"),
+      ...params.videoInputs(3, "Reference Videos"),
+      ...params.audioInputs(3, "Reference Audios"),
+      // 1080p is a latent refinement of a native 768p generation.
+      ...params.resolution(["480p", "768p", "1080p"], "768p"),
       ...params.durationRange(5, 15, 5),
-      ...params.aspectRatio(["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "16:9"),
-      ...p.enum("promptExpansionMode", ["disabled", "balanced", "quality"], "balanced", { label: "Prompt Expansion" }),
+      // 'adaptive' means "follow the references" — constrained below.
+      ...params.aspectRatio(["adaptive", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "16:9"),
+      ...p.enum("promptExpansionMode", ["balanced", "quality"], "balanced", { label: "Prompt Expansion" }),
       // -1 (sentinel) means "pick a random seed"; the builder drops it.
       ...p.range("seed", -1, 2147483647, -1),
       ...p.boolean("enableSafetyChecker", true, "Safety Checker")
     },
-    constraints: [
-      // The T2V wire has no end_image_url — an end frame only reaches the
-      // vendor on the I2V route, which needs a start frame to trigger.
-      { when: { startFrame: { exists: false } }, then: {
-        endFrame: { disabled: true, reason: "An end frame requires a start frame." }
-      } },
-      // I2V derives the ratio from the input image (no aspect_ratio on that wire).
-      { when: { startFrame: { exists: true } }, then: {
-        aspectRatio: { disabled: true, reason: "Aspect ratio follows the start frame image." }
-      } }
-    ]
+    constraints: h3MaxConstraints
   },
   {
-    // Turbo sibling of minimax-h3-max — same fal.ai worker, same wire shape,
-    // tuned for speed (faster-than-realtime generation). The only schema
-    // difference: prompt expansion has no 'disabled' mode on this endpoint.
+    // Turbo sibling of minimax-h3-max — same model family, tuned for speed
+    // (faster-than-realtime generation), text and frames only.
     id: "minimax-h3-max-turbo",
     name: "MiniMax H3 Max Turbo",
     modelId: "fal-ai-h3-max-turbo",
@@ -6748,81 +6781,35 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
     estimatedTime: 5,
     mode: "video",
     inputType: "t2v",
-    description: "Faster-than-realtime MiniMax H3 Max Turbo video from text or a start/end frame, with prompt expansion. Up to 15s at 768p.",
+    description: "Faster-than-realtime MiniMax H3 Max Turbo video from text or a start/end frame, with prompt expansion. Up to 15s at 1080p.",
     features: [
       feat("Fast", "characteristic"),
       feat("Image Input", "input"),
       feat("Start/End Frame", "frame"),
-      feat("768p", "resolution"),
+      feat("1080p", "resolution"),
       feat("5-15 sec", "duration")
     ],
     paramConfig: {
-      ...params.prompt({ maxLength: MINIMAX_H3_PROMPT_MAX }),
+      ...params.prompt({ maxLength: H3_MAX_PROMPT_MAX }),
       ...params.startFrame(),
       ...params.endFrame(),
-      // Lowercase on purpose: the worker uppercases for the fal wire ('768P')
-      // and the pricing qualities are lowercase, so this casing serves both.
-      ...params.resolution(["480p", "768p"], "768p"),
+      ...params.resolution(["480p", "768p", "1080p"], "768p"),
       ...params.durationRange(5, 15, 5),
       ...params.aspectRatio(["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "16:9"),
-      // Unlike minimax-h3-max, the turbo wire has no 'disabled' expansion mode.
       ...p.enum("promptExpansionMode", ["balanced", "quality"], "balanced", { label: "Prompt Expansion" }),
       // -1 (sentinel) means "pick a random seed"; the builder drops it.
       ...p.range("seed", -1, 2147483647, -1),
       ...p.boolean("enableSafetyChecker", true, "Safety Checker")
     },
     constraints: [
-      // The T2V wire has no end_image_url — an end frame only reaches the
-      // vendor on the I2V route, which needs a start frame to trigger.
-      { when: { startFrame: { exists: false } }, then: {
-        endFrame: { disabled: true, reason: "An end frame requires a start frame." }
-      } },
-      // I2V derives the ratio from the input image (no aspect_ratio on that wire).
+      // Either frame routes to image-to-video, which derives the ratio from
+      // the image it was given (no aspect_ratio on that wire). An end frame
+      // alone is valid — fal documents it as end-only keyframe generation.
       { when: { startFrame: { exists: true } }, then: {
-        aspectRatio: { disabled: true, reason: "Aspect ratio follows the start frame image." }
-      } }
-    ]
-  },
-  {
-    // Reference-to-video sibling of minimax-h3-max (same fal.ai worker).
-    // The prompt addresses references by modality and order — Image 1,
-    // Video 1, Audio 1, … Reference clips are 2-15s each (≤15s combined per
-    // modality) and images + videos + audios must add up to ≤12 files —
-    // backend-enforced; paramConfig only carries the per-array maxima.
-    id: "minimax-h3-max-r2v",
-    name: "MiniMax H3 Max Ref-to-Video",
-    modelId: "fal-ai-h3-max",
-    addedAt: "2026-09-01",
-    workflow: "minimax/h3-max/reference-to-video",
-    estimatedTime: 5,
-    mode: "video",
-    inputType: "i2v",
-    description: "MiniMax H3 Max video from reference images, videos, and audio \u2014 refer to them in the prompt as Image 1, Video 1, Audio 1, in input order. Up to 15s at 768p.",
-    features: [
-      feat("Multi-Image Input", "input"),
-      feat("Video Input", "input"),
-      feat("Audio Input", "input"),
-      feat("768p", "resolution"),
-      feat("5-15 sec", "duration")
-    ],
-    paramConfig: {
-      ...params.prompt({ maxLength: MINIMAX_H3_PROMPT_MAX, placeholder: "Image 1 is the protagonist. Keep her consistent with the reference while she walks through a sunlit garden..." }),
-      ...params.imageInput(9, "Reference Images"),
-      ...params.videoInputs(3, "Reference Videos"),
-      ...params.audioInputs(3, "Reference Audios"),
-      // Lowercase on purpose — same worker normalization as minimax-h3-max.
-      ...params.resolution(["480p", "768p"], "768p"),
-      ...params.durationRange(5, 15, 5),
-      ...params.aspectRatio(["adaptive", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "adaptive"),
-      // Unlike the T2V/I2V entry, this wire has no 'disabled' expansion mode.
-      ...p.enum("promptExpansionMode", ["balanced", "quality"], "balanced", { label: "Prompt Expansion" }),
-      // -1 (sentinel) means "pick a random seed"; the builder drops it.
-      ...p.range("seed", -1, 2147483647, -1),
-      ...p.boolean("enableSafetyChecker", true, "Safety Checker")
-    },
-    constraints: [
-      { when: { imageUrls: { exists: false }, videoUrls: { exists: false } }, then: {
-        audioUrls: { disabled: true, reason: "Audio cannot be the only reference \u2014 add an image or video." }
+        aspectRatio: { disabled: true, reason: "Aspect ratio follows the frame image." }
+      } },
+      { when: { endFrame: { exists: true } }, then: {
+        aspectRatio: { disabled: true, reason: "Aspect ratio follows the frame image." }
       } }
     ]
   }
@@ -6843,41 +6830,43 @@ var buildMinimaxMusicV3Payload = (input) => ({
     format: input.format ?? "mp3"
   }
 });
-var buildMinimaxH3MaxPayload = (input) => ({
-  prompt: input.prompt,
-  prompt_expansion_mode: input.promptExpansionMode ?? "balanced",
-  duration: input.duration ?? 5,
-  resolution: input.resolution ?? "768p",
-  ...input.startFrame ? {
-    image_url: input.startFrame,
-    ...input.endFrame ? { end_image_url: input.endFrame } : {}
-  } : { aspect_ratio: input.aspectRatio ?? "16:9" },
-  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
-  ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
-  enable_safety_checker: input.enableSafetyChecker ?? true
-});
+var buildMinimaxH3MaxPayload = (input) => {
+  const hasReferences = !!(input.imageUrls?.length || input.videoUrls?.length || input.audioUrls?.length);
+  const hasFrame = !!(input.startFrame || input.endFrame);
+  return {
+    prompt: input.prompt,
+    prompt_expansion_mode: input.promptExpansionMode ?? "balanced",
+    duration: input.duration ?? 5,
+    // The vendor enum is uppercase; paramConfig keeps the lowercase form.
+    resolution: (input.resolution ?? "768p").toUpperCase(),
+    // Frames and references pick different modes and are mutually exclusive
+    // (the model's constraints keep them so), hence whichever the caller
+    // filled is what goes out.
+    ...input.startFrame ? { image_url: input.startFrame } : {},
+    ...input.endFrame ? { end_image_url: input.endFrame } : {},
+    ...input.imageUrls?.length ? { reference_image_urls: input.imageUrls } : {},
+    ...input.videoUrls?.length ? { reference_video_urls: input.videoUrls } : {},
+    ...input.audioUrls?.length ? { reference_audio_urls: input.audioUrls } : {},
+    // A frame decides the ratio itself, so the field is dropped there. With
+    // references the default is 'adaptive' (follow them); from the prompt
+    // alone it is 16:9.
+    ...hasFrame ? {} : { aspect_ratio: input.aspectRatio ?? (hasReferences ? "adaptive" : "16:9") },
+    // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
+    ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
+    enable_safety_checker: input.enableSafetyChecker ?? true
+  };
+};
 var buildMinimaxH3MaxTurboPayload = (input) => ({
   prompt: input.prompt,
   prompt_expansion_mode: input.promptExpansionMode ?? "balanced",
   duration: input.duration ?? 5,
   resolution: input.resolution ?? "768p",
-  ...input.startFrame ? {
-    image_url: input.startFrame,
-    ...input.endFrame ? { end_image_url: input.endFrame } : {}
-  } : { aspect_ratio: input.aspectRatio ?? "16:9" },
-  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
-  ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
-  enable_safety_checker: input.enableSafetyChecker ?? true
-});
-var buildMinimaxH3MaxR2VPayload = (input) => ({
-  prompt: input.prompt,
-  prompt_expansion_mode: input.promptExpansionMode ?? "balanced",
-  duration: input.duration ?? 5,
-  resolution: input.resolution ?? "768p",
-  aspect_ratio: input.aspectRatio ?? "adaptive",
-  ...input.imageUrls?.length ? { reference_image_urls: input.imageUrls } : {},
-  ...input.videoUrls?.length ? { reference_video_urls: input.videoUrls } : {},
-  ...input.audioUrls?.length ? { reference_audio_urls: input.audioUrls } : {},
+  // Either frame animates frames, and an end frame alone is valid (it
+  // generates towards that keyframe). The ratio follows the frame when one is
+  // supplied, so it goes out only when neither is set.
+  ...input.startFrame ? { image_url: input.startFrame } : {},
+  ...input.endFrame ? { end_image_url: input.endFrame } : {},
+  ...input.startFrame || input.endFrame ? {} : { aspect_ratio: input.aspectRatio ?? "16:9" },
   // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
   ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
   enable_safety_checker: input.enableSafetyChecker ?? true
@@ -6885,11 +6874,9 @@ var buildMinimaxH3MaxR2VPayload = (input) => ({
 registerPayloads(MODELS26, {
   "minimax-music-v3": buildMinimaxMusicV3Payload,
   "minimax-h3-max": buildMinimaxH3MaxPayload,
-  "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload,
-  "minimax-h3-max-r2v": buildMinimaxH3MaxR2VPayload
+  "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload
 });
 registerEditPayloads(MODELS26, {
-  "minimax-h3-max": buildMinimaxH3MaxPayload,
   "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload
 });
 
@@ -11456,7 +11443,6 @@ var Lyria35 = "lyria-3.5";
 var Minimax02Hd = "minimax-02-hd";
 var MinimaxH3 = "minimax-h3";
 var MinimaxH3Max = "minimax-h3-max";
-var MinimaxH3MaxR2v = "minimax-h3-max-r2v";
 var MinimaxH3MaxTurbo = "minimax-h3-max-turbo";
 var MinimaxMusicV2 = "minimax-music-v2";
 var MinimaxMusicV3 = "minimax-music-v3";
@@ -11680,7 +11666,6 @@ var Models = {
   Minimax02Hd,
   MinimaxH3,
   MinimaxH3Max,
-  MinimaxH3MaxR2v,
   MinimaxH3MaxTurbo,
   MinimaxMusicV2,
   MinimaxMusicV3,

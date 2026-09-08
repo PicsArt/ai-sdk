@@ -1,21 +1,20 @@
 /**
- * MiniMax payload builders (Music v3, H3 Max, H3 Max Turbo, H3 Max Ref-to-Video).
+ * MiniMax payload builders (Music v3, H3 Max, H3 Max Turbo).
  *
- * Music v3: renames the unified SDK fields to the backend `MinimaxMusicV3Command`
- * wire shape (`lyricsPrompt` → `lyrics`) and nests the audio knobs under
- * `audio_setting`. Unlike v2, `lyrics` is genuinely optional on the wire —
+ * Music v3: renames the unified SDK fields to the wire shape
+ * (`lyricsPrompt` → `lyrics`) and nests the audio knobs under
+ * `audio_setting`. Unlike v2, `lyrics` is genuinely optional —
  * instrumental mode and the lyrics optimizer can both run without it.
  *
- * H3 Max / H3 Max Turbo: combined T2V/I2V entries on the fal.ai worker — one
- * builder per model serves the primary (T2V) and edit (I2V, switched by
- * startFrame presence) routes. The worker forwards the command to fal.ai
- * as-is, so the wire shape is the fal endpoint schema:
- *   - `aspect_ratio` exists only on the T2V endpoint (I2V follows the image);
- *   - `image_url` / `end_image_url` exist only on the I2V endpoint;
- *   - `resolution` casing is normalized by the worker (uppercased for fal,
- *     lowercased for pricing), so the SDK keeps the lowercase form;
- *   - `sync_mode` is intentionally not exposed — a base64 response would
- *     bypass the worker's fal-URL → Picsart CDN copy step.
+ * H3 Max and H3 Max Turbo: one builder each, covering every mode the model
+ * offers — the fields the caller filled decide which one runs. The names are
+ * the vendor's own, and the shape follows the mode:
+ *   - `aspect_ratio` goes out only without a frame; with one, the output
+ *     follows that image;
+ *   - `image_url` / `end_image_url` animate frames, `reference_*_urls`
+ *     generate from references, and the two never travel together;
+ *   - a base64 response is intentionally not offered — results are delivered
+ *     as URLs.
  */
 import type { WorkflowTypes } from '@picsart/workflows-types';
 import type { ModelInput } from '../../generated/model-input-types.ts';
@@ -42,66 +41,51 @@ const buildMinimaxMusicV3Payload = (input: MinimaxMusicV3Input): MinimaxMusicV3P
 
 type MinimaxH3MaxInput = ModelInput<'minimax-h3-max'>;
 
-// Upstream cases `resolution` for the fal wire ('768P'); the worker also
-// accepts the lowercase form the SDK sends (which pricing needs), so widen
-// that one field. Remove once upstream carries both casings.
-type FalResolutionCasing<T> = Omit<T, 'resolution'> & { resolution?: '480p' | '768p' };
-// One builder serves both routes, so the return is the T2V | I2V union.
-type MinimaxH3MaxPayload =
-  | FalResolutionCasing<WorkflowTypes['minimax/h3-max/text-to-video']['params']>
-  | FalResolutionCasing<WorkflowTypes['minimax/h3-max/image-to-video']['params']>;
+type MinimaxH3MaxPayload = WorkflowTypes['minimax/h3-max/video-generation']['params'];
 
-const buildMinimaxH3MaxPayload = (input: MinimaxH3MaxInput): MinimaxH3MaxPayload => ({
-  prompt: input.prompt,
-  prompt_expansion_mode: input.promptExpansionMode ?? 'balanced',
-  duration: input.duration ?? 5,
-  resolution: input.resolution ?? '768p',
-  ...(input.startFrame
-    ? {
-        image_url: input.startFrame,
-        ...(input.endFrame ? { end_image_url: input.endFrame } : {}),
-      }
-    : { aspect_ratio: input.aspectRatio ?? '16:9' }),
-  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
-  ...(input.seed != null && input.seed !== -1 ? { seed: input.seed } : {}),
-  enable_safety_checker: input.enableSafetyChecker ?? true,
-});
+const buildMinimaxH3MaxPayload = (input: MinimaxH3MaxInput): MinimaxH3MaxPayload => {
+  const hasReferences = !!(input.imageUrls?.length || input.videoUrls?.length || input.audioUrls?.length);
+  const hasFrame = !!(input.startFrame || input.endFrame);
+
+  return {
+    prompt: input.prompt,
+    prompt_expansion_mode: input.promptExpansionMode ?? 'balanced',
+    duration: input.duration ?? 5,
+    // The vendor enum is uppercase; paramConfig keeps the lowercase form.
+    resolution: (input.resolution ?? '768p').toUpperCase() as MinimaxH3MaxPayload['resolution'],
+    // Frames and references pick different modes and are mutually exclusive
+    // (the model's constraints keep them so), hence whichever the caller
+    // filled is what goes out.
+    ...(input.startFrame ? { image_url: input.startFrame } : {}),
+    ...(input.endFrame ? { end_image_url: input.endFrame } : {}),
+    ...(input.imageUrls?.length ? { reference_image_urls: input.imageUrls } : {}),
+    ...(input.videoUrls?.length ? { reference_video_urls: input.videoUrls } : {}),
+    ...(input.audioUrls?.length ? { reference_audio_urls: input.audioUrls } : {}),
+    // A frame decides the ratio itself, so the field is dropped there. With
+    // references the default is 'adaptive' (follow them); from the prompt
+    // alone it is 16:9.
+    ...(hasFrame ? {} : { aspect_ratio: input.aspectRatio ?? (hasReferences ? 'adaptive' : '16:9') }),
+    // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
+    ...(input.seed != null && input.seed !== -1 ? { seed: input.seed } : {}),
+    enable_safety_checker: input.enableSafetyChecker ?? true,
+  };
+};
 
 type MinimaxH3MaxTurboInput = ModelInput<'minimax-h3-max-turbo'>;
 
-// TODO: `minimax/h3-max-turbo/*` is not in @picsart/workflows-types yet
-// (h3-max t2v/i2v/r2v landed through 1.1.125, turbo pending) — the return
-// stays inferred; annotate with the T2V | I2V params union (via
-// FalResolutionCasing) once published.
+// TODO: the turbo workflows are not in @picsart/workflows-types yet — the
+// return stays inferred; annotate it with their params union once published.
 const buildMinimaxH3MaxTurboPayload = (input: MinimaxH3MaxTurboInput) => ({
   prompt: input.prompt,
   prompt_expansion_mode: input.promptExpansionMode ?? 'balanced',
   duration: input.duration ?? 5,
   resolution: input.resolution ?? '768p',
-  ...(input.startFrame
-    ? {
-        image_url: input.startFrame,
-        ...(input.endFrame ? { end_image_url: input.endFrame } : {}),
-      }
-    : { aspect_ratio: input.aspectRatio ?? '16:9' }),
-  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
-  ...(input.seed != null && input.seed !== -1 ? { seed: input.seed } : {}),
-  enable_safety_checker: input.enableSafetyChecker ?? true,
-});
-
-type MinimaxH3MaxR2VInput = ModelInput<'minimax-h3-max-r2v'>;
-type MinimaxH3MaxR2VPayload =
-  FalResolutionCasing<WorkflowTypes['minimax/h3-max/reference-to-video']['params']>;
-
-const buildMinimaxH3MaxR2VPayload = (input: MinimaxH3MaxR2VInput): MinimaxH3MaxR2VPayload => ({
-  prompt: input.prompt,
-  prompt_expansion_mode: input.promptExpansionMode ?? 'balanced',
-  duration: input.duration ?? 5,
-  resolution: input.resolution ?? '768p',
-  aspect_ratio: input.aspectRatio ?? 'adaptive',
-  ...(input.imageUrls?.length ? { reference_image_urls: input.imageUrls } : {}),
-  ...(input.videoUrls?.length ? { reference_video_urls: input.videoUrls } : {}),
-  ...(input.audioUrls?.length ? { reference_audio_urls: input.audioUrls } : {}),
+  // Either frame animates frames, and an end frame alone is valid (it
+  // generates towards that keyframe). The ratio follows the frame when one is
+  // supplied, so it goes out only when neither is set.
+  ...(input.startFrame ? { image_url: input.startFrame } : {}),
+  ...(input.endFrame ? { end_image_url: input.endFrame } : {}),
+  ...(input.startFrame || input.endFrame ? {} : { aspect_ratio: input.aspectRatio ?? '16:9' }),
   // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
   ...(input.seed != null && input.seed !== -1 ? { seed: input.seed } : {}),
   enable_safety_checker: input.enableSafetyChecker ?? true,
@@ -111,11 +95,10 @@ registerPayloads(MODELS, {
   'minimax-music-v3': buildMinimaxMusicV3Payload,
   'minimax-h3-max': buildMinimaxH3MaxPayload,
   'minimax-h3-max-turbo': buildMinimaxH3MaxTurboPayload,
-  'minimax-h3-max-r2v': buildMinimaxH3MaxR2VPayload,
 });
 
-// Edit slot — same builders; startFrame presence already shapes the payload.
+// Edit slot — turbo keeps a separate image-to-video workflow, and the frame
+// fields already shape the payload for it.
 registerEditPayloads(MODELS, {
-  'minimax-h3-max': buildMinimaxH3MaxPayload,
   'minimax-h3-max-turbo': buildMinimaxH3MaxTurboPayload,
 });

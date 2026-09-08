@@ -46,10 +46,10 @@ const EXPECTED: Record<string, number> = {
   'wan-2.6-t2v': 5000,
   'wan-2.6-r2v': 5000,
   'wan-2.6-image': 1500,
-  // MiniMax V2 (Hailuo-03) API reference.
-  'minimax-h3-max': 7000,
-  'minimax-h3-max-turbo': 7000,
-  'minimax-h3-max-r2v': 7000,
+  // H3 Max schemas — a far longer prompt than MiniMax's own H3 endpoint,
+  // which caps at 7,000.
+  'minimax-h3-max': 50_000,
+  'minimax-h3-max-turbo': 50_000,
   // fal `xai/grok-imagine-image` schema.
   'grok-imagine-image': 8000,
   'grok-imagine-image-2.0': 8000,

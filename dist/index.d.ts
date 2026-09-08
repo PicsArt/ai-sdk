@@ -818,6 +818,10 @@ type ModelInputById = {
         prompt: string;
         imageUrls?: string[];
     };
+    "lyria-3.5": {
+        prompt: string;
+        imageUrls?: string[];
+    };
     "minimax-02-hd": {
         language?: string;
         accent?: string;
@@ -2729,6 +2733,7 @@ declare const Models: {
     readonly LumaUni1Max: "luma-uni-1-max";
     readonly Lyria3Clip: "lyria-3-clip";
     readonly Lyria3Pro: "lyria-3-pro";
+    readonly Lyria35: "lyria-3.5";
     readonly Minimax02Hd: "minimax-02-hd";
     readonly MinimaxH3: "minimax-h3";
     readonly MinimaxH3Max: "minimax-h3-max";

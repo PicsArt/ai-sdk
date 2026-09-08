@@ -116,6 +116,7 @@ export type ModelInputById = {
   "luma-uni-1-max": { prompt: string; aspectRatio?: "3:1" | "2:1" | "16:9" | "3:2" | "1:1" | "2:3" | "9:16" | "1:2" | "1:3"; style?: "auto" | "manga"; imageUrls?: string[]; };
   "lyria-3-clip": { prompt: string; imageUrls?: string[]; };
   "lyria-3-pro": { prompt: string; imageUrls?: string[]; };
+  "lyria-3.5": { prompt: string; imageUrls?: string[]; };
   "minimax-02-hd": { language?: string; accent?: string; prompt: string; };
   "minimax-h3": { prompt: string; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; duration?: number; aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; };
   "minimax-h3-max": { prompt: string; startFrame?: string; endFrame?: string; resolution?: "480p" | "768p"; duration?: number; aspectRatio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; promptExpansionMode?: "disabled" | "balanced" | "quality"; seed?: number; enableSafetyChecker?: boolean; };

@@ -8266,6 +8266,22 @@ var { MODELS: MODELS32 } = defineModels("google", [
       ...params.prompt({ placeholder: "Generate voiceover, music and sound effects" }),
       ...params.imageInput(10, "Mood Images")
     }
+  },
+  {
+    id: "lyria-3.5",
+    addedAt: "2026-09-08",
+    name: "Lyria 3.5",
+    workflow: "lyria/v2/music",
+    buildPayload: buildLyria3Payload("lyria-3.5"),
+    estimatedTime: 90,
+    mode: "audio",
+    inputType: "music",
+    description: "Full-length song generation with vocals from text and image prompts, powered by Google Lyria 3.5.",
+    features: [feat("Image Input", "input"), feat("Vocal & Instrumental", "characteristic"), feat("Full-length songs", "duration")],
+    paramConfig: {
+      ...params.prompt({ placeholder: "Generate voiceover, music and sound effects" }),
+      ...params.imageInput(10, "Mood Images")
+    }
   }
 ]);
 
@@ -11424,6 +11440,7 @@ var LumaUni1 = "luma-uni-1";
 var LumaUni1Max = "luma-uni-1-max";
 var Lyria3Clip = "lyria-3-clip";
 var Lyria3Pro = "lyria-3-pro";
+var Lyria35 = "lyria-3.5";
 var Minimax02Hd = "minimax-02-hd";
 var MinimaxH3 = "minimax-h3";
 var MinimaxH3Max = "minimax-h3-max";
@@ -11647,6 +11664,7 @@ var Models = {
   LumaUni1Max,
   Lyria3Clip,
   Lyria3Pro,
+  Lyria35,
   Minimax02Hd,
   MinimaxH3,
   MinimaxH3Max,

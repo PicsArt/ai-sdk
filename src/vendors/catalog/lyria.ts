@@ -57,4 +57,20 @@ export const { MODELS } = defineModels('google', [
       ...params.imageInput(10, 'Mood Images'),
     },
   },
+  {
+    id: 'lyria-3.5',
+    addedAt: '2026-09-08',
+    name: 'Lyria 3.5',
+    workflow: 'lyria/v2/music',
+    buildPayload: buildLyria3Payload('lyria-3.5'),
+    estimatedTime: 90,
+    mode: 'audio',
+    inputType: 'music',
+    description: 'Full-length song generation with vocals from text and image prompts, powered by Google Lyria 3.5.',
+    features: [feat('Image Input', 'input'), feat('Vocal & Instrumental', 'characteristic'), feat('Full-length songs', 'duration')],
+    paramConfig: {
+      ...params.prompt({placeholder: 'Generate voiceover, music and sound effects'}),
+      ...params.imageInput(10, 'Mood Images'),
+    },
+  },
 ]);

@@ -244,6 +244,8 @@ export const LumaUni1Max = 'luma-uni-1-max' as const;
 export const Lyria3Clip = 'lyria-3-clip' as const;
 /** Lyria 3 Pro — google (audio) */
 export const Lyria3Pro = 'lyria-3-pro' as const;
+/** Lyria 3.5 — google (audio) */
+export const Lyria35 = 'lyria-3.5' as const;
 /** MiniMax 02 HD — minimax (audio) */
 /** @deprecated This model is currently unavailable (disabled). */
 export const Minimax02Hd = 'minimax-02-hd' as const;
@@ -603,6 +605,7 @@ export const Models = {
   LumaUni1Max,
   Lyria3Clip,
   Lyria3Pro,
+  Lyria35,
   Minimax02Hd,
   MinimaxH3,
   MinimaxH3Max,

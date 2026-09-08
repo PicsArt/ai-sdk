@@ -20,6 +20,9 @@ const FAST_DURATIONS = [6, 8, 10, 12, 14, 16, 18, 20];
 const LTX_RESOLUTIONS = ['1080p', '1440p', '2160p'] as const;
 const LTX_23_AR = ['16:9', '9:16'];
 const LTX_23_FPS = [24, 25, 48, 50];
+/** fal caps `prompt` at 5,000 characters on every LTX-2 and LTX-2.3 endpoint
+ *  (text-to-video, fast, audio-to-video, extend, retake). */
+const LTX_PROMPT_MAX = 5000;
 
 // fal rule: Fast videos longer than 10s render only at 1080p / 25 fps.
 const FAST_LONG = 'Videos longer than 10s render at 1080p / 25 fps.';
@@ -139,7 +142,7 @@ export const { MODELS } = defineModels('ltx', [
     description: '4K output with audio — streamlined for fast, production-ready results.',
     features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('Audio', 'audio'), feat('4K', 'resolution'), feat('6/8/10 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.duration(PRO_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.generateAudio(),
@@ -157,7 +160,7 @@ export const { MODELS } = defineModels('ltx', [
     description: 'Fast with long video support — up to 20s at 1080p, ideal for drafts and extended scenes.',
     features: [feat('Image Input', 'input'), feat('Fast', 'duration'), feat('Up to 20s', 'duration'), feat('Audio', 'audio'), feat('4K', 'resolution')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.duration(FAST_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.generateAudio(),
@@ -174,7 +177,7 @@ export const { MODELS } = defineModels('ltx', [
     description: 'Reinterpret existing footage with a new visual direction — up to 20s segments.',
     features: [feat('Video Input', 'input'), feat('Up to 20s', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.duration([5, 10, 15, 20], 5),
       ...params.videoInput('Source Video'),
     },
@@ -191,7 +194,7 @@ export const { MODELS } = defineModels('ltx', [
     description: '4K output with audio and aspect ratio control — production-ready v2.3.',
     features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('Audio', 'audio'), feat('4K', 'resolution'), feat('16:9 / 9:16', 'characteristic'), feat('6/8/10 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.duration(PRO_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.aspectRatio(LTX_23_AR),
@@ -217,7 +220,7 @@ export const { MODELS } = defineModels('ltx', [
     description: 'Fast 2.3 with long video support — up to 20s at 1080p with aspect ratio control.',
     features: [feat('Image Input', 'input'), feat('Fast', 'duration'), feat('Up to 20s', 'duration'), feat('Audio', 'audio'), feat('4K', 'resolution'), feat('16:9 / 9:16', 'characteristic')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.duration(FAST_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.aspectRatio(LTX_23_AR),
@@ -243,7 +246,7 @@ export const { MODELS } = defineModels('ltx', [
     description: 'Generate video driven by an audio track — 2-20s, optional image for first frame.',
     features: [feat('Audio Input', 'audio'), feat('Image Input', 'input'), feat('2–20 sec', 'duration')],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: LTX_PROMPT_MAX }),
       ...params.audioInput('Audio Track', true),
       ...params.imageInput(1, 'First Frame Image', false),
       ...params.aspectRatio(['auto', ...LTX_23_AR]),
@@ -264,7 +267,7 @@ export const { MODELS } = defineModels('ltx', [
     description: 'Seamlessly extend an existing video forward or backward — up to 20s.',
     features: [feat('Video Input', 'input'), feat('Up to 20s', 'duration')],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: LTX_PROMPT_MAX }),
       ...params.durationRange(2, 20, 5, 1),
       ...p.enum('mode', ['end', 'start'], 'end', { label: 'Extend Direction' }),
       ...params.videoInput('Source Video'),
@@ -279,7 +282,7 @@ export const { MODELS } = defineModels('ltx', [
     description: 'Retake video with new direction — replace audio, video, or both.',
     features: [feat('Video Input', 'input'), feat('Up to 20s', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.durationRange(2, 20, 5, 1),
       ...p.enum('retakeMode', ['replace_audio_and_video', 'replace_audio', 'replace_video'], 'replace_audio_and_video', { label: 'Retake Mode' }),
       // Default-less: when unset the retake starts at 0 (vendor default).

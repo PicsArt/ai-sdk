@@ -2293,6 +2293,7 @@ var FAST_DURATIONS = [6, 8, 10, 12, 14, 16, 18, 20];
 var LTX_RESOLUTIONS = ["1080p", "1440p", "2160p"];
 var LTX_23_AR = ["16:9", "9:16"];
 var LTX_23_FPS = [24, 25, 48, 50];
+var LTX_PROMPT_MAX = 5e3;
 var FAST_LONG = "Videos longer than 10s render at 1080p / 25 fps.";
 var ltxFastLongConstraints = [12, 14, 16, 18, 20].map((d) => ({
   when: { duration: { is: d } },
@@ -2390,7 +2391,7 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
     description: "4K output with audio \u2014 streamlined for fast, production-ready results.",
     features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("Audio", "audio"), feat("4K", "resolution"), feat("6/8/10 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.duration(PRO_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.generateAudio(),
@@ -2414,7 +2415,7 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
     description: "Fast with long video support \u2014 up to 20s at 1080p, ideal for drafts and extended scenes.",
     features: [feat("Image Input", "input"), feat("Fast", "duration"), feat("Up to 20s", "duration"), feat("Audio", "audio"), feat("4K", "resolution")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.duration(FAST_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.generateAudio(),
@@ -2435,7 +2436,7 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
     description: "Reinterpret existing footage with a new visual direction \u2014 up to 20s segments.",
     features: [feat("Video Input", "input"), feat("Up to 20s", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.duration([5, 10, 15, 20], 5),
       ...params.videoInput("Source Video")
     }
@@ -2456,7 +2457,7 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
     description: "4K output with audio and aspect ratio control \u2014 production-ready v2.3.",
     features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("Audio", "audio"), feat("4K", "resolution"), feat("16:9 / 9:16", "characteristic"), feat("6/8/10 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.duration(PRO_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.aspectRatio(LTX_23_AR),
@@ -2487,7 +2488,7 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
     description: "Fast 2.3 with long video support \u2014 up to 20s at 1080p with aspect ratio control.",
     features: [feat("Image Input", "input"), feat("Fast", "duration"), feat("Up to 20s", "duration"), feat("Audio", "audio"), feat("4K", "resolution"), feat("16:9 / 9:16", "characteristic")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.duration(FAST_DURATIONS, 6),
       ...params.resolution([...LTX_RESOLUTIONS]),
       ...params.aspectRatio(LTX_23_AR),
@@ -2517,7 +2518,7 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
     description: "Generate video driven by an audio track \u2014 2-20s, optional image for first frame.",
     features: [feat("Audio Input", "audio"), feat("Image Input", "input"), feat("2\u201320 sec", "duration")],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: LTX_PROMPT_MAX }),
       ...params.audioInput("Audio Track", true),
       ...params.imageInput(1, "First Frame Image", false),
       ...params.aspectRatio(["auto", ...LTX_23_AR]),
@@ -2541,7 +2542,7 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
     description: "Seamlessly extend an existing video forward or backward \u2014 up to 20s.",
     features: [feat("Video Input", "input"), feat("Up to 20s", "duration")],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: LTX_PROMPT_MAX }),
       ...params.durationRange(2, 20, 5, 1),
       ...p.enum("mode", ["end", "start"], "end", { label: "Extend Direction" }),
       ...params.videoInput("Source Video")
@@ -2559,7 +2560,7 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
     description: "Retake video with new direction \u2014 replace audio, video, or both.",
     features: [feat("Video Input", "input"), feat("Up to 20s", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
       ...params.durationRange(2, 20, 5, 1),
       ...p.enum("retakeMode", ["replace_audio_and_video", "replace_audio", "replace_video"], "replace_audio_and_video", { label: "Retake Mode" }),
       // Default-less: when unset the retake starts at 0 (vendor default).
@@ -2741,7 +2742,8 @@ var { MODELS: MODELS6 } = defineModels("bytedance", [
       feat("1080p", "resolution")
     ],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      // BytePlus OmniHuman 1.5 API: the optional prompt is capped at 300 characters.
+      ...params.prompt({ required: false, maxLength: 300 }),
       ...params.imageInput(1, "Portrait Image", true),
       ...params.audioInput("Audio Track", true),
       ...params.resolution([...BYTEDANCE_OMNIHUMAN_RESOLUTION_OPTIONS], "1080p"),
@@ -3224,7 +3226,7 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     description: "Painterly artistic look with audio \u2014 up to 15s at 1080p.",
     features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("5/10/15 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 5e3 }),
       ...params.duration([5, 10, 15], 5),
       ...params.resolution(["480p", "720p", "1080p"], "720p"),
       ...params.aspectRatio(["16:9", "9:16", "1:1", "4:3", "3:4"]),
@@ -3247,7 +3249,7 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     description: "Regenerate video from a reference clip with new stylistic direction.",
     features: [feat("Video Input", "input"), feat("1080p", "resolution"), feat("5/10 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 5e3 }),
       ...params.duration([5, 10], 5),
       ...params.resolution(["720p", "1080p"], "720p"),
       ...params.videoInput("Reference Video")
@@ -3267,7 +3269,8 @@ var { MODELS: MODELS10 } = defineModels("wan", [
     description: "Diverse, stylized images for visual exploration and animation.",
     features: [feat("Multi-Image Input", "input")],
     paramConfig: {
-      ...params.prompt(),
+      // pa-alibaba worker: @MaxLength(1500) on the wan-images prompt (video tasks take 5000).
+      ...params.prompt({ maxLength: 1500 }),
       ...params.count(),
       ...params.negativePrompt()
     }
@@ -3499,8 +3502,9 @@ var buildLumaRay2ReframeVideoPayload = makeReframeVideoPayload("ray-2");
 var buildLumaRayFlash2ReframeVideoPayload = makeReframeVideoPayload("ray-flash-2");
 var LUMA_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "9:21"];
 var LUMA_RESOLUTIONS = ["540p", "720p", "1080p", "4k"];
+var LUMA_PROMPT_MAX = 5e3;
 var lumaParamConfig = {
-  ...params.prompt(),
+  ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
   ...params.aspectRatio(LUMA_AR),
   ...params.resolution(LUMA_RESOLUTIONS, "720p"),
   ...params.duration([5, 9], 5)
@@ -3534,7 +3538,7 @@ var buildLumaUni1I2IPayload = makeUni1I2IPayload("uni-1");
 var buildLumaUni1MaxT2IPayload = makeUni1T2IPayload("uni-1-max");
 var buildLumaUni1MaxI2IPayload = makeUni1I2IPayload("uni-1-max");
 var lumaUni1ParamConfig = {
-  ...params.prompt({ maxLength: 6e3 }),
+  ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
   ...params.aspectRatio(LUMA_UNI1_AR, "1:1"),
   ...params.style(LUMA_UNI1_STYLES, "auto"),
   ...params.imageInput(9, "Reference Images", false)
@@ -3645,7 +3649,7 @@ var { MODELS: MODELS11 } = defineModels("luma", [
     description: "Reframe a video to a new aspect ratio using Luma Ray 2.",
     features: [feat("Video Input", "input"), feat("Reframe", "characteristic")],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: LUMA_PROMPT_MAX }),
       ...params.aspectRatio(LUMA_AR, "16:9"),
       ...params.videoInput("Source Video")
     }
@@ -3663,7 +3667,7 @@ var { MODELS: MODELS11 } = defineModels("luma", [
     description: "Reframe a video to a new aspect ratio using Luma Flash 2.",
     features: [feat("Video Input", "input"), feat("Reframe", "characteristic")],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: LUMA_PROMPT_MAX }),
       ...params.aspectRatio(LUMA_AR, "16:9"),
       ...params.videoInput("Source Video")
     }
@@ -3711,7 +3715,7 @@ var { MODELS: MODELS11 } = defineModels("luma", [
     description: "Luma Ray 3.2 \u2014 high-fidelity video generation with start/end frames, HDR, and looping (early access).",
     features: [feat("Image Input", "input"), feat("Start/End Frame", "frame"), feat("HDR", "characteristic"), feat("5/10 sec", "duration")],
     paramConfig: {
-      ...params.prompt({ maxLength: 6e3 }),
+      ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
       ...params.aspectRatio(RAY32_AR, "16:9"),
       ...params.resolution(RAY32_RESOLUTIONS, "720p"),
       ...params.duration([5, 10], 5),
@@ -3735,7 +3739,7 @@ var { MODELS: MODELS11 } = defineModels("luma", [
     description: "Edit a prior video from a prompt using Luma Ray 3.2 \u2014 preservation-vs-reimagination presets (early access).",
     features: [feat("Video Input", "input"), feat("Edit", "characteristic"), feat("HDR", "characteristic"), feat("5/10 sec", "duration")],
     paramConfig: {
-      ...params.prompt({ maxLength: 6e3 }),
+      ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
       // Source clip capped at 30s — video_edit rejects longer at ingest (422).
       ...params.videoInput("Source Video", "reference", true, 30),
       ...params.resolution(RAY32_RESOLUTIONS, "720p"),
@@ -3758,7 +3762,7 @@ var { MODELS: MODELS11 } = defineModels("luma", [
     description: "Reframe a video to a new aspect ratio using Luma Ray 3.2 (early access).",
     features: [feat("Video Input", "input"), feat("Reframe", "characteristic")],
     paramConfig: {
-      ...params.prompt({ maxLength: 6e3 }),
+      ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
       ...params.aspectRatio(RAY32_AR, "16:9"),
       // Source clip capped at 30s — video_reframe rejects longer at ingest (422).
       ...params.videoInput("Source Video", "reference", true, 30),
@@ -4532,6 +4536,7 @@ var buildSora2ExtendPayload = (ctx) => ({
 });
 var SORA_DURATIONS = [4, 8, 12, 16, 20];
 var SORA_AR = ["16:9", "9:16"];
+var SORA_PROMPT_MAX = 5e3;
 var { MODELS: MODELS13 } = defineModels("openai", [
   {
     id: "sora-2-pro",
@@ -4548,7 +4553,7 @@ var { MODELS: MODELS13 } = defineModels("openai", [
     description: "Up to 1080p with strong physical realism and optional reference image.",
     features: [feat("Image Input", "input"), feat("Audio", "audio"), feat("Up to 1080p", "resolution"), feat("4\u201320 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: SORA_PROMPT_MAX }),
       ...params.imageInput(1, "Reference Image"),
       ...params.aspectRatio(SORA_AR),
       ...params.resolution(["720p", "1024p", "1080p"]),
@@ -4569,7 +4574,7 @@ var { MODELS: MODELS13 } = defineModels("openai", [
     description: "Naturalistic 720p video with lifelike motion and character detail.",
     features: [feat("Image Input", "input"), feat("Audio", "audio"), feat("720p", "resolution"), feat("4\u201320 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: SORA_PROMPT_MAX }),
       ...params.imageInput(1, "Reference Image"),
       ...params.aspectRatio(SORA_AR),
       ...params.duration(SORA_DURATIONS, 4)
@@ -4588,7 +4593,7 @@ var { MODELS: MODELS13 } = defineModels("openai", [
     description: "Seamlessly continue a previously generated Sora video with matching style and pacing.",
     features: [feat("Continue Video", "input"), feat("4\u201320 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: SORA_PROMPT_MAX }),
       // video_id is chained from the source Sora asset (declaring the param lets
       // the store seed ctx.videoId); no aspectRatio/size — extend keeps source geometry.
       ...params.videoId([], ""),
@@ -4936,6 +4941,7 @@ var buildGrokTTSPayload = (ctx) => ({
   voice_id: ctx.voiceId ?? DEFAULT_GROK_VOICE_ID
 });
 var GROK_VIDEO_PROMPT_MAX = 4096;
+var GROK_IMAGE_PROMPT_MAX = 8e3;
 var GROK_VIDEO_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "3:2", "2:3"];
 var GROK_IMAGE_AR = ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "2:1", "1:2", "19.5:9", "9:19.5", "20:9", "9:20"];
 var GROK_DURATIONS = [3, 5, 6, 8, 10, 12, 15];
@@ -5039,7 +5045,7 @@ var { MODELS: MODELS17 } = defineModels("grok", [
     description: "Rapid image creation with wide aspect-ratio selection and image input.",
     features: [feat("Image Input", "input")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(GROK_IMAGE_AR, "1:1"),
       ...params.resolution(GROK_IMAGE_RESOLUTIONS, "1k"),
       ...params.count([1, 2, 4]),
@@ -5061,7 +5067,7 @@ var { MODELS: MODELS17 } = defineModels("grok", [
     description: "Higher-fidelity Grok Imagine variant for production-grade images.",
     features: [feat("Image Input", "input"), feat("2k", "resolution")],
     paramConfig: {
-      ...params.prompt({ maxLength: 8e3 }),
+      ...params.prompt({ maxLength: GROK_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(GROK_IMAGE_AR, "1:1"),
       ...params.resolution(GROK_IMAGE_RESOLUTIONS, "2k"),
       ...params.count([1, 2, 4]),
@@ -5080,7 +5086,7 @@ var { MODELS: MODELS17 } = defineModels("grok", [
     description: "Latest Grok Imagine generation \u2014 sharper detail with a low/medium quality tier.",
     features: [feat("Image Input", "input"), feat("2k", "resolution")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(GROK_IMAGE_AR, "1:1"),
       ...params.resolution(GROK_IMAGE_RESOLUTIONS, "1k"),
       // Vendor-side default is medium; only supported by grok-imagine-image-2.0
@@ -5266,8 +5272,9 @@ var buildVeoPayload = (modelId, opts = {}) => (ctx) => {
     }
   };
 };
+var VEO_PROMPT_MAX = 4e3;
 var veoParamConfig = {
-  ...params.prompt(),
+  ...params.prompt({ maxLength: VEO_PROMPT_MAX }),
   ...params.aspectRatio(["16:9", "9:16"]),
   ...params.duration([4, 6, 8], 8),
   ...params.resolution(["720p", "1080p", "4k"]),
@@ -5290,7 +5297,7 @@ var veoConstraints = [
   } }
 ];
 var veoLiteParamConfig = {
-  ...params.prompt(),
+  ...params.prompt({ maxLength: VEO_PROMPT_MAX }),
   ...params.aspectRatio(["16:9", "9:16"]),
   ...params.duration([4, 6, 8], 8),
   ...params.resolution(["720p", "1080p"]),
@@ -6155,6 +6162,7 @@ var buildGptImage2EditPayload = (ctx) => ({
   ...ctx.background ? { background: ctx.background } : {},
   ...ctx.outputFormat ? { output_format: ctx.outputFormat } : {}
 });
+var GPT_IMAGE_PROMPT_MAX = 32e3;
 var gptImage2Constraints = [
   {
     when: { imageUrls: { exists: true } },
@@ -6188,7 +6196,7 @@ var { MODELS: MODELS23 } = defineModels("openai", [
     description: "Next-gen GPT image model with arbitrary output dimensions and multi-image input.",
     features: [feat("Multi-Image Input", "input"), feat("High Quality", "quality")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(["1:1", "3:2", "2:3", "16:9", "9:16", "4:3", "3:4", "auto"], "1:1"),
       ...p.quality(["high", "medium", "low"], "high"),
       // gpt-image-2 supports only an opaque background — the API rejects
@@ -6214,7 +6222,7 @@ var { MODELS: MODELS23 } = defineModels("openai", [
     description: "Strong text-in-image and infographic rendering with multi-image input.",
     features: [feat("Multi-Image Input", "input"), feat("High Quality", "quality")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(["1:1", "3:2", "2:3", "16:9", "9:16", "4:3", "3:4"], "1:1"),
       ...p.quality(["high", "medium", "low"], "high"),
       ...p.enum("background", ["opaque", "transparent"], "opaque", { label: "Background" }),
@@ -6241,7 +6249,7 @@ var { MODELS: MODELS23 } = defineModels("openai", [
     description: "Original GPT image model with quality-tiered generation.",
     features: [feat("Multi-Image Input", "input")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(["1:1", "3:2", "2:3", "16:9", "9:16", "4:3", "3:4"], "1:1"),
       ...p.quality(["high", "medium", "low"], "high"),
       ...p.enum("background", ["opaque", "transparent"], "opaque", { label: "Background" }),
@@ -6347,7 +6355,8 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
     badge: ["popular"],
     description: "Create custom sound effects from a text description \u2014 up to 30 seconds.",
     features: [feat("Sound Effects", "characteristic")],
-    paramConfig: { ...params.prompt(), ...params.durationRange(0.5, 30, 5, 0.5) }
+    // ElevenLabs sound-generation reference: "The maximum length of the prompt is 450 characters."
+    paramConfig: { ...params.prompt({ maxLength: 450 }), ...params.durationRange(0.5, 30, 5, 0.5) }
   },
   // ── Music ─────────────────────────────────────────────────────────
   {
@@ -6362,7 +6371,8 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
     description: "Generate music with vocals or instrumental from a text prompt.",
     features: [feat("Vocal & Instrumental", "characteristic")],
     paramConfig: {
-      ...params.prompt(),
+      // ElevenLabs music docs state no cap; fal's `elevenlabs/music` schema declares maxLength 4100.
+      ...params.prompt({ maxLength: 4100 }),
       ...params.duration([10, 20, 30, 60, 120, 180, 300, 600], 30),
       ...p.boolean("isInstrumental", false, "Instrumental Only")
     }
@@ -6609,6 +6619,7 @@ var buildMinimaxMusicPayload = (ctx) => ({
     format: ctx.format ?? "mp3"
   }
 });
+var MINIMAX_H3_PROMPT_MAX = 7e3;
 var { MODELS: MODELS26 } = defineModels("minimax", [
   {
     id: "minimax-02-hd",
@@ -6699,7 +6710,7 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
       feat("5-15 sec", "duration")
     ],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: MINIMAX_H3_PROMPT_MAX }),
       ...params.startFrame(),
       ...params.endFrame(),
       // Lowercase on purpose: the worker uppercases for the fal wire ('768P')
@@ -6746,7 +6757,7 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
       feat("5-15 sec", "duration")
     ],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: MINIMAX_H3_PROMPT_MAX }),
       ...params.startFrame(),
       ...params.endFrame(),
       // Lowercase on purpose: the worker uppercases for the fal wire ('768P')
@@ -6795,7 +6806,7 @@ var { MODELS: MODELS26 } = defineModels("minimax", [
       feat("5-15 sec", "duration")
     ],
     paramConfig: {
-      ...params.prompt({ placeholder: "Image 1 is the protagonist. Keep her consistent with the reference while she walks through a sunlit garden..." }),
+      ...params.prompt({ maxLength: MINIMAX_H3_PROMPT_MAX, placeholder: "Image 1 is the protagonist. Keep her consistent with the reference while she walks through a sunlit garden..." }),
       ...params.imageInput(9, "Reference Images"),
       ...params.videoInputs(3, "Reference Videos"),
       ...params.audioInputs(3, "Reference Audios"),
@@ -8231,6 +8242,7 @@ var buildLyria3Payload = (apiModelId) => (ctx) => ({
   ...ctx.imageUrls?.length === 1 ? { image: imagePart(ctx.imageUrls[0]) } : {},
   ...(ctx.imageUrls?.length ?? 0) > 1 ? { images: ctx.imageUrls.slice(0, 10).map(imagePart) } : {}
 });
+var LYRIA_PROMPT_MAX = 5e3;
 var { MODELS: MODELS32 } = defineModels("google", [
   {
     id: "lyria-3-clip",
@@ -8245,7 +8257,7 @@ var { MODELS: MODELS32 } = defineModels("google", [
     description: "Fast music clips from text and image prompts using Google Lyria 3.",
     features: [feat("Image Input", "input"), feat("Vocal & Instrumental", "characteristic")],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LYRIA_PROMPT_MAX }),
       ...params.imageInput(10, "Mood Images")
     }
   },
@@ -8263,7 +8275,7 @@ var { MODELS: MODELS32 } = defineModels("google", [
     description: "Extended music generation up to 184s with vocals, powered by Google Lyria 3 Pro.",
     features: [feat("Image Input", "input"), feat("Vocal & Instrumental", "characteristic"), feat("Up to 184s", "duration")],
     paramConfig: {
-      ...params.prompt({ placeholder: "Generate voiceover, music and sound effects" }),
+      ...params.prompt({ maxLength: LYRIA_PROMPT_MAX, placeholder: "Generate voiceover, music and sound effects" }),
       ...params.imageInput(10, "Mood Images")
     }
   },

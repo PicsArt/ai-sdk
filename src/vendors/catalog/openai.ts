@@ -107,6 +107,11 @@ export const buildGptImage2EditPayload: PayloadBuilder = (ctx) => ({
 });
 
 /** gpt-image-2: t2i and edit endpoints accept different aspect-ratio sets. */
+/** OpenAI Images API reference ("Create image"): the prompt's "maximum length is
+ *  32000 characters for the GPT image models". fal's gpt-image-1.5 schema
+ *  mirrors the same figure. */
+const GPT_IMAGE_PROMPT_MAX = 32_000;
+
 const gptImage2Constraints: Constraint[] = [
   {
     when: { imageUrls: { exists: true } },
@@ -140,7 +145,7 @@ export const { MODELS } = defineModels('openai', [
     description: 'Next-gen GPT image model with arbitrary output dimensions and multi-image input.',
     features: [feat('Multi-Image Input', 'input'), feat('High Quality', 'quality')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(['1:1', '3:2', '2:3', '16:9', '9:16', '4:3', '3:4', 'auto'], '1:1'),
       ...p.quality(['high', 'medium', 'low'], 'high'),
       // gpt-image-2 supports only an opaque background — the API rejects
@@ -161,7 +166,7 @@ export const { MODELS } = defineModels('openai', [
     description: 'Strong text-in-image and infographic rendering with multi-image input.',
     features: [feat('Multi-Image Input', 'input'), feat('High Quality', 'quality')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(['1:1', '3:2', '2:3', '16:9', '9:16', '4:3', '3:4'], '1:1'),
       ...p.quality(['high', 'medium', 'low'], 'high'),
       ...p.enum('background', ['opaque', 'transparent'], 'opaque', { label: 'Background' }),
@@ -182,7 +187,7 @@ export const { MODELS } = defineModels('openai', [
     description: 'Original GPT image model with quality-tiered generation.',
     features: [feat('Multi-Image Input', 'input')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(['1:1', '3:2', '2:3', '16:9', '9:16', '4:3', '3:4'], '1:1'),
       ...p.quality(['high', 'medium', 'low'], 'high'),
       ...p.enum('background', ['opaque', 'transparent'], 'opaque', { label: 'Background' }),

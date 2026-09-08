@@ -21,6 +21,10 @@ const buildLyria3Payload = (apiModelId: string): PayloadBuilder => (ctx) => ({
 
 // ── Model definitions ───────────────────────────────────────────────
 
+/** Google's Lyria docs state no prompt cap; fal's `lyria3` schema for the same
+ *  model declares `maxLength: 5000`. */
+const LYRIA_PROMPT_MAX = 5000;
+
 export const { MODELS } = defineModels('google', [
   {
     id: 'lyria-3-clip',
@@ -35,7 +39,7 @@ export const { MODELS } = defineModels('google', [
     description: 'Fast music clips from text and image prompts using Google Lyria 3.',
     features: [feat('Image Input', 'input'), feat('Vocal & Instrumental', 'characteristic')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: LYRIA_PROMPT_MAX }),
       ...params.imageInput(10, 'Mood Images'),
     },
   },
@@ -53,7 +57,7 @@ export const { MODELS } = defineModels('google', [
     description: 'Extended music generation up to 184s with vocals, powered by Google Lyria 3 Pro.',
     features: [feat('Image Input', 'input'), feat('Vocal & Instrumental', 'characteristic'), feat('Up to 184s', 'duration')],
     paramConfig: {
-      ...params.prompt({placeholder: 'Generate voiceover, music and sound effects'}),
+      ...params.prompt({ maxLength: LYRIA_PROMPT_MAX, placeholder: 'Generate voiceover, music and sound effects'}),
       ...params.imageInput(10, 'Mood Images'),
     },
   },

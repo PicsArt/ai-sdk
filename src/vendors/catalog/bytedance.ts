@@ -84,7 +84,8 @@ export const { MODELS } = defineModels('bytedance', [
       feat('1080p', 'resolution'),
     ],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      // BytePlus OmniHuman 1.5 API: the optional prompt is capped at 300 characters.
+      ...params.prompt({ required: false, maxLength: 300 }),
       ...params.imageInput(1, 'Portrait Image', true),
       ...params.audioInput('Audio Track', true),
       ...params.resolution([...BYTEDANCE_OMNIHUMAN_RESOLUTION_OPTIONS], '1080p'),

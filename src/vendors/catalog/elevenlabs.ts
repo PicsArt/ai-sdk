@@ -139,7 +139,8 @@ export const { MODELS } = defineModels('elevenlabs', [
     badge: ['popular'] as const,
     description: 'Create custom sound effects from a text description — up to 30 seconds.',
     features: [feat('Sound Effects', 'characteristic')],
-    paramConfig: { ...params.prompt(), ...params.durationRange(0.5, 30, 5, 0.5) },
+    // ElevenLabs sound-generation reference: "The maximum length of the prompt is 450 characters."
+    paramConfig: { ...params.prompt({ maxLength: 450 }), ...params.durationRange(0.5, 30, 5, 0.5) },
   },
   // ── Music ─────────────────────────────────────────────────────────
   {
@@ -151,7 +152,8 @@ export const { MODELS } = defineModels('elevenlabs', [
     description: 'Generate music with vocals or instrumental from a text prompt.',
     features: [feat('Vocal & Instrumental', 'characteristic')],
     paramConfig: {
-      ...params.prompt(),
+      // ElevenLabs music docs state no cap; fal's `elevenlabs/music` schema declares maxLength 4100.
+      ...params.prompt({ maxLength: 4100 }),
       ...params.duration([10, 20, 30, 60, 120, 180, 300, 600], 30),
       ...p.boolean('isInstrumental', false, 'Instrumental Only'),
     },

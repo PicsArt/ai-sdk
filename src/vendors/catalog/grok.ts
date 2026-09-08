@@ -111,6 +111,9 @@ export const buildGrokTTSPayload: PayloadBuilder = (ctx) => ({
  * catches the ASCII case only; the byte-size gap is tracked separately.
  */
 const GROK_VIDEO_PROMPT_MAX = 4096;
+/** xAI publishes no image prompt cap; fal's `xai/grok-imagine-image` schema
+ *  declares `maxLength: 8000`, the figure Grok Imagine Quality already used. */
+const GROK_IMAGE_PROMPT_MAX = 8000;
 
 const GROK_VIDEO_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '3:2', '2:3'];
 const GROK_IMAGE_AR = ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '2:1', '1:2', '19.5:9', '9:19.5', '20:9', '9:20'];
@@ -194,7 +197,7 @@ export const { MODELS } = defineModels('grok', [
     description: 'Rapid image creation with wide aspect-ratio selection and image input.',
     features: [feat('Image Input', 'input')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(GROK_IMAGE_AR, '1:1'),
       ...params.resolution(GROK_IMAGE_RESOLUTIONS, '1k'),
       ...params.count([1, 2, 4]),
@@ -213,7 +216,7 @@ export const { MODELS } = defineModels('grok', [
     description: 'Higher-fidelity Grok Imagine variant for production-grade images.',
     features: [feat('Image Input', 'input'), feat('2k', 'resolution')],
     paramConfig: {
-      ...params.prompt({ maxLength: 8000 }),
+      ...params.prompt({ maxLength: GROK_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(GROK_IMAGE_AR, '1:1'),
       ...params.resolution(GROK_IMAGE_RESOLUTIONS, '2k'),
       ...params.count([1, 2, 4]),
@@ -229,7 +232,7 @@ export const { MODELS } = defineModels('grok', [
     description: 'Latest Grok Imagine generation — sharper detail with a low/medium quality tier.',
     features: [feat('Image Input', 'input'), feat('2k', 'resolution')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: GROK_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(GROK_IMAGE_AR, '1:1'),
       ...params.resolution(GROK_IMAGE_RESOLUTIONS, '1k'),
       // Vendor-side default is medium; only supported by grok-imagine-image-2.0

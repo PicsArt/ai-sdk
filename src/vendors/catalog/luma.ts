@@ -59,9 +59,13 @@ export const buildLumaRayFlash2ReframeVideoPayload: PayloadBuilder = makeReframe
 
 const LUMA_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', '9:21'];
 const LUMA_RESOLUTIONS = ['540p', '720p', '1080p', '4k'];
+/** Luma rejects the submission with "Prompt is too long, maximum length is
+ *  5000 characters" (docs.lumalabs.ai/docs/errors). One cap for every Luma
+ *  model; the earlier 6,000 let prompts through that the vendor then refused. */
+const LUMA_PROMPT_MAX = 5000;
 
 const lumaParamConfig = {
-  ...params.prompt(),
+  ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
   ...params.aspectRatio(LUMA_AR),
   ...params.resolution(LUMA_RESOLUTIONS, '720p'),
   ...params.duration([5, 9], 5),
@@ -103,7 +107,7 @@ export const buildLumaUni1MaxT2IPayload: PayloadBuilder = makeUni1T2IPayload('un
 export const buildLumaUni1MaxI2IPayload: PayloadBuilder = makeUni1I2IPayload('uni-1-max');
 
 const lumaUni1ParamConfig = {
-  ...params.prompt({ maxLength: 6000 }),
+  ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
   ...params.aspectRatio(LUMA_UNI1_AR, '1:1'),
   ...params.style(LUMA_UNI1_STYLES, 'auto'),
   ...params.imageInput(9, 'Reference Images', false),
@@ -226,7 +230,7 @@ export const { MODELS } = defineModels('luma', [
     description: 'Reframe a video to a new aspect ratio using Luma Ray 2.',
     features: [feat('Video Input', 'input'), feat('Reframe', 'characteristic')],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: LUMA_PROMPT_MAX }),
       ...params.aspectRatio(LUMA_AR, '16:9'),
       ...params.videoInput('Source Video'),
     },
@@ -241,7 +245,7 @@ export const { MODELS } = defineModels('luma', [
     description: 'Reframe a video to a new aspect ratio using Luma Flash 2.',
     features: [feat('Video Input', 'input'), feat('Reframe', 'characteristic')],
     paramConfig: {
-      ...params.prompt({ required: false }),
+      ...params.prompt({ required: false, maxLength: LUMA_PROMPT_MAX }),
       ...params.aspectRatio(LUMA_AR, '16:9'),
       ...params.videoInput('Source Video'),
     },
@@ -283,7 +287,7 @@ export const { MODELS } = defineModels('luma', [
     description: 'Luma Ray 3.2 — high-fidelity video generation with start/end frames, HDR, and looping (early access).',
     features: [feat('Image Input', 'input'), feat('Start/End Frame', 'frame'), feat('HDR', 'characteristic'), feat('5/10 sec', 'duration')],
     paramConfig: {
-      ...params.prompt({ maxLength: 6000 }),
+      ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
       ...params.aspectRatio(RAY32_AR, '16:9'),
       ...params.resolution(RAY32_RESOLUTIONS, '720p'),
       ...params.duration([5, 10], 5),
@@ -304,7 +308,7 @@ export const { MODELS } = defineModels('luma', [
     description: 'Edit a prior video from a prompt using Luma Ray 3.2 — preservation-vs-reimagination presets (early access).',
     features: [feat('Video Input', 'input'), feat('Edit', 'characteristic'), feat('HDR', 'characteristic'), feat('5/10 sec', 'duration')],
     paramConfig: {
-      ...params.prompt({ maxLength: 6000 }),
+      ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
       // Source clip capped at 30s — video_edit rejects longer at ingest (422).
       ...params.videoInput('Source Video', 'reference', true, 30),
       ...params.resolution(RAY32_RESOLUTIONS, '720p'),
@@ -324,7 +328,7 @@ export const { MODELS } = defineModels('luma', [
     description: 'Reframe a video to a new aspect ratio using Luma Ray 3.2 (early access).',
     features: [feat('Video Input', 'input'), feat('Reframe', 'characteristic')],
     paramConfig: {
-      ...params.prompt({ maxLength: 6000 }),
+      ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
       ...params.aspectRatio(RAY32_AR, '16:9'),
       // Source clip capped at 30s — video_reframe rejects longer at ingest (422).
       ...params.videoInput('Source Video', 'reference', true, 30),

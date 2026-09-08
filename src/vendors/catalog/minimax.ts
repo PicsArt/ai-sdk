@@ -25,6 +25,10 @@ export const buildMinimaxMusicPayload: PayloadBuilder = (ctx) => ({
   },
 });
 
+/** MiniMax video generation V2 (Hailuo-03 / H3) API reference: prompts run
+ *  "up to 7000 characters". The Hailuo 2.x endpoints stay at 2,000. */
+const MINIMAX_H3_PROMPT_MAX = 7000;
+
 export const { MODELS } = defineModels('minimax', [
   {
     id: 'minimax-02-hd', name: 'MiniMax 02 HD', modelId: 'minimax-02-hd',
@@ -100,7 +104,7 @@ export const { MODELS } = defineModels('minimax', [
       feat('768p', 'resolution'), feat('5-15 sec', 'duration'),
     ],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: MINIMAX_H3_PROMPT_MAX }),
       ...params.startFrame(),
       ...params.endFrame(),
       // Lowercase on purpose: the worker uppercases for the fal wire ('768P')
@@ -141,7 +145,7 @@ export const { MODELS } = defineModels('minimax', [
       feat('768p', 'resolution'), feat('5-15 sec', 'duration'),
     ],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: MINIMAX_H3_PROMPT_MAX }),
       ...params.startFrame(),
       ...params.endFrame(),
       // Lowercase on purpose: the worker uppercases for the fal wire ('768P')
@@ -184,7 +188,7 @@ export const { MODELS } = defineModels('minimax', [
       feat('768p', 'resolution'), feat('5-15 sec', 'duration'),
     ],
     paramConfig: {
-      ...params.prompt({ placeholder: 'Image 1 is the protagonist. Keep her consistent with the reference while she walks through a sunlit garden...' }),
+      ...params.prompt({ maxLength: MINIMAX_H3_PROMPT_MAX, placeholder: 'Image 1 is the protagonist. Keep her consistent with the reference while she walks through a sunlit garden...' }),
       ...params.imageInput(9, 'Reference Images'),
       ...params.videoInputs(3, 'Reference Videos'),
       ...params.audioInputs(3, 'Reference Audios'),

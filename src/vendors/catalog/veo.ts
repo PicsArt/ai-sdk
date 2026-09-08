@@ -54,8 +54,16 @@ export const buildVeoPayload =
     };
   };
 
+/** Gemini API model card for Veo 3.1 (all variants): text input is capped at
+ *  1,024 tokens. The descriptor can only count characters, so this is a loose
+ *  guard at ~4 characters per token: it never rejects a prompt Veo would take,
+ *  and it stops the runaway English prompt before it is billed. A dense or
+ *  non-Latin prompt under 4,000 characters can still exceed 1,024 tokens and
+ *  fail at the vendor. */
+const VEO_PROMPT_MAX = 4000;
+
 const veoParamConfig = {
-  ...params.prompt(),
+  ...params.prompt({ maxLength: VEO_PROMPT_MAX }),
   ...params.aspectRatio(['16:9', '9:16']),
   ...params.duration([4, 6, 8], 8),
   ...params.resolution(['720p', '1080p', '4k']),
@@ -85,7 +93,7 @@ const veoConstraints: Constraint[] = [
 ];
 
 const veoLiteParamConfig = {
-  ...params.prompt(),
+  ...params.prompt({ maxLength: VEO_PROMPT_MAX }),
   ...params.aspectRatio(['16:9', '9:16']),
   ...params.duration([4, 6, 8], 8),
   ...params.resolution(['720p', '1080p']),

@@ -195,7 +195,7 @@ export const { MODELS } = defineModels('wan', [
     description: 'Painterly artistic look with audio — up to 15s at 1080p.',
     features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('5/10/15 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 5000 }),
       ...params.duration([5, 10, 15], 5),
       ...params.resolution(['480p', '720p', '1080p'], '720p'),
       ...params.aspectRatio(['16:9', '9:16', '1:1', '4:3', '3:4']),
@@ -213,7 +213,7 @@ export const { MODELS } = defineModels('wan', [
     description: 'Regenerate video from a reference clip with new stylistic direction.',
     features: [feat('Video Input', 'input'), feat('1080p', 'resolution'), feat('5/10 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: 5000 }),
       ...params.duration([5, 10], 5),
       ...params.resolution(['720p', '1080p'], '720p'),
       ...params.videoInput('Reference Video'),
@@ -228,7 +228,8 @@ export const { MODELS } = defineModels('wan', [
     description: 'Diverse, stylized images for visual exploration and animation.',
     features: [feat('Multi-Image Input', 'input')],
     paramConfig: {
-      ...params.prompt(),
+      // pa-alibaba worker: @MaxLength(1500) on the wan-images prompt (video tasks take 5000).
+      ...params.prompt({ maxLength: 1500 }),
       ...params.count(),
       ...params.negativePrompt(),
     },

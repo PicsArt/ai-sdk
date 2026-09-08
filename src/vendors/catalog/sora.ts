@@ -52,6 +52,9 @@ export const buildSora2ExtendPayload: PayloadBuilder = (ctx) => ({
 
 const SORA_DURATIONS = [4, 8, 12, 16, 20];
 const SORA_AR = ['16:9', '9:16'];
+/** OpenAI's video reference states no prompt cap; fal's `sora-2` schema, which
+ *  fronts the same vendor API, declares `maxLength: 5000`. */
+const SORA_PROMPT_MAX = 5000;
 
 export const { MODELS } = defineModels('openai', [
   {
@@ -63,7 +66,7 @@ export const { MODELS } = defineModels('openai', [
     description: 'Up to 1080p with strong physical realism and optional reference image.',
     features: [feat('Image Input', 'input'), feat('Audio', 'audio'), feat('Up to 1080p', 'resolution'), feat('4–20 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: SORA_PROMPT_MAX }),
       ...params.imageInput(1, 'Reference Image'),
       ...params.aspectRatio(SORA_AR),
       ...params.resolution(['720p', '1024p', '1080p']),
@@ -79,7 +82,7 @@ export const { MODELS } = defineModels('openai', [
     description: 'Naturalistic 720p video with lifelike motion and character detail.',
     features: [feat('Image Input', 'input'), feat('Audio', 'audio'), feat('720p', 'resolution'), feat('4–20 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: SORA_PROMPT_MAX }),
       ...params.imageInput(1, 'Reference Image'),
       ...params.aspectRatio(SORA_AR),
       ...params.duration(SORA_DURATIONS, 4),
@@ -94,7 +97,7 @@ export const { MODELS } = defineModels('openai', [
     description: 'Seamlessly continue a previously generated Sora video with matching style and pacing.',
     features: [feat('Continue Video', 'input'), feat('4–20 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      ...params.prompt({ maxLength: SORA_PROMPT_MAX }),
       // video_id is chained from the source Sora asset (declaring the param lets
       // the store seed ctx.videoId); no aspectRatio/size — extend keeps source geometry.
       ...params.videoId([], ''),

@@ -241,6 +241,11 @@ type ModelInputById = {
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         imageUrls?: string[];
     };
+    "flux-video-edit": {
+        videoUrl: string;
+        prompt: string;
+        safetyTolerance?: number;
+    };
     "flux-video-upscale": {
         videoUrl: string;
         upscaleFactor?: number;
@@ -2682,6 +2687,7 @@ declare const Models: {
     readonly Flux3Video: "flux-3-video";
     readonly FluxKontextMax: "flux-kontext-max";
     readonly FluxKontextPro: "flux-kontext-pro";
+    readonly FluxVideoEdit: "flux-video-edit";
     readonly FluxVideoUpscale: "flux-video-upscale";
     readonly Gemini25FlashImage: "gemini-2.5-flash-image";
     readonly Gemini25FlashTts: "gemini-2.5-flash-tts";

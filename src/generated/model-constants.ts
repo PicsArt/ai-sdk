@@ -75,6 +75,8 @@ export const Flux3Video = 'flux-3-video' as const;
 export const FluxKontextMax = 'flux-kontext-max' as const;
 /** Flux Kontext Pro — flux (image) */
 export const FluxKontextPro = 'flux-kontext-pro' as const;
+/** Sprout Video Edit — flux (video) */
+export const FluxVideoEdit = 'flux-video-edit' as const;
 /** Flux Video Upscale — flux (video) */
 export const FluxVideoUpscale = 'flux-video-upscale' as const;
 /** Nano Banana — google (image) */
@@ -526,6 +528,7 @@ export const Models = {
   Flux3Video,
   FluxKontextMax,
   FluxKontextPro,
+  FluxVideoEdit,
   FluxVideoUpscale,
   Gemini25FlashImage,
   Gemini25FlashTts,

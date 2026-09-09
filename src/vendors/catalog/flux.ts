@@ -254,4 +254,28 @@ export const { MODELS } = defineModels('flux', [
       ...p.range('safetyTolerance', 0, 4, 2, { label: 'Safety Tolerance' }),
     },
   },
+  {
+    // Pure pass-through like flux-video-upscale: the worker Command takes the
+    // SDK's own field names (videoUrl, prompt, safetyTolerance) — no payload
+    // builder needed.
+    id: 'flux-video-edit', name: 'Sprout Video Edit',
+    workflow: 'flux/v1/video-edit',
+    mode: 'video', inputType: 'v2v',
+    addedAt: '2026-09-09',
+    estimatedTime: 180,
+    description: 'Edit videos with a text instruction — change objects, styles or scenes while preserving motion, timing and audio. Source clips up to 15 seconds; output at 24 fps, up to 720p.',
+    features: [
+      feat('Video Required', 'input'),
+      feat('Up to 15s', 'duration'),
+      feat('720p', 'resolution'),
+    ],
+    paramConfig: {
+      // Vendor source caps: 15s, 50 MB. Also ≥160 px per side and ≥17 frames —
+      // minimums the upload check can't express; the vendor rejects violations.
+      ...params.videoInput('Source Video', 'asset', true, 15, undefined, 50 * 1024 * 1024),
+      ...params.prompt({ maxLength: 4096 }),
+      // Moderation level: 0 (strict) … 4 (permissive).
+      ...p.range('safetyTolerance', 0, 4, 2, { label: 'Safety Tolerance' }),
+    },
+  },
 ]);

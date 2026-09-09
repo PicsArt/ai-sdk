@@ -5775,6 +5775,32 @@ var { MODELS: MODELS21 } = defineModels("flux", [
       // Moderation level: 0 (strict) … 4 (permissive).
       ...p.range("safetyTolerance", 0, 4, 2, { label: "Safety Tolerance" })
     }
+  },
+  {
+    // Pure pass-through like flux-video-upscale: the worker Command takes the
+    // SDK's own field names (videoUrl, prompt, safetyTolerance) — no payload
+    // builder needed.
+    id: "flux-video-edit",
+    name: "Sprout Video Edit",
+    workflow: "flux/v1/video-edit",
+    mode: "video",
+    inputType: "v2v",
+    addedAt: "2026-09-09",
+    estimatedTime: 180,
+    description: "Edit videos with a text instruction \u2014 change objects, styles or scenes while preserving motion, timing and audio. Source clips up to 15 seconds; output at 24 fps, up to 720p.",
+    features: [
+      feat("Video Required", "input"),
+      feat("Up to 15s", "duration"),
+      feat("720p", "resolution")
+    ],
+    paramConfig: {
+      // Vendor source caps: 15s, 50 MB. Also ≥160 px per side and ≥17 frames —
+      // minimums the upload check can't express; the vendor rejects violations.
+      ...params.videoInput("Source Video", "asset", true, 15, void 0, 50 * 1024 * 1024),
+      ...params.prompt({ maxLength: 4096 }),
+      // Moderation level: 0 (strict) … 4 (permissive).
+      ...p.range("safetyTolerance", 0, 4, 2, { label: "Safety Tolerance" })
+    }
   }
 ]);
 
@@ -11446,6 +11472,7 @@ var Flux2Pro = "flux-2-pro";
 var Flux3Video = "flux-3-video";
 var FluxKontextMax = "flux-kontext-max";
 var FluxKontextPro = "flux-kontext-pro";
+var FluxVideoEdit = "flux-video-edit";
 var FluxVideoUpscale = "flux-video-upscale";
 var Gemini25FlashImage = "gemini-2.5-flash-image";
 var Gemini25FlashTts = "gemini-2.5-flash-tts";
@@ -11671,6 +11698,7 @@ var Models = {
   Flux3Video,
   FluxKontextMax,
   FluxKontextPro,
+  FluxVideoEdit,
   FluxVideoUpscale,
   Gemini25FlashImage,
   Gemini25FlashTts,

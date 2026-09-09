@@ -383,6 +383,24 @@ type ModelInputById = {
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         imageUrls?: string[];
     };
+    "gpt-image-2.5-flare": {
+        prompt: string;
+        aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto";
+        quality?: "max" | "xhigh" | "high" | "medium" | "low";
+        background?: "opaque" | "transparent";
+        outputFormat?: "png" | "jpeg" | "webp";
+        count?: 1 | 2 | 4 | 6 | 8 | 10;
+        imageUrls?: string[];
+    };
+    "gpt-image-2.5-sunburst": {
+        prompt: string;
+        aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto";
+        quality?: "max" | "xhigh" | "high" | "medium" | "low";
+        background?: "opaque" | "transparent";
+        outputFormat?: "png" | "jpeg" | "webp";
+        count?: 1 | 2 | 4 | 6 | 8 | 10;
+        imageUrls?: string[];
+    };
     "grok-edit-video": {
         prompt: string;
         videoUrl: string;
@@ -2686,6 +2704,8 @@ declare const Models: {
     readonly GptImage1: "gpt-image-1";
     readonly GptImage15: "gpt-image-1.5";
     readonly GptImage2: "gpt-image-2";
+    readonly GptImage25Flare: "gpt-image-2.5-flare";
+    readonly GptImage25Sunburst: "gpt-image-2.5-sunburst";
     readonly GrokEditVideo: "grok-edit-video";
     readonly GrokExtendVideo: "grok-extend-video";
     readonly GrokImagineImage: "grok-imagine-image";

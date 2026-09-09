@@ -21,7 +21,10 @@ const GPT_IMAGE_AR_TO_SIZE: Record<string, string> = {
 // at 1024 and round the long side to the nearest multiple of 16.
 // The wide ratios (16:9, 9:16, 4:3, 3:4) are valid for t2i only — the edit
 // endpoint accepts only the first three plus a special 'auto' value.
-const GPT_IMAGE_2_AR_TO_SIZE: Record<string, string> = {
+// The gpt-image-2.5 models share the same 16px grid but drop the edit-side
+// restriction: their edit endpoint takes the wide sizes and 'auto' alike
+// (boundary-verified), so they reuse this map on both routes.
+export const GPT_IMAGE_2_AR_TO_SIZE: Record<string, string> = {
   '1:1': '1024x1024',
   '3:2': '1536x1024',
   '2:3': '1024x1536',
@@ -112,6 +115,18 @@ export const buildGptImage2EditPayload: PayloadBuilder = (ctx) => ({
  *  mirrors the same figure. */
 const GPT_IMAGE_PROMPT_MAX = 32_000;
 
+/** gpt-image-2.5 adds two tiers on top of the low/medium/high the older
+ *  gpt-image models cap at. Ordered strongest-first for the picker. */
+const GPT_IMAGE_25_QUALITIES = ['max', 'xhigh', 'high', 'medium', 'low'];
+
+/** Both 2.5 routes accept every ratio in the 16px map plus 'auto' — unlike
+ *  gpt-image-2, whose edit endpoint rejects the wide ones (boundary-verified),
+ *  so these entries need no aspect-ratio constraint. */
+const GPT_IMAGE_25_ASPECT_RATIOS = ['1:1', '3:2', '2:3', '16:9', '9:16', '4:3', '3:4', 'auto'];
+
+/** The images/edits endpoint takes up to 16 inputs for the GPT image models. */
+const GPT_IMAGE_25_MAX_INPUT_IMAGES = 16;
+
 const gptImage2Constraints: Constraint[] = [
   {
     when: { imageUrls: { exists: true } },
@@ -135,6 +150,44 @@ const gptImageBgConstraints: Constraint[] = [
 
 export const { MODELS } = defineModels('openai', [
   // ── Image ─────────────────────────────────────────
+  {
+    id: 'gpt-image-2.5-sunburst', name: 'GPT Image 2.5 Sunburst',
+    addedAt: '2026-09-09',
+    workflow: 'openai-images-generate', editWorkflow: 'openai-image-editing',
+    estimatedTime: 60,
+    mode: 'image', inputType: 't2i',
+    description: 'Most capable GPT Image tier — premium edits and campaign-grade output, with longer generation times.',
+    features: [feat('Multi-Image Input', 'input'), feat('High Quality', 'quality')],
+    paramConfig: {
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
+      ...params.aspectRatio(GPT_IMAGE_25_ASPECT_RATIOS, '1:1'),
+      ...p.quality(GPT_IMAGE_25_QUALITIES, 'high'),
+      ...p.enum('background', ['opaque', 'transparent'], 'opaque', { label: 'Background' }),
+      ...p.enum('outputFormat', ['png', 'jpeg', 'webp'], 'png', { label: 'Format' }),
+      ...params.count(),
+      ...params.imageInput(GPT_IMAGE_25_MAX_INPUT_IMAGES, 'Source Images'),
+    },
+    constraints: gptImageBgConstraints,
+  },
+  {
+    id: 'gpt-image-2.5-flare', name: 'GPT Image 2.5 Flare',
+    addedAt: '2026-09-09',
+    workflow: 'openai-images-generate', editWorkflow: 'openai-image-editing',
+    estimatedTime: 25,
+    mode: 'image', inputType: 't2i',
+    description: 'Fast GPT Image tier — everyday generation at roughly half the latency of GPT Image 2.',
+    features: [feat('Multi-Image Input', 'input'), feat('Fast', 'characteristic')],
+    paramConfig: {
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
+      ...params.aspectRatio(GPT_IMAGE_25_ASPECT_RATIOS, '1:1'),
+      ...p.quality(GPT_IMAGE_25_QUALITIES, 'high'),
+      ...p.enum('background', ['opaque', 'transparent'], 'opaque', { label: 'Background' }),
+      ...p.enum('outputFormat', ['png', 'jpeg', 'webp'], 'png', { label: 'Format' }),
+      ...params.count(),
+      ...params.imageInput(GPT_IMAGE_25_MAX_INPUT_IMAGES, 'Source Images'),
+    },
+    constraints: gptImageBgConstraints,
+  },
   {
     id: 'gpt-image-2', name: 'GPT Image 2', modelId: 'gpt-image-2',
     addedAt: '2026-04-21',

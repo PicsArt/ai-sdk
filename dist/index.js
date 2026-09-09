@@ -6163,6 +6163,9 @@ var buildGptImage2EditPayload = (ctx) => ({
   ...ctx.outputFormat ? { output_format: ctx.outputFormat } : {}
 });
 var GPT_IMAGE_PROMPT_MAX = 32e3;
+var GPT_IMAGE_25_QUALITIES = ["max", "xhigh", "high", "medium", "low"];
+var GPT_IMAGE_25_ASPECT_RATIOS = ["1:1", "3:2", "2:3", "16:9", "9:16", "4:3", "3:4", "auto"];
+var GPT_IMAGE_25_MAX_INPUT_IMAGES = 16;
 var gptImage2Constraints = [
   {
     when: { imageUrls: { exists: true } },
@@ -6181,6 +6184,50 @@ var gptImageBgConstraints = [
 ];
 var { MODELS: MODELS23 } = defineModels("openai", [
   // ── Image ─────────────────────────────────────────
+  {
+    id: "gpt-image-2.5-sunburst",
+    name: "GPT Image 2.5 Sunburst",
+    addedAt: "2026-09-09",
+    workflow: "openai-images-generate",
+    editWorkflow: "openai-image-editing",
+    estimatedTime: 60,
+    mode: "image",
+    inputType: "t2i",
+    description: "Most capable GPT Image tier \u2014 premium edits and campaign-grade output, with longer generation times.",
+    features: [feat("Multi-Image Input", "input"), feat("High Quality", "quality")],
+    paramConfig: {
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
+      ...params.aspectRatio(GPT_IMAGE_25_ASPECT_RATIOS, "1:1"),
+      ...p.quality(GPT_IMAGE_25_QUALITIES, "high"),
+      ...p.enum("background", ["opaque", "transparent"], "opaque", { label: "Background" }),
+      ...p.enum("outputFormat", ["png", "jpeg", "webp"], "png", { label: "Format" }),
+      ...params.count(),
+      ...params.imageInput(GPT_IMAGE_25_MAX_INPUT_IMAGES, "Source Images")
+    },
+    constraints: gptImageBgConstraints
+  },
+  {
+    id: "gpt-image-2.5-flare",
+    name: "GPT Image 2.5 Flare",
+    addedAt: "2026-09-09",
+    workflow: "openai-images-generate",
+    editWorkflow: "openai-image-editing",
+    estimatedTime: 25,
+    mode: "image",
+    inputType: "t2i",
+    description: "Fast GPT Image tier \u2014 everyday generation at roughly half the latency of GPT Image 2.",
+    features: [feat("Multi-Image Input", "input"), feat("Fast", "characteristic")],
+    paramConfig: {
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
+      ...params.aspectRatio(GPT_IMAGE_25_ASPECT_RATIOS, "1:1"),
+      ...p.quality(GPT_IMAGE_25_QUALITIES, "high"),
+      ...p.enum("background", ["opaque", "transparent"], "opaque", { label: "Background" }),
+      ...p.enum("outputFormat", ["png", "jpeg", "webp"], "png", { label: "Format" }),
+      ...params.count(),
+      ...params.imageInput(GPT_IMAGE_25_MAX_INPUT_IMAGES, "Source Images")
+    },
+    constraints: gptImageBgConstraints
+  },
   {
     id: "gpt-image-2",
     name: "GPT Image 2",
@@ -6260,6 +6307,36 @@ var { MODELS: MODELS23 } = defineModels("openai", [
     constraints: gptImageBgConstraints
   }
 ]);
+
+// src/vendors/catalog/openai.payloads.ts
+var resolveSize = (aspectRatio, fallback) => aspectRatio === "auto" ? "auto" : GPT_IMAGE_2_AR_TO_SIZE[aspectRatio ?? ""] ?? fallback;
+var generateFor = (model) => (input) => ({
+  prompt: input.prompt,
+  model,
+  n: input.count ?? 1,
+  size: resolveSize(input.aspectRatio, "1024x1024"),
+  quality: input.quality ?? "high",
+  ...input.background ? { background: input.background } : {},
+  ...input.outputFormat ? { output_format: input.outputFormat } : {}
+});
+var editFor = (model) => (input) => ({
+  prompt: input.prompt,
+  model,
+  images: input.imageUrls ?? [],
+  n: input.count ?? 1,
+  size: resolveSize(input.aspectRatio, "auto"),
+  quality: input.quality ?? "high",
+  ...input.background ? { background: input.background } : {},
+  ...input.outputFormat ? { output_format: input.outputFormat } : {}
+});
+registerPayloads(MODELS23, {
+  "gpt-image-2.5-flare": generateFor("gpt-image-2.5-flare"),
+  "gpt-image-2.5-sunburst": generateFor("gpt-image-2.5-sunburst")
+});
+registerEditPayloads(MODELS23, {
+  "gpt-image-2.5-flare": editFor("gpt-image-2.5-flare"),
+  "gpt-image-2.5-sunburst": editFor("gpt-image-2.5-sunburst")
+});
 
 // src/vendors/catalog/elevenlabs.ts
 var buildElevenLabsTTSPayload = (modelId) => (ctx) => ({
@@ -11391,6 +11468,8 @@ var Gpt6Astra = "gpt-6-astra";
 var GptImage1 = "gpt-image-1";
 var GptImage15 = "gpt-image-1.5";
 var GptImage2 = "gpt-image-2";
+var GptImage25Flare = "gpt-image-2.5-flare";
+var GptImage25Sunburst = "gpt-image-2.5-sunburst";
 var GrokEditVideo = "grok-edit-video";
 var GrokExtendVideo = "grok-extend-video";
 var GrokImagineImage = "grok-imagine-image";
@@ -11614,6 +11693,8 @@ var Models = {
   GptImage1,
   GptImage15,
   GptImage2,
+  GptImage25Flare,
+  GptImage25Sunburst,
   GrokEditVideo,
   GrokExtendVideo,
   GrokImagineImage,

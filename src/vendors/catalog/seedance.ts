@@ -256,52 +256,60 @@ const seedance25Constraints: Constraint[] = [
   },
 ];
 
-/** Seedance 2.5 — text-to-video / image-to-video / multimodal refs.
- *  Mirrors buildSeedance20PayloadFor but hardcodes the 2.5 alias, lifts the
- *  reference caps to 30/10/10, and always sends `output_format`. */
-export const buildSeedance25Payload: PayloadBuilder = (ctx) => {
-  const refImages = ctx.imageUrls ?? [];
-  const refVideos = ctx.videoUrls ?? [];
-  const refAudios = ctx.audioUrls ?? [];
-  // First/Last Frame mode: the vendor rejects any non-adaptive ratio, so force
-  // 'adaptive' whenever a start/end frame is present (T2V and reference modes
-  // keep the user-selected ratio). Mirrors the seedance25Constraints lock.
-  const usesFrame = Boolean(ctx.startFrame || ctx.endFrame);
+/** Worker aliases sharing the Seedance 2.5 request shape.
+ *  `seedance_2_5_without_moderation` is the same model as `seedance_2_5` on a
+ *  vendor endpoint with moderation disabled — full capability parity, bills
+ *  under the `seedance-2.5` pricing key. */
+type Seedance25Alias = 'seedance_2_5' | 'seedance_2_5_without_moderation';
 
-  return {
-    model: 'seedance_2_5',
-    content: [
-      ...(ctx.startFrame
-        ? [{ type: 'image_url', image_url: { url: ctx.startFrame }, role: 'first_frame' }]
-        : []),
-      ...refImages.slice(0, 30).map((url) => ({
-        type: 'image_url',
-        image_url: { url },
-        role: 'reference_image',
-      })),
-      ...refVideos.slice(0, 10).map((url) => ({
-        type: 'video_url',
-        video_url: { url },
-        role: 'reference_video',
-      })),
-      ...refAudios.slice(0, 10).map((url) => ({
-        type: 'audio_url',
-        audio_url: { url },
-        role: 'reference_audio',
-      })),
-      ...(ctx.endFrame
-        ? [{ type: 'image_url', image_url: { url: ctx.endFrame }, role: 'last_frame' }]
-        : []),
-      { type: 'text', text: ctx.prompt },
-    ],
-    ratio: usesFrame ? 'adaptive' : (ctx.aspectRatio ?? '16:9'),
-    duration: ctx.duration ?? 5,
-    resolution: ctx.resolution ?? '1080p',
-    generate_audio: ctx.generateAudio ?? true,
-    output_format: ctx.outputFormat ?? 'mp4',
-    ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
+/** Seedance 2.5 — text-to-video / image-to-video / multimodal refs.
+ *  Mirrors buildSeedance20PayloadFor but lifts the reference caps to 30/10/10
+ *  and always sends `output_format`. */
+export const buildSeedance25PayloadFor =
+  (modelAlias: Seedance25Alias): PayloadBuilder =>
+  (ctx) => {
+    const refImages = ctx.imageUrls ?? [];
+    const refVideos = ctx.videoUrls ?? [];
+    const refAudios = ctx.audioUrls ?? [];
+    // First/Last Frame mode: the vendor rejects any non-adaptive ratio, so force
+    // 'adaptive' whenever a start/end frame is present (T2V and reference modes
+    // keep the user-selected ratio). Mirrors the seedance25Constraints lock.
+    const usesFrame = Boolean(ctx.startFrame || ctx.endFrame);
+
+    return {
+      model: modelAlias,
+      content: [
+        ...(ctx.startFrame
+          ? [{ type: 'image_url', image_url: { url: ctx.startFrame }, role: 'first_frame' }]
+          : []),
+        ...refImages.slice(0, 30).map((url) => ({
+          type: 'image_url',
+          image_url: { url },
+          role: 'reference_image',
+        })),
+        ...refVideos.slice(0, 10).map((url) => ({
+          type: 'video_url',
+          video_url: { url },
+          role: 'reference_video',
+        })),
+        ...refAudios.slice(0, 10).map((url) => ({
+          type: 'audio_url',
+          audio_url: { url },
+          role: 'reference_audio',
+        })),
+        ...(ctx.endFrame
+          ? [{ type: 'image_url', image_url: { url: ctx.endFrame }, role: 'last_frame' }]
+          : []),
+        { type: 'text', text: ctx.prompt },
+      ],
+      ratio: usesFrame ? 'adaptive' : (ctx.aspectRatio ?? '16:9'),
+      duration: ctx.duration ?? 5,
+      resolution: ctx.resolution ?? '1080p',
+      generate_audio: ctx.generateAudio ?? true,
+      output_format: ctx.outputFormat ?? 'mp4',
+      ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
+    };
   };
-};
 
 /** Seedance 2.5 — video edit (Editing mode). Required reference_video + up to
  *  30 reference images. Worker routes to `video-to-video.*` toolId.
@@ -309,46 +317,50 @@ export const buildSeedance25Payload: PayloadBuilder = (ctx) => {
  *  internal Editing mode requires `duration: -1` (output matches the source
  *  clip) and `ratio: 'adaptive'`. Any other value triggers a mode-mismatch
  *  error, so both are hardcoded here rather than read from ctx. */
-export const buildSeedance25VideoEditPayload: PayloadBuilder = (ctx) => ({
-  model: 'seedance_2_5',
-  content: [
-    { type: 'text', text: ctx.prompt },
-    { type: 'video_url', video_url: { url: ctx.videoUrl }, role: 'reference_video' },
-    ...(ctx.imageUrls ?? []).slice(0, 30).map((url) => ({
-      type: 'image_url',
-      image_url: { url },
-      role: 'reference_image',
-    })),
-  ],
-  ratio: 'adaptive',
-  duration: -1,
-  resolution: ctx.resolution ?? '1080p',
-  generate_audio: ctx.generateAudio ?? true,
-  output_format: ctx.outputFormat ?? 'mp4',
-  ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
-});
+export const buildSeedance25VideoEditPayloadFor =
+  (modelAlias: Seedance25Alias): PayloadBuilder =>
+  (ctx) => ({
+    model: modelAlias,
+    content: [
+      { type: 'text', text: ctx.prompt },
+      { type: 'video_url', video_url: { url: ctx.videoUrl }, role: 'reference_video' },
+      ...(ctx.imageUrls ?? []).slice(0, 30).map((url) => ({
+        type: 'image_url',
+        image_url: { url },
+        role: 'reference_image',
+      })),
+    ],
+    ratio: 'adaptive',
+    duration: -1,
+    resolution: ctx.resolution ?? '1080p',
+    generate_audio: ctx.generateAudio ?? true,
+    output_format: ctx.outputFormat ?? 'mp4',
+    ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
+  });
 
 /** Seedance 2.5 — video extend / multi-clip stitching (up to 10 reference videos).
  *  Worker routes to `video-to-video.*` toolId (content includes video_url roles).
  *  Vendor rule (Extension mode): duration is user-selectable, but aspect ratio
  *  MUST be 'adaptive' — a fixed ratio triggers a mode-mismatch error, so it is
  *  hardcoded here. */
-export const buildSeedance25VideoExtendPayload: PayloadBuilder = (ctx) => ({
-  model: 'seedance_2_5',
-  content: [
-    { type: 'text', text: ctx.prompt },
-    ...(ctx.videoUrls ?? []).slice(0, 10).map((url) => ({
-      type: 'video_url',
-      video_url: { url },
-      role: 'reference_video',
-    })),
-  ],
-  ratio: 'adaptive',
-  duration: ctx.duration ?? 15,
-  resolution: ctx.resolution ?? '1080p',
-  generate_audio: ctx.generateAudio ?? true,
-  output_format: ctx.outputFormat ?? 'mp4',
-});
+export const buildSeedance25VideoExtendPayloadFor =
+  (modelAlias: Seedance25Alias): PayloadBuilder =>
+  (ctx) => ({
+    model: modelAlias,
+    content: [
+      { type: 'text', text: ctx.prompt },
+      ...(ctx.videoUrls ?? []).slice(0, 10).map((url) => ({
+        type: 'video_url',
+        video_url: { url },
+        role: 'reference_video',
+      })),
+    ],
+    ratio: 'adaptive',
+    duration: ctx.duration ?? 15,
+    resolution: ctx.resolution ?? '1080p',
+    generate_audio: ctx.generateAudio ?? true,
+    output_format: ctx.outputFormat ?? 'mp4',
+  });
 
 const SEEDANCE_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', 'adaptive'];
 const SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
@@ -361,7 +373,7 @@ export const { MODELS } = defineModels('seedance', [
     id: 'seedance-2.5', name: 'Seedance 2.5', modelId: 'seedance-2.5',
     addedAt: '2026-08-06',
     workflow: 'seedance',
-    buildPayload: buildSeedance25Payload,
+    buildPayload: buildSeedance25PayloadFor('seedance_2_5'),
     constraints: seedance25Constraints,
     estimatedTime: 20,
     mode: 'video', inputType: 't2v',
@@ -389,10 +401,45 @@ export const { MODELS } = defineModels('seedance', [
     },
   },
   {
+    // Same model as seedance-2.5 on a vendor endpoint with moderation
+    // disabled — full capability parity, bills under the seedance-2.5
+    // pricing key (hence the shared modelId).
+    id: 'seedance-2.5-without-moderation', name: 'Seedance 2.5 Without Moderation', modelId: 'seedance-2.5',
+    addedAt: '2026-09-09',
+    release: 'preview',
+    workflow: 'seedance',
+    buildPayload: buildSeedance25PayloadFor('seedance_2_5_without_moderation'),
+    constraints: seedance25Constraints,
+    estimatedTime: 20,
+    mode: 'video', inputType: 't2v',
+    badge: ['new', 'premium', 'hot'],
+    description: 'Seedance 2.5 with vendor moderation disabled — cinematic video with audio, multi-reference input, and mp4/mov output. Up to 30s.',
+    features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(['480p', '720p', '1080p'], '1080p'),
+      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
+      ...params.generateAudio(),
+      ...params.returnLastFrame(),
+      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
+      ...params.imageInput(30, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(10, 'Reference Videos', false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+        maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES,
+      }),
+      ...params.audioInputs(10, 'Reference Audios'),
+      ...params.startFrame(),
+      ...params.endFrame(),
+    },
+  },
+  {
     id: 'seedance-2.5-video-edit', name: 'Seedance 2.5 Video Edit', modelId: 'seedance-2.5',
     addedAt: '2026-08-06',
     workflow: 'seedance',
-    buildPayload: buildSeedance25VideoEditPayload,
+    buildPayload: buildSeedance25VideoEditPayloadFor('seedance_2_5'),
     estimatedTime: 60,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -412,14 +459,61 @@ export const { MODELS } = defineModels('seedance', [
     },
   },
   {
+    id: 'seedance-2.5-without-moderation-video-edit', name: 'Seedance 2.5 Without Moderation Video Edit', modelId: 'seedance-2.5',
+    addedAt: '2026-09-09',
+    release: 'preview',
+    workflow: 'seedance',
+    buildPayload: buildSeedance25VideoEditPayloadFor('seedance_2_5_without_moderation'),
+    estimatedTime: 60,
+    mode: 'video', inputType: 'v2v',
+    badge: ['new', 'premium', 'hot'],
+    description: 'Moderation-free video edit — replace subjects, add or remove objects, restyle scenes with reference images.',
+    features: [feat('Video Input', 'input'), feat('Multi-Image Input', 'input'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('Source length', 'duration')],
+    paramConfig: {
+      ...params.prompt(),
+      // Editing mode: aspect ratio is fixed to 'adaptive' and duration is
+      // source-driven ('-1'), so neither is user-selectable (vendor rule).
+      ...params.aspectRatio(['adaptive']),
+      ...params.resolution(['480p', '720p', '1080p'], '1080p'),
+      ...params.generateAudio(),
+      ...params.returnLastFrame(),
+      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, SEEDANCE_25_MAX_VIDEO_BYTES),
+      ...params.imageInput(30, 'Reference Images'),
+    },
+  },
+  {
     id: 'seedance-2.5-video-extend', name: 'Seedance 2.5 Video Extend', modelId: 'seedance-2.5',
     addedAt: '2026-08-06',
     workflow: 'seedance',
-    buildPayload: buildSeedance25VideoExtendPayload,
+    buildPayload: buildSeedance25VideoExtendPayloadFor('seedance_2_5'),
     estimatedTime: 200,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
     description: 'Stitch up to 10 clips into one continuous, extended video.',
+    features: [feat('Multi-Video Input', 'input'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
+    paramConfig: {
+      ...params.prompt(),
+      // Extension mode: aspect ratio is locked to 'adaptive' (vendor rule);
+      // duration stays user-selectable.
+      ...params.aspectRatio(['adaptive']),
+      ...params.resolution(['480p', '720p', '1080p'], '1080p'),
+      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
+      ...params.generateAudio(),
+      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      ...params.videoInputs(10, 'Source Videos', true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES }),
+    },
+  },
+  {
+    id: 'seedance-2.5-without-moderation-video-extend', name: 'Seedance 2.5 Without Moderation Video Extend', modelId: 'seedance-2.5',
+    addedAt: '2026-09-09',
+    release: 'preview',
+    workflow: 'seedance',
+    buildPayload: buildSeedance25VideoExtendPayloadFor('seedance_2_5_without_moderation'),
+    estimatedTime: 200,
+    mode: 'video', inputType: 'v2v',
+    badge: ['new', 'premium', 'hot'],
+    description: 'Moderation-free: stitch up to 10 clips into one continuous, extended video.',
     features: [feat('Multi-Video Input', 'input'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
     paramConfig: {
       ...params.prompt(),

@@ -433,6 +433,12 @@ export const Seedance25 = 'seedance-2.5' as const;
 export const Seedance25VideoEdit = 'seedance-2.5-video-edit' as const;
 /** Seedance 2.5 Video Extend — seedance (video) */
 export const Seedance25VideoExtend = 'seedance-2.5-video-extend' as const;
+/** Seedance 2.5 Without Moderation — seedance (video) */
+export const Seedance25WithoutModeration = 'seedance-2.5-without-moderation' as const;
+/** Seedance 2.5 Without Moderation Video Edit — seedance (video) */
+export const Seedance25WithoutModerationVideoEdit = 'seedance-2.5-without-moderation-video-edit' as const;
+/** Seedance 2.5 Without Moderation Video Extend — seedance (video) */
+export const Seedance25WithoutModerationVideoExtend = 'seedance-2.5-without-moderation-video-extend' as const;
 /** Seedance I2V — seedance (video) */
 /** @deprecated This model is retired (deprecated). */
 export const SeedanceI2v = 'seedance-i2v' as const;
@@ -698,6 +704,9 @@ export const Models = {
   Seedance25,
   Seedance25VideoEdit,
   Seedance25VideoExtend,
+  Seedance25WithoutModeration,
+  Seedance25WithoutModerationVideoEdit,
+  Seedance25WithoutModerationVideoExtend,
   SeedanceI2v,
   Seedream40,
   Seedream45,

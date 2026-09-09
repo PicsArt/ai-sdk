@@ -3980,13 +3980,13 @@ var seedance25Constraints = [
     then: { aspectRatio: { allowed: ["adaptive"], reason: SEEDANCE_25_FRAME_ADAPTIVE_REASON } }
   }
 ];
-var buildSeedance25Payload = (ctx) => {
+var buildSeedance25PayloadFor = (modelAlias) => (ctx) => {
   const refImages = ctx.imageUrls ?? [];
   const refVideos = ctx.videoUrls ?? [];
   const refAudios = ctx.audioUrls ?? [];
   const usesFrame = Boolean(ctx.startFrame || ctx.endFrame);
   return {
-    model: "seedance_2_5",
+    model: modelAlias,
     content: [
       ...ctx.startFrame ? [{ type: "image_url", image_url: { url: ctx.startFrame }, role: "first_frame" }] : [],
       ...refImages.slice(0, 30).map((url) => ({
@@ -4015,8 +4015,8 @@ var buildSeedance25Payload = (ctx) => {
     ...ctx.returnLastFrame ? { return_last_frame: true } : {}
   };
 };
-var buildSeedance25VideoEditPayload = (ctx) => ({
-  model: "seedance_2_5",
+var buildSeedance25VideoEditPayloadFor = (modelAlias) => (ctx) => ({
+  model: modelAlias,
   content: [
     { type: "text", text: ctx.prompt },
     { type: "video_url", video_url: { url: ctx.videoUrl }, role: "reference_video" },
@@ -4033,8 +4033,8 @@ var buildSeedance25VideoEditPayload = (ctx) => ({
   output_format: ctx.outputFormat ?? "mp4",
   ...ctx.returnLastFrame ? { return_last_frame: true } : {}
 });
-var buildSeedance25VideoExtendPayload = (ctx) => ({
-  model: "seedance_2_5",
+var buildSeedance25VideoExtendPayloadFor = (modelAlias) => (ctx) => ({
+  model: modelAlias,
   content: [
     { type: "text", text: ctx.prompt },
     ...(ctx.videoUrls ?? []).slice(0, 10).map((url) => ({
@@ -4059,7 +4059,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     modelId: "seedance-2.5",
     addedAt: "2026-08-06",
     workflow: "seedance",
-    buildPayload: buildSeedance25Payload,
+    buildPayload: buildSeedance25PayloadFor("seedance_2_5"),
     constraints: seedance25Constraints,
     estimatedTime: 20,
     mode: "video",
@@ -4088,12 +4088,50 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     }
   },
   {
+    // Same model as seedance-2.5 on a vendor endpoint with moderation
+    // disabled — full capability parity, bills under the seedance-2.5
+    // pricing key (hence the shared modelId).
+    id: "seedance-2.5-without-moderation",
+    name: "Seedance 2.5 Without Moderation",
+    modelId: "seedance-2.5",
+    addedAt: "2026-09-09",
+    release: "preview",
+    workflow: "seedance",
+    buildPayload: buildSeedance25PayloadFor("seedance_2_5_without_moderation"),
+    constraints: seedance25Constraints,
+    estimatedTime: 20,
+    mode: "video",
+    inputType: "t2v",
+    badge: ["new", "premium", "hot"],
+    description: "Seedance 2.5 with vendor moderation disabled \u2014 cinematic video with audio, multi-reference input, and mp4/mov output. Up to 30s.",
+    features: [feat("Reference Image", "frame"), feat("Start/End Frame", "frame"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("4-30 sec", "duration")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(SEEDANCE_AR),
+      ...params.resolution(["480p", "720p", "1080p"], "1080p"),
+      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
+      ...params.generateAudio(),
+      ...params.returnLastFrame(),
+      ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
+      // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
+      ...params.imageInput(30, "Reference Images", false, "reference", { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
+      ...params.videoInputs(10, "Reference Videos", false, {
+        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+        maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES
+      }),
+      ...params.audioInputs(10, "Reference Audios"),
+      ...params.startFrame(),
+      ...params.endFrame()
+    }
+  },
+  {
     id: "seedance-2.5-video-edit",
     name: "Seedance 2.5 Video Edit",
     modelId: "seedance-2.5",
     addedAt: "2026-08-06",
     workflow: "seedance",
-    buildPayload: buildSeedance25VideoEditPayload,
+    buildPayload: buildSeedance25VideoEditPayloadFor("seedance_2_5"),
     estimatedTime: 60,
     mode: "video",
     inputType: "v2v",
@@ -4114,17 +4152,70 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     }
   },
   {
+    id: "seedance-2.5-without-moderation-video-edit",
+    name: "Seedance 2.5 Without Moderation Video Edit",
+    modelId: "seedance-2.5",
+    addedAt: "2026-09-09",
+    release: "preview",
+    workflow: "seedance",
+    buildPayload: buildSeedance25VideoEditPayloadFor("seedance_2_5_without_moderation"),
+    estimatedTime: 60,
+    mode: "video",
+    inputType: "v2v",
+    badge: ["new", "premium", "hot"],
+    description: "Moderation-free video edit \u2014 replace subjects, add or remove objects, restyle scenes with reference images.",
+    features: [feat("Video Input", "input"), feat("Multi-Image Input", "input"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("Source length", "duration")],
+    paramConfig: {
+      ...params.prompt(),
+      // Editing mode: aspect ratio is fixed to 'adaptive' and duration is
+      // source-driven ('-1'), so neither is user-selectable (vendor rule).
+      ...params.aspectRatio(["adaptive"]),
+      ...params.resolution(["480p", "720p", "1080p"], "1080p"),
+      ...params.generateAudio(),
+      ...params.returnLastFrame(),
+      ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
+      ...params.videoInput("Source Video", "reference", true, void 0, void 0, SEEDANCE_25_MAX_VIDEO_BYTES),
+      ...params.imageInput(30, "Reference Images")
+    }
+  },
+  {
     id: "seedance-2.5-video-extend",
     name: "Seedance 2.5 Video Extend",
     modelId: "seedance-2.5",
     addedAt: "2026-08-06",
     workflow: "seedance",
-    buildPayload: buildSeedance25VideoExtendPayload,
+    buildPayload: buildSeedance25VideoExtendPayloadFor("seedance_2_5"),
     estimatedTime: 200,
     mode: "video",
     inputType: "v2v",
     badge: ["new", "premium", "hot"],
     description: "Stitch up to 10 clips into one continuous, extended video.",
+    features: [feat("Multi-Video Input", "input"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("4-30 sec", "duration")],
+    paramConfig: {
+      ...params.prompt(),
+      // Extension mode: aspect ratio is locked to 'adaptive' (vendor rule);
+      // duration stays user-selectable.
+      ...params.aspectRatio(["adaptive"]),
+      ...params.resolution(["480p", "720p", "1080p"], "1080p"),
+      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
+      ...params.generateAudio(),
+      ...p.enum("outputFormat", ["mp4", "mov"], "mp4", { label: "Format" }),
+      ...params.videoInputs(10, "Source Videos", true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES })
+    }
+  },
+  {
+    id: "seedance-2.5-without-moderation-video-extend",
+    name: "Seedance 2.5 Without Moderation Video Extend",
+    modelId: "seedance-2.5",
+    addedAt: "2026-09-09",
+    release: "preview",
+    workflow: "seedance",
+    buildPayload: buildSeedance25VideoExtendPayloadFor("seedance_2_5_without_moderation"),
+    estimatedTime: 200,
+    mode: "video",
+    inputType: "v2v",
+    badge: ["new", "premium", "hot"],
+    description: "Moderation-free: stitch up to 10 clips into one continuous, extended video.",
     features: [feat("Multi-Video Input", "input"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("4-30 sec", "duration")],
     paramConfig: {
       ...params.prompt(),
@@ -11642,6 +11733,9 @@ var Seedance20WithoutModerationVideoExtend = "seedance-2.0-without-moderation-vi
 var Seedance25 = "seedance-2.5";
 var Seedance25VideoEdit = "seedance-2.5-video-edit";
 var Seedance25VideoExtend = "seedance-2.5-video-extend";
+var Seedance25WithoutModeration = "seedance-2.5-without-moderation";
+var Seedance25WithoutModerationVideoEdit = "seedance-2.5-without-moderation-video-edit";
+var Seedance25WithoutModerationVideoExtend = "seedance-2.5-without-moderation-video-extend";
 var SeedanceI2v = "seedance-i2v";
 var Seedream40 = "seedream-4.0";
 var Seedream45 = "seedream-4.5";
@@ -11868,6 +11962,9 @@ var Models = {
   Seedance25,
   Seedance25VideoEdit,
   Seedance25VideoExtend,
+  Seedance25WithoutModeration,
+  Seedance25WithoutModerationVideoEdit,
+  Seedance25WithoutModerationVideoExtend,
   SeedanceI2v,
   Seedream40,
   Seedream45,

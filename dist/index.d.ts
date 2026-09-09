@@ -1470,6 +1470,39 @@ type ModelInputById = {
         outputFormat?: "mp4" | "mov";
         videoUrls: [string, ...string[]];
     };
+    "seedance-2.5-without-moderation": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
+        resolution?: "480p" | "720p" | "1080p";
+        duration?: number;
+        generateAudio?: boolean;
+        returnLastFrame?: boolean;
+        outputFormat?: "mp4" | "mov";
+        imageUrls?: string[];
+        videoUrls?: string[];
+        audioUrls?: string[];
+        startFrame?: string;
+        endFrame?: string;
+    };
+    "seedance-2.5-without-moderation-video-edit": {
+        prompt: string;
+        aspectRatio?: "adaptive";
+        resolution?: "480p" | "720p" | "1080p";
+        generateAudio?: boolean;
+        returnLastFrame?: boolean;
+        outputFormat?: "mp4" | "mov";
+        videoUrl: string;
+        imageUrls?: string[];
+    };
+    "seedance-2.5-without-moderation-video-extend": {
+        prompt: string;
+        aspectRatio?: "adaptive";
+        resolution?: "480p" | "720p" | "1080p";
+        duration?: number;
+        generateAudio?: boolean;
+        outputFormat?: "mp4" | "mov";
+        videoUrls: [string, ...string[]];
+    };
     "seedance-i2v": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
@@ -2857,6 +2890,9 @@ declare const Models: {
     readonly Seedance25: "seedance-2.5";
     readonly Seedance25VideoEdit: "seedance-2.5-video-edit";
     readonly Seedance25VideoExtend: "seedance-2.5-video-extend";
+    readonly Seedance25WithoutModeration: "seedance-2.5-without-moderation";
+    readonly Seedance25WithoutModerationVideoEdit: "seedance-2.5-without-moderation-video-edit";
+    readonly Seedance25WithoutModerationVideoExtend: "seedance-2.5-without-moderation-video-extend";
     readonly SeedanceI2v: "seedance-i2v";
     readonly Seedream40: "seedream-4.0";
     readonly Seedream45: "seedream-4.5";

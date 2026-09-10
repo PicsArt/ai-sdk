@@ -258,11 +258,12 @@ export const { MODELS } = defineModels('flux', [
     // Pure pass-through like flux-video-upscale: the worker Command takes the
     // SDK's own field names (videoUrl, prompt, safetyTolerance) — no payload
     // builder needed.
-    id: 'flux-video-edit', name: 'FLUX Video Edit [fast]',
+    id: 'flux-video-edit', name: 'FLUX Video Edit',
     workflow: 'flux/v1/video-edit',
     mode: 'video', inputType: 'v2v',
     addedAt: '2026-09-09',
     estimatedTime: 180,
+    badge: ['new', 'fast'] as const,
     description: 'Edit videos with a text instruction — change objects, styles or scenes while preserving motion, timing and audio. Source clips up to 15 seconds; output at 24 fps, up to 720p.',
     features: [
       feat('Video Required', 'input'),

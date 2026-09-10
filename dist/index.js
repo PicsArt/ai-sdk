@@ -5875,7 +5875,7 @@ var { MODELS: MODELS21 } = defineModels("flux", [
     // SDK's own field names (videoUrl, prompt, safetyTolerance) — no payload
     // builder needed.
     id: "flux-video-edit",
-    name: "Sprout Video Edit",
+    name: "FLUX Video Edit [fast]",
     workflow: "flux/v1/video-edit",
     mode: "video",
     inputType: "v2v",

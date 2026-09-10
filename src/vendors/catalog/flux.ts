@@ -258,7 +258,7 @@ export const { MODELS } = defineModels('flux', [
     // Pure pass-through like flux-video-upscale: the worker Command takes the
     // SDK's own field names (videoUrl, prompt, safetyTolerance) — no payload
     // builder needed.
-    id: 'flux-video-edit', name: 'Sprout Video Edit',
+    id: 'flux-video-edit', name: 'FLUX Video Edit [fast]',
     workflow: 'flux/v1/video-edit',
     mode: 'video', inputType: 'v2v',
     addedAt: '2026-09-09',

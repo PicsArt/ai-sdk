@@ -2900,7 +2900,7 @@ var buildMinimaxH3 = (ctx) => {
   return {
     model: "MiniMax-H3",
     content,
-    resolution: "2K",
+    resolution: ctx.resolution ?? "2K",
     duration: ctx.duration ?? 5,
     ...ctx.aspectRatio ? { ratio: ctx.aspectRatio } : {}
   };
@@ -3048,6 +3048,9 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
       ...params.imageInput(9, "Reference Images", false),
       ...params.videoInputs(3, "Reference Videos", false),
       ...params.audioInputs(3, "Reference Audios", false),
+      // Backend enum is case-insensitive (['768P','2K','768p','2k']); the
+      // uppercase forms are canonical.
+      ...params.resolution(["768P", "2K"], "2K"),
       ...params.durationRange(5, 15, 5),
       ...p.aspectRatio(["adaptive", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "adaptive")
     },

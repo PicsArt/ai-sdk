@@ -857,6 +857,7 @@ type ModelInputById = {
         imageUrls?: string[];
         videoUrls?: string[];
         audioUrls?: string[];
+        resolution?: "768P" | "2K";
         duration?: number;
         aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
     };

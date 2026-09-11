@@ -522,14 +522,14 @@ type ModelInputById = {
     "heygen-talking-photo": {
         imageUrls: [string, ...string[]];
         resolution?: "4k" | "1080p" | "720p";
-        aspectRatio?: "16:9" | "9:16";
+        aspectRatio?: "16:9" | "9:16" | "4:5" | "5:4" | "1:1" | "auto";
         voiceId: string;
         prompt: string;
     };
     "heygen-video-avatar": {
         videoId: string;
         resolution?: "4k" | "1080p" | "720p";
-        aspectRatio?: "16:9" | "9:16";
+        aspectRatio?: "16:9" | "9:16" | "4:5" | "5:4" | "1:1" | "auto";
         voiceId: string;
         prompt: string;
     };

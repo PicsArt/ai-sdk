@@ -7,6 +7,7 @@
  * so the test exercises the real consumer path rather than a hand-rolled call.
  */
 import { createClient, type AiClient } from '../../../src';
+import { recordOptionsError, recordOptionsResponse } from './options-probe.ts';
 
 /**
  * Default gateway — the public production gateway. Point the run at a different
@@ -42,10 +43,30 @@ export function createTestClient(config: ClientConfig = {}): AiClient {
 
   return createClient({
     apiUrl,
-    fetch: (url, init) =>
-      fetch(url, {
+    fetch: async (url, init) => {
+      const isOptions = String(url).endsWith('/options');
+      const merged = {
         ...init,
         headers: { ...authHeaders, ...((init?.headers as Record<string, string> | undefined) ?? {}) },
-      }),
+      };
+      if (!isOptions) return fetch(url, merged);
+
+      try {
+        const res = await fetch(url, merged);
+        // clone() so reading the body here doesn't consume the stream the SDK reads.
+        let body = '';
+        try {
+          body = (await res.clone().text()).slice(0, 300);
+        } catch {
+          // A body that can't be re-read is still worth reporting by status alone.
+        }
+        recordOptionsResponse(res.status, res.statusText, body);
+        return res;
+      } catch (err) {
+        // transport.options swallows this into null; record it, then let it through.
+        recordOptionsError(err);
+        throw err;
+      }
+    },
   });
 }

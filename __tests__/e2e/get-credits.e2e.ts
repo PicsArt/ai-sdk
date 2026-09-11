@@ -35,6 +35,7 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { createTestClient } from './helpers/ai-sdk-test-client.ts';
+import { describeLastOptions, isTransient, lastOptionsResponse } from './helpers/options-probe.ts';
 import { loadCatalog } from './helpers/catalog-loader.ts';
 import { expandMatrix } from './helpers/param-matrix.ts';
 
@@ -58,10 +59,31 @@ function getCredits(id: string, ctx: Record<string, unknown>): Promise<number | 
   )(id, ctx);
 }
 
+/**
+ * Price one combo, retrying once when the gateway or the network hiccuped.
+ *
+ * A small fraction of the ~7700 /options calls in a full run come back null
+ * from a 429/5xx or a dropped connection, and any single one reddens the job —
+ * seen on veo-3.1-fast, seedance-2.0 and seedance-2.0-video-edit on unrelated
+ * branches. One retry removes that noise. A 4xx, or a 2xx carrying no credits,
+ * is a real answer and is NOT retried, so a genuine pricing gap still fails.
+ */
+async function priceWithRetry(id: string, ctx: Record<string, unknown>): Promise<number | null> {
+  const credits = await getCredits(id, ctx);
+  if (credits !== null || !isTransient(lastOptionsResponse())) return credits;
+  return getCredits(id, ctx);
+}
+
 function runChecks(label: string, credits: number | null): void {
   // The SDK priced the request (built payload, resolved workflow, hit /options).
   // Pricing must be present (not null); a present-but-0 price is acceptable.
-  assert.notEqual(credits, null, `getCredits returned null for ${label}`);
+  // transport.options collapses every cause into null, so quote what /options
+  // actually answered — otherwise the message names only the cell, and finding
+  // the cause means diffing whole job logs against a passing run.
+  assert.notEqual(
+    credits, null,
+    `getCredits returned null for ${label} — last /options: ${describeLastOptions()}`,
+  );
   assert.ok((credits as number) >= 0, `credits should be >= 0 for ${label}`);
 }
 
@@ -82,7 +104,7 @@ for (const entry of models) {
   test(entry.id, async (t) => {
     for (const c of expandMatrix(entry)) {
       await t.test(c.label, async () => {
-        const credits = await getCredits(entry.id, entry.buildContext(c.params));
+        const credits = await priceWithRetry(entry.id, entry.buildContext(c.params));
         runChecks(`${entry.id} [${c.label}]`, credits);
       });
     }
@@ -96,7 +118,7 @@ for (const entry of models.filter((m) => m.editWorkflow)) {
   test(`${entry.id} (edit)`, async (t) => {
     for (const c of expandMatrix(entry, { mode: 'edit' })) {
       await t.test(c.label, async () => {
-        const credits = await getCredits(entry.id, entry.buildContext(c.params));
+        const credits = await priceWithRetry(entry.id, entry.buildContext(c.params));
         runChecks(`${entry.id} (edit) [${c.label}]`, credits);
       });
     }

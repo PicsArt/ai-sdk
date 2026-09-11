@@ -87,3 +87,40 @@ ai.submit(Models.KlingV3, { prompt: 'test', duration: 5 });
 
 // @ts-expect-error — duration 20 is invalid for kling-v3 (valid range is 3–15)
 ai.submit(Models.KlingV3, { prompt: 'test', duration: 20 });
+
+// ── HeyGen aspect ratios ────────────────────────────────────────────
+// Guards the generated union for both models: 'auto' (what custom
+// photo/video-clone avatars need to keep the user's own crop) must type-check,
+// and a ratio outside HeyGen's VideoAspectRatio enum must not.
+
+type HeygenTalkingPhotoInput = ModelInputById['heygen-talking-photo'];
+accept<HeygenTalkingPhotoInput>({
+  imageUrls: ['https://example.com/portrait.png'],
+  voiceId: 'voice_1',
+  prompt: 'Read this script aloud, please.',
+  aspectRatio: 'auto',
+});
+
+accept<HeygenTalkingPhotoInput>({
+  imageUrls: ['https://example.com/portrait.png'],
+  voiceId: 'voice_1',
+  prompt: 'Read this script aloud, please.',
+  // @ts-expect-error 21:9 is not in HeyGen's VideoAspectRatio enum
+  aspectRatio: '21:9',
+});
+
+type HeygenVideoAvatarInput = ModelInputById['heygen-video-avatar'];
+accept<HeygenVideoAvatarInput>({
+  videoId: 'avatar_1',
+  voiceId: 'voice_1',
+  prompt: 'Read this script aloud, please.',
+  aspectRatio: '4:5',
+});
+
+accept<HeygenVideoAvatarInput>({
+  videoId: 'avatar_1',
+  voiceId: 'voice_1',
+  prompt: 'Read this script aloud, please.',
+  // @ts-expect-error 21:9 is not in HeyGen's VideoAspectRatio enum
+  aspectRatio: '21:9',
+});

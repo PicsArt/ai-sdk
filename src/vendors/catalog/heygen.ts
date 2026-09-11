@@ -66,7 +66,7 @@ export const { MODELS } = defineModels('heygen', [
     paramConfig: {
       ...params.imageInput(1, 'Portrait Image', true),
       ...params.resolution(['4k', '1080p', '720p'], '720p'),
-      ...params.aspectRatio(['16:9', '9:16']),
+      ...params.aspectRatio(['16:9', '9:16', '4:5', '5:4', '1:1', 'auto']),
       ...dynamicVoiceConfig,
       ...params.prompt({ minLength: 20, maxLength: 5000, placeholder: 'Write the script your avatar will speak (at least 20 characters)...' }),
     },
@@ -94,7 +94,7 @@ export const { MODELS } = defineModels('heygen', [
         catalog: { workflow: 'heygen/v1/catalog/avatars' },
       }),
       ...params.resolution(['4k', '1080p', '720p'], '720p'),
-      ...params.aspectRatio(['16:9', '9:16']),
+      ...params.aspectRatio(['16:9', '9:16', '4:5', '5:4', '1:1', 'auto']),
       ...dynamicVoiceConfig,
       ...params.prompt({ minLength: 20, maxLength: 5000, placeholder: 'Write the script your avatar will speak (at least 20 characters)...' }),
     },

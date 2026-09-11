@@ -255,7 +255,7 @@ type ModelInputById = {
     };
     "gemini-2.5-flash-image": {
         prompt: string;
-        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9";
+        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto";
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         imageUrls?: string[];
     };
@@ -279,7 +279,7 @@ type ModelInputById = {
     };
     "gemini-3-pro-image": {
         prompt: string;
-        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9";
+        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto";
         resolution?: "1K" | "2K" | "4K";
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         thinkingBudget?: number;
@@ -287,7 +287,7 @@ type ModelInputById = {
     };
     "gemini-3.1-flash-image": {
         prompt: string;
-        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "3:2" | "2:3" | "4:5" | "5:4" | "4:1" | "1:4" | "8:1" | "1:8" | "21:9";
+        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "3:2" | "2:3" | "4:5" | "5:4" | "4:1" | "1:4" | "8:1" | "1:8" | "21:9" | "auto";
         resolution?: "0.5K" | "1K" | "2K" | "4K";
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         thinkingLevel?: "minimal" | "high";
@@ -295,7 +295,7 @@ type ModelInputById = {
     };
     "gemini-3.1-flash-lite-image": {
         prompt: string;
-        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "3:2" | "2:3" | "4:5" | "5:4" | "4:1" | "1:4" | "8:1" | "1:8" | "21:9";
+        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "3:2" | "2:3" | "4:5" | "5:4" | "4:1" | "1:4" | "8:1" | "1:8" | "21:9" | "auto";
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         thinkingLevel?: "minimal" | "high";
         imageUrls?: string[];

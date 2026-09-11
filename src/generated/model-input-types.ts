@@ -37,13 +37,13 @@ export type ModelInputById = {
   "flux-kontext-pro": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-video-edit": { videoUrl: string; prompt: string; safetyTolerance?: number; };
   "flux-video-upscale": { videoUrl: string; upscaleFactor?: number; creativity?: 0 | 1; prompt?: string; safetyTolerance?: number; };
-  "gemini-2.5-flash-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
+  "gemini-2.5-flash-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "gemini-2.5-flash-tts": { language?: string; accent?: string; prompt: string; voiceId?: string; };
   "gemini-2.5-pro-tts": { language?: string; accent?: string; prompt: string; voiceId?: string; };
   "gemini-3-pro": { prompt: string; imageUrls?: string[]; videoUrl?: string; thinking?: "off" | "low" | "high"; };
-  "gemini-3-pro-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9"; resolution?: "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; thinkingBudget?: number; imageUrls?: string[]; };
-  "gemini-3.1-flash-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "3:2" | "2:3" | "4:5" | "5:4" | "4:1" | "1:4" | "8:1" | "1:8" | "21:9"; resolution?: "0.5K" | "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; thinkingLevel?: "minimal" | "high"; imageUrls?: string[]; };
-  "gemini-3.1-flash-lite-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "3:2" | "2:3" | "4:5" | "5:4" | "4:1" | "1:4" | "8:1" | "1:8" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; thinkingLevel?: "minimal" | "high"; imageUrls?: string[]; };
+  "gemini-3-pro-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto"; resolution?: "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; thinkingBudget?: number; imageUrls?: string[]; };
+  "gemini-3.1-flash-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "3:2" | "2:3" | "4:5" | "5:4" | "4:1" | "1:4" | "8:1" | "1:8" | "21:9" | "auto"; resolution?: "0.5K" | "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; thinkingLevel?: "minimal" | "high"; imageUrls?: string[]; };
+  "gemini-3.1-flash-lite-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "3:2" | "2:3" | "4:5" | "5:4" | "4:1" | "1:4" | "8:1" | "1:8" | "21:9" | "auto"; count?: 1 | 2 | 4 | 6 | 8 | 10; thinkingLevel?: "minimal" | "high"; imageUrls?: string[]; };
   "gemini-3.5-flash-lite": { prompt: string; imageUrls?: string[]; };
   "gemini-3.6-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-3.7-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };

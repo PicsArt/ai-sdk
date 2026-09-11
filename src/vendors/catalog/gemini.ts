@@ -128,7 +128,7 @@ export const buildGeminiOmniVideoPayload: PayloadBuilder = (ctx) => ({
 
 // ── Model definitions ───────────────────────────────────────────────
 
-const GEMINI_AR_WIDE = ['1:1', '16:9', '9:16', '3:4', '4:3', '2:3', '21:9'] as const;
+const GEMINI_AR_WIDE = ['1:1', '16:9', '9:16', '3:4', '4:3', '2:3', '21:9', 'auto'] as const;
 
 /**
  * thinkingLevel param for Gemini 3.x image preview models.
@@ -181,7 +181,7 @@ export const { MODELS } = defineModels('google', [
     features: [feat('Multi-Image Input', 'input'), feat('4K', 'resolution'), feat('Text Rendering', 'characteristic')],
     paramConfig: {
       ...params.prompt(),
-      ...params.aspectRatio(['1:1', '16:9', '9:16', '3:4', '4:3', '3:2', '2:3', '4:5', '5:4', '4:1', '1:4', '8:1', '1:8', '21:9'], '1:1'),
+      ...params.aspectRatio(['1:1', '16:9', '9:16', '3:4', '4:3', '3:2', '2:3', '4:5', '5:4', '4:1', '1:4', '8:1', '1:8', '21:9', 'auto'], '1:1'),
       ...params.resolution(['0.5K', '1K', '2K', '4K'], '1K'),
       ...params.count(),
       ...thinkingLevelParam,
@@ -201,7 +201,7 @@ export const { MODELS } = defineModels('google', [
     features: [feat('Multi-Image Input', 'input'), feat('Text Rendering', 'characteristic')],
     paramConfig: {
       ...params.prompt(),
-      ...params.aspectRatio(['1:1', '16:9', '9:16', '3:4', '4:3', '3:2', '2:3', '4:5', '5:4', '4:1', '1:4', '8:1', '1:8', '21:9'], '1:1'),
+      ...params.aspectRatio(['1:1', '16:9', '9:16', '3:4', '4:3', '3:2', '2:3', '4:5', '5:4', '4:1', '1:4', '8:1', '1:8', '21:9', 'auto'], '1:1'),
       ...params.count(),
       ...thinkingLevelParam,
       ...params.imageInput(14, 'Source Images'),

@@ -5978,7 +5978,7 @@ var buildGeminiOmniVideoPayload = (ctx) => ({
   ...ctx.imageUrls?.[0] ? { image: { url: ctx.imageUrls[0], mimeType: inferMimeType2(ctx.imageUrls[0]) } } : {},
   ...ctx.videoUrl ? { video: { url: ctx.videoUrl } } : {}
 });
-var GEMINI_AR_WIDE = ["1:1", "16:9", "9:16", "3:4", "4:3", "2:3", "21:9"];
+var GEMINI_AR_WIDE = ["1:1", "16:9", "9:16", "3:4", "4:3", "2:3", "21:9", "auto"];
 var thinkingLevelParam = {
   thinkingLevel: {
     label: "Thinking",
@@ -6017,7 +6017,7 @@ var { MODELS: MODELS22 } = defineModels("google", [
     features: [feat("Multi-Image Input", "input"), feat("4K", "resolution"), feat("Text Rendering", "characteristic")],
     paramConfig: {
       ...params.prompt(),
-      ...params.aspectRatio(["1:1", "16:9", "9:16", "3:4", "4:3", "3:2", "2:3", "4:5", "5:4", "4:1", "1:4", "8:1", "1:8", "21:9"], "1:1"),
+      ...params.aspectRatio(["1:1", "16:9", "9:16", "3:4", "4:3", "3:2", "2:3", "4:5", "5:4", "4:1", "1:4", "8:1", "1:8", "21:9", "auto"], "1:1"),
       ...params.resolution(["0.5K", "1K", "2K", "4K"], "1K"),
       ...params.count(),
       ...thinkingLevelParam,
@@ -6040,7 +6040,7 @@ var { MODELS: MODELS22 } = defineModels("google", [
     features: [feat("Multi-Image Input", "input"), feat("Text Rendering", "characteristic")],
     paramConfig: {
       ...params.prompt(),
-      ...params.aspectRatio(["1:1", "16:9", "9:16", "3:4", "4:3", "3:2", "2:3", "4:5", "5:4", "4:1", "1:4", "8:1", "1:8", "21:9"], "1:1"),
+      ...params.aspectRatio(["1:1", "16:9", "9:16", "3:4", "4:3", "3:2", "2:3", "4:5", "5:4", "4:1", "1:4", "8:1", "1:8", "21:9", "auto"], "1:1"),
       ...params.count(),
       ...thinkingLevelParam,
       ...params.imageInput(14, "Source Images")

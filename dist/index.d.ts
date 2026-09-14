@@ -876,6 +876,21 @@ type ModelInputById = {
         seed?: number;
         enableSafetyChecker?: boolean;
     };
+    "minimax-h3-max-camera-controls": {
+        prompt?: string;
+        startFrame: string;
+        resolution?: "480p" | "768p" | "1080p";
+        duration?: number;
+        cameraTrajectory?: Array<{
+            time: number;
+            azimuth: number;
+            elevation: number;
+            distance: number;
+        }>;
+        promptExpansionMode?: "balanced" | "quality";
+        seed?: number;
+        enableSafetyChecker?: boolean;
+    };
     "minimax-h3-max-turbo": {
         prompt: string;
         startFrame?: string;
@@ -2781,6 +2796,7 @@ declare const Models: {
     readonly Minimax02Hd: "minimax-02-hd";
     readonly MinimaxH3: "minimax-h3";
     readonly MinimaxH3Max: "minimax-h3-max";
+    readonly MinimaxH3MaxCameraControls: "minimax-h3-max-camera-controls";
     readonly MinimaxH3MaxTurbo: "minimax-h3-max-turbo";
     readonly MinimaxMusicV2: "minimax-music-v2";
     readonly MinimaxMusicV3: "minimax-music-v3";

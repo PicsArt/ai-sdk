@@ -214,4 +214,54 @@ export const { MODELS } = defineModels('minimax', [
       } },
     ],
   },
+  {
+    // Camera-controls sibling of minimax-h3-max: animates a single start
+    // frame along scripted camera keyframes. The prompt is optional — blank
+    // freezes the scene and moves only the camera. No aspect ratio on this
+    // wire; the output follows the frame image.
+    id: 'minimax-h3-max-camera-controls', name: 'MiniMax H3 Max Camera Controls',
+    modelId: 'fal-ai-h3-max-camera-controls',
+    addedAt: '2026-09-14',
+    workflow: 'minimax/h3-max/camera-controls',
+    estimatedTime: 5,
+    mode: 'video', inputType: 'i2v',
+    description: 'MiniMax H3 Max video from a start frame with scripted camera motion — 2-12 keyframes set the camera angle, height, and distance over time. Leave the prompt blank to freeze the scene and move only the camera. Up to 15s at 1080p.',
+    features: [
+      feat('Camera Controls', 'characteristic'), feat('Image Input', 'input'),
+      feat('1080p', 'resolution'), feat('5-15 sec', 'duration'),
+    ],
+    paramConfig: {
+      ...params.prompt({
+        maxLength: H3_MAX_PROMPT_MAX,
+        required: false,
+        placeholder: 'Optional — leave blank to freeze the scene and move only the camera...',
+      }),
+      ...params.startFrame('Start Frame', true),
+      // Native 480p default here (the siblings default to 768p); 1080p is a
+      // latent refinement of a native 768p generation.
+      ...params.resolution(['480p', '768p', '1080p'], '480p'),
+      ...params.durationRange(5, 15, 5),
+      // Ordered camera keyframes: the first pose is held before its time and
+      // the final pose for the remainder. Azimuth keeps signed full turns,
+      // capped at ±32 turns of total travel; distance is in normalized scene
+      // units and must stay above zero (the wire has no upper bound).
+      cameraTrajectory: {
+        label: 'Camera Trajectory',
+        descriptor: {
+          kind: 'object',
+          array: { min: 2, max: 12 },
+          fields: {
+            time: { kind: 'range', min: 0, max: 1, step: 0.01, default: 0 },
+            azimuth: { kind: 'range', min: -11520, max: 11520, default: 0 },
+            elevation: { kind: 'range', min: -90, max: 90, default: 0 },
+            distance: { kind: 'range', min: 0.01, max: 100, default: 1 },
+          },
+        },
+      },
+      ...p.enum('promptExpansionMode', ['balanced', 'quality'], 'balanced', { label: 'Prompt Expansion' }),
+      // -1 (sentinel) means "pick a random seed"; the builder drops it.
+      ...p.range('seed', -1, 2147483647, -1),
+      ...p.boolean('enableSafetyChecker', true, 'Safety Checker'),
+    },
+  },
 ]);

@@ -6942,6 +6942,60 @@ var { MODELS: MODELS25 } = defineModels("minimax", [
         aspectRatio: { disabled: true, reason: "Aspect ratio follows the frame image." }
       } }
     ]
+  },
+  {
+    // Camera-controls sibling of minimax-h3-max: animates a single start
+    // frame along scripted camera keyframes. The prompt is optional — blank
+    // freezes the scene and moves only the camera. No aspect ratio on this
+    // wire; the output follows the frame image.
+    id: "minimax-h3-max-camera-controls",
+    name: "MiniMax H3 Max Camera Controls",
+    modelId: "fal-ai-h3-max-camera-controls",
+    addedAt: "2026-09-14",
+    workflow: "minimax/h3-max/camera-controls",
+    estimatedTime: 5,
+    mode: "video",
+    inputType: "i2v",
+    description: "MiniMax H3 Max video from a start frame with scripted camera motion \u2014 2-12 keyframes set the camera angle, height, and distance over time. Leave the prompt blank to freeze the scene and move only the camera. Up to 15s at 1080p.",
+    features: [
+      feat("Camera Controls", "characteristic"),
+      feat("Image Input", "input"),
+      feat("1080p", "resolution"),
+      feat("5-15 sec", "duration")
+    ],
+    paramConfig: {
+      ...params.prompt({
+        maxLength: H3_MAX_PROMPT_MAX,
+        required: false,
+        placeholder: "Optional \u2014 leave blank to freeze the scene and move only the camera..."
+      }),
+      ...params.startFrame("Start Frame", true),
+      // Native 480p default here (the siblings default to 768p); 1080p is a
+      // latent refinement of a native 768p generation.
+      ...params.resolution(["480p", "768p", "1080p"], "480p"),
+      ...params.durationRange(5, 15, 5),
+      // Ordered camera keyframes: the first pose is held before its time and
+      // the final pose for the remainder. Azimuth keeps signed full turns,
+      // capped at ±32 turns of total travel; distance is in normalized scene
+      // units and must stay above zero (the wire has no upper bound).
+      cameraTrajectory: {
+        label: "Camera Trajectory",
+        descriptor: {
+          kind: "object",
+          array: { min: 2, max: 12 },
+          fields: {
+            time: { kind: "range", min: 0, max: 1, step: 0.01, default: 0 },
+            azimuth: { kind: "range", min: -11520, max: 11520, default: 0 },
+            elevation: { kind: "range", min: -90, max: 90, default: 0 },
+            distance: { kind: "range", min: 0.01, max: 100, default: 1 }
+          }
+        }
+      },
+      ...p.enum("promptExpansionMode", ["balanced", "quality"], "balanced", { label: "Prompt Expansion" }),
+      // -1 (sentinel) means "pick a random seed"; the builder drops it.
+      ...p.range("seed", -1, 2147483647, -1),
+      ...p.boolean("enableSafetyChecker", true, "Safety Checker")
+    }
   }
 ]);
 
@@ -7001,10 +7055,25 @@ var buildMinimaxH3MaxTurboPayload = (input) => ({
   ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
   enable_safety_checker: input.enableSafetyChecker ?? true
 });
+var buildMinimaxH3MaxCameraControlsPayload = (input) => ({
+  // Blank prompt is meaningful upstream — fal substitutes its frozen-scene
+  // default — so it is omitted rather than sent empty.
+  ...input.prompt ? { prompt: input.prompt } : {},
+  image_url: input.startFrame,
+  ...input.cameraTrajectory?.length ? { camera_trajectory: input.cameraTrajectory } : {},
+  prompt_expansion_mode: input.promptExpansionMode ?? "balanced",
+  duration: input.duration ?? 5,
+  // The vendor enum is uppercase; paramConfig keeps the lowercase form.
+  resolution: (input.resolution ?? "480p").toUpperCase(),
+  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
+  ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
+  enable_safety_checker: input.enableSafetyChecker ?? true
+});
 registerPayloads(MODELS25, {
   "minimax-music-v3": buildMinimaxMusicV3Payload,
   "minimax-h3-max": buildMinimaxH3MaxPayload,
-  "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload
+  "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload,
+  "minimax-h3-max-camera-controls": buildMinimaxH3MaxCameraControlsPayload
 });
 registerEditPayloads(MODELS25, {
   "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload
@@ -11545,6 +11614,7 @@ var Lyria35 = "lyria-3.5";
 var Minimax02Hd = "minimax-02-hd";
 var MinimaxH3 = "minimax-h3";
 var MinimaxH3Max = "minimax-h3-max";
+var MinimaxH3MaxCameraControls = "minimax-h3-max-camera-controls";
 var MinimaxH3MaxTurbo = "minimax-h3-max-turbo";
 var MinimaxMusicV2 = "minimax-music-v2";
 var MinimaxMusicV3 = "minimax-music-v3";
@@ -11770,6 +11840,7 @@ var Models = {
   Minimax02Hd,
   MinimaxH3,
   MinimaxH3Max,
+  MinimaxH3MaxCameraControls,
   MinimaxH3MaxTurbo,
   MinimaxMusicV2,
   MinimaxMusicV3,

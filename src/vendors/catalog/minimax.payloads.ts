@@ -1,5 +1,6 @@
 /**
- * MiniMax payload builders (Music v3, H3 Max, H3 Max Turbo).
+ * MiniMax payload builders (Music v3, H3 Max, H3 Max Turbo, H3 Max Camera
+ * Controls).
  *
  * Music v3: renames the unified SDK fields to the wire shape
  * (`lyricsPrompt` → `lyrics`) and nests the audio knobs under
@@ -91,10 +92,31 @@ const buildMinimaxH3MaxTurboPayload = (input: MinimaxH3MaxTurboInput) => ({
   enable_safety_checker: input.enableSafetyChecker ?? true,
 });
 
+type MinimaxH3MaxCameraControlsInput = ModelInput<'minimax-h3-max-camera-controls'>;
+
+// TODO: 'minimax/h3-max/camera-controls' is not in @picsart/workflows-types
+// yet (worker MR !112 unmerged) — the return stays inferred; annotate it with
+// WorkflowTypes['minimax/h3-max/camera-controls']['params'] once published.
+const buildMinimaxH3MaxCameraControlsPayload = (input: MinimaxH3MaxCameraControlsInput) => ({
+  // Blank prompt is meaningful upstream — fal substitutes its frozen-scene
+  // default — so it is omitted rather than sent empty.
+  ...(input.prompt ? { prompt: input.prompt } : {}),
+  image_url: input.startFrame,
+  ...(input.cameraTrajectory?.length ? { camera_trajectory: input.cameraTrajectory } : {}),
+  prompt_expansion_mode: input.promptExpansionMode ?? 'balanced',
+  duration: input.duration ?? 5,
+  // The vendor enum is uppercase; paramConfig keeps the lowercase form.
+  resolution: (input.resolution ?? '480p').toUpperCase(),
+  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
+  ...(input.seed != null && input.seed !== -1 ? { seed: input.seed } : {}),
+  enable_safety_checker: input.enableSafetyChecker ?? true,
+});
+
 registerPayloads(MODELS, {
   'minimax-music-v3': buildMinimaxMusicV3Payload,
   'minimax-h3-max': buildMinimaxH3MaxPayload,
   'minimax-h3-max-turbo': buildMinimaxH3MaxTurboPayload,
+  'minimax-h3-max-camera-controls': buildMinimaxH3MaxCameraControlsPayload,
 });
 
 // Edit slot — turbo keeps a separate image-to-video workflow, and the frame

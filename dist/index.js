@@ -6558,9 +6558,12 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
   },
   // ── Music ─────────────────────────────────────────────────────────
   {
+    // `modelId` is the pricing-catalog key, not the vendor id: the vendor's bare
+    // `music_v2` is not vendor-scoped, so pricing carries the `eleven_` prefix.
+    // The worker still receives `model_id: 'music_v2'` from the payload builder.
     id: "elevenlabs-music-v2",
     name: "ElevenLabs Music v2",
-    modelId: "music_v2",
+    modelId: "eleven_music_v2",
     addedAt: "2026-07-02",
     workflow: "elevenlabs/v1/music-generation",
     estimatedTime: 30,
@@ -6702,6 +6705,9 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
   {
     id: "eleven-voice-create",
     name: "Eleven Voice Previews",
+    // Pricing registers this operation as `eleven-voice-create-previews`, which
+    // does not match the model id — without the hint the credits lookup misses.
+    modelId: "eleven-voice-create-previews",
     addedAt: "2026-03-24",
     workflow: "elevenlabs/v1/voice-create-previews",
     buildPayload: buildElevenLabsVoicePreviewsPayload,

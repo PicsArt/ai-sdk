@@ -53,6 +53,26 @@ export const buildIdeogramV4GeneratePayload: PayloadBuilder = (ctx) => ({
   ...(ctx.enableCopyrightDetection ? { enable_copyright_detection: true } : {}),
 });
 
+/**
+ * I2I — flat params for the ideogram/v4/remix pluggable workflow.
+ *
+ * `resolution` is deliberately never sent. Ideogram 4.0 rejects `image_weight`
+ * combined with a resolution that changes the source image's aspect ratio
+ * ("Supply either image_weight or a resolution that changes the aspect ratio,
+ * not both"), and the builder can't know the source's aspect ratio. Since
+ * `imageWeight` always carries a default from paramConfig, sending both would
+ * 400 on every non-matching source. Omitting `resolution` keeps the weight
+ * slider live and lets the remix follow the input image's aspect ratio, which
+ * is the expected behavior for an edit flow.
+ */
+export const buildIdeogramV4RemixPayload: PayloadBuilder = (ctx) => ({
+  text_prompt: ctx.prompt,
+  image: ctx.startFrame ?? ctx.imageUrls?.[0],
+  ...(ctx.imageWeight != null ? { image_weight: ctx.imageWeight } : {}),
+  ...(ctx.renderingSpeed ? { rendering_speed: ctx.renderingSpeed } : {}),
+  ...(ctx.enableCopyrightDetection ? { enable_copyright_detection: true } : {}),
+});
+
 /** T2I — flat params for the ideogram/p-image/generate pluggable workflow. */
 export const buildIdeogramPImagePayload: PayloadBuilder = (ctx) => ({
   prompt: ctx.prompt,
@@ -64,19 +84,25 @@ export const { MODELS } = defineModels('ideogram', [
   {
     id: 'ideogram-v4', name: 'Ideogram 4.0',
     addedAt: '2026-06-03',
-    workflow: 'ideogram/v4/generate', buildPayload: buildIdeogramV4GeneratePayload,
+    workflow: 'ideogram/v4/generate', editWorkflow: 'ideogram/v4/remix',
+    buildPayload: buildIdeogramV4GeneratePayload, buildEditPayload: buildIdeogramV4RemixPayload,
     estimatedTime: 20,
     mode: 'image', inputType: 't2i',
     description: "Ideogram's latest model — class-leading text rendering at up to ~3K resolution.",
-    features: [feat('Text Rendering', 'style'), feat('Up to 3K', 'resolution')],
+    features: [feat('Text Rendering', 'style'), feat('Up to 3K', 'resolution'), feat('Image Remix', 'input')],
     paramConfig: {
       ...params.prompt(),
       ...params.resolution([
+        // 2K bucket (~3–4 MP)
         '2048x2048', '1440x2880', '2880x1440', '1664x2496', '2496x1664',
         '1792x2240', '2240x1792', '1440x2560', '2560x1440', '1600x2560',
         '2560x1600', '1728x2304', '2304x1728', '1296x3168', '3168x1296',
         '1152x2944', '2944x1152', '1248x3328', '3328x1248', '1280x3072',
-        '3072x1280',
+        '3072x1280', '1024x3072', '3072x1024',
+        // 1K bucket (~1 MP)
+        '1024x1024', '896x1120', '1120x896', '864x1152', '1152x864',
+        '832x1248', '1248x832', '800x1280', '1280x800', '720x1280',
+        '1280x720', '720x1440', '1440x720', '512x1536', '1536x512',
       ], '2048x2048'),
       ...params.renderingSpeed([
         { id: 'TURBO', label: 'Turbo' },
@@ -84,6 +110,10 @@ export const { MODELS } = defineModels('ideogram', [
         { id: 'QUALITY', label: 'Quality' },
       ], 'DEFAULT'),
       ...p.boolean('enableCopyrightDetection', false, 'Copyright Detection'),
+      // Remix (editWorkflow) inputs — an image switches the request to
+      // ideogram/v4/remix. Weight minimum is 1; the API rejects 0.
+      ...params.imageInput(1, 'Source Image'),
+      ...params.imageWeight(1, 100, 50, 5),
     },
   },
   {

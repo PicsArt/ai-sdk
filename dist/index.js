@@ -7115,6 +7115,13 @@ var buildIdeogramV4GeneratePayload = (ctx) => ({
   ...ctx.renderingSpeed ? { rendering_speed: ctx.renderingSpeed } : {},
   ...ctx.enableCopyrightDetection ? { enable_copyright_detection: true } : {}
 });
+var buildIdeogramV4RemixPayload = (ctx) => ({
+  text_prompt: ctx.prompt,
+  image: ctx.startFrame ?? ctx.imageUrls?.[0],
+  ...ctx.imageWeight != null ? { image_weight: ctx.imageWeight } : {},
+  ...ctx.renderingSpeed ? { rendering_speed: ctx.renderingSpeed } : {},
+  ...ctx.enableCopyrightDetection ? { enable_copyright_detection: true } : {}
+});
 var buildIdeogramPImagePayload = (ctx) => ({
   prompt: ctx.prompt,
   resolution: ctx.resolution ?? "1024x1024",
@@ -7126,15 +7133,18 @@ var { MODELS: MODELS26 } = defineModels("ideogram", [
     name: "Ideogram 4.0",
     addedAt: "2026-06-03",
     workflow: "ideogram/v4/generate",
+    editWorkflow: "ideogram/v4/remix",
     buildPayload: buildIdeogramV4GeneratePayload,
+    buildEditPayload: buildIdeogramV4RemixPayload,
     estimatedTime: 20,
     mode: "image",
     inputType: "t2i",
     description: "Ideogram's latest model \u2014 class-leading text rendering at up to ~3K resolution.",
-    features: [feat("Text Rendering", "style"), feat("Up to 3K", "resolution")],
+    features: [feat("Text Rendering", "style"), feat("Up to 3K", "resolution"), feat("Image Remix", "input")],
     paramConfig: {
       ...params.prompt(),
       ...params.resolution([
+        // 2K bucket (~3–4 MP)
         "2048x2048",
         "1440x2880",
         "2880x1440",
@@ -7155,14 +7165,36 @@ var { MODELS: MODELS26 } = defineModels("ideogram", [
         "1248x3328",
         "3328x1248",
         "1280x3072",
-        "3072x1280"
+        "3072x1280",
+        "1024x3072",
+        "3072x1024",
+        // 1K bucket (~1 MP)
+        "1024x1024",
+        "896x1120",
+        "1120x896",
+        "864x1152",
+        "1152x864",
+        "832x1248",
+        "1248x832",
+        "800x1280",
+        "1280x800",
+        "720x1280",
+        "1280x720",
+        "720x1440",
+        "1440x720",
+        "512x1536",
+        "1536x512"
       ], "2048x2048"),
       ...params.renderingSpeed([
         { id: "TURBO", label: "Turbo" },
         { id: "DEFAULT", label: "Balanced" },
         { id: "QUALITY", label: "Quality" }
       ], "DEFAULT"),
-      ...p.boolean("enableCopyrightDetection", false, "Copyright Detection")
+      ...p.boolean("enableCopyrightDetection", false, "Copyright Detection"),
+      // Remix (editWorkflow) inputs — an image switches the request to
+      // ideogram/v4/remix. Weight minimum is 1; the API rejects 0.
+      ...params.imageInput(1, "Source Image"),
+      ...params.imageWeight(1, 100, 50, 5)
     }
   },
   {

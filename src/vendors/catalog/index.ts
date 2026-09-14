@@ -17,7 +17,6 @@ import './wan.payloads.ts'; // registers the Wan 3.0 payload builder after model
 import { MODELS as lumaMODELS } from './luma.ts';
 import './luma.payloads.ts'; // registers Ray 3.2 payload builders after model definitions
 import { MODELS as seedanceMODELS } from './seedance.ts';
-import { MODELS as soraMODELS } from './sora.ts';
 import { MODELS as seedreamMODELS } from './seedream.ts';
 import { MODELS as seedaudioMODELS } from './seedaudio.ts';
 import './seedaudio.payloads.ts'; // registers the Seed Audio payload builder after model definitions
@@ -71,7 +70,6 @@ export const ALL_MODELS: ModelDefinition[] = [
   ...wanMODELS,
   ...lumaMODELS,
   ...seedanceMODELS,
-  ...soraMODELS,
   ...seedreamMODELS,
   ...seedaudioMODELS,
   ...reveMODELS,

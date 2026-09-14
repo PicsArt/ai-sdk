@@ -19,10 +19,6 @@ const EXPECTED: Record<string, number> = {
   'gpt-image-1': 32_000,
   'gpt-image-1.5': 32_000,
   'gpt-image-2': 32_000,
-  // fal `sora-2` schema.
-  'sora-2': 5000,
-  'sora-2-pro': 5000,
-  'sora-2-extend': 5000,
   // fal `ltx-2` / `ltx-2.3` schemas.
   'ltx-pro-t2v': 5000,
   'ltx-v2-fast': 5000,

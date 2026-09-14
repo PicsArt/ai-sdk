@@ -30,8 +30,6 @@ export const DISABLED_TEST_MODELS = new Set<string>([
 
   // Requires `sourceImageId` — a backend-issued image id from a prior result.
   'recraft-explore-similar',
-  // Requires `videoId` — the id of a prior Sora generation to extend (default is "").
-  'sora-2-extend',
   // Requires a real `voiceId`, but the param is a picker whose default is "".
   'heygen-talking-photo',
   // Same as above plus `videoId` — the avatar picker is hydrated at runtime from

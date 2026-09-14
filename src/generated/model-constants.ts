@@ -451,12 +451,6 @@ export const Seedream47 = 'seedream-4.7' as const;
 export const Seedream50Lite = 'seedream-5.0-lite' as const;
 /** Seedream 5.0 Pro — seedream (image) */
 export const Seedream50Pro = 'seedream-5.0-pro' as const;
-/** Sora 2 — openai (video) */
-export const Sora2 = 'sora-2' as const;
-/** Sora 2 Extend — openai (video) */
-export const Sora2Extend = 'sora-2-extend' as const;
-/** Sora 2 Pro — openai (video) */
-export const Sora2Pro = 'sora-2-pro' as const;
 /** Topaz Image Upscale — topaz (image) */
 export const TopazUpscaleImage = 'topaz-upscale-image' as const;
 /** Topaz Video Upscale — topaz (video) */
@@ -710,9 +704,6 @@ export const Models = {
   Seedream47,
   Seedream50Lite,
   Seedream50Pro,
-  Sora2,
-  Sora2Extend,
-  Sora2Pro,
   TopazUpscaleImage,
   TopazUpscaleVideo,
   VeedFabricV1,

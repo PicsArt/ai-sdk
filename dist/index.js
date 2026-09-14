@@ -1261,7 +1261,7 @@ var passthroughPayload = (paramConfig) => (ctx) => {
   return payload;
 };
 function defineModels(provider, configs) {
-  const MODELS39 = [];
+  const MODELS38 = [];
   for (const c of configs) {
     const prov = c.provider ?? provider;
     const resolvedPayload = c.buildPayload ?? passthroughPayload(c.paramConfig);
@@ -1297,19 +1297,19 @@ function defineModels(provider, configs) {
     if (c.constraints !== void 0) model.constraints = c.constraints;
     const contract = createModelContract(model);
     model.outputSchema = c.outputSchema ?? contract.output;
-    MODELS39.push(model);
+    MODELS38.push(model);
   }
-  return { MODELS: MODELS39 };
+  return { MODELS: MODELS38 };
 }
-function registerPayloads(MODELS39, payloads) {
+function registerPayloads(MODELS38, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS39.find((m) => m.id === id);
+    const model = MODELS38.find((m) => m.id === id);
     if (model) model.buildPayload = builder;
   }
 }
-function registerEditPayloads(MODELS39, payloads) {
+function registerEditPayloads(MODELS38, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS39.find((m) => m.id === id);
+    const model = MODELS38.find((m) => m.id === id);
     if (model) model.buildEditPayload = builder;
   }
 }
@@ -4602,100 +4602,6 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
   }
 ]);
 
-// src/vendors/catalog/sora.ts
-var SORA_SIZE_MAP = {
-  "720p": { "16:9": "1280x720", "9:16": "720x1280" },
-  "1024p": { "16:9": "1792x1024", "9:16": "1024x1792" },
-  "1080p": { "16:9": "1920x1080", "9:16": "1080x1920" }
-};
-var getSoraSize = (aspectRatio, resolution) => SORA_SIZE_MAP[resolution ?? "720p"]?.[aspectRatio ?? "16:9"] ?? "1280x720";
-var buildSora2ProPayload = (ctx) => ({
-  model: "sora-2-pro",
-  prompt: ctx.prompt,
-  seconds: ctx.duration ?? 4,
-  size: getSoraSize(ctx.aspectRatio, ctx.resolution),
-  ...ctx.imageUrls?.[0] ? { input_reference_url: ctx.imageUrls[0], adjust_input_image_ratio: true } : {}
-});
-var buildSora2Payload = (ctx) => ({
-  model: "sora-2",
-  prompt: ctx.prompt,
-  seconds: ctx.duration ?? 4,
-  size: getSoraSize(ctx.aspectRatio),
-  ...ctx.imageUrls?.[0] ? { input_reference_url: ctx.imageUrls[0], adjust_input_image_ratio: true } : {}
-});
-var buildSora2ExtendPayload = (ctx) => ({
-  video_id: ctx.videoId,
-  prompt: ctx.prompt,
-  seconds: ctx.duration ?? 8
-});
-var SORA_DURATIONS = [4, 8, 12, 16, 20];
-var SORA_AR = ["16:9", "9:16"];
-var SORA_PROMPT_MAX = 5e3;
-var { MODELS: MODELS13 } = defineModels("openai", [
-  {
-    id: "sora-2-pro",
-    name: "Sora 2 Pro",
-    modelId: "sora-2-pro",
-    addedAt: "2026-02-06",
-    workflow: "openai/v1/videos",
-    buildPayload: buildSora2ProPayload,
-    estimatedTime: { "720p": 100, "1024p": 100, "1080p": 100 },
-    testTimeout: 700,
-    mode: "video",
-    inputType: "t2v",
-    badge: ["popular", "premium"],
-    description: "Up to 1080p with strong physical realism and optional reference image.",
-    features: [feat("Image Input", "input"), feat("Audio", "audio"), feat("Up to 1080p", "resolution"), feat("4\u201320 sec", "duration")],
-    paramConfig: {
-      ...params.prompt({ maxLength: SORA_PROMPT_MAX }),
-      ...params.imageInput(1, "Reference Image"),
-      ...params.aspectRatio(SORA_AR),
-      ...params.resolution(["720p", "1024p", "1080p"]),
-      ...params.duration(SORA_DURATIONS, 4)
-    }
-  },
-  {
-    id: "sora-2",
-    name: "Sora 2",
-    modelId: "sora-2",
-    addedAt: "2026-02-06",
-    workflow: "openai/v1/videos",
-    buildPayload: buildSora2Payload,
-    estimatedTime: 100,
-    mode: "video",
-    inputType: "t2v",
-    badge: ["popular"],
-    description: "Naturalistic 720p video with lifelike motion and character detail.",
-    features: [feat("Image Input", "input"), feat("Audio", "audio"), feat("720p", "resolution"), feat("4\u201320 sec", "duration")],
-    paramConfig: {
-      ...params.prompt({ maxLength: SORA_PROMPT_MAX }),
-      ...params.imageInput(1, "Reference Image"),
-      ...params.aspectRatio(SORA_AR),
-      ...params.duration(SORA_DURATIONS, 4)
-    }
-  },
-  {
-    id: "sora-2-extend",
-    name: "Sora 2 Extend",
-    modelId: "sora-2",
-    addedAt: "2026-02-10",
-    workflow: "openai/v1/videos/extensions",
-    buildPayload: buildSora2ExtendPayload,
-    estimatedTime: 17,
-    mode: "video",
-    inputType: "v2v",
-    description: "Seamlessly continue a previously generated Sora video with matching style and pacing.",
-    features: [feat("Continue Video", "input"), feat("4\u201320 sec", "duration")],
-    paramConfig: {
-      ...params.prompt({ maxLength: SORA_PROMPT_MAX }),
-      // video_id is chained from the source Sora asset (declaring the param lets
-      // the store seed ctx.videoId); no aspectRatio/size — extend keeps source geometry.
-      ...params.videoId([], ""),
-      ...params.duration(SORA_DURATIONS, 8)
-    }
-  }
-]);
-
 // src/vendors/catalog/seedream.ts
 function buildSeedreamV2(modelId) {
   return (ctx) => ({
@@ -4720,7 +4626,7 @@ var seedreamV2Params = {
   ...params.imageInput(2, "Source Images"),
   ...params.negativePrompt()
 };
-var { MODELS: MODELS14 } = defineModels("seedream", [
+var { MODELS: MODELS13 } = defineModels("seedream", [
   {
     id: "seedream-5.0-pro",
     name: "Seedream 5.0 Pro",
@@ -4864,7 +4770,7 @@ var refMutexConstraints = [
     imageUrls: { disabled: true, reason: REF_MUTEX_REASON }
   } }
 ];
-var { MODELS: MODELS15 } = defineModels("seedaudio", [
+var { MODELS: MODELS14 } = defineModels("seedaudio", [
   {
     id: "seed-audio-1.0-multilingual",
     name: "Seed Audio Multilingual",
@@ -4930,7 +4836,7 @@ var buildSeedAudioPayload = (model) => (input) => {
     ...references ? { references } : {}
   };
 };
-registerPayloads(MODELS15, {
+registerPayloads(MODELS14, {
   "seed-audio-1.0": buildSeedAudioPayload("seed-audio-1.0"),
   "seed-audio-1.0-multilingual": buildSeedAudioPayload("seed-audio-1.0-multilingual")
 });
@@ -4946,7 +4852,7 @@ var buildRevePayload = (ctx) => {
     ...hasImages ? { image_url: ctx.imageUrls[0] } : {}
   };
 };
-var { MODELS: MODELS16 } = defineModels("reve", [
+var { MODELS: MODELS15 } = defineModels("reve", [
   {
     id: "reve",
     name: "Reve",
@@ -5042,7 +4948,7 @@ var GROK_DURATIONS = [3, 5, 6, 8, 10, 12, 15];
 var GROK_VIDEO_RESOLUTIONS = ["480p", "720p"];
 var GROK_VIDEO_RESOLUTIONS_15 = ["480p", "720p", "1080p"];
 var GROK_IMAGE_RESOLUTIONS = ["1k", "2k"];
-var { MODELS: MODELS17 } = defineModels("grok", [
+var { MODELS: MODELS16 } = defineModels("grok", [
   // ── Video ─────────────────────────────────────────
   {
     id: "grok-imagine-video",
@@ -5231,10 +5137,10 @@ var buildGrokImage2EditPayload = (input) => {
     ...imagePart2
   };
 };
-registerPayloads(MODELS17, {
+registerPayloads(MODELS16, {
   "grok-imagine-image-2.0": buildGrokImage2Payload
 });
-registerEditPayloads(MODELS17, {
+registerEditPayloads(MODELS16, {
   "grok-imagine-image-2.0": buildGrokImage2EditPayload
 });
 
@@ -5272,7 +5178,7 @@ var buildPikaFramesPayload = (ctx) => ({
 var PIKA_DURATIONS = [5, 10];
 var PIKA_AR = ["16:9", "9:16", "1:1", "4:5", "5:4", "3:2", "2:3"];
 var PIKA_RESOLUTIONS = ["720p", "1080p"];
-var { MODELS: MODELS18 } = defineModels("pika", [
+var { MODELS: MODELS17 } = defineModels("pika", [
   {
     id: "pika-2.2",
     name: "Pika",
@@ -5401,7 +5307,7 @@ var veoLiteParamConfig = {
 var veoLiteConstraints = [
   { when: { resolution: { is: "1080p" } }, then: { duration: { allowed: [8], reason: "1080p supports 8s only" } } }
 ];
-var { MODELS: MODELS19 } = defineModels("google", [
+var { MODELS: MODELS18 } = defineModels("google", [
   {
     id: "veo-3.1",
     name: "Veo 3.1",
@@ -5537,7 +5443,7 @@ var buildRunwayGen3aTurboPayload = (ctx) => ({
   ratio: RUNWAY_GEN3A_RATIO_MAP[ctx.aspectRatio ?? "16:9"] ?? "1280:768",
   duration: ctx.duration ?? 5
 });
-var { MODELS: MODELS20 } = defineModels("runway", [
+var { MODELS: MODELS19 } = defineModels("runway", [
   {
     id: "runway-avatar-video",
     name: "Runway Avatar",
@@ -5714,7 +5620,7 @@ var flux3VideoConstraints = [
     resolution: { allowed: ["hd"], reason: "Draft mode only supports HD resolution." }
   } }
 ];
-var { MODELS: MODELS21 } = defineModels("flux", [
+var { MODELS: MODELS20 } = defineModels("flux", [
   {
     ...fluxV2Base,
     id: "flux-2-pro",
@@ -5917,7 +5823,7 @@ var buildFlux3VideoPayload = (input) => {
     ...input.draft ? { draft: input.draft } : {}
   };
 };
-registerPayloads(MODELS21, {
+registerPayloads(MODELS20, {
   "flux-3-video": buildFlux3VideoPayload
 });
 
@@ -5999,7 +5905,7 @@ var thinkingBudgetParam = {
     descriptor: { kind: "range", min: 128, max: 24576, step: 128, default: 128 }
   }
 };
-var { MODELS: MODELS22 } = defineModels("google", [
+var { MODELS: MODELS21 } = defineModels("google", [
   // ── Image ─────────────────────────────────────────────────────────
   {
     id: "gemini-3.1-flash-image",
@@ -6197,7 +6103,7 @@ var buildOmniFlash11Payload = (input) => ({
   ...input.videoUrl ? { video: { url: input.videoUrl } } : {},
   ...input.videoUrls?.length ? { referenceVideos: input.videoUrls.map((url) => ({ url })) } : {}
 });
-registerPayloads(MODELS22, {
+registerPayloads(MODELS21, {
   "gemini-omni-1.1-flash-preview": buildOmniFlash11Payload
 });
 
@@ -6303,7 +6209,7 @@ var gptImageBgConstraints = [
     then: { outputFormat: { allowed: ["png", "webp"], reason: "Transparent background needs PNG or WEBP \u2014 JPEG has no alpha channel." } }
   }
 ];
-var { MODELS: MODELS23 } = defineModels("openai", [
+var { MODELS: MODELS22 } = defineModels("openai", [
   // ── Image ─────────────────────────────────────────
   {
     id: "gpt-image-2.5-sunburst",
@@ -6450,11 +6356,11 @@ var editFor = (model) => (input) => ({
   ...input.background ? { background: input.background } : {},
   ...input.outputFormat ? { output_format: input.outputFormat } : {}
 });
-registerPayloads(MODELS23, {
+registerPayloads(MODELS22, {
   "gpt-image-2.5-flare": generateFor("gpt-image-2.5-flare"),
   "gpt-image-2.5-sunburst": generateFor("gpt-image-2.5-sunburst")
 });
-registerEditPayloads(MODELS23, {
+registerEditPayloads(MODELS22, {
   "gpt-image-2.5-flare": editFor("gpt-image-2.5-flare"),
   "gpt-image-2.5-sunburst": editFor("gpt-image-2.5-sunburst")
 });
@@ -6507,7 +6413,7 @@ var ttsParamConfig = (promptMaxLength, withLanguage) => ({
   ...params.prompt({ maxLength: promptMaxLength }),
   ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: "elevenlabs/v1/catalog/voices" } })
 });
-var { MODELS: MODELS24 } = defineModels("elevenlabs", [
+var { MODELS: MODELS23 } = defineModels("elevenlabs", [
   // ── TTS ───────────────────────────────────────────────────────────
   {
     id: "eleven-v3",
@@ -6727,7 +6633,7 @@ var buildElevenLabsMusicPayload = (input) => ({
   model_id: "music_v2",
   force_instrumental: input.isInstrumental ?? false
 });
-registerPayloads(MODELS24, {
+registerPayloads(MODELS23, {
   "elevenlabs-music-v2": buildElevenLabsMusicPayload
 });
 
@@ -6771,7 +6677,7 @@ var dynamicVoiceConfig = {
     catalog: { workflow: "heygen/v1/catalog/voices" }
   })
 };
-var { MODELS: MODELS25 } = defineModels("heygen", [
+var { MODELS: MODELS24 } = defineModels("heygen", [
   // ── Photo Avatar (i2v) ────────────────────────────────────────────
   {
     id: "heygen-talking-photo",
@@ -6881,7 +6787,7 @@ var h3MaxConstraints = [
     audioUrls: { disabled: true, reason: AUDIO_NEEDS_VISUAL2 }
   } }
 ];
-var { MODELS: MODELS26 } = defineModels("minimax", [
+var { MODELS: MODELS25 } = defineModels("minimax", [
   {
     id: "minimax-02-hd",
     name: "MiniMax 02 HD",
@@ -7095,12 +7001,12 @@ var buildMinimaxH3MaxTurboPayload = (input) => ({
   ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
   enable_safety_checker: input.enableSafetyChecker ?? true
 });
-registerPayloads(MODELS26, {
+registerPayloads(MODELS25, {
   "minimax-music-v3": buildMinimaxMusicV3Payload,
   "minimax-h3-max": buildMinimaxH3MaxPayload,
   "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload
 });
-registerEditPayloads(MODELS26, {
+registerEditPayloads(MODELS25, {
   "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload
 });
 
@@ -7145,7 +7051,7 @@ var buildIdeogramPImagePayload = (ctx) => ({
   resolution: ctx.resolution ?? "1024x1024",
   rendering_speed: ctx.renderingSpeed ?? "medium"
 });
-var { MODELS: MODELS27 } = defineModels("ideogram", [
+var { MODELS: MODELS26 } = defineModels("ideogram", [
   {
     id: "ideogram-v4",
     name: "Ideogram 4.0",
@@ -7376,7 +7282,7 @@ var qwenV1Params3 = {
   ...p.enum("promptExtendMode", ["direct", "agent"], "direct"),
   ...p.boolean("enableThinking", true, "Deep Thinking")
 };
-var { MODELS: MODELS28 } = defineModels("qwen", [
+var { MODELS: MODELS27 } = defineModels("qwen", [
   {
     id: "qwen",
     name: "Qwen",
@@ -7546,7 +7452,7 @@ var v4StylesParams = p.file("imageUrls", "image", {
   category: "reference",
   maxBytes: 10 * 1024 * 1024
 });
-var { MODELS: MODELS29 } = defineModels("recraft", [
+var { MODELS: MODELS28 } = defineModels("recraft", [
   // ── V4.1 family (raster only — vector variants exist in API but not exposed here) ─
   {
     id: "recraftv4_1",
@@ -8086,7 +7992,7 @@ var TOPAZ_VIDEO_MODEL_OPTIONS = [
   "Starlight Sharp",
   "Starlight Fast 2"
 ];
-var { MODELS: MODELS30 } = defineModels("topaz", [
+var { MODELS: MODELS29 } = defineModels("topaz", [
   {
     id: "topaz-upscale-image",
     name: "Topaz Image Upscale",
@@ -8137,7 +8043,7 @@ var buildTopazVideoPayload = (input) => ({
   upscale_factor: 2,
   H264_output: false
 });
-registerPayloads(MODELS30, {
+registerPayloads(MODELS29, {
   "topaz-upscale-image": buildTopazImagePayload,
   "topaz-upscale-video": buildTopazVideoPayload
 });
@@ -8222,7 +8128,7 @@ var buildPcpSanaSprintPayload = (ctx) => {
     height: h
   };
 };
-var { MODELS: MODELS31 } = defineModels("picsart", [
+var { MODELS: MODELS30 } = defineModels("picsart", [
   {
     id: "picsart-change-bg",
     name: "Picsart Change Background",
@@ -8413,7 +8319,7 @@ var buildLyria3Payload = (apiModelId) => (ctx) => ({
   ...(ctx.imageUrls?.length ?? 0) > 1 ? { images: ctx.imageUrls.slice(0, 10).map(imagePart) } : {}
 });
 var LYRIA_PROMPT_MAX = 5e3;
-var { MODELS: MODELS32 } = defineModels("google", [
+var { MODELS: MODELS31 } = defineModels("google", [
   {
     id: "lyria-3-clip",
     addedAt: "2026-03-26",
@@ -8551,7 +8457,7 @@ var buildHH11R2VPayload = (ctx) => {
 };
 var HH_AR = ["16:9", "9:16", "1:1", "4:3", "3:4"];
 var HH_RES = ["720P", "1080P"];
-var { MODELS: MODELS33 } = defineModels("happyhorse", [
+var { MODELS: MODELS32 } = defineModels("happyhorse", [
   {
     id: "happyhorse-1.0-t2v",
     name: "Happy Horse 1.0",
@@ -8705,7 +8611,7 @@ var baseFeatures = [
   feat("Up to 1080p", "resolution"),
   feat("5-15 sec", "duration")
 ];
-var { MODELS: MODELS34 } = defineModels("pixverse", [
+var { MODELS: MODELS33 } = defineModels("pixverse", [
   // ── V6 ─────────────────────────────────────────────────────────────
   {
     id: "pixverse-v6",
@@ -8823,7 +8729,7 @@ var buildReferenceToVideoPayload = (model) => (input) => ({
   aspect_ratio: input.aspectRatio ?? "16:9",
   image_references: (input.imageUrls ?? []).map((url) => ({ url }))
 });
-registerPayloads(MODELS34, {
+registerPayloads(MODELS33, {
   "pixverse-v6": buildTextToVideoPayload("v6"),
   "pixverse-v6-image": buildImageToVideoPayload("v6"),
   "pixverse-v6-fusion": buildReferenceToVideoPayload("v6"),
@@ -8833,7 +8739,7 @@ registerPayloads(MODELS34, {
 });
 
 // src/vendors/catalog/async-ai.ts
-var { MODELS: MODELS35 } = defineModels("async", [
+var { MODELS: MODELS34 } = defineModels("async", [
   {
     id: "async-flash-v1",
     name: "Async Flash v1.0",
@@ -8873,7 +8779,7 @@ var buildAsyncTtsPayload = (input) => {
     }
   };
 };
-registerPayloads(MODELS35, { "async-flash-v1": buildAsyncTtsPayload });
+registerPayloads(MODELS34, { "async-flash-v1": buildAsyncTtsPayload });
 
 // src/vendors/catalog/llm.ts
 var ADDED = "2026-06-16";
@@ -9136,7 +9042,7 @@ var { MODELS: GEMINI_LLM } = defineModels("google", [
     }
   }
 ]);
-var MODELS36 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM];
+var MODELS35 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM];
 
 // src/vendors/catalog/llm.payloads.ts
 var CLAUDE_MAX_TOKENS = 8192;
@@ -9187,7 +9093,7 @@ var buildGeminiPayload = (modelId) => (input) => {
     ...level ? { generationConfig: { thinkingConfig: { thinkingLevel: level } } } : {}
   };
 };
-registerPayloads(MODELS36, {
+registerPayloads(MODELS35, {
   "claude-fable-5-1": buildClaudePayload("claude-fable-5-1"),
   "claude-fable-5": buildClaudePayload("claude-fable-5"),
   "claude-opus-5": buildClaudePayload("claude-opus-5"),
@@ -9212,7 +9118,7 @@ registerPayloads(MODELS36, {
 var CAPTIONS_MAX_DURATION_SEC = 300;
 var CAPTIONS_MAX_BYTES = 50 * 1024 * 1024;
 var DEFAULT_CAPTION_TEMPLATE_ID = "ctpl_DxflLOnuKkb198FNdI9E";
-var { MODELS: MODELS37 } = defineModels("captionsai", [
+var { MODELS: MODELS36 } = defineModels("captionsai", [
   {
     id: "captionsai-video-captions",
     name: "Captions",
@@ -9252,12 +9158,12 @@ var buildCaptionsPayload = (input) => ({
   video: { url: input.videoUrl },
   caption_template_id: input.templateId ?? DEFAULT_CAPTION_TEMPLATE_ID
 });
-registerPayloads(MODELS37, {
+registerPayloads(MODELS36, {
   "captionsai-video-captions": buildCaptionsPayload
 });
 
 // src/vendors/catalog/meta.ts
-var { MODELS: MODELS38 } = defineModels("meta", [
+var { MODELS: MODELS37 } = defineModels("meta", [
   // ── Image ─────────────────────────────────────────
   {
     id: "muse-image-1.0",
@@ -9317,10 +9223,10 @@ var buildMuseImageEditPayload = (input) => ({
   ...buildMuseCommonPayload(input),
   images: input.imageUrls ?? []
 });
-registerPayloads(MODELS38, {
+registerPayloads(MODELS37, {
   "muse-image-1.0": buildMuseImagePayload
 });
-registerEditPayloads(MODELS38, {
+registerEditPayloads(MODELS37, {
   "muse-image-1.0": buildMuseImageEditPayload
 });
 
@@ -9352,18 +9258,17 @@ var ALL_MODELS = [
   ...MODELS24,
   ...MODELS25,
   ...MODELS26,
+  ...MODELS31,
   ...MODELS27,
-  ...MODELS32,
   ...MODELS28,
   ...MODELS29,
   ...MODELS30,
-  ...MODELS31,
+  ...MODELS32,
   ...MODELS33,
   ...MODELS34,
   ...MODELS35,
   ...MODELS36,
-  ...MODELS37,
-  ...MODELS38
+  ...MODELS37
 ];
 var getModelsByMode = (mode, includeDisabled = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeDisabled || isVisibleForReleases(m)));
 
@@ -11730,9 +11635,6 @@ var Seedream45 = "seedream-4.5";
 var Seedream47 = "seedream-4.7";
 var Seedream50Lite = "seedream-5.0-lite";
 var Seedream50Pro = "seedream-5.0-pro";
-var Sora2 = "sora-2";
-var Sora2Extend = "sora-2-extend";
-var Sora2Pro = "sora-2-pro";
 var TopazUpscaleImage = "topaz-upscale-image";
 var TopazUpscaleVideo = "topaz-upscale-video";
 var VeedFabricV1 = "veed-fabric-v1";
@@ -11958,9 +11860,6 @@ var Models = {
   Seedream47,
   Seedream50Lite,
   Seedream50Pro,
-  Sora2,
-  Sora2Extend,
-  Sora2Pro,
   TopazUpscaleImage,
   TopazUpscaleVideo,
   VeedFabricV1,

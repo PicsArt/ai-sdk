@@ -213,9 +213,6 @@ export type ModelInputById = {
   "seedream-4.7": { resolution?: "1K" | "2K" | "4K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; negativePrompt?: string; };
   "seedream-5.0-lite": { resolution?: "2K" | "3K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; negativePrompt?: string; };
   "seedream-5.0-pro": { resolution?: "1K" | "2K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; imageUrls?: string[]; negativePrompt?: string; };
-  "sora-2": { prompt: string; imageUrls?: string[]; aspectRatio?: "16:9" | "9:16"; duration?: 4 | 8 | 12 | 16 | 20; };
-  "sora-2-extend": { prompt: string; videoId?: string; duration?: 4 | 8 | 12 | 16 | 20; };
-  "sora-2-pro": { prompt: string; imageUrls?: string[]; aspectRatio?: "16:9" | "9:16"; resolution?: "720p" | "1024p" | "1080p"; duration?: 4 | 8 | 12 | 16 | 20; };
   "topaz-upscale-image": { imageUrls: [string, ...string[]]; model?: "Standard V2" | "Standard MAX" | "Low Resolution V2" | "High Fidelity V2" | "CGI" | "Text Refine" | "Redefine" | "Recovery" | "Recovery V2" | "Wonder" | "Wonder 3"; };
   "topaz-upscale-video": { videoUrl: string; model?: "Proteus" | "Artemis HQ" | "Artemis MQ" | "Artemis LQ" | "Nyx" | "Nyx Fast" | "Nyx XL" | "Nyx HF" | "Gaia HQ" | "Gaia CG" | "Gaia 2" | "Starlight Precise 2.5" | "Starlight HQ" | "Starlight Mini" | "Starlight Sharp" | "Starlight Fast 2"; };
   "veed-fabric-v1": { prompt?: string; resolution?: "480p" | "720p"; imageUrls: [string, ...string[]]; audioUrl: string; };

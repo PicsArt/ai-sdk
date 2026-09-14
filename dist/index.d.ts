@@ -1540,24 +1540,6 @@ type ModelInputById = {
         imageUrls?: string[];
         negativePrompt?: string;
     };
-    "sora-2": {
-        prompt: string;
-        imageUrls?: string[];
-        aspectRatio?: "16:9" | "9:16";
-        duration?: 4 | 8 | 12 | 16 | 20;
-    };
-    "sora-2-extend": {
-        prompt: string;
-        videoId?: string;
-        duration?: 4 | 8 | 12 | 16 | 20;
-    };
-    "sora-2-pro": {
-        prompt: string;
-        imageUrls?: string[];
-        aspectRatio?: "16:9" | "9:16";
-        resolution?: "720p" | "1024p" | "1080p";
-        duration?: 4 | 8 | 12 | 16 | 20;
-    };
     "topaz-upscale-image": {
         imageUrls: [string, ...string[]];
         model?: "Standard V2" | "Standard MAX" | "Low Resolution V2" | "High Fidelity V2" | "CGI" | "Text Refine" | "Redefine" | "Recovery" | "Recovery V2" | "Wonder" | "Wonder 3";
@@ -2889,9 +2871,6 @@ declare const Models: {
     readonly Seedream47: "seedream-4.7";
     readonly Seedream50Lite: "seedream-5.0-lite";
     readonly Seedream50Pro: "seedream-5.0-pro";
-    readonly Sora2: "sora-2";
-    readonly Sora2Extend: "sora-2-extend";
-    readonly Sora2Pro: "sora-2-pro";
     readonly TopazUpscaleImage: "topaz-upscale-image";
     readonly TopazUpscaleVideo: "topaz-upscale-video";
     readonly VeedFabricV1: "veed-fabric-v1";

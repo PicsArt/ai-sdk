@@ -11,6 +11,7 @@
  * `ai.catalogs.avatars('heygen-video-avatar')` / `ai.catalogs.voices(...)`.
  */
 import type { PayloadBuilder, VoiceOption, AvatarOption } from '../../core/types.ts';
+import type { ModelParams } from '../../core/descriptors/types.ts';
 import { defineModels, feat, params } from '../define.ts';
 
 // ── Payload builders ────────────────────────────────────────────────
@@ -24,16 +25,47 @@ export const buildHeyGenPhotoAvatarPayload: PayloadBuilder = (ctx) => ({
   ...(ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}),
 });
 
-/** Video Avatar: avatar_id + script + voice. */
-export const buildHeyGenVideoAvatarPayload: PayloadBuilder = (ctx) => ({
-  avatar_id: ctx.videoId || undefined,
-  script: ctx.prompt,
-  voice_id: ctx.voiceId || undefined,
-  ...(ctx.resolution ? { resolution: ctx.resolution } : {}),
-  ...(ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}),
-});
+/** Video Avatar: avatar_id + script + voice, on the engine the caller picked. */
+export const buildHeyGenVideoAvatarPayload: PayloadBuilder = (ctx) => {
+  const c = ctx as typeof ctx & { engine?: string };
+  return {
+    avatar_id: ctx.videoId || undefined,
+    script: ctx.prompt,
+    voice_id: ctx.voiceId || undefined,
+    ...(ctx.resolution ? { resolution: ctx.resolution } : {}),
+    ...(ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}),
+    ...(c.engine ? { engine: c.engine } : {}),
+  };
+};
 
 // ── Shared param fragments ──────────────────────────────────────────
+
+/**
+ * HeyGen's rendering engine, opt-in on the worker.
+ *
+ * The default names Avatar IV because that is what HeyGen renders with when the
+ * field is absent; it is a picker default only, and an unset engine still stays
+ * off the wire, so shipped callers send exactly what they sent before Avatar V
+ * existed. Avatar V is the newer engine — the face holds through a long script —
+ * and costs the same, but it renders stock avatars only, which is why this is
+ * offered on Video Avatar and not on Talking Photo: HeyGen refuses `engine` on
+ * an image request outright.
+ */
+const engineParam: ModelParams = {
+  engine: {
+    label: 'Engine',
+    required: false,
+    descriptor: {
+      kind: 'enum',
+      valueType: 'string',
+      options: [
+        { id: 'avatar_iv', label: 'Avatar IV' },
+        { id: 'avatar_v', label: 'Avatar V' },
+      ],
+      default: 'avatar_iv',
+    },
+  },
+};
 
 /** Voice options are loaded dynamically — empty array signals runtime fetch. */
 const dynamicVoiceConfig = {
@@ -93,6 +125,7 @@ export const { MODELS } = defineModels('heygen', [
         required: true,
         catalog: { workflow: 'heygen/v1/catalog/avatars' },
       }),
+      ...engineParam,
       ...params.resolution(['4k', '1080p', '720p'], '720p'),
       ...params.aspectRatio(['16:9', '9:16', '4:5', '5:4', '1:1', 'auto']),
       ...dynamicVoiceConfig,

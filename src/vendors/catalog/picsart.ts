@@ -54,18 +54,6 @@ const buildPcpQwenEditPayload: PayloadBuilder = (ctx) => {
   };
 };
 
-/** Qwen Angle (pcp/v1/qwen-image-edit-angle) — image edit plus caller-overridable
- *  inference steps, guidance scale, and LoRA weights. Defaults are applied server-side. */
-const buildPcpQwenAnglePayload: PayloadBuilder = (ctx) => {
-  const c = ctx as typeof ctx & { numInferenceSteps?: number; loraWeights?: Record<string, number> };
-  return {
-    ...buildPcpQwenEditPayload(ctx),
-    ...(c.numInferenceSteps != null ? { num_inference_steps: c.numInferenceSteps } : {}),
-    ...(ctx.cfgScale != null ? { guidance_scale: ctx.cfgScale } : {}),
-    ...(c.loraWeights ? { lora_params: { lora_weights: c.loraWeights, keep_other_weights: false } } : {}),
-  };
-};
-
 /** FLUX.2-klein (pcp/v1/flux-text-to-image) — prompt + optional images[] + width/height (multiples of 16). */
 const buildPcpFluxKleinPayload: PayloadBuilder = (ctx) => {
   const size = resolveImageSize(ctx, FLUX_AR_TO_SIZE);
@@ -182,36 +170,6 @@ export const { MODELS } = defineModels('picsart', [
       ...params.imageInput(1, 'Portrait', true),
       ...params.prompt(),
       ...params.negativePrompt(),
-    },
-  },
-  {
-    id: 'picsart-qwen-image-edit-angle', name: 'Picsart Angle Change',
-    addedAt: '2026-06-30',
-    workflow: 'pcp/v1/qwen-image-edit-angle',
-    buildPayload: buildPcpQwenAnglePayload,
-    estimatedTime: 20,
-    mode: 'image', inputType: 'i2i',
-    description: 'Change the camera angle / viewpoint of a subject with automatic relighting.',
-    features: [feat('Image Input', 'input'), feat('Multi-Ref', 'characteristic')],
-    paramConfig: {
-      ...params.imageInput(3, 'Source Images', true),
-      ...params.prompt({ placeholder: 'e.g. front-left quarter view elevated shot medium shot' }),
-      ...params.negativePrompt(),
-      numInferenceSteps: {
-        label: 'Inference Steps',
-        descriptor: { kind: 'range', min: 1, max: 50, step: 1, default: 16 },
-      },
-      ...params.cfgScale(1, 10, 4),
-      loraWeights: {
-        label: 'LoRA Weights',
-        descriptor: {
-          kind: 'object',
-          fields: {
-            lora_angle: { kind: 'range', min: 0, max: 1, step: 0.1, default: 1, required: false },
-            lora_angle_lighting: { kind: 'range', min: 0, max: 1, step: 0.1, default: 1, required: false },
-          },
-        },
-      },
     },
   },
   {

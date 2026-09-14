@@ -283,8 +283,6 @@ export const PicsartFlux2Klein = 'picsart-flux-2-klein' as const;
 export const PicsartHidreamT2i = 'picsart-hidream-t2i' as const;
 /** Picsart Image Edit — picsart (image) */
 export const PicsartQwenImageEdit = 'picsart-qwen-image-edit' as const;
-/** Picsart Angle Change — picsart (image) */
-export const PicsartQwenImageEditAngle = 'picsart-qwen-image-edit-angle' as const;
 /** Picsart Makeup — picsart (image) */
 export const PicsartQwenMakeup = 'picsart-qwen-makeup' as const;
 /** Picsart SANA-Sprint — picsart (image) */
@@ -634,7 +632,6 @@ export const Models = {
   PicsartFlux2Klein,
   PicsartHidreamT2i,
   PicsartQwenImageEdit,
-  PicsartQwenImageEditAngle,
   PicsartQwenMakeup,
   PicsartSanaSprintV1,
   PicsartSodV82,

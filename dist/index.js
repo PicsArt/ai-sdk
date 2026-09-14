@@ -6733,13 +6733,32 @@ var buildHeyGenPhotoAvatarPayload = (ctx) => ({
   ...ctx.resolution ? { resolution: ctx.resolution } : {},
   ...ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}
 });
-var buildHeyGenVideoAvatarPayload = (ctx) => ({
-  avatar_id: ctx.videoId || void 0,
-  script: ctx.prompt,
-  voice_id: ctx.voiceId || void 0,
-  ...ctx.resolution ? { resolution: ctx.resolution } : {},
-  ...ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}
-});
+var buildHeyGenVideoAvatarPayload = (ctx) => {
+  const c = ctx;
+  return {
+    avatar_id: ctx.videoId || void 0,
+    script: ctx.prompt,
+    voice_id: ctx.voiceId || void 0,
+    ...ctx.resolution ? { resolution: ctx.resolution } : {},
+    ...ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {},
+    ...c.engine ? { engine: c.engine } : {}
+  };
+};
+var engineParam = {
+  engine: {
+    label: "Engine",
+    required: false,
+    descriptor: {
+      kind: "enum",
+      valueType: "string",
+      options: [
+        { id: "avatar_iv", label: "Avatar IV" },
+        { id: "avatar_v", label: "Avatar V" }
+      ],
+      default: "avatar_iv"
+    }
+  }
+};
 var dynamicVoiceConfig = {
   ...params.voiceId([], "", {
     required: true,
@@ -6794,6 +6813,7 @@ var { MODELS: MODELS25 } = defineModels("heygen", [
         required: true,
         catalog: { workflow: "heygen/v1/catalog/avatars" }
       }),
+      ...engineParam,
       ...params.resolution(["4k", "1080p", "720p"], "720p"),
       ...params.aspectRatio(["16:9", "9:16", "4:5", "5:4", "1:1", "auto"]),
       ...dynamicVoiceConfig,
@@ -8160,15 +8180,6 @@ var buildPcpQwenEditPayload = (ctx) => {
     ...ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {}
   };
 };
-var buildPcpQwenAnglePayload = (ctx) => {
-  const c = ctx;
-  return {
-    ...buildPcpQwenEditPayload(ctx),
-    ...c.numInferenceSteps != null ? { num_inference_steps: c.numInferenceSteps } : {},
-    ...ctx.cfgScale != null ? { guidance_scale: ctx.cfgScale } : {},
-    ...c.loraWeights ? { lora_params: { lora_weights: c.loraWeights, keep_other_weights: false } } : {}
-  };
-};
 var buildPcpFluxKleinPayload = (ctx) => {
   const size = resolveImageSize(ctx, FLUX_AR_TO_SIZE);
   const [w, h] = size ? size.split("x").map((n) => parseInt(n)) : [1024, 1024];
@@ -8281,38 +8292,6 @@ var { MODELS: MODELS31 } = defineModels("picsart", [
       ...params.imageInput(1, "Portrait", true),
       ...params.prompt(),
       ...params.negativePrompt()
-    }
-  },
-  {
-    id: "picsart-qwen-image-edit-angle",
-    name: "Picsart Angle Change",
-    addedAt: "2026-06-30",
-    workflow: "pcp/v1/qwen-image-edit-angle",
-    buildPayload: buildPcpQwenAnglePayload,
-    estimatedTime: 20,
-    mode: "image",
-    inputType: "i2i",
-    description: "Change the camera angle / viewpoint of a subject with automatic relighting.",
-    features: [feat("Image Input", "input"), feat("Multi-Ref", "characteristic")],
-    paramConfig: {
-      ...params.imageInput(3, "Source Images", true),
-      ...params.prompt({ placeholder: "e.g. front-left quarter view elevated shot medium shot" }),
-      ...params.negativePrompt(),
-      numInferenceSteps: {
-        label: "Inference Steps",
-        descriptor: { kind: "range", min: 1, max: 50, step: 1, default: 16 }
-      },
-      ...params.cfgScale(1, 10, 4),
-      loraWeights: {
-        label: "LoRA Weights",
-        descriptor: {
-          kind: "object",
-          fields: {
-            lora_angle: { kind: "range", min: 0, max: 1, step: 0.1, default: 1, required: false },
-            lora_angle_lighting: { kind: "range", min: 0, max: 1, step: 0.1, default: 1, required: false }
-          }
-        }
-      }
     }
   },
   {
@@ -11667,7 +11646,6 @@ var PicsartFlowVideo = "picsart-flow-video";
 var PicsartFlux2Klein = "picsart-flux-2-klein";
 var PicsartHidreamT2i = "picsart-hidream-t2i";
 var PicsartQwenImageEdit = "picsart-qwen-image-edit";
-var PicsartQwenImageEditAngle = "picsart-qwen-image-edit-angle";
 var PicsartQwenMakeup = "picsart-qwen-makeup";
 var PicsartSanaSprintV1 = "picsart-sana-sprint-v1";
 var PicsartSodV82 = "picsart-sod-v8-2";
@@ -11896,7 +11874,6 @@ var Models = {
   PicsartFlux2Klein,
   PicsartHidreamT2i,
   PicsartQwenImageEdit,
-  PicsartQwenImageEditAngle,
   PicsartQwenMakeup,
   PicsartSanaSprintV1,
   PicsartSodV82,

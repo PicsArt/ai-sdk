@@ -78,7 +78,7 @@ export type ModelInputById = {
   "happyhorse-1.1-r2v": { prompt: string; seed?: number; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; resolution?: "720P" | "1080P"; duration?: number; imageUrls: [string, ...string[]]; };
   "happyhorse-1.1-t2v": { prompt: string; seed?: number; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; resolution?: "720P" | "1080P"; duration?: number; startFrame?: string; };
   "heygen-talking-photo": { imageUrls: [string, ...string[]]; resolution?: "4k" | "1080p" | "720p"; aspectRatio?: "16:9" | "9:16" | "4:5" | "5:4" | "1:1" | "auto"; voiceId: string; prompt: string; };
-  "heygen-video-avatar": { videoId: string; resolution?: "4k" | "1080p" | "720p"; aspectRatio?: "16:9" | "9:16" | "4:5" | "5:4" | "1:1" | "auto"; voiceId: string; prompt: string; };
+  "heygen-video-avatar": { videoId: string; engine?: "avatar_iv" | "avatar_v"; resolution?: "4k" | "1080p" | "720p"; aspectRatio?: "16:9" | "9:16" | "4:5" | "5:4" | "1:1" | "auto"; voiceId: string; prompt: string; };
   "hunyuan-v3": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4"; count?: 1 | 2 | 4; negativePrompt?: string; cfgScale?: number; };
   "ideogram-character": { prompt: string; resolution?: "1024x1024" | "1344x768" | "768x1344" | "1152x864" | "864x1152" | "832x1248" | "1280x800"; renderingSpeed?: "TURBO" | "DEFAULT" | "QUALITY"; style?: "AUTO" | "REALISTIC" | "FICTION"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls: [string, ...string[]]; };
   "ideogram-p-image": { prompt: string; resolution?: "2048x2048" | "1440x2880" | "2880x1440" | "1664x2496" | "2496x1664" | "1792x2240" | "2240x1792" | "1440x2560" | "2560x1440" | "1600x2560" | "2560x1600" | "1728x2304" | "2304x1728" | "1296x3168" | "3168x1296" | "1152x2944" | "2944x1152" | "1248x3328" | "3328x1248" | "1280x3072" | "3072x1280" | "1024x3072" | "3072x1024" | "1024x1024" | "896x1120" | "1120x896" | "864x1152" | "1152x864" | "832x1248" | "1248x832" | "800x1280" | "1280x800" | "720x1280" | "1280x720" | "720x1440" | "1440x720"; renderingSpeed?: "very-low" | "low" | "medium" | "high"; };
@@ -135,7 +135,6 @@ export type ModelInputById = {
   "picsart-flux-2-klein": { prompt: string; aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4"; imageUrls?: string[]; };
   "picsart-hidream-t2i": { prompt: string; aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4"; };
   "picsart-qwen-image-edit": { imageUrls: [string, ...string[]]; prompt: string; negativePrompt?: string; };
-  "picsart-qwen-image-edit-angle": { imageUrls: [string, ...string[]]; prompt: string; negativePrompt?: string; numInferenceSteps?: number; cfgScale?: number; loraWeights?: { lora_angle?: number; lora_angle_lighting?: number }; };
   "picsart-qwen-makeup": { imageUrls: [string, ...string[]]; prompt: string; negativePrompt?: string; };
   "picsart-sana-sprint-v1": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; };
   "picsart-sod-v8-2": { imageUrls: [string, ...string[]]; };

@@ -528,6 +528,7 @@ type ModelInputById = {
     };
     "heygen-video-avatar": {
         videoId: string;
+        engine?: "avatar_iv" | "avatar_v";
         resolution?: "4k" | "1080p" | "720p";
         aspectRatio?: "16:9" | "9:16" | "4:5" | "5:4" | "1:1" | "auto";
         voiceId: string;
@@ -949,17 +950,6 @@ type ModelInputById = {
         imageUrls: [string, ...string[]];
         prompt: string;
         negativePrompt?: string;
-    };
-    "picsart-qwen-image-edit-angle": {
-        imageUrls: [string, ...string[]];
-        prompt: string;
-        negativePrompt?: string;
-        numInferenceSteps?: number;
-        cfgScale?: number;
-        loraWeights?: {
-            lora_angle?: number;
-            lora_angle_lighting?: number;
-        };
     };
     "picsart-qwen-makeup": {
         imageUrls: [string, ...string[]];
@@ -2821,7 +2811,6 @@ declare const Models: {
     readonly PicsartFlux2Klein: "picsart-flux-2-klein";
     readonly PicsartHidreamT2i: "picsart-hidream-t2i";
     readonly PicsartQwenImageEdit: "picsart-qwen-image-edit";
-    readonly PicsartQwenImageEditAngle: "picsart-qwen-image-edit-angle";
     readonly PicsartQwenMakeup: "picsart-qwen-makeup";
     readonly PicsartSanaSprintV1: "picsart-sana-sprint-v1";
     readonly PicsartSodV82: "picsart-sod-v8-2";

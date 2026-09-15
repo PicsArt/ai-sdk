@@ -43,12 +43,19 @@ export function createTestClient(config: ClientConfig = {}): AiClient {
 
   return createClient({
     apiUrl,
+    // Merge through Headers, not object spread: the SDK's internals pass
+    // header names lowercased (they go through a Headers instance), so a
+    // plain-object spread of {'Content-Type': ...} + {'content-type': ...}
+    // produces DUPLICATE headers on the wire ("application/json,
+    // application/json") and the gateway rejects the request. Headers#set
+    // is case-insensitive; caller-provided headers win, auth defaults fill in.
     fetch: async (url, init) => {
+      const headers = new Headers(init?.headers);
+      for (const [name, value] of Object.entries(authHeaders)) {
+        if (!headers.has(name)) headers.set(name, value);
+      }
+      const merged = { ...init, headers };
       const isOptions = String(url).endsWith('/options');
-      const merged = {
-        ...init,
-        headers: { ...authHeaders, ...((init?.headers as Record<string, string> | undefined) ?? {}) },
-      };
       if (!isOptions) return fetch(url, merged);
 
       try {

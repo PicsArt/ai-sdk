@@ -18,7 +18,7 @@ const videoWorkflows = [
 ];
 
 const grokVideoModels = ALL_MODELS.filter(
-  (m) => videoWorkflows.includes(m.workflow) && !m.disabled && !m.deprecated,
+  (m) => videoWorkflows.includes(m.workflow) && !m.deprecated,
 );
 
 // ── Every Grok video model declares the cap ────────────────────────────

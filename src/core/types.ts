@@ -257,16 +257,11 @@ export interface ModelDefinition {
   /** ISO YYYY-MM-DD date the model was added. The 'new' badge is derived from this — see core/badges.ts. */
   addedAt?: string;
   /**
-   * Marks a model as operationally unavailable — backend not deployed,
-   * pricing unconfirmed, catalog/runtime mismatch, etc. Expected to flip
-   * back on once the gate clears. Hidden from default catalog lookups.
-   */
-  disabled?: boolean;
-  /**
    * Marks a model as retired — superseded by a newer model or otherwise no
    * longer offered. Will not come back. Catalog row stays so workflow IDs
    * and toolIds remain resolvable for historical jobs and pricing. Hidden
-   * from default catalog lookups, same as `disabled`.
+   * from default catalog lookups. (Operationally-gated models use
+   * `release: 'preview'` instead.)
    */
   deprecated?: boolean;
   release?: ReleaseTag;

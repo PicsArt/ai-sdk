@@ -19,17 +19,6 @@ import {
 // (derived from the worker's own effect enum, with preview media and
 // `meta.imageSlots`); the `templateId` param is catalog-bound below.
 
-/**
- * Effect scenes that require two input images (e.g. hugs, kisses, swaps).
- * @deprecated Read `meta.imageSlots` on the `kling/v1/catalog/templates`
- * catalog items instead — this frozen copy is no longer maintained and will be
- * removed in the next major.
- */
-export const KLING_DUAL_IMAGE_EFFECTS: ReadonlySet<string> = new Set([
-  'pet_skateboard', 'daily_ootd', 'toss_run', 'switch_to_silk', 'studio_look',
-  'french_elegance', 'finger_swipe', 'smooth_transition', 'kiss_pro', 'snow_night_kiss',
-  'eternal_kiss', 'cheers_2026', 'fight_pro', 'hug_pro', 'heart_gesture_pro',
-]);
 
 // ── Durations / aspect ratios ───────────────────────────────────────
 
@@ -369,7 +358,7 @@ export const { MODELS } = defineModels('kling', [
   {
     id: 'kling-elements', name: 'Kling Elements',
     addedAt: '2026-05-11',
-    disabled: true, // pending backend toolId + pricing confirmation
+    release: 'preview', // pending backend toolId + pricing confirmation
     workflow: 'kling-elements',
     estimatedTime: 30,
     mode: 'image', inputType: 'i2i',

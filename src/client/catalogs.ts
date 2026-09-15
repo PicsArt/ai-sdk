@@ -13,11 +13,13 @@
  * creation.
  */
 
-import type { SdkTransport } from '../core/workflow.ts';
+import type { SdkTransport, TransportResult } from '../core/workflow.ts';
 import type { ModelDefinition } from '../core/types.ts';
 import type { TypedModelId } from '../generated/model-input-types.ts';
 import type { CatalogItem, CatalogQuery, CatalogResult, CatalogSource } from '../core/catalogs.ts';
 import { installHydratedCatalog } from '../core/catalogs.ts';
+import { ApiError } from '../core/errors.ts';
+import { throwIfErrorResult } from '../core/response.ts';
 import { resolveModel } from '../core/resolve.ts';
 import { ALL_MODELS } from '../vendors/catalog/index.ts';
 
@@ -116,15 +118,32 @@ export function createCatalogs(transport: SdkTransport, options?: CatalogsOption
     if (query.cursor) payload.cursor = query.cursor;
     if (query.limit) payload.limit = query.limit;
 
-    const raw = await transport.execute({ workflow, payload }) as Record<string, unknown> | null;
-    const container = (raw?.response ?? raw) as Record<string, unknown> | undefined;
-    if (raw?.status === 'error' || container?.status === 'FAILED') {
-      const message = container?.message ?? container?.error ?? raw?.message;
-      throw new Error(`${workflow} failed${message ? `: ${String(message)}` : ''}`);
+    let res: TransportResult;
+    try {
+      res = await transport.execute({ workflow, payload });
+    } catch (err) {
+      // A custom transport may throw anything; callers only ever see ApiError.
+      if (err instanceof ApiError || (err instanceof DOMException && err.name === 'AbortError')) throw err;
+      throw new ApiError(`${workflow} failed: ${err instanceof Error ? err.message : String(err)}`, {
+        status: 502,
+        code: 'bad_gateway',
+      });
     }
-    const result = container?.result as CatalogResult | undefined;
+    // The transport hands back the task result; a transport that keeps the
+    // platform envelope around is unwrapped here.
+    const body = (res.result ?? res.raw) as Record<string, unknown> | undefined;
+    const container = (body?.response ?? body) as Record<string, unknown> | undefined;
+    const result = (container?.result ?? container) as CatalogResult | undefined;
+    // A failed catalog task resolves with its error payload in place of the
+    // result ({ message, reason, statusCode }) — same ApiError contract as the
+    // generation surface, since catalog loads are part of the SDK's public
+    // error story too.
+    throwIfErrorResult(result, workflow);
     if (!result || !Array.isArray(result.items)) {
-      throw new Error(`${workflow} returned no catalog result`);
+      throw new ApiError(`${workflow} returned no catalog result`, {
+        status: 502,
+        code: 'invalid_response',
+      });
     }
     return { ...result, nextCursor: result.nextCursor ?? null };
   }

@@ -10,13 +10,13 @@
  *  2. Workflows are non-empty strings
  *  3. Model IDs are unique across all vendor catalogs
  *  4. paramConfig keys use known descriptor kinds
- *  5. spec-disabled / deprecated models (informational warning)
+ *  5. deprecated models (informational warning)
  * 10. all enabled models have a valid addedAt (YYYY-MM-DD)
  */
 import assert from 'node:assert';
 import { ALL_MODELS } from '../../src/vendors/catalog/index.ts';
 
-const enabled = ALL_MODELS.filter((m) => !m.disabled && !m.deprecated);
+const enabled = ALL_MODELS.filter((m) => !m.deprecated);
 
 // ── 1. all enabled async models have estimatedTime ────────────────
 {
@@ -72,13 +72,11 @@ const enabled = ALL_MODELS.filter((m) => !m.disabled && !m.deprecated);
   assert.deepStrictEqual(invalid, [], 'invalid descriptor kinds');
 }
 
-// ── 5. spec-disabled / deprecated models (informational warning) ──
+// ── 5. deprecated models (informational warning) ──────────────────
 {
-  const hidden = ALL_MODELS.filter((m) => m.disabled || m.deprecated);
+  const hidden = ALL_MODELS.filter((m) => m.deprecated);
   if (hidden.length > 0) {
-    const lines = hidden.map(
-      (m) => `  • ${m.provider}/${m.id} (${m.deprecated ? 'deprecated' : 'disabled'})`,
-    );
+    const lines = hidden.map((m) => `  • ${m.provider}/${m.id} (deprecated)`);
     console.warn(`\n⚠ ${hidden.length} model(s) hidden in specs:\n${lines.join('\n')}`);
   }
 }

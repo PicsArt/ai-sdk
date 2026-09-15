@@ -6,40 +6,31 @@
  * regardless, so we focus payload assertions per vendor.
  */
 import assert from 'node:assert';
-import type { WorkflowSubmitRequest } from '../../src/core/workflow.ts';
 import { createClient } from '../../src/client/index.ts';
+import { mockPlatform, FAST_POLL } from './helpers/mock-platform.ts';
 
-function createMockTransport() {
-  return {
-    lastExecute: null as { workflow: string; payload: Record<string, unknown> } | null,
-    async execute(request: WorkflowSubmitRequest) {
-      this.lastExecute = { workflow: request.workflow, payload: request.payload as Record<string, unknown> };
-      return {
-        status: 'success',
-        response: {
-          result: {
-            id: 'cmpl-1',
-            choices: [{ index: 0, message: { role: 'assistant', content: 'Hello from the model.' }, finish_reason: 'stop' }],
-            usage: { prompt_tokens: 5, completion_tokens: 4, total_tokens: 9 },
-          },
-        },
-      };
+const platform = mockPlatform({
+  status: () => ({
+    status: 'COMPLETED',
+    result: {
+      id: 'cmpl-1',
+      choices: [{ index: 0, message: { role: 'assistant', content: 'Hello from the model.' }, finish_reason: 'stop' }],
+      usage: { prompt_tokens: 5, completion_tokens: 4, total_tokens: 9 },
     },
-  };
-}
-
-const mock = createMockTransport();
-const ai = createClient(mock);
+  }),
+});
+const ai = createClient({ apiUrl: 'https://api.test', fetch: platform.fetch });
+const lastSubmit = () => platform.calls.submits.at(-1)!;
 
 // ── Claude → claude/v1/messages: image as {type:'image', source}, max_tokens ─
 
-const claude = await ai.generateText('claude-opus-4-8', { prompt: 'Hi', imageUrls: ['https://x/a.png'] });
+const claude = await ai.generateText('claude-opus-4-8', { prompt: 'Hi', imageUrls: ['https://x/a.png'] }, FAST_POLL);
 assert.strictEqual(claude.text, 'Hello from the model.', 'text extracted');
 assert.strictEqual(claude.model, 'claude-opus-4-8');
 assert(claude.raw, 'raw present');
 {
-  const p = mock.lastExecute!.payload;
-  assert.strictEqual(mock.lastExecute!.workflow, 'claude/v1/messages');
+  const p = lastSubmit().payload;
+  assert.strictEqual(lastSubmit().workflow, 'claude/v1/messages');
   assert.strictEqual(p.model, 'claude-opus-4-8');
   assert.strictEqual(typeof p.max_tokens, 'number', 'claude needs max_tokens');
   const content = (p.messages as Array<{ content: Array<Record<string, unknown>> }>)[0].content;
@@ -50,10 +41,10 @@ assert(claude.raw, 'raw present');
 
 // ── OpenAI → chat-completions: reasoning_effort + image_url ──────────
 
-await ai.generateText('gpt-5.5', { prompt: 'Solve', thinking: 'high', imageUrls: ['https://x/img.png'] });
+await ai.generateText('gpt-5.5', { prompt: 'Solve', thinking: 'high', imageUrls: ['https://x/img.png'] }, FAST_POLL);
 {
-  const p = mock.lastExecute!.payload;
-  assert.strictEqual(mock.lastExecute!.workflow, 'chat-completions');
+  const p = lastSubmit().payload;
+  assert.strictEqual(lastSubmit().workflow, 'chat-completions');
   assert.strictEqual(p.model, 'gpt-5.5');
   assert.strictEqual(p.reasoning_effort, 'high', 'thinking → reasoning_effort');
   const content = (p.messages as Array<{ content: Array<Record<string, unknown>> }>)[0].content;
@@ -63,10 +54,10 @@ await ai.generateText('gpt-5.5', { prompt: 'Solve', thinking: 'high', imageUrls:
 
 // ── Gemini → gemini: contents/parts, video fileData, thinkingLevel ───
 
-await ai.generateText('gemini-3-pro', { prompt: 'Describe', thinking: 'high', videoUrl: 'https://x/v.mp4' });
+await ai.generateText('gemini-3-pro', { prompt: 'Describe', thinking: 'high', videoUrl: 'https://x/v.mp4' }, FAST_POLL);
 {
-  const p = mock.lastExecute!.payload;
-  assert.strictEqual(mock.lastExecute!.workflow, 'gemini');
+  const p = lastSubmit().payload;
+  assert.strictEqual(lastSubmit().workflow, 'gemini');
   assert.strictEqual(p.model, 'gemini-3-pro-preview', 'backend model id sent');
   const parts = (p.contents as Array<{ parts: Array<Record<string, unknown>> }>)[0].parts;
   assert.strictEqual(parts[0].text, 'Describe');
@@ -77,35 +68,32 @@ await ai.generateText('gemini-3-pro', { prompt: 'Describe', thinking: 'high', vi
 
 // Gemini image parts must carry type:'IMAGE' — the worker only inlines tagged
 // parts; an untagged { imageUrl } is forwarded to Google verbatim and 400s.
-await ai.generateText('gemini-3-pro', { prompt: 'Describe', imageUrls: ['https://x/a.png'] });
+await ai.generateText('gemini-3-pro', { prompt: 'Describe', imageUrls: ['https://x/a.png'] }, FAST_POLL);
 {
-  const parts = (mock.lastExecute!.payload.contents as Array<{ parts: Array<Record<string, unknown>> }>)[0].parts;
+  const parts = (lastSubmit().payload.contents as Array<{ parts: Array<Record<string, unknown>> }>)[0].parts;
   assert.deepStrictEqual(parts[1], { type: 'IMAGE', imageUrl: 'https://x/a.png' }, 'image as typed IMAGE part');
 }
 
 // thinking 'off' omits config / reasoning_effort
-await ai.generateText('gemini-3-pro', { prompt: 'Hi' });
-assert.strictEqual(mock.lastExecute!.payload.generationConfig, undefined, 'no thinkingConfig when off');
+await ai.generateText('gemini-3-pro', { prompt: 'Hi' }, FAST_POLL);
+assert.strictEqual(lastSubmit().payload.generationConfig, undefined, 'no thinkingConfig when off');
 
 // ── Platform credit usage surfaced on GenerateTextResult ─────────────
 // Vendor token usage (result.usage: prompt_tokens/...) stays in raw only;
 // the platform CreditUsage ({ credits, details, ... }) lands on result.usage.
 
-const usageMock = {
-  async execute() {
-    return {
-      status: 'success',
-      response: {
-        result: {
-          choices: [{ index: 0, message: { role: 'assistant', content: 'Hi.' }, finish_reason: 'stop' }],
-          usage: { prompt_tokens: 5, completion_tokens: 4, total_tokens: 9 },
-        },
-        usage: { toolId: 'gpt-5.5', credits: 1, details: [{ operationId: 'op-1', toolId: 'gpt-5.5', price: 0.01, amount: 9, credits: 1 }] },
-      },
-    };
-  },
-};
-const textUsage = await createClient(usageMock).generateText('gpt-5.5', { prompt: 'Hi' });
+const usagePlatform = mockPlatform({
+  status: () => ({
+    status: 'COMPLETED',
+    result: {
+      choices: [{ index: 0, message: { role: 'assistant', content: 'Hi.' }, finish_reason: 'stop' }],
+      usage: { prompt_tokens: 5, completion_tokens: 4, total_tokens: 9 },
+    },
+    usage: { toolId: 'gpt-5.5', credits: 1, details: [{ operationId: 'op-1', toolId: 'gpt-5.5', price: 0.01, amount: 9, credits: 1 }] },
+  }),
+});
+const textUsage = await createClient({ apiUrl: 'https://api.test', fetch: usagePlatform.fetch })
+  .generateText('gpt-5.5', { prompt: 'Hi' }, FAST_POLL);
 assert(textUsage.usage, 'generateText should surface platform usage');
 assert.strictEqual(textUsage.usage!.credits, 1);
 assert.strictEqual(textUsage.usage!.details![0].credits, 1);

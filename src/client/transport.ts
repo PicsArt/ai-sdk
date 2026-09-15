@@ -1,5 +1,20 @@
-import type { AuthenticatedFetch, ClientConfig, SdkTransport } from './types.ts';
-import { ApiError, readErrorBody, reasonFrom } from '../core/errors.ts';
+// ── The built-in transport ────────────────────────────────────────────
+// The default SdkTransport: every lifecycle request the SDK makes, served by
+// @picsart/workflows-client (submit → runPolling, execute via SYNC mode, the
+// single-shot result read, and the /options credit estimate). Swap the whole
+// thing out with `createClient({ transport })`.
+
+import { WorkflowsClient, ExecutionMode } from '@picsart/workflows-client';
+
+import type {
+  SdkTransport,
+  TransportPollOptions,
+  TransportResult,
+  WorkflowJobHandle,
+} from '../core/workflow.ts';
+import type { AuthenticatedFetch, ClientConfig } from './types.ts';
+import { ApiError } from '../core/errors.ts';
+import { toApiError } from './workflows-error.ts';
 
 /**
  * Attribution headers the gateway requires on every request. The `apiKey` fetch
@@ -15,12 +30,13 @@ const GATEWAY_HEADERS: Record<string, string> = {
 };
 
 /**
- * Resolve the authenticated fetch the SDK uses for every request: the
+ * The authenticated fetch the SDK uses for every request it makes itself: the
  * caller-supplied `fetch` when present, otherwise a fetch built from `apiKey`
  * that adds `Authorization: Bearer <apiKey>` plus the required gateway
- * attribution headers on top of the global `fetch`.
+ * attribution headers on top of the global `fetch`. `null` when the config
+ * carries neither — legal only when a custom `transport` owns the wire.
  */
-export function resolveFetch(config: ClientConfig): AuthenticatedFetch {
+export function maybeFetch(config: ClientConfig): AuthenticatedFetch | null {
   if (config.fetch) return config.fetch;
   if (config.apiKey) {
     const token = config.apiKey.replace(/^Bearer\s+/i, '');
@@ -33,106 +49,107 @@ export function resolveFetch(config: ClientConfig): AuthenticatedFetch {
       return globalThis.fetch(url, { ...init, headers });
     };
   }
-  throw new Error('createClient config requires either `fetch` or `apiKey`.');
+  return null;
 }
 
-/** Build a full SdkTransport from an authenticated fetch function. */
-export function buildTransport(config: ClientConfig): SdkTransport {
-  const apiUrl = config.apiUrl;
-  const f = resolveFetch(config);
+/**
+ * The workflows client the built-in transport (and `ai.apis`) runs on.
+ * Shared, so both speak to the platform through the same authenticated fetch.
+ */
+export function createWorkflowsClient(apiUrl: string, authedFetch: AuthenticatedFetch): WorkflowsClient {
+  return new WorkflowsClient({
+    baseUrl: apiUrl,
+    // AuthenticatedFetch takes a string url; the client's fetch type accepts
+    // URL/Request inputs too. Normalize without losing the Request's own url,
+    // method, headers, or body (the client passes plain string urls today,
+    // but the contract allows more).
+    fetch: (input, init) => {
+      if (input instanceof Request) {
+        return authedFetch(input.url, init ?? {
+          method: input.method,
+          headers: input.headers,
+          body: input.body,
+          signal: input.signal,
+        });
+      }
+      return authedFetch(typeof input === 'string' ? input : input.toString(), init);
+    },
+  });
+}
 
-  const jsonPost = async (url: string, body: unknown, signal?: AbortSignal): Promise<Response> =>
-    f(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal,
-    });
+/** Build the default {@link SdkTransport} over a workflows client. */
+export function buildTransport(wc: WorkflowsClient): SdkTransport {
+  // The client returns the platform's whole task record; the SDK takes the
+  // result and the usage off it. `raw` stays the task result — it is what
+  // GenerateTextResult.raw exposes, and the envelope's id/updated/status are
+  // no business of a caller's.
+  const asResult = (res: { result?: unknown; usage?: unknown }): TransportResult => ({
+    result: res.result,
+    usage: res.usage as TransportResult['usage'],
+    raw: res.result,
+  });
 
   return {
-    async submit(request) {
-      const res = await jsonPost(
-        `${apiUrl}/workflows/${request.workflow}/submit`,
-        { params: request.payload },
-        request.signal,
-      );
-      // Read the body before branching on `ok`: a non-JSON error body (a gateway
-      // HTML page, an empty 401) used to surface as a JSON SyntaxError that lost
-      // the status entirely.
-      const { text, json } = await readErrorBody(res);
-      if (!res.ok) {
-        const detail = json ? json.message ?? JSON.stringify(json) : text;
-        throw new ApiError(`Submit failed (${res.status}): ${detail}`, {
-          status: res.status,
-          code: reasonFrom(json, res.status),
-        });
-      }
-      const response = json?.response as Record<string, unknown> | undefined;
-      const id = response?.id ?? json?.id;
-      if (!id) {
-        throw new ApiError(`No task id in response: ${json ? JSON.stringify(json) : text}`, {
-          status: 502,
-          code: 'invalid_response',
-        });
-      }
-      return { workflow: request.workflow, id: String(id) };
-    },
-
-    async status(handle, signal) {
-      const res = await f(`${apiUrl}/workflows/${handle.workflow}/${handle.id}/result`, { signal });
-      if (!res.ok) {
-        const { text, json } = await readErrorBody(res);
-        // Prefer the platform's own `message` over the raw body — a task failure
-        // returns `{ status: 'error', reason, message }`, and dumping the whole
-        // JSON here is what a caller ends up showing a user. Falls back to the
-        // raw text when the body carries no `message`.
-        const detail = json ? json.message ?? text : text;
-        throw new ApiError(`Status check failed (${res.status}): ${detail}`, {
-          status: res.status,
-          code: reasonFrom(json, res.status),
-        });
-      }
-      return res.json();
-    },
-
     async execute(request) {
-      const res = await jsonPost(
-        `${apiUrl}/workflows/${request.workflow}/execute`,
-        { params: request.payload },
-        request.signal,
-      );
-      if (!res.ok) {
-        const { text, json } = await readErrorBody(res);
-        // Prefer the platform's own `message` over the raw body — a task failure
-        // returns `{ status: 'error', reason, message }`, and dumping the whole
-        // JSON here is what a caller ends up showing a user. Falls back to the
-        // raw text when the body carries no `message`.
-        const detail = json ? json.message ?? text : text;
-        throw new ApiError(`Execute failed (${res.status}): ${detail}`, {
-          status: res.status,
-          code: reasonFrom(json, res.status),
+      try {
+        const res = await wc.run(request.workflow, request.payload, {
+          mode: ExecutionMode.SYNC,
+          abortSignal: request.signal,
         });
+        return asResult(res);
+      } catch (err) {
+        throw toApiError(err, request.workflow);
       }
-      return res.json();
+    },
+
+    async submit(request) {
+      try {
+        // The signal is forwarded so the client can abort the in-flight submit
+        // once it supports it (postTask ignores it today).
+        const id = await wc.submit(request.workflow, request.payload, { abortSignal: request.signal });
+        if (!id) {
+          throw new ApiError('No task id in response', { status: 502, code: 'invalid_response' });
+        }
+        return id;
+      } catch (err) {
+        throw toApiError(err, request.workflow);
+      }
+    },
+
+    async poll(handle: WorkflowJobHandle, options?: TransportPollOptions) {
+      try {
+        const res = await wc.runPolling(handle.workflow, handle.id, {
+          pollingInterval: options?.intervalMs,
+          retriesCount: options?.maxAttempts,
+          abortSignal: options?.signal,
+          onProgress: options?.onProgress,
+        });
+        // Resolving means the task succeeded: the platform answers a failed
+        // task with a 4xx/5xx, which the client throws and toApiError maps.
+        return asResult(res);
+      } catch (err) {
+        throw toApiError(err, handle.workflow, handle.id);
+      }
+    },
+
+    async status(handle: WorkflowJobHandle, signal?: AbortSignal) {
+      if (signal?.aborted) {
+        throw new ApiError('Operation aborted', { status: 499, code: 'aborted' });
+      }
+      try {
+        return asResult(await wc.result(handle.workflow, handle.id));
+      } catch (err) {
+        throw toApiError(err, handle.workflow, handle.id);
+      }
     },
 
     async options(workflow, payload) {
+      // Pricing is best-effort: getCredits() answers null rather than failing a
+      // generation flow over an estimate.
       try {
-        const res = await jsonPost(`${apiUrl}/workflows/${workflow}/options`, { params: payload });
-        if (!res.ok) return null;
-        const data = await res.json() as Record<string, unknown>;
-        const response = data.response as Record<string, unknown> | undefined;
-        const credits = response?.credits;
-        return typeof credits === 'number' ? credits : null;
+        const res = await wc.options(workflow, payload);
+        return typeof res?.credits === 'number' ? res.credits : null;
       } catch { return null; }
     },
   };
-}
-
-/** Type guard: is this a ClientConfig (has fetch or apiKey) or a raw SdkTransport? */
-export function isClientConfig(input: ClientConfig | SdkTransport): input is ClientConfig {
-  return (
-    ('fetch' in input && typeof input.fetch === 'function') ||
-    ('apiKey' in input && typeof input.apiKey === 'string')
-  );
 }

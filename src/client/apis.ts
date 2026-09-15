@@ -4,15 +4,14 @@
 // generateText(): run any model API by name, with typed params/result when the
 // name is known to @picsart/workflows-types.
 
-import {
+import type {
   WorkflowsClient,
-  type ExecutionOptions,
-  type WorkflowResponse,
-  type WorkflowTypes,
+  ExecutionOptions,
+  WorkflowResponse,
+  WorkflowTypes,
 } from '@picsart/workflows-client';
-
-import { resolveFetch } from './transport.ts';
-import type { ClientConfig } from './types.ts';
+import { ApiError } from '../core/errors.ts';
+import { toApiError } from './workflows-error.ts';
 
 // ── Public ai.apis types ──────────────────────────────────────────────
 // Friendly public aliases over @picsart/workflows-client's vocabulary, so the
@@ -33,6 +32,8 @@ export type ApiSchemas = WorkflowTypes;
  * The `ai.apis` surface — direct, low-level access to the Picsart model APIs.
  * Known API names (keys of {@link ApiSchemas}) get typed params + result;
  * unknown names take an open payload and return an unknown result.
+ *
+ * Failures arrive as {@link ApiError}, the same as the generation surface.
  */
 export interface ApisClient {
   /** Run an API by name (mirrors WorkflowsClient.run()). */
@@ -44,26 +45,20 @@ export interface ApisClient {
 }
 
 /**
- * Build the `ai.apis` surface.
+ * Build the `ai.apis` surface over the client's shared WorkflowsClient.
  *
- * Pass the resolved {@link ClientConfig}, or `null` when the SDK was created
- * from a raw `SdkTransport` (no authenticated fetch) — in that case the methods
- * throw a clear error, since there's no transport to reach the platform with.
+ * `null` when the config carried no `apiUrl` + `fetch`/`apiKey` pair to build
+ * one from — a client running purely on a custom transport. The surface still
+ * exists so `ai.apis` is never undefined; calling it says why it can't run.
  */
-export function createApis(config: ClientConfig | null): ApisClient {
-  const f = config ? resolveFetch(config) : null;
-  const client = config && f
-    ? new WorkflowsClient({
-        baseUrl: config.apiUrl,
-        fetch: (input, init) =>
-          f(typeof input === 'string' ? input : input.toString(), init),
-      })
-    : null;
-
+export function createApis(client: WorkflowsClient | null): ApisClient {
   return {
     async run(api: string, payload: Record<string, unknown>, options?: ApiRunOptions) {
       if (!client) {
-        throw new Error('ai.apis requires a client created with a ClientConfig (authenticated fetch).');
+        throw new ApiError(
+          '`ai.apis` requires `apiUrl` plus `fetch` or `apiKey` on createClient — the workflows APIs are not served by a custom transport.',
+          { status: 400, code: 'unsupported_transport' },
+        );
       }
       // Forward only the options we expose — strip the lib fields we deliberately
       // omit from ApiRunOptions, so they never reach the workflows client even
@@ -72,7 +67,13 @@ export function createApis(config: ClientConfig | null): ApisClient {
       delete forwarded.remoteSettingName;
       delete forwarded.onPartialResult;
       delete forwarded.notificationConfig;
-      return client.run(api, payload, forwarded);
+      try {
+        return await client.run(api, payload, forwarded);
+      } catch (err) {
+        // ApiError is the SDK's only error type — the workflows client's own
+        // error never reaches a caller, here or anywhere else.
+        throw toApiError(err, api);
+      }
     },
     // The public conditional-typed signature lives on ApisClient; the runtime
     // impl is uniform, so we assert the shape here.

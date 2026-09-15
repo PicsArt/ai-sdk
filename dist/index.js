@@ -1,30 +1,5 @@
+import { __commonJS, __toESM } from './chunk-4VNS5WPM.js';
 import { deflateSync, inflateSync } from 'fflate';
-
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __commonJS = (cb, mod) => function __require() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  __defProp(target, "default", { value: mod, enumerable: true }) ,
-  mod
-));
 
 // ../../node_modules/@picsart/pa-model-pricing-sdk/build/lib/errors/ModelPricingClientError.js
 var require_ModelPricingClientError = __commonJS({
@@ -441,192 +416,6 @@ var require_build = __commonJS({
   }
 });
 
-// src/core/errors.ts
-var ApiError = class extends Error {
-  /** HTTP status, or the synthesized equivalent for non-HTTP failures. */
-  status;
-  /** Platform `reason`, or an SDK-synthesized code. Always equal to {@link reason}. */
-  code;
-  /** Alias of {@link code}, named after the platform's own error field. */
-  reason;
-  constructor(message, init) {
-    super(message);
-    this.name = "ApiError";
-    this.status = init.status;
-    this.code = init.code;
-    this.reason = init.code;
-  }
-};
-var CODE_BY_STATUS = {
-  400: "bad_request",
-  401: "unauthorized",
-  402: "payment_required",
-  403: "forbidden",
-  404: "not_found",
-  408: "timeout",
-  409: "conflict",
-  413: "payload_too_large",
-  422: "unprocessable_entity",
-  429: "rate_limited",
-  500: "server_error",
-  502: "bad_gateway",
-  503: "service_unavailable",
-  504: "gateway_timeout"
-};
-function codeForStatus(status) {
-  return CODE_BY_STATUS[status] ?? (status >= 500 ? "server_error" : `http_${status}`);
-}
-async function readErrorBody(res) {
-  let text = "";
-  try {
-    text = await res.text();
-  } catch {
-    return { text: "" };
-  }
-  try {
-    const parsed = JSON.parse(text);
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      return { text, json: parsed };
-    }
-  } catch {
-  }
-  return { text };
-}
-function reasonFrom(json, status) {
-  const raw = json?.reason ?? json?.code;
-  return typeof raw === "string" && raw.length > 0 ? raw : codeForStatus(status);
-}
-
-// src/core/workflow.ts
-var DEFAULT_POLL_INTERVAL_MS = 2e3;
-var DEFAULT_MAX_ATTEMPTS = 300;
-var sleepDefault = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-function getNested(raw, path) {
-  let current = raw;
-  for (const key of path) {
-    if (!current || typeof current !== "object") return void 0;
-    current = current[key];
-  }
-  return current;
-}
-function pickFirst(raw, paths) {
-  for (const path of paths) {
-    const value = getNested(raw, path);
-    if (value !== void 0) return value;
-  }
-  return void 0;
-}
-function normalizeStatus(status) {
-  if (typeof status !== "string") return "UNKNOWN";
-  const s = status.toUpperCase();
-  if (s === "ACCEPTED") return "ACCEPTED";
-  if (s === "IN_PROGRESS" || s === "PENDING" || s === "RUNNING") return "IN_PROGRESS";
-  if (s === "COMPLETED" || s === "SUCCESS") return "COMPLETED";
-  if (s === "FAILED" || s === "ERROR") return "FAILED";
-  if (s === "CANCELED" || s === "CANCELLED") return "CANCELED";
-  return "UNKNOWN";
-}
-function parseWorkflowStatus(handle, raw) {
-  const statusRaw = pickFirst(raw, [["response", "status"], ["status"]]);
-  const status = normalizeStatus(statusRaw);
-  const result = pickFirst(raw, [["response", "result"], ["result"]]);
-  const usageRaw = pickFirst(raw, [["response", "usage"], ["usage"]]);
-  const usage = usageRaw && typeof usageRaw === "object" && (typeof usageRaw.credits === "number" || Array.isArray(usageRaw.details)) ? usageRaw : void 0;
-  const errorRaw = pickFirst(raw, [["response", "error"], ["response", "message"], ["error"], ["message"], ["reason"]]);
-  const reasonRaw = pickFirst(raw, [["response", "reason"], ["reason"]]);
-  const statusCodeRaw = pickFirst(raw, [["response", "statusCode"], ["statusCode"]]);
-  const progressRaw = pickFirst(raw, [["response", "progress"], ["progress"]]);
-  const progress = progressRaw && typeof progressRaw === "object" ? {
-    percent: typeof progressRaw.percent === "number" ? progressRaw.percent : void 0,
-    estimatedSecondsLeft: typeof progressRaw.estimatedSecondsLeft === "number" ? progressRaw.estimatedSecondsLeft : void 0
-  } : void 0;
-  return {
-    handle,
-    status,
-    result,
-    error: typeof errorRaw === "string" ? errorRaw : void 0,
-    reason: typeof reasonRaw === "string" ? reasonRaw : void 0,
-    statusCode: typeof statusCodeRaw === "number" ? statusCodeRaw : void 0,
-    progress,
-    usage,
-    raw
-  };
-}
-function isTerminal(status) {
-  return status === "COMPLETED" || status === "FAILED" || status === "CANCELED";
-}
-function createWorkflowClient(transport, options = {}) {
-  const parseStatus = options.parseStatus ?? parseWorkflowStatus;
-  const sleep2 = options.sleep ?? sleepDefault;
-  const defaultPollIntervalMs = options.pollingIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
-  const defaultMaxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
-  const submit = async (request) => {
-    if (!transport.submit) {
-      throw new ApiError("Transport does not support submit (execute-only transport)", {
-        status: 400,
-        code: "unsupported_transport"
-      });
-    }
-    return transport.submit(request);
-  };
-  const status = async (handle, signal) => {
-    if (!transport.status) {
-      throw new ApiError("Transport does not support status (execute-only transport)", {
-        status: 400,
-        code: "unsupported_transport"
-      });
-    }
-    const raw = await transport.status(handle, signal);
-    return parseStatus(handle, raw);
-  };
-  const result = async (handle, pollOptions = {}) => {
-    const intervalMs = pollOptions.intervalMs ?? defaultPollIntervalMs;
-    const maxAttempts = pollOptions.maxAttempts ?? defaultMaxAttempts;
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      if (pollOptions.signal?.aborted) {
-        throw new ApiError("Operation aborted", { status: 499, code: "aborted" });
-      }
-      const next = await status(handle, pollOptions.signal);
-      if (isTerminal(next.status)) return next;
-      await sleep2(intervalMs);
-    }
-    throw new ApiError(
-      `Timed out waiting for workflow ${handle.workflow}:${handle.id}`,
-      { status: 408, code: "timeout" }
-    );
-  };
-  const run = async (request, runOptions = {}) => {
-    const runMode = runOptions.mode;
-    const useExecute = runMode === "sync" || runMode === void 0 && !transport.submit;
-    if (useExecute) {
-      const raw = await transport.execute(request);
-      const syntheticHandle = { workflow: request.workflow, id: "sync" };
-      const parsed = parseStatus(syntheticHandle, raw);
-      return parsed.status === "UNKNOWN" ? { ...parsed, status: "COMPLETED" } : parsed;
-    }
-    const handle = await submit(request);
-    return result(handle, runOptions);
-  };
-  const subscribe = async function* (handle, subscribeOptions = {}) {
-    const intervalMs = subscribeOptions.intervalMs ?? defaultPollIntervalMs;
-    const maxAttempts = subscribeOptions.maxAttempts ?? defaultMaxAttempts;
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      if (subscribeOptions.signal?.aborted) {
-        throw new ApiError("Operation aborted", { status: 499, code: "aborted" });
-      }
-      const next = await status(handle, subscribeOptions.signal);
-      yield next;
-      if (isTerminal(next.status)) return next;
-      await sleep2(intervalMs);
-    }
-    throw new ApiError(
-      `Timed out waiting for workflow ${handle.workflow}:${handle.id}`,
-      { status: 408, code: "timeout" }
-    );
-  };
-  return { submit, status, result, run, subscribe };
-}
-
 // src/core/descriptors/utils.ts
 function extractDefaults(params2) {
   const defaults = {};
@@ -851,11 +640,47 @@ function transferValues(newParams, prev) {
   return ctx;
 }
 
+// src/core/errors.ts
+var ApiError = class extends Error {
+  /** HTTP status, or the synthesized equivalent for non-HTTP failures. */
+  status;
+  /** Platform `reason`, or an SDK-synthesized code. Always equal to {@link reason}. */
+  code;
+  /** Alias of {@link code}, named after the platform's own error field. */
+  reason;
+  constructor(message, init) {
+    super(message);
+    this.name = "ApiError";
+    this.status = init.status;
+    this.code = init.code;
+    this.reason = init.code;
+  }
+};
+var CODE_BY_STATUS = {
+  400: "bad_request",
+  401: "unauthorized",
+  402: "payment_required",
+  403: "forbidden",
+  404: "not_found",
+  408: "timeout",
+  409: "conflict",
+  413: "payload_too_large",
+  422: "unprocessable_entity",
+  429: "rate_limited",
+  500: "server_error",
+  502: "bad_gateway",
+  503: "service_unavailable",
+  504: "gateway_timeout"
+};
+function codeForStatus(status) {
+  return CODE_BY_STATUS[status] ?? (status >= 500 ? "server_error" : `http_${status}`);
+}
+
 // src/core/visibility.ts
 var DEFAULT_VISIBLE_RELEASES = ["production", "general-availability"];
 var releaseOf = (m) => m.release ?? "production";
 function isVisibleForReleases(m, releases = DEFAULT_VISIBLE_RELEASES) {
-  if (m.disabled || m.deprecated) return false;
+  if (m.deprecated) return false;
   return releases.includes(releaseOf(m));
 }
 
@@ -1290,7 +1115,6 @@ function defineModels(provider, configs) {
     if (c.pollOptions !== void 0) model.pollOptions = c.pollOptions;
     if (c.badge !== void 0) model.badge = c.badge;
     if (c.addedAt !== void 0) model.addedAt = c.addedAt;
-    if (c.disabled !== void 0) model.disabled = c.disabled;
     if (c.deprecated !== void 0) model.deprecated = c.deprecated;
     if (c.release !== void 0) model.release = c.release;
     if (c.modelId !== void 0) model.modelId = c.modelId;
@@ -1523,23 +1347,6 @@ var klingOmniAdvancedParams = {
 };
 
 // src/vendors/catalog/kling/index.ts
-var KLING_DUAL_IMAGE_EFFECTS = /* @__PURE__ */ new Set([
-  "pet_skateboard",
-  "daily_ootd",
-  "toss_run",
-  "switch_to_silk",
-  "studio_look",
-  "french_elegance",
-  "finger_swipe",
-  "smooth_transition",
-  "kiss_pro",
-  "snow_night_kiss",
-  "eternal_kiss",
-  "cheers_2026",
-  "fight_pro",
-  "hug_pro",
-  "heart_gesture_pro"
-]);
 var V3_DURATIONS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 var V26_DURATIONS = [5, 10];
 var KLING_IMAGE_AR = ["16:9", "9:16", "1:1", "21:9", "4:3", "3:2", "2:3", "3:4"];
@@ -1893,7 +1700,7 @@ var { MODELS } = defineModels("kling", [
     id: "kling-elements",
     name: "Kling Elements",
     addedAt: "2026-05-11",
-    disabled: true,
+    release: "preview",
     // pending backend toolId + pricing confirmation
     workflow: "kling-elements",
     estimatedTime: 30,
@@ -2232,10 +2039,27 @@ var buildKlingElementsPayload = (input) => {
     ...input.elementVoiceId ? { element_voice_id: input.elementVoiceId } : {}
   };
 };
+var DUAL_IMAGE_EFFECTS = /* @__PURE__ */ new Set([
+  "pet_skateboard",
+  "daily_ootd",
+  "toss_run",
+  "switch_to_silk",
+  "studio_look",
+  "french_elegance",
+  "finger_swipe",
+  "smooth_transition",
+  "kiss_pro",
+  "snow_night_kiss",
+  "eternal_kiss",
+  "cheers_2026",
+  "fight_pro",
+  "hug_pro",
+  "heart_gesture_pro"
+]);
 var buildKlingVideoEffectsPayload = (input) => {
-  const scene = input.templateId ?? input.style;
+  const scene = input.templateId;
   const catalogItem = getHydratedCatalog({ workflow: "kling/v1/catalog/templates" })?.items.find((item) => item.id === scene);
-  const slots = typeof catalogItem?.meta?.imageSlots === "number" ? catalogItem.meta.imageSlots : scene && KLING_DUAL_IMAGE_EFFECTS.has(scene) ? 2 : 1;
+  const slots = typeof catalogItem?.meta?.imageSlots === "number" ? catalogItem.meta.imageSlots : scene && DUAL_IMAGE_EFFECTS.has(scene) ? 2 : 1;
   const uploaded = input.imageUrls?.length ?? 0;
   if (uploaded < slots) {
     throw new ApiError(`Kling Video Effects: the "${scene}" effect requires ${slots} image${slots > 1 ? "s" : ""} (got ${uploaded}).`, { status: 400, code: "validation_error" });
@@ -4734,8 +4558,8 @@ var GEMINI_DEFAULT_VOICE_ID = "Kore";
 var DEFAULT_GROK_VOICE_ID = "eve";
 var ASYNC_DEFAULT_VOICE_ID = "cca0e076-b350-4966-b570-4c2fca50b525";
 var SEEDAUDIO_DEFAULT_VOICE_ID = "en_male_tim_uranus_bigtts";
-function getVoiceById(id, extra) {
-  return [...extra ?? [], ...getHydratedVoices()].find((v) => v.id === id);
+function getVoiceById(id) {
+  return getHydratedVoices().find((v) => v.id === id);
 }
 
 // src/vendors/catalog/seedaudio.ts
@@ -6566,7 +6390,7 @@ var { MODELS: MODELS23 } = defineModels("elevenlabs", [
     estimatedTime: 15,
     mode: "audio",
     inputType: "tts",
-    disabled: true,
+    release: "preview",
     description: "Remix voice characteristics by describing the desired vocal style.",
     features: [feat("Voice Design", "characteristic"), feat("Remix", "characteristic")],
     paramConfig: {
@@ -6735,9 +6559,6 @@ var { MODELS: MODELS24 } = defineModels("heygen", [
 ]);
 
 // src/vendors/catalog/minimax.ts
-var buildMinimaxTTSPayload = (ctx) => ({
-  text: ctx.prompt
-});
 var buildMinimaxMusicPayload = (ctx) => ({
   prompt: ctx.prompt,
   ...ctx.lyricsPrompt ? { lyrics: ctx.lyricsPrompt } : {},
@@ -6788,25 +6609,9 @@ var h3MaxConstraints = [
   } }
 ];
 var { MODELS: MODELS25 } = defineModels("minimax", [
-  {
-    id: "minimax-02-hd",
-    name: "MiniMax 02 HD",
-    modelId: "minimax-02-hd",
-    addedAt: "2026-02-06",
-    workflow: "minimax-tts",
-    buildPayload: buildMinimaxTTSPayload,
-    estimatedTime: 15,
-    mode: "audio",
-    inputType: "tts",
-    disabled: true,
-    // Backend workflow not deployed
-    description: "HD voice synthesis with rich tonal depth and consistent delivery.",
-    features: [feat("Consistent", "characteristic"), feat("Cinematic", "characteristic")],
-    paramConfig: {
-      ...params.language(true),
-      ...params.prompt({ maxLength: 150 })
-    }
-  },
+  // minimax-02-hd (minimax-tts) was removed in 6.0: its backend workflow was
+  // never deployed anywhere, so no generation ever existed to resolve — nothing
+  // to deprecate. Re-add as a fresh entry if MiniMax TTS ever ships.
   {
     id: "minimax-music-v2",
     name: "MiniMax Music v2",
@@ -9371,7 +9176,7 @@ var ALL_MODELS = [
   ...MODELS36,
   ...MODELS37
 ];
-var getModelsByMode = (mode, includeDisabled = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeDisabled || isVisibleForReleases(m)));
+var getModelsByMode = (mode, includeHidden = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeHidden || isVisibleForReleases(m)));
 
 // src/core/contracts.ts
 function requireObject(value, message) {
@@ -9416,9 +9221,6 @@ function createModelContract(model) {
     output: buildOutputSchema(model)
   };
 }
-function validateModelInput(model, input) {
-  return createModelContract(model).input.parse(input);
-}
 var _contracts = null;
 function ensureContracts() {
   if (!_contracts) {
@@ -9457,10 +9259,7 @@ function throwIfErrorResult(result, modelName) {
 function extractSyncResult(raw) {
   if (!raw || typeof raw !== "object") return raw;
   const data = raw;
-  const syncResult = data.response?.result ?? data.result;
-  const sr = syncResult;
-  const imgs = sr && Array.isArray(sr.images) ? sr.images : null;
-  return imgs?.length ? imgs[0] : syncResult;
+  return data.response?.result ?? data.result;
 }
 var extractUrl = (result) => {
   if (Array.isArray(result)) return extractUrl(result[0]);
@@ -9586,27 +9385,55 @@ var extractText = (result) => {
   }
   return void 0;
 };
+var RESULT_ARRAY_KEYS = ["items", "images", "imageUrls", "urls", "data", "previews"];
 var extractAllResults = (result) => {
   if (!result || typeof result !== "object") return void 0;
   const obj = result;
-  if (Array.isArray(obj.items) && obj.items.length > 1) {
-    const items = [];
-    for (const item of obj.items) {
-      if (item && typeof item === "object") {
-        const it = item;
-        const url = typeof it.url === "string" ? it.url : void 0;
-        if (url) {
-          items.push({
-            url,
-            exploreImageId: typeof it.image_id === "string" ? it.image_id : void 0
-          });
-        }
-      }
+  let arr;
+  for (const key of RESULT_ARRAY_KEYS) {
+    const candidate = obj[key];
+    if (Array.isArray(candidate) && candidate.length > 1) {
+      arr = candidate;
+      break;
     }
-    if (items.length > 0) return items;
   }
-  return void 0;
+  if (!arr) return void 0;
+  const items = [];
+  for (const entry of arr) {
+    if (typeof entry === "string") {
+      items.push({ url: entry });
+      continue;
+    }
+    if (entry && typeof entry === "object") {
+      const it = entry;
+      if (typeof it.url === "string") items.push({ url: it.url, source: it });
+    }
+  }
+  return items.length > 0 ? items : void 0;
 };
+function buildItemMetadata(parsed, item, index, provider) {
+  const meta = {};
+  const top = parsed && typeof parsed === "object" ? parsed : void 0;
+  const it = item && typeof item === "object" && !Array.isArray(item) ? item : void 0;
+  if (provider === "recraft" && typeof it?.image_id === "string") meta.exploreImageId = it.image_id;
+  if (provider === "elevenlabs" && typeof it?.generated_voice_id === "string") meta.generatedVoiceId = it.generated_voice_id;
+  if (typeof top?.seed === "number") meta.seed = top.seed;
+  if (Array.isArray(top?.has_nsfw_concepts) && typeof top.has_nsfw_concepts[index] === "boolean") {
+    meta.nsfw = top.has_nsfw_concepts[index];
+  }
+  if (typeof it?.width === "number") meta.width = it.width;
+  if (typeof it?.height === "number") meta.height = it.height;
+  if (typeof it?.content_type === "string") meta.contentType = it.content_type;
+  const video = top?.video && typeof top.video === "object" ? top.video : void 0;
+  if (video) {
+    if (typeof video.duration === "number") meta.duration = video.duration;
+    if (typeof video.fps === "number") meta.fps = video.fps;
+    if (typeof video.file_size === "number") meta.fileSize = video.file_size;
+    if (meta.width === void 0 && typeof video.width === "number") meta.width = video.width;
+    if (meta.height === void 0 && typeof video.height === "number") meta.height = video.height;
+  }
+  return Object.keys(meta).length > 0 ? meta : void 0;
+}
 function toCompletedStatus(handle, result, raw, usage) {
   return {
     handle,
@@ -9659,12 +9486,1074 @@ function resolveModel(id) {
   return found;
 }
 
+// ../../node_modules/@picsart/workflows-client/dist/index.mjs
+var logger_default = {
+  error: (...args) => {
+    console.error(...args);
+  },
+  warn: (...args) => {
+    console.debug(...args);
+  },
+  info: (...args) => {
+    console.info(...args);
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  debug: (...args) => {
+    console.debug(...args);
+  }
+};
+var ExecutionMode = /* @__PURE__ */ ((ExecutionMode2) => {
+  ExecutionMode2["ASYNC"] = "ASYNC";
+  ExecutionMode2["SYNC"] = "SYNC";
+  ExecutionMode2["STREAM"] = "STREAM";
+  ExecutionMode2["SOCKET"] = "SOCKET";
+  return ExecutionMode2;
+})(ExecutionMode || {});
+var STREAM_EVENT_NAME = "task.stream";
+var normalizeWorkflowName = (workflow) => (workflow || "").replace(/-/g, "_").toLowerCase();
+var taskChannel = (workflow, taskId) => `workflows:${normalizeWorkflowName(workflow)}:${taskId}`;
+var workflowChannel = (workflow) => `workflows:${normalizeWorkflowName(workflow)}:all`;
+var DEFAULT_REASON = "unknown_error";
+var DEFAULT_MESSAGE = "Unknown error";
+var NON_JSON_BODY_MESSAGE = "Non json response was returned from server";
+var asRecord = (value) => value && typeof value === "object" ? value : void 0;
+var asText = (value) => typeof value === "string" && value.length > 0 ? value : void 0;
+var asStatusCode = (value) => typeof value === "number" && Number.isFinite(value) ? value : void 0;
+var WorkflowsError = class _WorkflowsError extends Error {
+  constructor(init) {
+    super(init.message);
+    this.name = this.constructor.name;
+    this.reason = init.reason;
+    this.httpStatusCode = init.httpStatusCode;
+  }
+  /**
+   * Builds an error from an already-parsed error payload — a `FailedResult` off a stream/socket
+   * event, or any body with `reason` / `message` / `statusCode`. Each field falls back to
+   * `fallback` individually, so a payload that carries only a message still keeps the caller's
+   * reason and status.
+   */
+  static fromBody(body, fallback) {
+    const parsed = asRecord(body);
+    return new _WorkflowsError({
+      reason: asText(parsed?.reason) || fallback.reason,
+      message: asText(parsed?.message) || fallback.message,
+      httpStatusCode: asStatusCode(parsed?.statusCode) ?? fallback.httpStatusCode
+    });
+  }
+  /**
+   * Builds an error from a non-ok `Response`. The status always comes from the response itself;
+   * `reason` and `message` come from the JSON body when it has them, otherwise from `fallback`
+   * (a body that isn't JSON at all is reported as such rather than throwing a parse error).
+   */
+  static async fromResponse(response, fallback) {
+    let body;
+    try {
+      body = await response.json();
+    } catch {
+      body = void 0;
+    }
+    const parsed = asRecord(body);
+    return new _WorkflowsError({
+      reason: asText(parsed?.reason) || fallback?.reason || DEFAULT_REASON,
+      message: asText(parsed?.message) || fallback?.message || (parsed ? DEFAULT_MESSAGE : NON_JSON_BODY_MESSAGE),
+      httpStatusCode: response.status
+    });
+  }
+  /** Wraps an unexpected local throw (anything that isn't already a WorkflowsError). */
+  static fromUnknown(error) {
+    return new _WorkflowsError({
+      reason: DEFAULT_REASON,
+      message: (error instanceof Error ? error.message : asText(error)) || DEFAULT_MESSAGE
+    });
+  }
+};
+var WorkflowResultUpdateAware = class {
+  constructor(onProgressFn, onPartialResultFn, onEventFn) {
+    this.onProgressFn = onProgressFn;
+    this.onPartialResultFn = onPartialResultFn;
+    this.onEventFn = onEventFn;
+  }
+  async onUpdate(response) {
+    if (!response.updated) return;
+    await this.deliverEvents(response);
+    if (response.status !== "IN_PROGRESS") return;
+    const newUpdated = new Date(response.updated);
+    if (newUpdated?.getTime() !== this.updated?.getTime()) {
+      this.updated = newUpdated;
+      await this.onPartialResultFn?.(response);
+      if (response.progress) {
+        await this.onProgressFn?.(response.progress);
+      }
+    }
+  }
+  async deliverEvents(response) {
+    if (!response.events?.length || !this.onEventFn) return;
+    let startIdx = 0;
+    if (this._lastEventId) {
+      const lastSeenIdx = response.events.findIndex((e) => e.id === this._lastEventId);
+      if (lastSeenIdx !== -1) {
+        startIdx = lastSeenIdx + 1;
+      }
+    }
+    const newEvents = response.events.slice(startIdx);
+    for (const event of newEvents) {
+      await this.onEventFn(event);
+    }
+    if (newEvents.length > 0) {
+      this._lastEventId = newEvents[newEvents.length - 1].id;
+    }
+  }
+};
+var bearer = (token) => token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+var WorkflowsSocket = class {
+  constructor(config) {
+    this.config = config;
+    this.ownsSocket = false;
+    this.channelRefs = /* @__PURE__ */ new WeakMap();
+  }
+  // Watch already-submitted work live, as an async iterable of the raw StreamSocketMessage the gateway
+  // pushes. Iterate with `for await` and switch on `msg.type` (EventTypes.* or an `event.<custom>`
+  // string), reading `msg.payload`. With a taskId, watch that one task and end after its COMPLETED /
+  // FAILED; without, watch every task of the workflow until stopped. A lost socket session (or the
+  // passed AbortSignal) is THROWN out of the loop; `break` also stops watching — the `finally` tears
+  // everything down.
+  async *subscribe(options) {
+    if (!this.config.socket && !this.config.socketConnection) {
+      throw new WorkflowsError({
+        httpStatusCode: 400,
+        reason: "invalid_state",
+        message: "subscribe() requires either `socket` or `socketConnection` on the client."
+      });
+    }
+    if (options.signal?.aborted) throw new DOMException("Aborted", "AbortError");
+    const channel = options.taskId ? taskChannel(options.name, options.taskId) : workflowChannel(options.name);
+    this.assertValidChannel(channel);
+    const socket = await this.resolveSocket();
+    if (!socket) return;
+    if (options.signal?.aborted) throw new DOMException("Aborted", "AbortError");
+    const workflow = normalizeWorkflowName(options.name);
+    const queue = [];
+    let wake;
+    const push = (item) => {
+      queue.push(item);
+      const w = wake;
+      wake = void 0;
+      w?.();
+    };
+    const handler = (message) => {
+      if (!message) return;
+      const mine = options.taskId ? message.taskId === options.taskId : message.workflow === workflow;
+      if (mine) push({ msg: message });
+    };
+    socket.on(STREAM_EVENT_NAME, handler);
+    const streamEnded = (detail) => push({ error: new WorkflowsError({
+      httpStatusCode: 503,
+      reason: "socket_connection_lost",
+      message: `Lost the socket connection (${detail}); the event stream ended.`
+    }) });
+    const detachReconnect = this.onSessionLost(socket, () => streamEnded("the session could not be recovered on reconnect"));
+    const detachAbandoned = this.onConnectAbandoned(socket, (err) => streamEnded(
+      `socket.io stopped reconnecting after "${err instanceof Error ? err.message : String(err)}"`
+    ));
+    const detachDisconnect = this.onDisconnected(socket, (reason) => streamEnded(`"${reason}"`));
+    const onAbort = () => push({ error: new DOMException("Aborted", "AbortError") });
+    options.signal?.addEventListener("abort", onAbort);
+    this.joinChannel(socket, channel);
+    try {
+      while (true) {
+        while (queue.length) {
+          const item = queue.shift();
+          if ("error" in item) throw item.error;
+          yield item.msg;
+          if (options.taskId && (item.msg.type === "task.completed" || item.msg.type === "task.failed")) return;
+        }
+        await new Promise((resolve) => {
+          wake = resolve;
+        });
+      }
+    } finally {
+      options.signal?.removeEventListener("abort", onAbort);
+      this.leaveChannel(socket, channel);
+      socket.off(STREAM_EVENT_NAME, handler);
+      detachReconnect();
+      detachAbandoned();
+      detachDisconnect();
+    }
+  }
+  // Opens the socket (create + connect for socketConnection; return an injected one). Idempotent —
+  // resolveSocket memoizes, so repeated calls reuse the same connection.
+  connect() {
+    return this.resolveSocket();
+  }
+  // Disconnects the socket ONLY if this class created it (socketConnection); an injected socket is
+  // left for the caller to manage. Safe to call more than once.
+  async disconnect() {
+    if (!this.ownsSocket || !this.socketPromise) return;
+    const socket = await this.socketPromise.catch(() => void 0);
+    socket?.disconnect();
+    this.socketPromise = void 0;
+    this.ownsSocket = false;
+  }
+  // Backs run({ mode: ExecutionMode.SOCKET }). Joins the workflow channel and starts listening BEFORE
+  // submitting, so no early event is missed — the per-task channel can't be joined until submit mints
+  // the taskId. Events seen before we know our taskId are buffered, then matched once we have it (the
+  // workflow room carries sibling tasks, so the taskId filter is load-bearing).
+  // `markSeen` is fired with the taskId the moment a terminal (COMPLETED/FAILED) event is received — the
+  // socket-mode equivalent of the polling client fetching /result, which is what disabled the task's
+  // pending notification server-side. Fired for both terminal outcomes (matching the old poll, which
+  // disabled on COMPLETED and FAILED alike) and ONLY on a real terminal event — never on a lost session,
+  // abort, or connect error, so an unconsumed result still triggers the async fallback notification.
+  // It's best-effort: runTask fires it without awaiting and swallows any rejection, since a failed disable
+  // only costs a redundant fallback notification and must never fail the run.
+  async runTask(workflowName, submit, executionOptions, markSeen) {
+    const signal = executionOptions?.abortSignal;
+    await this.ensureSocketReady(workflowName, signal);
+    const { onProgress, onPartialResult, onEvent } = executionOptions ?? {};
+    const ac = new AbortController();
+    const forwardAbort = () => ac.abort();
+    signal?.addEventListener("abort", forwardAbort);
+    const iter = this.subscribe({ name: workflowName, signal: ac.signal })[Symbol.asyncIterator]();
+    const firstPull = iter.next();
+    firstPull.catch(() => {
+    });
+    try {
+      const taskId = await submit();
+      for (let pull = firstPull; ; pull = iter.next()) {
+        const { value: message, done } = await pull;
+        if (done) break;
+        if (message.taskId !== taskId) continue;
+        switch (message.type) {
+          case "task.completed":
+            void Promise.resolve(markSeen?.(taskId)).catch(() => void 0);
+            return {
+              result: message.payload?.result,
+              usage: message.payload?.usage,
+              status: "COMPLETED"
+              /* COMPLETED */
+              // a FAILED message throws below instead
+            };
+          case "task.failed":
+            void Promise.resolve(markSeen?.(taskId)).catch(() => void 0);
+            throw this.failureError(message.payload?.result ?? message.payload);
+          case "task.metrics":
+            await onProgress?.(message.payload);
+            break;
+          case "task.partial-result":
+            await onPartialResult?.({ status: "IN_PROGRESS", result: message.payload });
+            break;
+          default:
+            if (message.type.startsWith("event.")) {
+              await onEvent?.({ ...message.payload, type: message.type.replace(/^event\./, "") });
+            }
+        }
+      }
+      throw new WorkflowsError({
+        httpStatusCode: 500,
+        reason: "socket_stream_ended",
+        message: "Socket stream ended before the task completed."
+      });
+    } finally {
+      signal?.removeEventListener("abort", forwardAbort);
+      ac.abort();
+      await iter.return?.();
+    }
+  }
+  // Pre-submit gate for runTask: validate the channel and get the socket connected before any work is
+  // submitted. The socket itself isn't returned — subscribe() re-resolves it — this only proves it's
+  // reachable and honors an abort that fired before (or during) connecting, since addEventListener('abort')
+  // never fires for an already-aborted signal.
+  async ensureSocketReady(workflowName, signal) {
+    if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+    const channel = workflowChannel(workflowName);
+    this.assertValidChannel(channel);
+    const socket = await this.resolveSocket();
+    if (!socket) {
+      throw new WorkflowsError({
+        httpStatusCode: 400,
+        reason: "invalid_state",
+        message: "ExecutionMode.SOCKET requires either `socket` or `socketConnection` on the client."
+      });
+    }
+    if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+  }
+  // Fails a run/subscription when a reconnect couldn't be recovered. The gateway has Connection State
+  // Recovery: a reconnect within its window restores our room and replays missed events, so there's
+  // nothing to do; past the window `recovered` is false and the stream is gone — and we don't refetch
+  // from the DB. We only wire this after the socket is connected, so any 'connect' here is a reconnect.
+  // Returns a function to detach the listener on teardown.
+  onSessionLost(socket, onLost) {
+    const listener = () => {
+      if (!socket.recovered) onLost();
+    };
+    socket.on("connect", listener);
+    return () => socket.off("connect", listener);
+  }
+  // The other half of onSessionLost, for the case it can't see: a connect attempt that FAILS rather than
+  // succeeding — typically a reconnect whose handshake the gateway rejects (an expired token). No
+  // 'connect' event ever fires then, so onSessionLost stays silent and the watcher parks forever on a
+  // socket that will never deliver again. `socket.active` says whether socket.io intends to keep trying:
+  // still true while it retries a transient transport failure (a blip Connection State Recovery papers
+  // over — ignore it, or we'd fail runs that were about to resume), false once it has given up. Only
+  // that second case is terminal, and it covers BOTH a server-side rejection (never retried) and
+  // reconnectionAttempts running out, which is why the caller reports the error rather than a cause.
+  // Returns a detach function.
+  onConnectAbandoned(socket, onAbandoned) {
+    const listener = (err) => {
+      if (socket.active === false) onAbandoned(err);
+    };
+    socket.on("connect_error", listener);
+    return () => socket.off("connect_error", listener);
+  }
+  // The third and last way this socket can go quiet for good: it disconnects and nothing is coming back
+  // — `client.disconnect()` called while a watch is live ('io client disconnect'), or the gateway closing
+  // us out ('io server disconnect'). Neither produces a 'connect' or a 'connect_error', so without this
+  // the watcher parks forever on a socket that is simply gone. `active` splits the cases here too, as
+  // socket.io documents: still true for a transport close or ping timeout, which it retries and CSR
+  // papers over; false once the connection was closed for good. Returns a detach function.
+  onDisconnected(socket, onGone) {
+    const listener = (reason) => {
+      if (socket.active === false) onGone(reason);
+    };
+    socket.on("disconnect", listener);
+    return () => socket.off("disconnect", listener);
+  }
+  resolveSocket() {
+    if (this.socketPromise) return this.socketPromise;
+    const { socket, socketConnection } = this.config;
+    if (!socket && !socketConnection) return Promise.resolve(void 0);
+    const promise = (async () => {
+      const resolved = socket ?? await this.createSocket(socketConnection);
+      this.ownsSocket = !socket;
+      try {
+        await this.whenConnected(resolved);
+      } catch (err) {
+        if (!socket) {
+          resolved.disconnect();
+          this.ownsSocket = false;
+        }
+        throw err;
+      }
+      return resolved;
+    })();
+    promise.catch(() => {
+      if (this.socketPromise === promise) this.socketPromise = void 0;
+    });
+    this.socketPromise = promise;
+    return promise;
+  }
+  // Resolves once the socket's transport is up; rejects if the connection fails (so callers surface an
+  // error instead of hanging). connect() is idempotent, so driving it is safe whether the socket is
+  // already connecting (autoConnect) or was created with autoConnect:false.
+  whenConnected(socket) {
+    if (socket.connected) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        socket.off("connect", onConnect);
+        socket.off("connect_error", onError);
+      };
+      const onConnect = () => {
+        cleanup();
+        resolve();
+      };
+      const onError = (err) => {
+        cleanup();
+        reject(err instanceof Error ? err : new Error(`socket connection failed: ${String(err)}`));
+      };
+      socket.on("connect", onConnect);
+      socket.on("connect_error", onError);
+      socket.connect();
+    });
+  }
+  // socket.io-client is an optional peer dependency, imported on demand so non-socket consumers
+  // never load it (and SSR never connects).
+  async createSocket(conn) {
+    let io;
+    try {
+      ({ io } = await import('./esm-debug-3SQICTIF.js'));
+    } catch {
+      throw new WorkflowsError({
+        httpStatusCode: 400,
+        reason: "invalid_state",
+        message: 'socketConnection requires the optional peer dependency "socket.io-client" to be installed.'
+      });
+    }
+    return io(conn.url, {
+      path: conn.path ?? "/socket-gateway",
+      transports: conn.transports ?? ["websocket"],
+      auth: this.buildAuth(conn)
+    });
+  }
+  // The handshake auth payload, in socket.io's FUNCTION form — socket.io re-invokes it per (re)connect
+  // attempt (Socket#onopen), which is the whole point: a plain object would be snapshotted once and
+  // replayed on every reconnect, so it would go stale along with the token it captured.
+  buildAuth(conn) {
+    const { getToken } = conn;
+    return (cb) => {
+      void Promise.resolve().then(getToken).then((fresh) => cb({ token: bearer(fresh) })).catch((err) => {
+        logger_default.error("workflows.socket - socketConnection.getToken failed; the handshake will be refused", err);
+        cb({ token: "" });
+      });
+    };
+  }
+  // The gateway only accepts channels shaped `workflows:SEG:SEG` (SEG = letters, digits, _, - or /). We build
+  // the channel from `name`/`taskId`, so validate it here to fail fast on a bad name instead of
+  // silently never joining a room. Task names are slash-delimited paths (e.g. /v1/videos/text-to-video),
+  // so `/` is allowed. (A channel that passes this but the gateway still refuses is left to hang — expected.)
+  assertValidChannel(channel) {
+    if (!/^workflows:[a-zA-Z0-9_/-]+:[a-zA-Z0-9_/-]+$/.test(channel)) {
+      throw new WorkflowsError({
+        httpStatusCode: 400,
+        reason: "invalid_channel",
+        message: `Invalid channel "${channel}" \u2014 name and taskId may only contain letters, digits, "_", "-" or "/".`
+      });
+    }
+  }
+  // Room membership. Every joiner emits its OWN `subscribe` (idempotent at the gateway); the ref-count
+  // is used solely to emit `unsubscribe` ONCE, when the last watcher leaves, so one watcher's teardown
+  // never drops a room a sibling still needs. Fire-and-forget: we validate the channel locally, so
+  // there's no ack to act on.
+  joinChannel(socket, channel) {
+    let refs = this.channelRefs.get(socket);
+    if (!refs) {
+      refs = /* @__PURE__ */ new Map();
+      this.channelRefs.set(socket, refs);
+    }
+    refs.set(channel, (refs.get(channel) ?? 0) + 1);
+    socket.emit("subscribe", { channels: [channel] });
+  }
+  leaveChannel(socket, channel) {
+    const refs = this.channelRefs.get(socket);
+    if (!refs) return;
+    const count = (refs.get(channel) ?? 0) - 1;
+    if (count <= 0) {
+      refs.delete(channel);
+      socket.emit("unsubscribe", { channels: [channel] });
+    } else {
+      refs.set(channel, count);
+    }
+  }
+  // The Error a task failure maps to: the gateway's own reason/message/statusCode when it sent them,
+  // otherwise a generic 500 failure.
+  failureError(failure) {
+    return WorkflowsError.fromBody(failure, {
+      httpStatusCode: 500,
+      reason: "workflow_failed",
+      message: "Workflow failed"
+    });
+  }
+};
+async function* decodeSSE(stream) {
+  for await (const chunk of readSSE(stream)) {
+    const lines = chunk.split("\n");
+    const sseData = {};
+    for (const line of lines) {
+      if (line.startsWith("data:")) {
+        const data = line.replace(/^data:\s*/, "");
+        if (data === "[DONE]") {
+          return;
+        }
+        try {
+          sseData.data = JSON.parse(data);
+        } catch (err) {
+          logger_default.warn(
+            `Failed to parse data JSON from OpenAI event stream: - ${data}, err=${JSON.stringify(err)}`
+          );
+        }
+      }
+    }
+    yield sseData;
+  }
+}
+async function* readSSE(stream) {
+  const reader = stream.getReader();
+  let buffer = new Uint8Array();
+  const decoder = new TextDecoder("utf-8");
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const tmp = new Uint8Array(buffer.length + value.length);
+      tmp.set(buffer);
+      tmp.set(value, buffer.length);
+      buffer = tmp;
+      let index;
+      while ((index = findDoubleNewlineIndex(buffer)) !== -1) {
+        const slice = buffer.subarray(0, index);
+        yield decoder.decode(slice);
+        buffer = buffer.subarray(index);
+      }
+    }
+    if (buffer.length > 0) {
+      yield decoder.decode(buffer);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+function findDoubleNewlineIndex(buffer) {
+  const newline = 10;
+  const carriage = 13;
+  for (let i = 0; i < buffer.length - 1; i++) {
+    if (buffer[i] === newline && buffer[i + 1] === newline) {
+      return i + 2;
+    }
+    if (buffer[i] === carriage && buffer[i + 1] === carriage) {
+      return i + 2;
+    }
+    if (buffer[i] === carriage && buffer[i + 1] === newline && i + 3 < buffer.length && buffer[i + 2] === carriage && buffer[i + 3] === newline) {
+      return i + 4;
+    }
+  }
+  return -1;
+}
+var sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+var DEFAULT_POLLING_INTERVAL = 300;
+var DEFAULT_RETRIES_COUNT = 1e3;
+var NETWORK_RETRIES_COUNT = 10;
+var MAX_POLLING_BACKOFF = 5e3;
+var WorkflowsClient = class {
+  constructor(options) {
+    this.defaultHeaders = {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    };
+    this.terminalStatuses = [
+      "COMPLETED",
+      "FAILED"
+      /* FAILED */
+    ];
+    this.clientOptions = options || {};
+    this.clientOptions.baseUrl = this.clientOptions.baseUrl || "https://api.picsart.com/";
+    if (!this.clientOptions.baseUrl.endsWith("/")) this.clientOptions.baseUrl += "/";
+    if (this.clientOptions.apiKey) {
+      this.clientOptions.apiKey = this.clientOptions.apiKey.replace("Bearer ", "");
+    }
+    if (this.clientOptions.identityToken) {
+      this.clientOptions.identityToken = this.clientOptions.identityToken.replace("Bearer ", "");
+    }
+    this.workflowsApiBaseUrl = `${this.clientOptions.baseUrl}workflows`;
+    this.sockets = new WorkflowsSocket({
+      socket: this.clientOptions.socket,
+      socketConnection: this.clientOptions.socketConnection && {
+        ...this.clientOptions.socketConnection,
+        url: this.clientOptions.socketConnection.url || this.clientOptions.baseUrl
+      }
+    });
+    if (this.clientOptions.socket || this.clientOptions.socketConnection) {
+      void Promise.resolve().then(() => this.sockets.connect()).catch(() => void 0);
+    }
+  }
+  /**
+   * Runs a workflow end-to-end and resolves with its result.
+   *
+   * A workflow that has an entry in `WorkflowTypes` (from `@picsart/workflows-types`) is
+   * type-checked against it: `params` must match the workflow's input and the result comes back
+   * typed, with no type argument to pass. Every other workflow is left unconstrained — declare
+   * the result yourself with `run<MyResult>(name, params)`.
+   *
+   * The execution mode is taken from remote settings when available, otherwise from
+   * `executionOptions.mode`, defaulting to async (submit + polling). Supported modes:
+   * sync (single HTTP call), stream (SSE, requires `onEvent`), socket (result pushed
+   * over the socket), and async (submit + polling).
+   *
+   * @typeParam R - Shape of the result, for a workflow that has no `WorkflowTypes` entry.
+   * Passing it explicitly also opts a mapped workflow out of its types.
+   * @param name - Workflow name.
+   * @param params - Workflow input, typed per the workflow definition when there is one.
+   * @param executionOptions - Mode, callbacks (`onAccepted`, `onProgress`, `onPartialResult`,
+   * `onEvent`), polling tuning, headers, and abort signal.
+   * @returns The workflow result and usage info.
+   * @throws {WorkflowsError} On a failed request (`httpStatusCode` carries the HTTP status),
+   * invalid arguments, or an unexpected failure.
+   */
+  async run(name, params2, executionOptions) {
+    try {
+      const remoteSettings = await this.getApiSettings(
+        name,
+        executionOptions?.remoteSettingName
+      );
+      const executionMode = remoteSettings.executionMode || executionOptions?.mode || "ASYNC";
+      if (executionMode === "SYNC") {
+        return this.executeTaskSync(name, params2, executionOptions);
+      }
+      if (executionMode === "STREAM") {
+        return this.executeTaskStream(name, params2, executionOptions);
+      }
+      if (executionMode === "SOCKET") {
+        const submit = async () => {
+          try {
+            const id = await this.postTask(name, params2, executionOptions);
+            await executionOptions?.onAccepted?.(id);
+            return id;
+          } catch (err) {
+            throw this.wrapError(name, err);
+          }
+        };
+        return this.sockets.runTask(
+          name,
+          submit,
+          executionOptions,
+          (taskId2) => this.disableNotification(taskId2, { headers: executionOptions?.headers })
+        );
+      }
+      const taskId = await this.postTask(name, params2, executionOptions);
+      await executionOptions?.onAccepted?.(taskId);
+      return this.runPolling(name, taskId, executionOptions);
+    } catch (err) {
+      throw this.wrapError(name, err);
+    }
+  }
+  /**
+   * Submits a task WITHOUT waiting for its result — the standalone counterpart of {@link run}.
+   * Consume the result later with {@link runPolling} or {@link subscribe} (`{ name, taskId }`).
+   *
+   * Only the submission-related execution options apply here (`headers`, `notificationConfig`,
+   * `remoteSettingName`); result-consumption options (mode, callbacks, polling) belong to the consumer.
+   *
+   * @param name - Workflow name.
+   * @param params - Workflow input parameters.
+   * @param executionOptions - Submission-related options only.
+   * @returns The taskId of the submitted task.
+   * @throws {WorkflowsError} On a failed request (`httpStatusCode` carries the HTTP status)
+   * or an unexpected failure.
+   */
+  async submit(name, params2, executionOptions) {
+    try {
+      return await this.postTask(name, params2, executionOptions);
+    } catch (err) {
+      throw this.wrapError(name, err);
+    }
+  }
+  /**
+   * Fetches the options a workflow offers for the given input — what the adapter resolves for THIS
+   * caller (subscription tier, country, the `x-config-id` CMS card), which is why it is read at call
+   * time rather than described by the workflow's types.
+   *
+   * @param name - Workflow name, including the version when the workflow has one (`pipelineName/v1`).
+   * @param params - Workflow input to resolve the options for; defaults to `{}` for the common case
+   * of asking before anything is chosen.
+   * @param requestOptions - `remoteSettingName` to resolve the `x-config-id` under a name other
+   * than the workflow's own.
+   * @returns The options payload — the envelope's `response`, unwrapped.
+   * @throws {WorkflowsError} On a failed request; `httpStatusCode` carries the HTTP status.
+   */
+  async options(name, params2 = {}, requestOptions) {
+    try {
+      const remoteSettings = await this.getApiSettings(name, requestOptions?.remoteSettingName);
+      const response = await this._fetch(`${this.workflowsApiBaseUrl}/${name}/options`, {
+        method: "POST",
+        headers: this.requestHeaders(remoteSettings.configId),
+        body: JSON.stringify({ params: params2 })
+      });
+      const json = await this.toSuccessResponse(response);
+      return json.response;
+    } catch (err) {
+      throw this.wrapError(name, err);
+    }
+  }
+  async postTask(taskName, command, executionOptions) {
+    const remoteSettings = await this.getApiSettings(taskName, executionOptions?.remoteSettingName);
+    const response = await this._fetch(`${this.workflowsApiBaseUrl}/${taskName}/submit`, {
+      method: "POST",
+      headers: this.requestHeaders(remoteSettings.configId, executionOptions?.headers),
+      body: JSON.stringify({
+        params: command,
+        notification: executionOptions?.notificationConfig
+      })
+    });
+    const json = await this.toSuccessResponse(response);
+    return json.response.id;
+  }
+  /**
+   * Polls an already-submitted task until it reaches a terminal status (COMPLETED/FAILED)
+   * and resolves with its result. Progress and partial-result callbacks from
+   * `executionOptions` are invoked on each update.
+   *
+   * A poll that never reaches the server (dropped wifi, DNS failure, a reset connection) does not
+   * end the run — the task keeps going server-side, so polling backs off and retries, giving up
+   * only once the drops outlast the retry budget. Anything the server did answer, and any abort,
+   * still fails immediately.
+   *
+   * @typeParam R - Shape of the workflow result.
+   * @param taskName - Workflow name.
+   * @param taskId - Task id returned by {@link submit} (or `onAccepted`).
+   * @param executionOptions - `pollingInterval` (default 300ms), `retriesCount` (default 1000),
+   * callbacks and abort signal.
+   * @returns The workflow result and usage info.
+   * @throws {WorkflowsError} With `httpStatusCode` 408 when the retry budget is exhausted
+   * before the task completes, or the connection error when the connection never came back.
+   */
+  async runPolling(taskName, taskId, executionOptions) {
+    const pollingInterval = executionOptions?.pollingInterval || DEFAULT_POLLING_INTERVAL;
+    let retriesCounter = executionOptions?.retriesCount || DEFAULT_RETRIES_COUNT;
+    let pollingResponse;
+    let networkFailures = 0;
+    let lastNetworkError;
+    const progressAware = new WorkflowResultUpdateAware(
+      executionOptions?.onProgress,
+      executionOptions?.onPartialResult,
+      executionOptions?.onEvent
+    );
+    do {
+      if (executionOptions?.abortSignal?.aborted) throw new DOMException("Aborted", "AbortError");
+      await sleep(this.pollingDelay(pollingInterval, networkFailures));
+      retriesCounter--;
+      try {
+        pollingResponse = await this.getResult(taskName, taskId);
+        networkFailures = 0;
+        lastNetworkError = void 0;
+      } catch (err) {
+        if (!this.isConnectionError(err)) throw err;
+        if (++networkFailures > NETWORK_RETRIES_COUNT) throw this.connectionError(err);
+        lastNetworkError = err;
+        logger_default.warn(
+          `workflows.runPolling - poll ${networkFailures}/${NETWORK_RETRIES_COUNT} of ${taskName}/${taskId} did not reach the server, retrying`,
+          err
+        );
+        continue;
+      }
+      await progressAware.onUpdate(pollingResponse.response);
+    } while (retriesCounter > 0 && !this.isTerminal(pollingResponse));
+    if (lastNetworkError) throw this.connectionError(lastNetworkError);
+    if (!this.isTerminal(pollingResponse) || !pollingResponse?.response.result) {
+      throw new WorkflowsError({
+        httpStatusCode: 408,
+        reason: "client_timeout",
+        message: "Polling timeout reached. Consider increasing polling interval or retries count from execution options."
+      });
+    }
+    return pollingResponse.response;
+  }
+  // Raw transport rejections (a TypeError from fetch) become the client's own error on the way out,
+  // keeping what fetch said but labelling it for callers. No httpStatusCode: the server never answered.
+  connectionError(error) {
+    return new WorkflowsError({
+      reason: "connection_error",
+      message: error?.message || "The request did not reach the server"
+    });
+  }
+  isTerminal(response) {
+    return !!response && this.terminalStatuses.includes(response.response.status);
+  }
+  /**
+   * Whether a failed poll never got an answer from the server — the connection dropped, DNS failed,
+   * the request was reset. Classified by what the failure is NOT, so it holds in a browser
+   * (`TypeError: Failed to fetch`) and in Node (`TypeError: fetch failed`) alike: anything the
+   * server answered carries an `httpStatusCode`, and an abort is the caller's own doing.
+   */
+  isConnectionError(error) {
+    const name = error?.name;
+    if (name === "AbortError" || name === "TimeoutError") return false;
+    if (error instanceof WorkflowsError) return error.httpStatusCode === void 0;
+    return true;
+  }
+  // Back off while the connection is down instead of hammering a dead radio — never below the
+  // caller's own interval, never above MAX_POLLING_BACKOFF.
+  pollingDelay(interval, consecutiveFailures) {
+    if (consecutiveFailures === 0) return interval;
+    return Math.min(interval * 2 ** consecutiveFailures, Math.max(interval, MAX_POLLING_BACKOFF));
+  }
+  /**
+   * Fetches the CURRENT state of an already-submitted task with a single request — no polling, no
+   * waiting. Returns the task as it stands, so read `status` (and `progress`) to know what you got:
+   * `result` may still be empty or partial while the task is not COMPLETED. Use {@link runPolling}
+   * or {@link subscribe} to wait for a terminal status instead.
+   *
+   * @typeParam R - Shape of the workflow result.
+   * @param taskName - Workflow name.
+   * @param taskId - Task id returned by {@link submit} (or `onAccepted`).
+   * @returns The task record as it stands at the moment of the call.
+   * @throws {WorkflowsError} On a failed request (`httpStatusCode` carries the HTTP status)
+   * or an unexpected failure.
+   */
+  async result(taskName, taskId) {
+    try {
+      const response = await this.getResult(taskName, taskId);
+      return response.response;
+    } catch (err) {
+      throw this.wrapError(taskName, err);
+    }
+  }
+  /**
+   * Watches already-submitted work LIVE over the socket (no re-submit), as an async iterable
+   * of the raw `StreamSocketMessage` the gateway pushes — iterate with `for await` and switch
+   * on `msg.type`. With a `taskId` it watches that task (ending after its COMPLETED/FAILED);
+   * without it, it watches EVERY task of the workflow until stopped. A lost session throws out
+   * of the loop; `break` (or an AbortSignal in options) stops watching.
+   *
+   * @param options - Subscription target: `name` (required), optional `taskId` and abort signal.
+   * @returns Async iterable of socket messages for the subscribed workflow/task.
+   * @throws {WorkflowsError} If `options.name` is missing.
+   */
+  subscribe(options) {
+    if (!options.name) {
+      throw new WorkflowsError({
+        httpStatusCode: 400,
+        reason: "INVALID_ARGUMENTS",
+        message: "subscribe() requires `name`."
+      });
+    }
+    return this.sockets.subscribe(options);
+  }
+  /**
+   * Closes the socket the client created from `socketConnection`. No-op for an injected
+   * `socket` (the caller owns that one). Safe to call more than once.
+   */
+  async disconnect() {
+    return this.sockets.disconnect();
+  }
+  /**
+   * Marks a task's notification as seen so it is no longer surfaced to the user.
+   * Called automatically after socket-mode runs; call it manually when consuming
+   * results yourself (e.g. after {@link submit} + {@link subscribe}).
+   *
+   * @param taskId - Task id whose notification should be dismissed.
+   * @param options - Optional extra request headers.
+   * @throws {WorkflowsError} On a failed request; `httpStatusCode` carries the HTTP status.
+   */
+  async disableNotification(taskId, options) {
+    try {
+      const url = `${this.clientOptions.baseUrl}workflow-notifications/${taskId}/seen-status`;
+      const response = await this._fetch(url, { method: "PATCH", headers: options?.headers });
+      await this.throwIfError(response);
+    } catch (err) {
+      throw this.wrapError("disableNotification", err);
+    }
+  }
+  async executeTaskSync(taskName, command, executionOptions) {
+    const remoteSettings = await this.getApiSettings(taskName, executionOptions?.remoteSettingName);
+    const response = await this._fetch(
+      `${this.workflowsApiBaseUrl}/${taskName}/execute`,
+      {
+        signal: executionOptions?.abortSignal,
+        method: "POST",
+        headers: this.requestHeaders(remoteSettings.configId, executionOptions?.headers),
+        body: JSON.stringify({ params: command })
+      }
+    );
+    const successResponse = await this.toSuccessResponse(response);
+    return successResponse.response;
+  }
+  async getResult(taskName, taskId) {
+    const response = await this._fetch(`${this.workflowsApiBaseUrl}/${taskName}/${taskId}/result`, {
+      method: "GET"
+    });
+    return this.toSuccessResponse(response);
+  }
+  async executeTaskStream(taskName, command, executionOptions) {
+    const remoteSettings = await this.getApiSettings(taskName, executionOptions?.remoteSettingName);
+    const onEvent = executionOptions?.onEvent;
+    if (!onEvent) {
+      throw new WorkflowsError({
+        httpStatusCode: 400,
+        reason: "INVALID_ARGUMENTS",
+        message: "onEvent is required for streaming"
+      });
+    }
+    const streamHeaders = this.requestHeaders(remoteSettings.configId, executionOptions?.headers);
+    streamHeaders.set("Accept", "text/event-stream");
+    const response = await this._fetch(`${this.workflowsApiBaseUrl}/${taskName}/stream`, {
+      signal: executionOptions?.abortSignal,
+      method: "POST",
+      headers: streamHeaders,
+      body: JSON.stringify({ params: command })
+    });
+    await this.throwIfError(response);
+    if (!response.body) {
+      throw new WorkflowsError({
+        httpStatusCode: 500,
+        reason: "invalid_response",
+        message: "No response body"
+      });
+    }
+    let completedEvent = {};
+    for await (const event of decodeSSE(response.body)) {
+      if (executionOptions?.abortSignal?.aborted) break;
+      const data = event.data;
+      if (data.type.startsWith("event.")) {
+        await onEvent({
+          ...data,
+          type: data.type.replace(/^event\.\s*/, "")
+        });
+      }
+      if (data.type === "task.partial-result") {
+        await executionOptions.onPartialResult?.({
+          status: "IN_PROGRESS",
+          result: data.result
+        });
+      }
+      if (data.type === "task.failed") {
+        throw WorkflowsError.fromBody(data.result, {
+          httpStatusCode: 500,
+          reason: "workflow_failed",
+          message: "Workflow failed"
+        });
+      }
+      if (data.type === "task.completed") {
+        completedEvent = data;
+      }
+    }
+    return {
+      result: completedEvent.result,
+      usage: completedEvent.usage,
+      status: "COMPLETED"
+      /* COMPLETED */
+      // the loop only leaves the FAILED branch by throwing
+    };
+  }
+  /**
+   * Fetches the execution history of a workflow, paginated.
+   *
+   * @typeParam R - Shape of each execution's result in the history entries.
+   * @param taskName - Workflow name to fetch history for.
+   * @param offset - Pagination offset (default 0).
+   * @param limit - Page size (default 10).
+   * @param isGrouped - When true, fetches the grouped history endpoint.
+   * @returns The history page for the workflow.
+   * @throws {WorkflowsError} On a failed request (`httpStatusCode` carries the HTTP status)
+   * or an unexpected failure.
+   */
+  async executionsHistory(taskName, offset = 0, limit = 10, isGrouped = false) {
+    try {
+      const grouped = isGrouped ? "/grouped" : "";
+      const url = `${this.clientOptions.baseUrl}workflows-history${grouped}?name=${taskName}&limit=${limit}&offset=${offset}`;
+      const res = await this._fetch(url);
+      return this.toSuccessResponse(res);
+    } catch (err) {
+      throw this.wrapError("requestHistory", err);
+    }
+  }
+  async toSuccessResponse(response) {
+    await this.throwIfError(response);
+    const body = await response.text();
+    try {
+      return JSON.parse(body);
+    } catch {
+      throw new WorkflowsError({
+        httpStatusCode: response.status,
+        reason: "invalid_response",
+        message: "Non json response was returned from server"
+      });
+    }
+  }
+  async throwIfError(response) {
+    if (response.ok) return;
+    throw await WorkflowsError.fromResponse(response, { reason: "request_failed" });
+  }
+  async getApiSettings(name, remoteSettingName) {
+    if (!this.clientOptions.getRemoteSettings) return {};
+    const settingName = remoteSettingName || `${name.replace(/-/g, "_").toLowerCase()}_api`;
+    try {
+      const apiSetting = await this.clientOptions.getRemoteSettings(
+        settingName,
+        "miniapp"
+      );
+      return {
+        configId: apiSetting?.configId || "",
+        executionMode: apiSetting?.executionMode
+      };
+    } catch (err) {
+      logger_default.error(
+        `workflows.getConfigId - failed when fetching remoteSettings: settingName=${settingName}`,
+        err
+      );
+      return {};
+    }
+  }
+  wrapError(actionName, error) {
+    if (error instanceof WorkflowsError || error instanceof DOMException) {
+      return error;
+    }
+    logger_default.error(`WorkflowsError - ${actionName} failed`, error);
+    return WorkflowsError.fromUnknown(error);
+  }
+  // Per-call headers plus the resolved config id, with the call's own value winning — again via
+  // Headers, so every HeadersInit shape survives.
+  requestHeaders(configId, headers) {
+    const merged = new Headers(headers);
+    if (!merged.has("x-config-id")) merged.set("x-config-id", configId || "");
+    return merged;
+  }
+  buildRequestHeaders(initHeaders) {
+    const headers = new Headers(initHeaders);
+    const optionHeaders = new Headers(this.defaultHeaders);
+    for (const [key, value] of new Headers(this.clientOptions.headers).entries()) {
+      optionHeaders.set(key, value);
+    }
+    for (const [key, value] of optionHeaders.entries()) {
+      if (!headers.has(key)) {
+        headers.set(key, value);
+      }
+    }
+    if (this.clientOptions.apiKey) {
+      headers.set("Authorization", `Bearer ${this.clientOptions.apiKey}`);
+    }
+    if (this.clientOptions.identityToken) {
+      headers.set("x-app-authorization", `Bearer ${this.clientOptions.identityToken}`);
+    }
+    return headers;
+  }
+  async _fetch(input, init) {
+    const headers = this.buildRequestHeaders(init?.headers);
+    const requestInit = {
+      ...init,
+      headers
+    };
+    if (this.clientOptions.fetch) {
+      return this.clientOptions.fetch(input, {
+        ...requestInit,
+        // return headers as a plain object for easier handling in custom fetch
+        headers: Object.fromEntries(headers.entries())
+      });
+    }
+    if (!headers.has("Authorization") && !headers.has("x-app-authorization")) {
+      throw new WorkflowsError({
+        httpStatusCode: 400,
+        reason: "invalid_state",
+        message: "apiKey is not provided"
+      });
+    }
+    return fetch(input, requestInit);
+  }
+};
+var WorkflowsClient_default = WorkflowsClient;
+
+// src/client/workflows-error.ts
+var GENERIC_REASONS = /* @__PURE__ */ new Set(["request_failed", "unknown_error"]);
+function isWorkflowsError(err) {
+  if (err instanceof WorkflowsError) return true;
+  const e = err;
+  return err instanceof Error && typeof e.reason === "string" && /WorkflowsError$/.test(e.name ?? "");
+}
+function toApiError(err, workflow, id) {
+  if (err instanceof ApiError) return err;
+  if (err instanceof DOMException && err.name === "AbortError") return err;
+  const e = err;
+  if (isWorkflowsError(err)) {
+    if (e.reason === "client_timeout") {
+      return new ApiError(`Timed out waiting for workflow ${workflow}${id ? `:${id}` : ""}`, {
+        status: 408,
+        code: "timeout"
+      });
+    }
+    const status = e.httpStatusCode ?? 502;
+    return new ApiError(e.message ?? "Request failed", {
+      status,
+      code: e.reason && !GENERIC_REASONS.has(e.reason) ? e.reason : codeForStatus(status)
+    });
+  }
+  return new ApiError(err instanceof Error ? err.message : String(err), {
+    status: 502,
+    code: "generation_failed"
+  });
+}
+
 // src/client/transport.ts
 var GATEWAY_HEADERS = {
   "platform": "api",
   "X-Touchpoint": "sdk"
 };
-function resolveFetch(config) {
+function maybeFetch(config) {
   if (config.fetch) return config.fetch;
   if (config.apiKey) {
     const token = config.apiKey.replace(/^Bearer\s+/i, "");
@@ -9677,86 +10566,89 @@ function resolveFetch(config) {
       return globalThis.fetch(url, { ...init, headers });
     };
   }
-  throw new Error("createClient config requires either `fetch` or `apiKey`.");
+  return null;
 }
-function buildTransport(config) {
-  const apiUrl = config.apiUrl;
-  const f = resolveFetch(config);
-  const jsonPost = async (url, body, signal) => f(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    signal
+function createWorkflowsClient(apiUrl, authedFetch) {
+  return new WorkflowsClient_default({
+    baseUrl: apiUrl,
+    // AuthenticatedFetch takes a string url; the client's fetch type accepts
+    // URL/Request inputs too. Normalize without losing the Request's own url,
+    // method, headers, or body (the client passes plain string urls today,
+    // but the contract allows more).
+    fetch: (input, init) => {
+      if (input instanceof Request) {
+        return authedFetch(input.url, init ?? {
+          method: input.method,
+          headers: input.headers,
+          body: input.body,
+          signal: input.signal
+        });
+      }
+      return authedFetch(typeof input === "string" ? input : input.toString(), init);
+    }
+  });
+}
+function buildTransport(wc) {
+  const asResult = (res) => ({
+    result: res.result,
+    usage: res.usage,
+    raw: res.result
   });
   return {
+    async execute(request) {
+      try {
+        const res = await wc.run(request.workflow, request.payload, {
+          mode: ExecutionMode.SYNC,
+          abortSignal: request.signal
+        });
+        return asResult(res);
+      } catch (err) {
+        throw toApiError(err, request.workflow);
+      }
+    },
     async submit(request) {
-      const res = await jsonPost(
-        `${apiUrl}/workflows/${request.workflow}/submit`,
-        { params: request.payload },
-        request.signal
-      );
-      const { text, json } = await readErrorBody(res);
-      if (!res.ok) {
-        const detail = json ? json.message ?? JSON.stringify(json) : text;
-        throw new ApiError(`Submit failed (${res.status}): ${detail}`, {
-          status: res.status,
-          code: reasonFrom(json, res.status)
-        });
+      try {
+        const id = await wc.submit(request.workflow, request.payload, { abortSignal: request.signal });
+        if (!id) {
+          throw new ApiError("No task id in response", { status: 502, code: "invalid_response" });
+        }
+        return id;
+      } catch (err) {
+        throw toApiError(err, request.workflow);
       }
-      const response = json?.response;
-      const id = response?.id ?? json?.id;
-      if (!id) {
-        throw new ApiError(`No task id in response: ${json ? JSON.stringify(json) : text}`, {
-          status: 502,
-          code: "invalid_response"
+    },
+    async poll(handle, options) {
+      try {
+        const res = await wc.runPolling(handle.workflow, handle.id, {
+          pollingInterval: options?.intervalMs,
+          retriesCount: options?.maxAttempts,
+          abortSignal: options?.signal,
+          onProgress: options?.onProgress
         });
+        return asResult(res);
+      } catch (err) {
+        throw toApiError(err, handle.workflow, handle.id);
       }
-      return { workflow: request.workflow, id: String(id) };
     },
     async status(handle, signal) {
-      const res = await f(`${apiUrl}/workflows/${handle.workflow}/${handle.id}/result`, { signal });
-      if (!res.ok) {
-        const { text, json } = await readErrorBody(res);
-        const detail = json ? json.message ?? text : text;
-        throw new ApiError(`Status check failed (${res.status}): ${detail}`, {
-          status: res.status,
-          code: reasonFrom(json, res.status)
-        });
+      if (signal?.aborted) {
+        throw new ApiError("Operation aborted", { status: 499, code: "aborted" });
       }
-      return res.json();
-    },
-    async execute(request) {
-      const res = await jsonPost(
-        `${apiUrl}/workflows/${request.workflow}/execute`,
-        { params: request.payload },
-        request.signal
-      );
-      if (!res.ok) {
-        const { text, json } = await readErrorBody(res);
-        const detail = json ? json.message ?? text : text;
-        throw new ApiError(`Execute failed (${res.status}): ${detail}`, {
-          status: res.status,
-          code: reasonFrom(json, res.status)
-        });
+      try {
+        return asResult(await wc.result(handle.workflow, handle.id));
+      } catch (err) {
+        throw toApiError(err, handle.workflow, handle.id);
       }
-      return res.json();
     },
     async options(workflow, payload) {
       try {
-        const res = await jsonPost(`${apiUrl}/workflows/${workflow}/options`, { params: payload });
-        if (!res.ok) return null;
-        const data = await res.json();
-        const response = data.response;
-        const credits = response?.credits;
-        return typeof credits === "number" ? credits : null;
+        const res = await wc.options(workflow, payload);
+        return typeof res?.credits === "number" ? res.credits : null;
       } catch {
         return null;
       }
     }
   };
-}
-function isClientConfig(input) {
-  return "fetch" in input && typeof input.fetch === "function" || "apiKey" in input && typeof input.apiKey === "string";
 }
 
 // src/client/prepare.ts
@@ -9776,28 +10668,23 @@ function prepareRequest(model, params2) {
   const payload = resolved.buildPayload(validatedCtx);
   return { ctx, workflow: resolved.workflow, payload, contract };
 }
-function throwIfTerminalFailure(completed, model) {
-  if (completed.status === "FAILED") {
-    throw new ApiError(`${model.name} failed: ${completed.error ?? "unknown error"}`, {
-      status: completed.statusCode ?? 502,
-      code: completed.reason ?? "generation_failed"
-    });
-  }
-  if (completed.status === "CANCELED") {
-    throw new ApiError(`${model.name} was canceled`, { status: 499, code: "canceled" });
-  }
-}
 function parseResult(completed, model, contract) {
-  throwIfTerminalFailure(completed, model);
   throwIfErrorResult(completed.result, model.name);
   const parsed = contract?.output ? contract.output.parse(completed.result) : completed.result;
   const multiItems = extractAllResults(parsed);
   if (multiItems?.length) {
-    const results = multiItems.map((item) => ({
+    const items2 = multiItems.map((item, i) => ({
       url: item.url,
-      metadata: item.exploreImageId ? { exploreImageId: item.exploreImageId } : void 0
+      metadata: buildItemMetadata(parsed, item.source, i, model.provider)
     }));
-    return { url: results[0].url, results, model: model.id, handle: completed.handle, raw: parsed, usage: completed.usage };
+    return {
+      url: items2[0].url,
+      items: items2,
+      results: items2,
+      // Sync executions have no job id (nothing to poll) — omit rather than ''.
+      ...completed.handle.id ? { generationId: completed.handle.id } : {},
+      usage: completed.usage
+    };
   }
   const url = extractUrl(parsed);
   if (!url) {
@@ -9806,10 +10693,26 @@ function parseResult(completed, model, contract) {
       code: "invalid_response"
     });
   }
-  return { url, results: [{ url }], model: model.id, handle: completed.handle, raw: parsed, usage: completed.usage };
+  const obj = parsed && typeof parsed === "object" ? parsed : void 0;
+  let source = parsed;
+  for (const key of ["images", "items", "imageUrls", "data", "previews"]) {
+    const arr = obj?.[key];
+    if (Array.isArray(arr) && arr.length > 0) {
+      source = arr[0];
+      break;
+    }
+  }
+  const items = [{ url, metadata: buildItemMetadata(parsed, source, 0, model.provider) }];
+  return {
+    url,
+    items,
+    results: items,
+    // Sync executions have no job id (nothing to poll) — omit rather than ''.
+    ...completed.handle.id ? { generationId: completed.handle.id } : {},
+    usage: completed.usage
+  };
 }
 function parseTextResult(completed, model) {
-  throwIfTerminalFailure(completed, model);
   throwIfErrorResult(completed.result, model.name);
   throwIfErrorResult(completed.raw, model.name);
   const text = extractText(completed.result) ?? extractText(completed.raw);
@@ -9819,7 +10722,7 @@ function parseTextResult(completed, model) {
       code: "invalid_response"
     });
   }
-  return { text, model: model.id, handle: completed.handle, raw: completed.raw ?? completed.result, usage: completed.usage };
+  return { text, model: model.id, raw: completed.raw ?? completed.result, usage: completed.usage };
 }
 
 // src/core/limits.ts
@@ -10289,451 +11192,25 @@ function createDriveClient(f, apiUrl, rootFolderName) {
   };
 }
 
-// ../../node_modules/@picsart/workflows-client/dist/index.mjs
-var logger_default = {
-  error: (...args) => {
-    console.error(...args);
-  },
-  warn: (...args) => {
-    console.debug(...args);
-  },
-  info: (...args) => {
-    console.info(...args);
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  debug: (...args) => {
-    console.debug(...args);
-  }
-};
-var ExecutionMode = /* @__PURE__ */ ((ExecutionMode2) => {
-  ExecutionMode2["ASYNC"] = "ASYNC";
-  ExecutionMode2["SYNC"] = "SYNC";
-  ExecutionMode2["STREAM"] = "STREAM";
-  return ExecutionMode2;
-})(ExecutionMode || {});
-var WorkflowsServerError = class extends Error {
-  constructor(message) {
-    super(`WorkflowsServerError: ${message}`);
-    this.name = this.constructor.name;
-  }
-};
-var WorkflowsClientError = class extends Error {
-  constructor(action, status, responseBody) {
-    super(
-      `WorkflowsClientError: [${status}] ${action} failed: ${responseBody.reason} - ${responseBody.message}`
-    );
-    this.name = this.constructor.name;
-    this.status = status;
-    this.details = responseBody;
-  }
-};
-var WorkflowsUnknownError = class extends Error {
-  constructor(message) {
-    super(`WorkflowsUnknownError: ${message}`);
-    this.name = this.constructor.name;
-  }
-};
-var WorkflowResultUpdateAware = class {
-  constructor(onProgressFn, onPartialResultFn, onEventFn) {
-    this.onProgressFn = onProgressFn;
-    this.onPartialResultFn = onPartialResultFn;
-    this.onEventFn = onEventFn;
-  }
-  async onUpdate(response) {
-    if (!response.updated) return;
-    await this.deliverEvents(response);
-    if (response.status !== "IN_PROGRESS") return;
-    const newUpdated = new Date(response.updated);
-    if (newUpdated?.getTime() !== this.updated?.getTime()) {
-      this.updated = newUpdated;
-      await this.onPartialResultFn?.(response);
-      if (response.progress) {
-        await this.onProgressFn?.(response.progress);
-      }
-    }
-  }
-  async deliverEvents(response) {
-    if (!response.events?.length || !this.onEventFn) return;
-    let startIdx = 0;
-    if (this._lastEventId) {
-      const lastSeenIdx = response.events.findIndex((e) => e.id === this._lastEventId);
-      if (lastSeenIdx !== -1) {
-        startIdx = lastSeenIdx + 1;
-      }
-    }
-    const newEvents = response.events.slice(startIdx);
-    for (const event of newEvents) {
-      await this.onEventFn(event);
-    }
-    if (newEvents.length > 0) {
-      this._lastEventId = newEvents[newEvents.length - 1].id;
-    }
-  }
-};
-async function* decodeSSE(stream) {
-  for await (const chunk of readSSE(stream)) {
-    const lines = chunk.split("\n");
-    const sseData = {};
-    for (const line of lines) {
-      if (line.startsWith("data:")) {
-        const data = line.replace(/^data:\s*/, "");
-        if (data === "[DONE]") {
-          return;
-        }
-        try {
-          sseData.data = JSON.parse(data);
-        } catch (err) {
-          logger_default.warn(
-            `Failed to parse data JSON from OpenAI event stream: - ${data}, err=${JSON.stringify(err)}`
-          );
-        }
-      }
-    }
-    yield sseData;
-  }
-}
-async function* readSSE(stream) {
-  const reader = stream.getReader();
-  let buffer = new Uint8Array();
-  const decoder = new TextDecoder("utf-8");
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      const tmp = new Uint8Array(buffer.length + value.length);
-      tmp.set(buffer);
-      tmp.set(value, buffer.length);
-      buffer = tmp;
-      let index;
-      while ((index = findDoubleNewlineIndex(buffer)) !== -1) {
-        const slice = buffer.subarray(0, index);
-        yield decoder.decode(slice);
-        buffer = buffer.subarray(index);
-      }
-    }
-    if (buffer.length > 0) {
-      yield decoder.decode(buffer);
-    }
-  } finally {
-    reader.releaseLock();
-  }
-}
-function findDoubleNewlineIndex(buffer) {
-  const newline = 10;
-  const carriage = 13;
-  for (let i = 0; i < buffer.length - 1; i++) {
-    if (buffer[i] === newline && buffer[i + 1] === newline) {
-      return i + 2;
-    }
-    if (buffer[i] === carriage && buffer[i + 1] === carriage) {
-      return i + 2;
-    }
-    if (buffer[i] === carriage && buffer[i + 1] === newline && i + 3 < buffer.length && buffer[i + 2] === carriage && buffer[i + 3] === newline) {
-      return i + 4;
-    }
-  }
-  return -1;
-}
-var sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-var DEFAULT_POLLING_INTERVAL = 300;
-var DEFAULT_RETRIES_COUNT = 1e3;
-var WorkflowsClient = class {
-  constructor(options) {
-    this.defaultHeaders = {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    };
-    this.terminalStatuses = [
-      "COMPLETED",
-      "FAILED"
-      /* FAILED */
-    ];
-    this.options = options || {};
-    this.options.baseUrl = this.options.baseUrl || "https://api.picsart.com/";
-    if (!this.options.baseUrl.endsWith("/")) this.options.baseUrl += "/";
-    if (this.options.apiKey) {
-      this.options.apiKey = this.options.apiKey.replace("Bearer ", "");
-    }
-    if (this.options.identityToken) {
-      this.options.identityToken = this.options.identityToken.replace("Bearer ", "");
-    }
-    this.workflowsApiBaseUrl = `${this.options.baseUrl}workflows`;
-  }
-  async run(name, params2, executionOptions) {
-    try {
-      const remoteSettings = await this.getApiSettings(
-        name,
-        executionOptions?.remoteSettingName
-      );
-      const executionMode = remoteSettings.executionMode || executionOptions?.mode || "ASYNC";
-      if (executionMode === "SYNC") {
-        return this.executeTaskSync(name, params2, executionOptions);
-      }
-      if (executionMode === "STREAM") {
-        return this.executeTaskStream(name, params2, executionOptions);
-      }
-      const taskId = await this.postTask(name, params2, executionOptions);
-      await executionOptions?.onAccepted?.(taskId);
-      return this.runPolling(name, taskId, executionOptions);
-    } catch (err) {
-      throw this.wrapError(name, err);
-    }
-  }
-  async runTypeSafe(name, params2, executionOptions) {
-    return this.run(name, params2, executionOptions);
-  }
-  async postTask(taskName, command, executionOptions) {
-    const remoteSettings = await this.getApiSettings(taskName, executionOptions?.remoteSettingName);
-    const response = await this._fetch(`${this.workflowsApiBaseUrl}/${taskName}/submit`, {
-      method: "POST",
-      headers: {
-        "x-config-id": remoteSettings.configId || "",
-        ...executionOptions?.headers
-      },
-      body: JSON.stringify({
-        params: command,
-        notification: executionOptions?.notificationConfig
-      })
-    });
-    const json = await this.toSuccessResponse(response, taskName);
-    return json.response.id;
-  }
-  async runPolling(taskName, taskId, executionOptions) {
-    let retriesCounter = executionOptions?.retriesCount || DEFAULT_RETRIES_COUNT;
-    let pollingResponse;
-    const progressAware = new WorkflowResultUpdateAware(
-      executionOptions?.onProgress,
-      executionOptions?.onPartialResult,
-      executionOptions?.onEvent
-    );
-    do {
-      await sleep(executionOptions?.pollingInterval || DEFAULT_POLLING_INTERVAL);
-      pollingResponse = await this.getResult(taskName, taskId, executionOptions?.abortSignal, executionOptions?.headers);
-      await progressAware.onUpdate(pollingResponse.response);
-      retriesCounter--;
-    } while (retriesCounter > 0 && !this.terminalStatuses.includes(pollingResponse.response.status));
-    if (!this.terminalStatuses.includes(pollingResponse.response.status) || !pollingResponse.response.result) {
-      throw new WorkflowsClientError(taskName, 408, {
-        status: "error",
-        reason: "client_timeout",
-        message: "Polling timeout reached. Consider increasing polling interval or retries count from execution options. "
-      });
-    }
-    return {
-      result: pollingResponse.response.result,
-      usage: pollingResponse.response.usage
-    };
-  }
-  async executeTaskSync(taskName, command, executionOptions) {
-    const remoteSettings = await this.getApiSettings(taskName, executionOptions?.remoteSettingName);
-    const response = await this._fetch(
-      `${this.workflowsApiBaseUrl}/${taskName}/execute`,
-      {
-        signal: executionOptions?.abortSignal,
-        method: "POST",
-        headers: {
-          "x-config-id": remoteSettings.configId || "",
-          ...executionOptions?.headers
-        },
-        body: JSON.stringify({ params: command })
-      }
-    );
-    const successResponse = await this.toSuccessResponse(
-      response,
-      taskName
-    );
-    return {
-      result: successResponse.response.result,
-      usage: successResponse.response.usage
-    };
-  }
-  async getResult(taskName, taskId, abortSignal, headers) {
-    const response = await this._fetch(
-      `${this.workflowsApiBaseUrl}/${taskName}/${taskId}/result`,
-      {
-        method: "GET",
-        headers: {
-          ...headers
-        },
-        signal: abortSignal
-      }
-    );
-    return this.toSuccessResponse(response, taskName);
-  }
-  async executeTaskStream(taskName, command, executionOptions) {
-    const remoteSettings = await this.getApiSettings(taskName, executionOptions?.remoteSettingName);
-    const onEvent = executionOptions?.onEvent;
-    const actionName = `Executing ${taskName} task in stream mode`;
-    if (!onEvent) {
-      throw new WorkflowsClientError(actionName, 400, {
-        message: "onEvent is required for streaming",
-        status: "error",
-        reason: "INVALID_ARGUMENTS"
-      });
-    }
-    const response = await this._fetch(`${this.workflowsApiBaseUrl}/${taskName}/stream`, {
-      signal: executionOptions?.abortSignal,
-      method: "POST",
-      headers: {
-        "x-config-id": remoteSettings.configId || "",
-        ...executionOptions?.headers,
-        Accept: "text/event-stream"
-      },
-      body: JSON.stringify({ params: command })
-    });
-    await this.throwIfError(response, actionName);
-    if (!response.body) throw new WorkflowsServerError("No response body");
-    let completedEvent = {};
-    for await (const event of decodeSSE(response.body)) {
-      if (executionOptions?.abortSignal?.aborted) break;
-      const data = event.data;
-      if (data.type.startsWith("event.")) {
-        await onEvent({
-          ...data,
-          type: data.type.replace(/^event\.\s*/, "")
-        });
-      }
-      if (data.type === "task.partial-result") {
-        await executionOptions.onPartialResult?.({
-          status: "IN_PROGRESS",
-          result: data.result
-        });
-      }
-      if (data.type === "task.failed") {
-        const failedResult = data.result;
-        const statusCode = failedResult.statusCode;
-        if (statusCode >= 500) {
-          throw new WorkflowsServerError(`[${statusCode}] - ${actionName} failed with message ${failedResult.message}.`);
-        }
-        if (statusCode >= 400) {
-          throw new WorkflowsClientError(actionName, statusCode, failedResult);
-        }
-        throw new WorkflowsUnknownError(failedResult.message || failedResult.reason);
-      }
-      if (data.type === "task.completed") {
-        completedEvent = data;
-      }
-    }
-    return {
-      result: completedEvent.result,
-      usage: completedEvent.usage
-    };
-  }
-  async executionsHistory(taskName, offset = 0, limit = 10, isGrouped = false) {
-    try {
-      const grouped = isGrouped ? "/grouped" : "";
-      const url = `${this.options.baseUrl}workflows-history${grouped}?name=${taskName}&limit=${limit}&offset=${offset}`;
-      const res = await this._fetch(url);
-      return this.toSuccessResponse(res, "requestHistory");
-    } catch (err) {
-      throw this.wrapError("requestHistory", err);
-    }
-  }
-  async toSuccessResponse(response, actionName) {
-    await this.throwIfError(response, actionName);
-    return await response.json();
-  }
-  async throwIfError(response, actionName) {
-    if (response.status >= 500) {
-      let message;
-      try {
-        const errorResponse = await response.json();
-        message = errorResponse.message || errorResponse.reason || "Unknown error";
-      } catch (err) {
-        message = "Non json response was returned from server";
-      }
-      throw new WorkflowsServerError(`[${response.status}] - ${actionName} failed with message: ${message}.`);
-    }
-    if (!response.ok) {
-      throw new WorkflowsClientError(actionName, response.status, await response.json());
-    }
-  }
-  async getApiSettings(name, remoteSettingName) {
-    if (!this.options.getRemoteSettings) return {};
-    const settingName = remoteSettingName || `${name.replace(/-/g, "_").toLowerCase()}_api`;
-    try {
-      const apiSetting = await this.options.getRemoteSettings(
-        settingName,
-        "miniapp"
-      );
-      return {
-        configId: apiSetting?.configId || "",
-        executionMode: apiSetting?.executionMode
-      };
-    } catch (err) {
-      logger_default.error(
-        `workflows.getConfigId - failed when fetching remoteSettings: settingName=${settingName}`,
-        err
-      );
-      return {};
-    }
-  }
-  wrapError(actionName, error) {
-    if (error instanceof WorkflowsClientError || error instanceof WorkflowsServerError || error instanceof DOMException) {
-      return error;
-    }
-    logger_default.error(`PluggableAPIUnknownError - ${actionName} failed`, error);
-    return new WorkflowsUnknownError(
-      `workflows.${actionName} failed - ${error.message}`
-    );
-  }
-  buildRequestHeaders(initHeaders) {
-    const headers = new Headers(initHeaders);
-    const optionHeaders = new Headers({
-      ...this.defaultHeaders,
-      ...this.options.headers
-    });
-    for (const [key, value] of optionHeaders.entries()) {
-      if (!headers.has(key)) {
-        headers.set(key, value);
-      }
-    }
-    if (this.options.apiKey) {
-      headers.set("Authorization", `Bearer ${this.options.apiKey}`);
-    }
-    if (this.options.identityToken) {
-      headers.set("x-app-authorization", `Bearer ${this.options.identityToken}`);
-    }
-    return headers;
-  }
-  async _fetch(input, init) {
-    const headers = this.buildRequestHeaders(init?.headers);
-    const requestInit = {
-      ...init,
-      headers
-    };
-    if (this.options.fetch) {
-      return this.options.fetch(input, {
-        ...requestInit,
-        // return headers as a plain object for easier handling in custom fetch
-        headers: Object.fromEntries(headers.entries())
-      });
-    }
-    if (!headers.has("Authorization") && !headers.has("x-app-authorization")) {
-      throw new Error("apiKey is not provided");
-    }
-    return fetch(input, requestInit);
-  }
-};
-var WorkflowsClient_default = WorkflowsClient;
-
 // src/client/apis.ts
-function createApis(config) {
-  const f = config ? resolveFetch(config) : null;
-  const client = config && f ? new WorkflowsClient_default({
-    baseUrl: config.apiUrl,
-    fetch: (input, init) => f(typeof input === "string" ? input : input.toString(), init)
-  }) : null;
+function createApis(client) {
   return {
     async run(api, payload, options) {
       if (!client) {
-        throw new Error("ai.apis requires a client created with a ClientConfig (authenticated fetch).");
+        throw new ApiError(
+          "`ai.apis` requires `apiUrl` plus `fetch` or `apiKey` on createClient \u2014 the workflows APIs are not served by a custom transport.",
+          { status: 400, code: "unsupported_transport" }
+        );
       }
       const forwarded = { ...options ?? {} };
       delete forwarded.remoteSettingName;
       delete forwarded.onPartialResult;
       delete forwarded.notificationConfig;
-      return client.run(api, payload, forwarded);
+      try {
+        return await client.run(api, payload, forwarded);
+      } catch (err) {
+        throw toApiError(err, api);
+      }
     }
     // The public conditional-typed signature lives on ApisClient; the runtime
     // impl is uniform, so we assert the shape here.
@@ -10776,15 +11253,25 @@ function createCatalogs(transport, options) {
     if (query.modelId) payload.modelId = query.modelId;
     if (query.cursor) payload.cursor = query.cursor;
     if (query.limit) payload.limit = query.limit;
-    const raw = await transport.execute({ workflow, payload });
-    const container = raw?.response ?? raw;
-    if (raw?.status === "error" || container?.status === "FAILED") {
-      const message = container?.message ?? container?.error ?? raw?.message;
-      throw new Error(`${workflow} failed${message ? `: ${String(message)}` : ""}`);
+    let res;
+    try {
+      res = await transport.execute({ workflow, payload });
+    } catch (err) {
+      if (err instanceof ApiError || err instanceof DOMException && err.name === "AbortError") throw err;
+      throw new ApiError(`${workflow} failed: ${err instanceof Error ? err.message : String(err)}`, {
+        status: 502,
+        code: "bad_gateway"
+      });
     }
-    const result = container?.result;
+    const body = res.result ?? res.raw;
+    const container = body?.response ?? body;
+    const result = container?.result ?? container;
+    throwIfErrorResult(result, workflow);
     if (!result || !Array.isArray(result.items)) {
-      throw new Error(`${workflow} returned no catalog result`);
+      throw new ApiError(`${workflow} returned no catalog result`, {
+        status: 502,
+        code: "invalid_response"
+      });
     }
     return { ...result, nextCursor: result.nextCursor ?? null };
   }
@@ -10876,6 +11363,13 @@ function createCatalogs(transport, options) {
   return client;
 }
 
+// src/client/types.ts
+var GenerationEventType = {
+  Progress: "generation.progress",
+  Completed: "generation.completed",
+  Failed: "generation.failed"
+};
+
 // src/client/index.ts
 var MODE_POLL_DEFAULTS = {
   video: { intervalMs: 2e3, maxAttempts: 1800 },
@@ -10895,30 +11389,90 @@ function resolvePollOptions(model, overrides) {
   return resolved;
 }
 function createClient(config) {
-  const isConfig = isClientConfig(config);
-  const transport = isConfig ? buildTransport(config) : config;
-  const client = createWorkflowClient(transport, { pollingIntervalMs: 2e3 });
-  const supportsSubmit = typeof transport.submit === "function";
-  const apis = createApis(isConfig ? config : null);
-  const catalogs = createCatalogs(transport, isConfig ? config.catalogs : void 0);
-  const inputsTransformationConfig = isConfig ? config.inputsTransformation : void 0;
-  const driveConfig = isConfig ? config.drive : void 0;
-  const driveClient = isConfig && driveConfig ? createDriveClient(resolveFetch(config), config.apiUrl, driveConfig.folder) : null;
+  const authedFetch = maybeFetch(config);
+  const wc = config.apiUrl && authedFetch ? createWorkflowsClient(config.apiUrl, authedFetch) : null;
+  function buildDefaultTransport() {
+    if (wc) return buildTransport(wc);
+    throw new Error(config.apiUrl ? "createClient config requires either `fetch` or `apiKey` (or a custom `transport`)." : "createClient config requires `apiUrl` (or a custom `transport`).");
+  }
+  const transport = config.transport ?? buildDefaultTransport();
+  const supportsAsync = typeof transport.submit === "function" && typeof transport.poll === "function";
+  const apis = createApis(wc);
+  const inputsTransformationConfig = config.inputsTransformation;
+  const catalogs = createCatalogs(transport, config.catalogs);
+  const driveConfig = config.drive;
+  const driveApiUrl = config.apiUrl;
+  if (driveConfig && !(authedFetch && driveApiUrl)) {
+    throw new Error("createClient `drive` requires `apiUrl` plus `fetch` or `apiKey` \u2014 Drive is a REST surface, not served by a custom transport.");
+  }
+  const driveClient = driveConfig && authedFetch && driveApiUrl ? createDriveClient(authedFetch, driveApiUrl, driveConfig.folder) : null;
+  function toApiError2(err, signal) {
+    if (err instanceof ApiError) return err;
+    if (err instanceof DOMException && err.name === "AbortError") {
+      if (signal?.aborted) {
+        return new ApiError("Operation aborted", { status: 499, code: "aborted" });
+      }
+      throw err;
+    }
+    return new ApiError(err instanceof Error ? err.message : String(err), {
+      status: 502,
+      code: "generation_failed"
+    });
+  }
+  function unsupportedTransport(capability) {
+    return new ApiError(`Transport does not support ${capability} (execute-only transport)`, {
+      status: 400,
+      code: "unsupported_transport"
+    });
+  }
+  function asCompleted(handle, res) {
+    return toCompletedStatus(handle, res.result, res.raw ?? res.result, res.usage);
+  }
+  function pollJob(handle, poll, onProgress) {
+    if (!transport.poll) return Promise.reject(unsupportedTransport("polling"));
+    return transport.poll(handle, { ...poll, onProgress });
+  }
+  function assertAsyncLifecycle() {
+    if (!transport.submit) throw unsupportedTransport("submit");
+    if (!transport.poll) throw unsupportedTransport("polling");
+  }
+  function assertMediaModel(model) {
+    if (model.mode === "text") {
+      throw new ApiError(`${model.name} is a text model \u2014 use generateText() instead.`, {
+        status: 400,
+        code: "wrong_model_mode"
+      });
+    }
+  }
+  async function submitJob(workflow, payload, signal) {
+    if (signal?.aborted) {
+      throw new ApiError("Operation aborted", { status: 499, code: "aborted" });
+    }
+    if (!transport.submit) throw unsupportedTransport("submit");
+    const id = await transport.submit({ workflow, payload, signal });
+    if (!id) {
+      throw new ApiError("No task id in response", { status: 502, code: "invalid_response" });
+    }
+    return id;
+  }
   async function executeModel(model, workflow, payload, options) {
     const signal = options?.signal;
-    if (model.syncExecute || !supportsSubmit) {
-      const syncResponse = await client.run(
-        { workflow, payload, signal },
-        { mode: "sync" }
-      );
-      return toCompletedStatus(
-        syncResponse.handle,
-        extractSyncResult(syncResponse.raw),
-        syncResponse.raw,
-        syncResponse.usage
-      );
+    try {
+      if (model.syncExecute || !supportsAsync) {
+        const res2 = await transport.execute({ workflow, payload, signal });
+        return toCompletedStatus(
+          { workflow, id: "" },
+          extractSyncResult(res2.result) ?? res2.result,
+          res2.raw ?? res2.result,
+          res2.usage
+        );
+      }
+      const id = await submitJob(workflow, payload, signal);
+      const res = await pollJob({ workflow, id }, resolvePollOptions(model, options));
+      return asCompleted({ workflow, id }, res);
+    } catch (err) {
+      throw toApiError2(err, signal);
     }
-    return client.run({ workflow, payload, signal }, resolvePollOptions(model, options));
   }
   function buildDrivePayloadOptions(model, params2, options) {
     const explicit = options?.drive;
@@ -10950,24 +11504,33 @@ function createClient(config) {
       }
     };
   }
+  async function resolveJobHandle(model, generationId, signal) {
+    const primary = { workflow: model.workflow, id: generationId };
+    if (!model.editWorkflow || !transport.status) return primary;
+    try {
+      await transport.status(primary, signal);
+      return primary;
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        return { workflow: model.editWorkflow, id: generationId };
+      }
+      throw err;
+    }
+  }
   return {
     // ── Simple path ──────────────────────────────────────────────────
     /**
      * Generate content using a model.
      *
      * Validates input, builds the vendor payload, picks the right workflow,
-     * submits the job, polls to completion, and returns the result URL.
+     * submits the job, polls to completion, and returns the parsed result
+     * (`items[]` with per-item URLs and promoted vendor metadata).
      * If drive options are provided (or DriveConfig is set), the backend
      * saves the result to Picsart Drive.
      */
     async generate(model, params2, options) {
       const resolved = resolveModel(model);
-      if (resolved.mode === "text") {
-        throw new ApiError(`${resolved.name} is a text model \u2014 use generateText() instead.`, {
-          status: 400,
-          code: "wrong_model_mode"
-        });
-      }
+      assertMediaModel(resolved);
       const { workflow, payload, contract } = prepareRequest(resolved, params2);
       const drive = buildDrivePayloadOptions(resolved, params2, options);
       const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
@@ -10994,13 +11557,6 @@ function createClient(config) {
       const completed = await executeModel(resolved, workflow, payload, options);
       return parseTextResult(completed, resolved);
     },
-    /** @deprecated Use `getCredits()` instead. */
-    async estimate(model, params2) {
-      if (!transport.options) return null;
-      const resolved = resolveModel(model);
-      const { workflow, payload } = prepareRequest(resolved, params2);
-      return await transport.options(workflow, payload) ?? null;
-    },
     /**
      * Get exact credit cost for a model with specific parameters.
      * Calls the backend /options endpoint for real-time pricing.
@@ -11019,61 +11575,114 @@ function createClient(config) {
       return payload;
     },
     // ── Advanced lifecycle ────────────────────────────────────────────
-    /** Submit a generation job and get a handle back. */
+    /** Submit a generation job and get its generation id back. Media models
+     *  only — text models have no async lifecycle (`result()`/`subscribe()`
+     *  reject them). Pass the id to `result(model, id)` / `subscribe(model, id)`. */
     async submit(model, params2, options) {
       const resolved = resolveModel(model);
+      assertMediaModel(resolved);
+      assertAsyncLifecycle();
       const { workflow, payload } = prepareRequest(resolved, params2);
       const drive = buildDrivePayloadOptions(resolved, params2, options);
       const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
-      return client.submit({ workflow, payload: finalPayload, signal: options?.signal });
-    },
-    /** Check the current status of a submitted job. */
-    async status(handle, signal) {
-      return client.status(handle, signal);
+      try {
+        return await submitJob(workflow, finalPayload, options?.signal);
+      } catch (err) {
+        throw toApiError2(err, options?.signal);
+      }
     },
     /** Poll a submitted job until it completes and return the parsed result. */
-    async result(handle, model, options) {
+    async result(model, generationId, options) {
       const resolved = resolveModel(model);
+      assertMediaModel(resolved);
       const contract = getModelContract(resolved.id);
-      const completed = await client.result(handle, resolvePollOptions(resolved, options));
+      assertAsyncLifecycle();
+      const handle = await resolveJobHandle(resolved, generationId, options?.signal);
+      let completed;
+      try {
+        completed = asCompleted(handle, await pollJob(handle, resolvePollOptions(resolved, options)));
+      } catch (err) {
+        throw toApiError2(err, options?.signal);
+      }
       return parseResult(completed, resolved, contract);
     },
     /**
-     * Subscribe to live status updates for a submitted job.
+     * Subscribe to live updates for a submitted job. Yields one
+     * {@link GenerationEvent} per poll: `generation.progress` while running,
+     * then a single terminal `generation.completed` (with the parsed result)
+     * or `generation.failed` (with the {@link ApiError} `result()` would have
+     * thrown). Failures arrive as events, not exceptions.
      *
      * ```ts
-     * const handle = await ai.submit(Models.Flux2Pro, { prompt: 'a cat' });
-     * for await (const update of ai.subscribe(handle)) {
-     *   console.log(update.status, update.progress);
+     * const id = await ai.submit(Models.Flux2Pro, { prompt: 'a cat' });
+     * for await (const e of ai.subscribe(Models.Flux2Pro, id)) {
+     *   if (e.type === 'generation.progress') console.log(e.progress?.percent);
+     *   if (e.type === 'generation.completed') console.log(e.result.url);
+     *   if (e.type === 'generation.failed') console.error(e.error.message);
      * }
      * ```
      */
-    subscribe(handle, options) {
-      return client.subscribe(handle, options);
-    },
-    // ── Raw workflow access ──────────────────────────────────────────
-    /**
-     * Run a raw workflow (not tied to a model).
-     * @deprecated Use `apis.run()` instead.
-     */
-    async runWorkflow(workflow, payload, options) {
-      const done = await client.run(
-        { workflow, payload, signal: options?.signal },
-        options
-      );
-      if (done.status === "FAILED" || done.status === "CANCELED") {
-        throw new ApiError(done.error ?? `${workflow} failed with status ${done.status}`, {
-          status: done.statusCode ?? (done.status === "CANCELED" ? 499 : 502),
-          code: done.reason ?? (done.status === "CANCELED" ? "canceled" : "generation_failed")
+    subscribe(model, generationId, options) {
+      const resolved = resolveModel(model);
+      assertMediaModel(resolved);
+      assertAsyncLifecycle();
+      const contract = getModelContract(resolved.id);
+      return (async function* () {
+        let handle;
+        try {
+          handle = await resolveJobHandle(resolved, generationId, options?.signal);
+        } catch (err) {
+          yield { type: "generation.failed", error: toApiError2(err, options?.signal) };
+          return;
+        }
+        const poll = new AbortController();
+        if (options?.signal) {
+          if (options.signal.aborted) poll.abort();
+          else options.signal.addEventListener("abort", () => poll.abort(), { once: true });
+        }
+        const queue = [];
+        let wake;
+        let waker = new Promise((resolve) => {
+          wake = () => resolve(null);
         });
-      }
-      if (done.result === void 0) {
-        throw new ApiError(`${workflow} completed but returned no result`, {
-          status: 502,
-          code: "invalid_response"
-        });
-      }
-      return done.result;
+        const done = pollJob(
+          handle,
+          { ...resolvePollOptions(resolved, options), signal: poll.signal },
+          (p2) => {
+            queue.push(p2);
+            wake();
+          }
+        ).then(
+          (res) => ({ ok: true, res }),
+          (err) => ({ ok: false, err })
+        );
+        try {
+          for (; ; ) {
+            while (queue.length) yield { type: "generation.progress", progress: queue.shift() };
+            const raced = await Promise.race([done, waker]);
+            if (raced === null) {
+              waker = new Promise((resolve) => {
+                wake = () => resolve(null);
+              });
+              continue;
+            }
+            while (queue.length) yield { type: "generation.progress", progress: queue.shift() };
+            if (!raced.ok) {
+              yield { type: "generation.failed", error: toApiError2(raced.err, options?.signal) };
+              return;
+            }
+            const completed = asCompleted(handle, raced.res);
+            try {
+              yield { type: "generation.completed", result: parseResult(completed, resolved, contract) };
+            } catch (err) {
+              yield { type: "generation.failed", error: toApiError2(err, options?.signal) };
+            }
+            return;
+          }
+        } finally {
+          poll.abort();
+        }
+      })();
     },
     // ── apis (direct, low-level API access) ───────────────────────────
     /** Direct, low-level access to the Picsart model APIs. See `./apis.ts`. */
@@ -11086,446 +11695,6 @@ function createClient(config) {
     drive: driveClient ?? void 0
   };
 }
-
-// src/core/constraints.ts
-function normalize(r) {
-  if ("disabled" in r) return { kind: "disabled", reason: r.reason };
-  return { kind: "allowed", allowed: r.allowed, reason: r.reason };
-}
-function matchOperator(op, actual) {
-  if ("exists" in op) {
-    const has = actual != null && (!Array.isArray(actual) || actual.length > 0) && (typeof actual !== "string" || actual.length > 0);
-    return op.exists ? has : !has;
-  }
-  if ("is" in op) return actual === op.is;
-  return false;
-}
-function matchCondition(when, values) {
-  return Object.entries(when).every(
-    ([key, op]) => matchOperator(op, values[key])
-  );
-}
-function merge(prev, next) {
-  if (!prev) return next;
-  if (prev.kind === "disabled" || next.kind === "disabled") {
-    return { kind: "disabled", reason: next.kind === "disabled" ? next.reason : prev.kind === "disabled" ? prev.reason : void 0 };
-  }
-  const allowed = new Set(next.allowed.map(String));
-  return {
-    kind: "allowed",
-    allowed: prev.allowed.filter((o) => allowed.has(String(o))),
-    reason: next.reason ?? prev.reason
-  };
-}
-function evaluateConstraints(constraints, values) {
-  const effects = /* @__PURE__ */ new Map();
-  if (!constraints?.length) return effects;
-  for (const rule of constraints) {
-    if (!matchCondition(rule.when, values)) continue;
-    for (const [key, restriction] of Object.entries(rule.then)) {
-      effects.set(key, merge(effects.get(key), normalize(restriction)));
-    }
-  }
-  return effects;
-}
-
-// src/core/descriptors/pricing.ts
-var import_pa_model_pricing_sdk = __toESM(require_build());
-var _client = null;
-var _byModel = null;
-var _loadPromise = null;
-function configurePricing(options) {
-  _client = new import_pa_model_pricing_sdk.ModelPricingClient(options);
-  _byModel = null;
-  _loadPromise = null;
-}
-function loadPricing() {
-  if (_byModel) return Promise.resolve();
-  if (!_client) {
-    return Promise.reject(new Error(
-      "loadPricing(): not configured. Call catalog.pricing.configure({ baseUrl, fetch }) first."
-    ));
-  }
-  if (!_loadPromise) {
-    const client = _client;
-    _loadPromise = client.init().then(() => {
-      const byModel = /* @__PURE__ */ new Map();
-      for (const entry of client.getModelPricing()) {
-        const id = entry.metadata.modelId;
-        const list = byModel.get(id);
-        if (list) list.push(entry);
-        else byModel.set(id, [entry]);
-      }
-      _byModel = byModel;
-    }).catch((err) => {
-      _loadPromise = null;
-      throw err;
-    });
-  }
-  return _loadPromise;
-}
-function isPricingLoaded() {
-  return _byModel !== null;
-}
-function getCreditsForModel(modelId, ctx) {
-  if (!_byModel) return null;
-  let entries = _byModel.get(modelId);
-  if (!entries || entries.length === 0) return null;
-  if (ctx) {
-    entries = entries.filter((e) => {
-      if (ctx.generateAudio !== void 0 && e.metadata.audio !== ctx.generateAudio) return false;
-      if (ctx.resolution !== void 0 && e.metadata.quality !== ctx.resolution) return false;
-      return true;
-    });
-    if (entries.length === 0) return null;
-  }
-  let min = Infinity;
-  let max = -Infinity;
-  let unit = entries[0].unit;
-  for (const e of entries) {
-    if (e.credits < min) min = e.credits;
-    if (e.credits > max) max = e.credits;
-    if (e.unit !== unit) unit = void 0;
-  }
-  const tiers = entries.map((e) => ({
-    credits: e.credits,
-    unit: e.unit,
-    quality: e.metadata.quality || void 0,
-    audio: e.metadata.audio,
-    useCase: e.metadata.useCase
-  }));
-  return unit ? { min, max, unit, tiers } : { min, max, tiers };
-}
-
-// src/core/descriptors/model-accessor.ts
-function withHydration(entry, flat) {
-  if (entry.descriptor.kind !== "catalog") return flat;
-  const hydrated = getHydratedCatalog(entry.descriptor.source);
-  if (!hydrated) return flat;
-  return { ...flat, catalogOptions: hydrated.catalogOptions };
-}
-var ModelParamsAccessorImpl = class {
-  def;
-  constructor(def) {
-    this.def = def;
-  }
-  param(key) {
-    const entry = this.def.paramConfig[key];
-    if (!entry) return void 0;
-    const { descriptor, ...meta } = entry;
-    return withHydration(entry, { ...meta, ...descriptor });
-  }
-  hasParam(key) {
-    return key in this.def.paramConfig;
-  }
-  all() {
-    return Object.entries(this.def.paramConfig).map(
-      ([key, entry]) => {
-        const { descriptor, ...meta } = entry;
-        return withHydration(entry, { key, ...meta, ...descriptor });
-      }
-    );
-  }
-  // Kind-narrowed accessors
-  enum(key) {
-    return this.narrow(key, "enum");
-  }
-  catalog(key) {
-    return this.narrow(key, "catalog");
-  }
-  range(key) {
-    return this.narrow(key, "range");
-  }
-  boolean(key) {
-    return this.narrow(key, "boolean");
-  }
-  text(key) {
-    return this.narrow(key, "text");
-  }
-  file(key) {
-    return this.narrow(key, "file");
-  }
-  // Well-known shorthands
-  prompt() {
-    return this.narrow("prompt", "text");
-  }
-  aspectRatio() {
-    return this.narrow("aspectRatio", "enum");
-  }
-  /** Enum on fixed-option models, range where the vendor accepts every value
-   *  in a span — callers narrow on `.kind`. */
-  duration() {
-    const entry = this.param("duration");
-    if (!entry || entry.kind !== "enum" && entry.kind !== "range") return void 0;
-    return entry;
-  }
-  resolution() {
-    return this.narrow("resolution", "enum");
-  }
-  generateAudio() {
-    return this.narrow("generateAudio", "boolean");
-  }
-  startFrame() {
-    return this.narrow("startFrame", "file");
-  }
-  endFrame() {
-    return this.narrow("endFrame", "file");
-  }
-  // Absorbed from Models namespace
-  hasFileInput() {
-    return Object.values(this.def.paramConfig).some((e) => e.descriptor.kind === "file");
-  }
-  getDefault(key) {
-    const entry = this.def.paramConfig[key];
-    if (!entry) return void 0;
-    const d = entry.descriptor;
-    return "default" in d ? d.default : void 0;
-  }
-  getDefaults() {
-    return extractDefaults(this.def.paramConfig);
-  }
-  /** @deprecated Use `enum(key)` instead. */
-  getEnumOptions(key) {
-    const entry = this.def.paramConfig[key];
-    if (!entry || entry.descriptor.kind !== "enum") return null;
-    return entry.descriptor.options.map((o) => o.id);
-  }
-  toSchema() {
-    return descriptorsToSchema(this.def.paramConfig);
-  }
-  transferValues(prev) {
-    return transferValues(this.def.paramConfig, prev);
-  }
-  narrow(key, kind) {
-    const entry = this.param(key);
-    if (!entry || entry.kind !== kind) return void 0;
-    return entry;
-  }
-};
-var ConstrainedParamsAccessor = class {
-  inner;
-  effects;
-  constructor(inner, effects) {
-    this.inner = inner;
-    this.effects = effects;
-  }
-  // ── Decorated accessors ──────────────────────────────────────────
-  enum(key) {
-    return this.applyEnum(key, this.inner.enum(key));
-  }
-  catalog(key) {
-    return this.applyEntry(key, this.inner.catalog(key));
-  }
-  range(key) {
-    return this.applyEntry(key, this.inner.range(key));
-  }
-  boolean(key) {
-    return this.applyEntry(key, this.inner.boolean(key));
-  }
-  text(key) {
-    return this.applyEntry(key, this.inner.text(key));
-  }
-  file(key) {
-    return this.applyEntry(key, this.inner.file(key));
-  }
-  prompt() {
-    return this.applyEntry("prompt", this.inner.prompt());
-  }
-  aspectRatio() {
-    return this.applyEnum("aspectRatio", this.inner.aspectRatio());
-  }
-  duration() {
-    const entry = this.inner.duration();
-    return entry?.kind === "enum" ? this.applyEnum("duration", entry) : this.applyEntry("duration", entry);
-  }
-  resolution() {
-    return this.applyEnum("resolution", this.inner.resolution());
-  }
-  generateAudio() {
-    return this.applyEntry("generateAudio", this.inner.generateAudio());
-  }
-  startFrame() {
-    return this.applyEntry("startFrame", this.inner.startFrame());
-  }
-  endFrame() {
-    return this.applyEntry("endFrame", this.inner.endFrame());
-  }
-  all() {
-    return this.inner.all().map((e) => {
-      const r = this.effects.get(e.key);
-      if (!r) return e;
-      if (e.kind === "enum") return this.decorateEnumFlat(e, r);
-      if (r.kind === "disabled") return { ...e, disabled: true, disabledReason: r.reason };
-      return e;
-    });
-  }
-  // ── Pass-through delegates ───────────────────────────────────────
-  param(key) {
-    return this.inner.param(key);
-  }
-  hasParam(key) {
-    return this.inner.hasParam(key);
-  }
-  hasFileInput() {
-    return this.inner.hasFileInput();
-  }
-  getDefault(key) {
-    return this.inner.getDefault(key);
-  }
-  getDefaults() {
-    return this.inner.getDefaults();
-  }
-  getEnumOptions(key) {
-    return this.inner.getEnumOptions(key);
-  }
-  toSchema() {
-    return this.inner.toSchema();
-  }
-  transferValues(prev) {
-    return this.inner.transferValues(prev);
-  }
-  // ── Private helpers ──────────────────────────────────────────────
-  applyEntry(key, entry) {
-    if (!entry) return void 0;
-    const r = this.effects.get(key);
-    if (!r) return entry;
-    if (r.kind === "disabled") return { ...entry, disabled: true, disabledReason: r.reason };
-    return entry;
-  }
-  applyEnum(key, entry) {
-    if (!entry) return void 0;
-    const r = this.effects.get(key);
-    if (!r) return entry;
-    if (r.kind === "disabled") {
-      const options2 = entry.options.map((opt) => ({ ...opt, disabled: true, disabledReason: r.reason }));
-      return { ...entry, options: options2, disabled: true, disabledReason: r.reason };
-    }
-    const allowed = new Set(r.allowed.map(String));
-    const options = entry.options.map(
-      (opt) => allowed.has(String(opt.id)) ? opt : { ...opt, disabled: true, disabledReason: r.reason }
-    );
-    return { ...entry, options };
-  }
-  decorateEnumFlat(entry, r) {
-    if (entry.kind !== "enum") return entry;
-    if (r.kind === "disabled") {
-      const options2 = entry.options.map((opt) => ({
-        ...opt,
-        disabled: true,
-        disabledReason: r.reason
-      }));
-      return { ...entry, options: options2, disabled: true, disabledReason: r.reason };
-    }
-    const allowed = new Set(r.allowed.map(String));
-    const options = entry.options.map(
-      (opt) => allowed.has(String(opt.id)) ? opt : { ...opt, disabled: true, disabledReason: r.reason }
-    );
-    return { ...entry, options };
-  }
-};
-var ModelMetaImpl = class {
-  mode;
-  inputType;
-  description;
-  features;
-  badges;
-  provider;
-  addedAt;
-  release;
-  constructor(def) {
-    this.mode = def.mode;
-    this.inputType = def.inputType;
-    this.description = def.description;
-    this.features = def.features;
-    this.badges = def.badge ?? [];
-    this.release = def.release ?? "production";
-    this.provider = {
-      id: def.provider,
-      name: def.providerName,
-      color: def.providerColor,
-      label: def.providerLabel
-    };
-    this.addedAt = def.addedAt ?? null;
-  }
-};
-var ModelDescriptorImpl = class {
-  id;
-  name;
-  api;
-  def;
-  _params;
-  _meta;
-  constructor(def) {
-    this.id = def.id;
-    this.name = def.name;
-    this.api = { workflow: def.workflow, editWorkflow: def.editWorkflow };
-    this.def = def;
-  }
-  params() {
-    return this._params ??= new ModelParamsAccessorImpl(this.def);
-  }
-  paramsFor(values) {
-    const inner = this.params();
-    const effects = evaluateConstraints(this.def.constraints, values);
-    if (!effects.size) return inner;
-    return new ConstrainedParamsAccessor(inner, effects);
-  }
-  validate(input) {
-    if (!input || typeof input !== "object" || Array.isArray(input)) {
-      return { valid: false, errors: [`Invalid input for model "${this.def.id}"`] };
-    }
-    try {
-      validateAll(this.def.paramConfig, input);
-      return { valid: true };
-    } catch (err) {
-      return { valid: false, errors: [err instanceof Error ? err.message : String(err)] };
-    }
-  }
-  meta() {
-    return this._meta ??= new ModelMetaImpl(this.def);
-  }
-  getCreditsInfo(ctx) {
-    if (this.def.modelId) {
-      const byModelId = getCreditsForModel(this.def.modelId, ctx);
-      if (byModelId) return byModelId;
-    }
-    return getCreditsForModel(this.def.id, ctx);
-  }
-};
-function _model(id) {
-  return new ModelDescriptorImpl(resolveModel(id));
-}
-function _all(filter = {}) {
-  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
-  return ALL_MODELS.filter((m) => isVisibleForReleases(m, releases)).map((m) => new ModelDescriptorImpl(m));
-}
-function _find(filter) {
-  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
-  return ALL_MODELS.filter((m) => {
-    if (!isVisibleForReleases(m, releases)) return false;
-    if (filter.output && m.mode !== filter.output) return false;
-    if (filter.provider && m.provider !== filter.provider) return false;
-    return true;
-  }).map((m) => new ModelDescriptorImpl(m));
-}
-function _search(query, filter = {}) {
-  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
-  const q = query.toLowerCase();
-  return ALL_MODELS.filter(
-    (m) => isVisibleForReleases(m, releases) && (m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q) || m.provider.toLowerCase().includes(q))
-  ).map((m) => new ModelDescriptorImpl(m));
-}
-var Model = _model;
-var catalog = {
-  all: _all,
-  find: _find,
-  search: _search,
-  pricing: {
-    configure: configurePricing,
-    load: loadPricing,
-    isLoaded: isPricingLoaded
-  }
-};
 
 // src/generated/model-constants.ts
 var AsyncFlashV1 = "async-flash-v1";
@@ -11643,7 +11812,6 @@ var LumaUni1Max = "luma-uni-1-max";
 var Lyria3Clip = "lyria-3-clip";
 var Lyria3Pro = "lyria-3-pro";
 var Lyria35 = "lyria-3.5";
-var Minimax02Hd = "minimax-02-hd";
 var MinimaxH3 = "minimax-h3";
 var MinimaxH3Max = "minimax-h3-max";
 var MinimaxH3MaxCameraControls = "minimax-h3-max-camera-controls";
@@ -11869,7 +12037,6 @@ var Models = {
   Lyria3Clip,
   Lyria3Pro,
   Lyria35,
-  Minimax02Hd,
   MinimaxH3,
   MinimaxH3Max,
   MinimaxH3MaxCameraControls,
@@ -11978,39 +12145,437 @@ var Models = {
   Wan27T2v,
   Wan27VideoEdit,
   Wan30Video,
-  Wan30VideoPrime,
-  /** @deprecated Use the `catalog` accessor (`catalog.all()` / `catalog.find({ output, provider })`) instead. */
-  list(filter) {
-    if (!filter) return [...ALL_MODELS];
-    return ALL_MODELS.filter((m) => {
-      if (filter.mode && m.mode !== filter.mode) return false;
-      if (filter.provider && m.provider !== filter.provider) return false;
+  Wan30VideoPrime
+};
+
+// src/core/constraints.ts
+function normalize(r) {
+  if ("disabled" in r) return { kind: "disabled", reason: r.reason };
+  return { kind: "allowed", allowed: r.allowed, reason: r.reason };
+}
+function matchOperator(op, actual) {
+  if ("exists" in op) {
+    const has = actual != null && (!Array.isArray(actual) || actual.length > 0) && (typeof actual !== "string" || actual.length > 0);
+    return op.exists ? has : !has;
+  }
+  if ("is" in op) return actual === op.is;
+  return false;
+}
+function matchCondition(when, values) {
+  return Object.entries(when).every(
+    ([key, op]) => matchOperator(op, values[key])
+  );
+}
+function merge(prev, next) {
+  if (!prev) return next;
+  if (prev.kind === "disabled" || next.kind === "disabled") {
+    return { kind: "disabled", reason: next.kind === "disabled" ? next.reason : prev.kind === "disabled" ? prev.reason : void 0 };
+  }
+  const allowed = new Set(next.allowed.map(String));
+  return {
+    kind: "allowed",
+    allowed: prev.allowed.filter((o) => allowed.has(String(o))),
+    reason: next.reason ?? prev.reason
+  };
+}
+function evaluateConstraints(constraints, values) {
+  const effects = /* @__PURE__ */ new Map();
+  if (!constraints?.length) return effects;
+  for (const rule of constraints) {
+    if (!matchCondition(rule.when, values)) continue;
+    for (const [key, restriction] of Object.entries(rule.then)) {
+      effects.set(key, merge(effects.get(key), normalize(restriction)));
+    }
+  }
+  return effects;
+}
+
+// src/core/descriptors/pricing.ts
+var import_pa_model_pricing_sdk = __toESM(require_build(), 1);
+var _client = null;
+var _byModel = null;
+var _loadPromise = null;
+function configurePricing(options) {
+  _client = new import_pa_model_pricing_sdk.ModelPricingClient(options);
+  _byModel = null;
+  _loadPromise = null;
+}
+function loadPricing() {
+  if (_byModel) return Promise.resolve();
+  if (!_client) {
+    return Promise.reject(new Error(
+      "loadPricing(): not configured. Call catalog.pricing.configure({ baseUrl, fetch }) first."
+    ));
+  }
+  if (!_loadPromise) {
+    const client = _client;
+    _loadPromise = client.init().then(() => {
+      const byModel = /* @__PURE__ */ new Map();
+      for (const entry of client.getModelPricing()) {
+        const id = entry.metadata.modelId;
+        const list = byModel.get(id);
+        if (list) list.push(entry);
+        else byModel.set(id, [entry]);
+      }
+      _byModel = byModel;
+    }).catch((err) => {
+      _loadPromise = null;
+      throw err;
+    });
+  }
+  return _loadPromise;
+}
+function isPricingLoaded() {
+  return _byModel !== null;
+}
+function getCreditsForModel(modelId, ctx) {
+  if (!_byModel) return null;
+  let entries = _byModel.get(modelId);
+  if (!entries || entries.length === 0) return null;
+  if (ctx) {
+    entries = entries.filter((e) => {
+      if (ctx.generateAudio !== void 0 && e.metadata.audio !== ctx.generateAudio) return false;
+      if (ctx.resolution !== void 0 && e.metadata.quality !== ctx.resolution) return false;
       return true;
     });
-  },
-  /** @deprecated Use `Model(id).validate(input)` instead. */
-  validate(model, input) {
+    if (entries.length === 0) return null;
+  }
+  let min = Infinity;
+  let max = -Infinity;
+  let unit = entries[0].unit;
+  for (const e of entries) {
+    if (e.credits < min) min = e.credits;
+    if (e.credits > max) max = e.credits;
+    if (e.unit !== unit) unit = void 0;
+  }
+  const tiers = entries.map((e) => ({
+    credits: e.credits,
+    unit: e.unit,
+    quality: e.metadata.quality || void 0,
+    audio: e.metadata.audio,
+    useCase: e.metadata.useCase
+  }));
+  return unit ? { min, max, unit, tiers } : { min, max, tiers };
+}
+
+// src/core/descriptors/model-accessor.ts
+function withHydration(entry, flat) {
+  if (entry.descriptor.kind !== "catalog") return flat;
+  const hydrated = getHydratedCatalog(entry.descriptor.source);
+  if (!hydrated) return flat;
+  return { ...flat, catalogOptions: hydrated.catalogOptions };
+}
+var ModelParamsAccessorImpl = class {
+  def;
+  constructor(def) {
+    this.def = def;
+  }
+  param(key) {
+    const entry = this.def.paramConfig[key];
+    if (!entry) return void 0;
+    const { descriptor, ...meta } = entry;
+    return withHydration(entry, { ...meta, ...descriptor });
+  }
+  hasParam(key) {
+    return key in this.def.paramConfig;
+  }
+  all() {
+    return Object.entries(this.def.paramConfig).map(
+      ([key, entry]) => {
+        const { descriptor, ...meta } = entry;
+        return withHydration(entry, { key, ...meta, ...descriptor });
+      }
+    );
+  }
+  // Kind-narrowed accessors
+  enum(key) {
+    return this.narrow(key, "enum");
+  }
+  catalog(key) {
+    return this.narrow(key, "catalog");
+  }
+  range(key) {
+    return this.narrow(key, "range");
+  }
+  boolean(key) {
+    return this.narrow(key, "boolean");
+  }
+  text(key) {
+    return this.narrow(key, "text");
+  }
+  file(key) {
+    return this.narrow(key, "file");
+  }
+  // Well-known shorthands
+  prompt() {
+    return this.narrow("prompt", "text");
+  }
+  aspectRatio() {
+    return this.narrow("aspectRatio", "enum");
+  }
+  /** Enum on fixed-option models, range where the vendor accepts every value
+   *  in a span — callers narrow on `.kind`. */
+  duration() {
+    const entry = this.param("duration");
+    if (!entry || entry.kind !== "enum" && entry.kind !== "range") return void 0;
+    return entry;
+  }
+  resolution() {
+    return this.narrow("resolution", "enum");
+  }
+  generateAudio() {
+    return this.narrow("generateAudio", "boolean");
+  }
+  startFrame() {
+    return this.narrow("startFrame", "file");
+  }
+  endFrame() {
+    return this.narrow("endFrame", "file");
+  }
+  // Absorbed from Models namespace
+  hasFileInput() {
+    return Object.values(this.def.paramConfig).some((e) => e.descriptor.kind === "file");
+  }
+  getDefault(key) {
+    const entry = this.def.paramConfig[key];
+    if (!entry) return void 0;
+    const d = entry.descriptor;
+    return "default" in d ? d.default : void 0;
+  }
+  getDefaults() {
+    return extractDefaults(this.def.paramConfig);
+  }
+  toSchema() {
+    return descriptorsToSchema(this.def.paramConfig);
+  }
+  transferValues(prev) {
+    return transferValues(this.def.paramConfig, prev);
+  }
+  narrow(key, kind) {
+    const entry = this.param(key);
+    if (!entry || entry.kind !== kind) return void 0;
+    return entry;
+  }
+};
+var ConstrainedParamsAccessor = class {
+  inner;
+  effects;
+  constructor(inner, effects) {
+    this.inner = inner;
+    this.effects = effects;
+  }
+  // ── Decorated accessors ──────────────────────────────────────────
+  enum(key) {
+    return this.applyEnum(key, this.inner.enum(key));
+  }
+  catalog(key) {
+    return this.applyEntry(key, this.inner.catalog(key));
+  }
+  range(key) {
+    return this.applyEntry(key, this.inner.range(key));
+  }
+  boolean(key) {
+    return this.applyEntry(key, this.inner.boolean(key));
+  }
+  text(key) {
+    return this.applyEntry(key, this.inner.text(key));
+  }
+  file(key) {
+    return this.applyEntry(key, this.inner.file(key));
+  }
+  prompt() {
+    return this.applyEntry("prompt", this.inner.prompt());
+  }
+  aspectRatio() {
+    return this.applyEnum("aspectRatio", this.inner.aspectRatio());
+  }
+  duration() {
+    const entry = this.inner.duration();
+    return entry?.kind === "enum" ? this.applyEnum("duration", entry) : this.applyEntry("duration", entry);
+  }
+  resolution() {
+    return this.applyEnum("resolution", this.inner.resolution());
+  }
+  generateAudio() {
+    return this.applyEntry("generateAudio", this.inner.generateAudio());
+  }
+  startFrame() {
+    return this.applyEntry("startFrame", this.inner.startFrame());
+  }
+  endFrame() {
+    return this.applyEntry("endFrame", this.inner.endFrame());
+  }
+  all() {
+    return this.inner.all().map((e) => {
+      const r = this.effects.get(e.key);
+      if (!r) return e;
+      if (e.kind === "enum") return this.decorateEnumFlat(e, r);
+      if (r.kind === "disabled") return { ...e, disabled: true, disabledReason: r.reason };
+      return e;
+    });
+  }
+  // ── Pass-through delegates ───────────────────────────────────────
+  param(key) {
+    return this.inner.param(key);
+  }
+  hasParam(key) {
+    return this.inner.hasParam(key);
+  }
+  hasFileInput() {
+    return this.inner.hasFileInput();
+  }
+  getDefault(key) {
+    return this.inner.getDefault(key);
+  }
+  getDefaults() {
+    return this.inner.getDefaults();
+  }
+  toSchema() {
+    return this.inner.toSchema();
+  }
+  transferValues(prev) {
+    return this.inner.transferValues(prev);
+  }
+  // ── Private helpers ──────────────────────────────────────────────
+  applyEntry(key, entry) {
+    if (!entry) return void 0;
+    const r = this.effects.get(key);
+    if (!r) return entry;
+    if (r.kind === "disabled") return { ...entry, disabled: true, disabledReason: r.reason };
+    return entry;
+  }
+  applyEnum(key, entry) {
+    if (!entry) return void 0;
+    const r = this.effects.get(key);
+    if (!r) return entry;
+    if (r.kind === "disabled") {
+      const options2 = entry.options.map((opt) => ({ ...opt, disabled: true, disabledReason: r.reason }));
+      return { ...entry, options: options2, disabled: true, disabledReason: r.reason };
+    }
+    const allowed = new Set(r.allowed.map(String));
+    const options = entry.options.map(
+      (opt) => allowed.has(String(opt.id)) ? opt : { ...opt, disabled: true, disabledReason: r.reason }
+    );
+    return { ...entry, options };
+  }
+  decorateEnumFlat(entry, r) {
+    if (entry.kind !== "enum") return entry;
+    if (r.kind === "disabled") {
+      const options2 = entry.options.map((opt) => ({
+        ...opt,
+        disabled: true,
+        disabledReason: r.reason
+      }));
+      return { ...entry, options: options2, disabled: true, disabledReason: r.reason };
+    }
+    const allowed = new Set(r.allowed.map(String));
+    const options = entry.options.map(
+      (opt) => allowed.has(String(opt.id)) ? opt : { ...opt, disabled: true, disabledReason: r.reason }
+    );
+    return { ...entry, options };
+  }
+};
+var ModelMetaImpl = class {
+  mode;
+  inputType;
+  description;
+  features;
+  badges;
+  provider;
+  addedAt;
+  release;
+  constructor(def) {
+    this.mode = def.mode;
+    this.inputType = def.inputType;
+    this.description = def.description;
+    this.features = def.features;
+    this.badges = def.badge ?? [];
+    this.release = def.release ?? "production";
+    this.provider = {
+      id: def.provider,
+      name: def.providerName,
+      color: def.providerColor,
+      label: def.providerLabel
+    };
+    this.addedAt = def.addedAt ?? null;
+  }
+};
+var ModelDescriptorImpl = class {
+  id;
+  name;
+  api;
+  def;
+  _params;
+  _meta;
+  constructor(def) {
+    this.id = def.id;
+    this.name = def.name;
+    this.api = { workflow: def.workflow, editWorkflow: def.editWorkflow };
+    this.def = def;
+  }
+  params() {
+    return this._params ??= new ModelParamsAccessorImpl(this.def);
+  }
+  paramsFor(values) {
+    const inner = this.params();
+    const effects = evaluateConstraints(this.def.constraints, values);
+    if (!effects.size) return inner;
+    return new ConstrainedParamsAccessor(inner, effects);
+  }
+  validate(input) {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      return { valid: false, errors: [`Invalid input for model "${this.def.id}"`] };
+    }
     try {
-      validateModelInput(resolveModel(model), input);
+      validateAll(this.def.paramConfig, input);
       return { valid: true };
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      return { valid: false, errors: [message] };
+      return { valid: false, errors: [err instanceof Error ? err.message : String(err)] };
     }
-  },
-  /** @deprecated Use `Model(id).params().toSchema()` instead. */
-  toSchema(id) {
-    return Model(id).params().toSchema();
-  },
-  /** @deprecated Use `Model(id).params().file(key)` instead. */
-  getFileParam(id, key) {
-    const f = Model(id).params().file(key);
-    if (!f) return null;
-    return { required: f.required ?? false, max: f.array?.max ?? 1, label: f.label, accept: f.accept };
-  },
-  /** @deprecated Use `Model(id).params().hasParam(key)` instead. */
-  hasParam(id, key) {
-    return Model(id).params().hasParam(key);
+  }
+  meta() {
+    return this._meta ??= new ModelMetaImpl(this.def);
+  }
+  getCreditsInfo(ctx) {
+    if (this.def.modelId) {
+      const byModelId = getCreditsForModel(this.def.modelId, ctx);
+      if (byModelId) return byModelId;
+    }
+    return getCreditsForModel(this.def.id, ctx);
+  }
+};
+function _model(id) {
+  return new ModelDescriptorImpl(resolveModel(id));
+}
+function _all(filter = {}) {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
+  return ALL_MODELS.filter((m) => isVisibleForReleases(m, releases)).map((m) => new ModelDescriptorImpl(m));
+}
+function _find(filter) {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
+  return ALL_MODELS.filter((m) => {
+    if (!isVisibleForReleases(m, releases)) return false;
+    if (filter.output && m.mode !== filter.output) return false;
+    if (filter.provider && m.provider !== filter.provider) return false;
+    return true;
+  }).map((m) => new ModelDescriptorImpl(m));
+}
+function _search(query, filter = {}) {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
+  const q = query.toLowerCase();
+  return ALL_MODELS.filter(
+    (m) => isVisibleForReleases(m, releases) && (m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q) || m.provider.toLowerCase().includes(q))
+  ).map((m) => new ModelDescriptorImpl(m));
+}
+var Model = _model;
+var catalog = {
+  all: _all,
+  find: _find,
+  search: _search,
+  pricing: {
+    configure: configurePricing,
+    load: loadPricing,
+    isLoaded: isPricingLoaded
   }
 };
 function toBase64Url(bytes) {
@@ -12194,4 +12759,4 @@ function decodeDeepLinkPayload(encoded) {
   return deserializePayload(encoded);
 }
 
-export { ALL_MODELS, ApiError, ExecutionMode as ApiRunMode, DEFAULT_VISIBLE_RELEASES, KLING_DUAL_IMAGE_EFFECTS, Model, Models, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, ApiError, ExecutionMode as ApiRunMode, DEFAULT_VISIBLE_RELEASES, GenerationEventType, Model, Models, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };

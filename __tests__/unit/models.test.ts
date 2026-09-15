@@ -1,7 +1,9 @@
 import assert from 'node:assert';
-import { Models, Flux2Pro } from '../../src/generated/model-constants.ts';
+import { Flux2Pro } from '../../src/generated/model-constants.ts';
 import { resolveModel } from '../../src/core/resolve.ts';
 import { getVoiceById } from '../../src/core/voices.ts';
+import { ALL_MODELS } from '../../src/vendors/catalog/index.ts';
+import { catalog, Model } from '../../src/core/descriptors/model-accessor.ts';
 
 // ── Direct model access ─────────────────────────────────────────────
 
@@ -16,31 +18,30 @@ assert.strictEqual(fluxDef.provider, 'flux');
 assert.ok(fluxDef.paramConfig, 'paramConfig should be defined');
 assert.ok(fluxDef.paramConfig.aspectRatio, 'aspectRatio should be in paramConfig');
 
-// ── Models.list() ───────────────────────────────────────────────────
+// ── Catalog listing (replaces Models.list()) ────────────────────────
 
-const all = Models.list();
-assert(Array.isArray(all), 'list() should return an array');
-assert(all.length >= 50, `Expected 50+ models, got ${all.length}`);
+assert(Array.isArray(ALL_MODELS), 'ALL_MODELS should be an array');
+assert(ALL_MODELS.length >= 50, `Expected 50+ models, got ${ALL_MODELS.length}`);
 
-const videoModels = Models.list({ mode: 'video' });
+const videoModels = catalog.find({ output: 'video' });
 assert(videoModels.length > 0, 'should have video models');
-assert(videoModels.every((m: { mode: string }) => m.mode === 'video'));
+assert(videoModels.every((m) => m.meta().mode === 'video'));
 
-const imageModels = Models.list({ mode: 'image' });
+const imageModels = catalog.find({ output: 'image' });
 assert(imageModels.length > 0, 'should have image models');
 
-// ── Models.validate() ───────────────────────────────────────────────
+// ── Model(id).validate() (replaces Models.validate()) ───────────────
 
-const validResult = Models.validate(Flux2Pro, { prompt: 'A beautiful sunset' });
+const validResult = Model(Flux2Pro).validate({ prompt: 'A beautiful sunset' });
 assert.strictEqual(validResult.valid, true);
 
-const invalidResult = Models.validate(Flux2Pro, { prompt: '' });
+const invalidResult = Model(Flux2Pro).validate({ prompt: '' });
 assert.strictEqual(invalidResult.valid, false);
 assert(invalidResult.errors!.length > 0);
 
-// ── Models.toSchema() ───────────────────────────────────────────────
+// ── Model(id).params().toSchema() (replaces Models.toSchema()) ──────
 
-const schema = Models.toSchema(Flux2Pro);
+const schema = Model(Flux2Pro).params().toSchema();
 assert(schema && typeof schema === 'object');
 assert('aspectRatio' in schema);
 

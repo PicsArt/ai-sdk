@@ -56,7 +56,11 @@ import './captionsai.payloads.ts'; // registers the video-captions payload build
 import { MODELS as metaMODELS } from './meta.ts';
 import './meta.payloads.ts'; // registers the Muse Image payload builders after model definitions
 
-/** All models from all vendors. */
+/**
+ * All models from all vendors.
+ * @deprecated Use `catalog.all()` — the descriptor accessors are the supported
+ * surface; this raw array will be removed in the next major.
+ */
 export const ALL_MODELS: ModelDefinition[] = [
   ...klingMODELS,
   ...ltxMODELS,
@@ -99,9 +103,11 @@ export const ALL_MODELS: ModelDefinition[] = [
 
 /**
  * Models for a generation mode. By default returns only default-visible models
- * (production / general-availability — preview, disabled and deprecated are
- * hidden). `includeDisabled = true` returns every model of the mode, bypassing
- * all gates. For release-tier filtering use `catalog.find({ output, release })`.
+ * (production / general-availability — preview and deprecated are hidden).
+ * `includeHidden = true` returns every model of the mode, bypassing all gates.
+ * For release-tier filtering use `catalog.find({ output, release })`.
+ * @deprecated Use `catalog.all().filter(m => m.mode === mode)` (or
+ * `catalog.find({ output })`) — removed in the next major.
  */
-export const getModelsByMode = (mode: ModelDefinition['mode'], includeDisabled = false): ModelDefinition[] =>
-  ALL_MODELS.filter((m) => m.mode === mode && (includeDisabled || isVisibleForReleases(m)));
+export const getModelsByMode = (mode: ModelDefinition['mode'], includeHidden = false): ModelDefinition[] =>
+  ALL_MODELS.filter((m) => m.mode === mode && (includeHidden || isVisibleForReleases(m)));

@@ -1,27 +1,34 @@
-export { createClient } from './client/index.ts';
+export { createClient, GenerationEventType } from './client/index.ts';
 export { inferResourceType, buildFilename, parseGeneration, buildGenerationAttributes } from './client/index.ts';
 export { ApiRunMode } from './client/index.ts';
-/** @deprecated Use `Model` accessor instead — `Model(id).params()` replaces `Models.hasParam()` / `Models.getFileParam()` etc. */
+/** Typed model-id constants (`Models.Flux2Pro`, …) plus per-id meta. */
 export { Models } from './generated/model-constants.ts';
 export { getVoiceById } from './core/voices.ts';
 
 // ── Errors ──────────────────────────────────────────────────────────
-// Every failure out of generate/generateText/submit/result is an ApiError
-// carrying { status, code, reason, message }. Note this is the generation
-// surface's error — the Api* types below belong to `ai.apis`, which throws the
-// workflows client's own errors instead.
+// Every failure the SDK throws is an ApiError carrying
+// { status, code, reason, message } — the generation surface, the async
+// lifecycle, `ai.catalogs` and the low-level `ai.apis` alike. Neither the
+// workflows client's error type nor a custom transport's reaches a caller.
 export { ApiError } from './core/errors.ts';
 export type { ApiErrorCode, ApiErrorInit } from './core/errors.ts';
 
 export type {
   GenerateResult,
   GenerateResultItem,
+  GenerateResultItemMetadata,
   GenerateTextResult,
   GenerateOptions,
+  GenerationEvent,
+  GenerationOptions,
   ClientConfig,
   AuthenticatedFetch,
   SdkTransport,
+  TransportResult,
+  TransportPollOptions,
+  WorkflowSubmitRequest,
   WorkflowJobHandle,
+  GenerationProgress,
   CreditUsage,
   ToolUsage,
   DriveConfig,
@@ -65,7 +72,6 @@ export type {
   CatalogPreview,
   CatalogQuery,
   CatalogResult,
-  CatalogKind,
   CatalogSource,
 } from './core/catalogs.ts';
 export { toVoiceOption, toAvatarOption } from './core/catalogs.ts';
@@ -74,7 +80,7 @@ export type { TypedModelId, ModelInput, ModelInputById, TextModelId, TextModelIn
 export type { MediaModelId } from './client/index.ts';
 
 
-// ── Param Descriptor Types (internal utilities accessed via Models.*) ─
+// ── Param Descriptor Types (surfaced via the Model()/catalog accessors) ─
 
 export type {
   ParamDescriptor,
@@ -119,4 +125,3 @@ export { encodeDeepLinkPayload, decodeDeepLinkPayload } from './core/deeplink/in
 export { ALL_MODELS, getModelsByMode } from './vendors/catalog/index.ts';
 export { isVisibleForReleases, releaseOf, DEFAULT_VISIBLE_RELEASES } from './core/visibility.ts';
 export { getModel, findModel } from './core/model-registry.ts';
-export { KLING_DUAL_IMAGE_EFFECTS } from './vendors/catalog/kling/index.ts';

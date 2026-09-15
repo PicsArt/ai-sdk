@@ -1,7 +1,7 @@
 import type { ModelDefinition, GenerationContext } from '../core/types.ts';
 import type { WorkflowStatusResult } from '../core/workflow.ts';
 import { getModelContract } from '../core/contracts.ts';
-import { extractUrl, extractText, extractAllResults, throwIfErrorResult } from '../core/response.ts';
+import { extractUrl, extractText, extractAllResults, buildItemMetadata, throwIfErrorResult } from '../core/response.ts';
 import { ApiError } from '../core/errors.ts';
 import type { GenerateResult, GenerateResultItem, GenerateTextResult } from './types.ts';
 
@@ -19,7 +19,7 @@ function resolvePayloadBuild(model: ModelDefinition, ctx: Partial<GenerationCont
 
 /**
  * Validate context against model contract, resolve workflow, build payload.
- * This is the shared preparation step for generate/submit/estimate.
+ * This is the shared preparation step for generate/submit/getCredits.
  */
 export function prepareRequest(model: ModelDefinition, params: Partial<GenerationContext>) {
   const ctx = { ...params } as GenerationContext;
@@ -37,24 +37,6 @@ export function prepareRequest(model: ModelDefinition, params: Partial<Generatio
   return { ctx, workflow: resolved.workflow, payload, contract };
 }
 
-/**
- * Throw on a terminal non-success state, carrying the platform's own status
- * and reason through when the response supplied them.
- */
-function throwIfTerminalFailure(
-  completed: WorkflowStatusResult<unknown>,
-  model: ModelDefinition,
-): void {
-  if (completed.status === 'FAILED') {
-    throw new ApiError(`${model.name} failed: ${completed.error ?? 'unknown error'}`, {
-      status: completed.statusCode ?? 502,
-      code: completed.reason ?? 'generation_failed',
-    });
-  }
-  if (completed.status === 'CANCELED') {
-    throw new ApiError(`${model.name} was canceled`, { status: 499, code: 'canceled' });
-  }
-}
 
 /**
  * Parse a completed workflow result into a GenerateResult.
@@ -65,22 +47,29 @@ export function parseResult(
   model: ModelDefinition,
   contract: ReturnType<typeof getModelContract>,
 ): GenerateResult {
-  throwIfTerminalFailure(completed, model);
-
+  // Terminal-failure detection rides on the payload: a FAILED task resolves
+  // with its FailedResult ({ message, reason, statusCode }) as the result.
   throwIfErrorResult(completed.result, model.name);
 
   const parsed = contract?.output
     ? contract.output.parse(completed.result)
     : completed.result;
 
-  // Multi-result models (e.g. explore) — extract all items
+  // Multi-result models (explore, multi-image batches) — extract all items
   const multiItems = extractAllResults(parsed);
   if (multiItems?.length) {
-    const results: GenerateResultItem[] = multiItems.map(item => ({
+    const items: GenerateResultItem[] = multiItems.map((item, i) => ({
       url: item.url,
-      metadata: item.exploreImageId ? { exploreImageId: item.exploreImageId } : undefined,
+      metadata: buildItemMetadata(parsed, item.source, i, model.provider),
     }));
-    return { url: results[0].url, results, model: model.id, handle: completed.handle, raw: parsed, usage: completed.usage };
+    return {
+      url: items[0].url,
+      items,
+      results: items,
+      // Sync executions have no job id (nothing to poll) — omit rather than ''.
+      ...(completed.handle.id ? { generationId: completed.handle.id } : {}),
+      usage: completed.usage,
+    };
   }
 
   // Single-result models — extract URL
@@ -92,7 +81,23 @@ export function parseResult(
     });
   }
 
-  return { url, results: [{ url }], model: model.id, handle: completed.handle, raw: parsed, usage: completed.usage };
+  // The per-item vendor object for a single result: the sole entry of a
+  // known result array when present, otherwise the result object itself.
+  const obj = (parsed && typeof parsed === 'object') ? parsed as Record<string, unknown> : undefined;
+  let source: unknown = parsed;
+  for (const key of ['images', 'items', 'imageUrls', 'data', 'previews'] as const) {
+    const arr = obj?.[key];
+    if (Array.isArray(arr) && arr.length > 0) { source = arr[0]; break; }
+  }
+  const items: GenerateResultItem[] = [{ url, metadata: buildItemMetadata(parsed, source, 0, model.provider) }];
+  return {
+    url,
+    items,
+    results: items,
+    // Sync executions have no job id (nothing to poll) — omit rather than ''.
+    ...(completed.handle.id ? { generationId: completed.handle.id } : {}),
+    usage: completed.usage,
+  };
 }
 
 /**
@@ -110,8 +115,6 @@ export function parseTextResult(
   completed: WorkflowStatusResult<unknown>,
   model: ModelDefinition,
 ): GenerateTextResult {
-  throwIfTerminalFailure(completed, model);
-
   throwIfErrorResult(completed.result, model.name);
   throwIfErrorResult(completed.raw, model.name);
 
@@ -123,5 +126,5 @@ export function parseTextResult(
     });
   }
 
-  return { text, model: model.id, handle: completed.handle, raw: completed.raw ?? completed.result, usage: completed.usage };
+  return { text, model: model.id, raw: completed.raw ?? completed.result, usage: completed.usage };
 }

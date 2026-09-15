@@ -44,12 +44,12 @@ test(`${MODEL_ID} — basic generate`, { timeout: 300_000 }, async () => {
 
   const result = await generate(MODEL_ID, entry.buildContext());
 
-  console.log(`Generated ${result.url} for ${MODEL_ID}`);
+  console.log(`Generated ${result.items[0]?.url} for ${MODEL_ID}`);
 
-  assert.equal(result.model, MODEL_ID, 'result.model should echo the requested model');
-  assert.ok(result.results.length >= 1, 'expected at least one result item');
+  assert.ok(result.items.length >= 1, 'expected at least one result item');
+  assert.equal(result.url, result.items[0].url, 'result.url should shortcut items[0].url');
   assert.ok(
-    typeof result.url === 'string' && /^https?:\/\//.test(result.url),
-    `expected an http(s) output URL, got: ${JSON.stringify(result.url)}`,
+    typeof result.items[0].url === 'string' && /^https?:\/\//.test(result.items[0].url),
+    `expected an http(s) output URL, got: ${JSON.stringify(result.items[0].url)}`,
   );
 });

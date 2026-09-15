@@ -1,7 +1,9 @@
 // ── Unified SDK error ─────────────────────────────────────────────────
-// Every failure thrown out of generate() / generateText() / submit() /
-// result() is an ApiError carrying the same four fields, so callers can
-// branch on `status`/`code` instead of pattern-matching `message`.
+// Every failure the SDK throws — generate() / generateText() / submit() /
+// result() / subscribe(), plus ai.catalogs and ai.apis — is an ApiError
+// carrying the same four fields, so callers can branch on `status`/`code`
+// instead of pattern-matching `message`. The transport maps the workflows
+// client's error type (and a custom transport's own) into it on the way out.
 //
 // Message strings are preserved verbatim from earlier versions, with one
 // deliberate exception: the status/execute paths now surface the platform's
@@ -50,12 +52,13 @@ export interface ApiErrorInit {
 }
 
 /**
- * The single error type thrown by the SDK's generation surface —
- * `generate()`, `generateText()`, `submit()`, and `result()`.
+ * The single error type the SDK throws — the generation surface
+ * (`generate()`, `generateText()`, `submit()`, `result()`), `ai.catalogs`,
+ * and `ai.apis` alike.
  *
  * Unrelated to the `Api*` types (`ApiResponse`, `ApiRunOptions`, …), which
- * describe the low-level `ai.apis` surface. `ai.apis.run()` throws the
- * workflows client's own errors, not this.
+ * describe the low-level `ai.apis` surface — though that surface throws this
+ * error too. ApiError is the only error type the SDK exposes.
  *
  * ```ts
  * try {
@@ -90,8 +93,6 @@ export class ApiError extends Error {
   }
 }
 
-// ── Body parsing ──────────────────────────────────────────────────────
-
 /** Conventional slugs for the statuses callers actually branch on. */
 const CODE_BY_STATUS: Record<number, ApiErrorCode> = {
   400: 'bad_request',
@@ -113,39 +114,4 @@ const CODE_BY_STATUS: Record<number, ApiErrorCode> = {
 /** Map an HTTP status to a code for responses that carry no `reason`. */
 export function codeForStatus(status: number): ApiErrorCode {
   return CODE_BY_STATUS[status] ?? (status >= 500 ? 'server_error' : `http_${status}`);
-}
-
-/**
- * Read a `Response` body exactly once, returning the raw text alongside its
- * JSON parse when it is a JSON object. Never throws — a gateway HTML page or
- * an empty body simply comes back without `json`.
- */
-export async function readErrorBody(
-  res: Response,
-): Promise<{ text: string; json?: Record<string, unknown> }> {
-  let text = '';
-  try {
-    text = await res.text();
-  } catch {
-    return { text: '' };
-  }
-  try {
-    const parsed: unknown = JSON.parse(text);
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return { text, json: parsed as Record<string, unknown> };
-    }
-  } catch { /* not JSON — text only */ }
-  return { text };
-}
-
-/**
- * Pull the platform's error `reason` off a parsed body
- * (`{ status: 'error', reason, message }`), falling back to the status slug.
- */
-export function reasonFrom(
-  json: Record<string, unknown> | undefined,
-  status: number,
-): ApiErrorCode {
-  const raw = json?.reason ?? json?.code;
-  return typeof raw === 'string' && raw.length > 0 ? raw : codeForStatus(status);
 }

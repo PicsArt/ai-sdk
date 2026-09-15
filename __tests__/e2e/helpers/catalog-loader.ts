@@ -13,8 +13,8 @@ export interface CatalogFilter {
   vendor?: string;
   mode?: GenerationMode;
   model?: string;
-  /** If true, include disabled, deprecated, and preview models. Default: false. */
-  includeDisabled?: boolean;
+  /** If true, include deprecated and preview models. Default: false. */
+  includeHidden?: boolean;
   /** If true, include models in DISABLED_TEST_MODELS. Default: false. */
   includeTestDisabled?: boolean;
 }
@@ -69,7 +69,7 @@ export function loadCatalog(filter: CatalogFilter = {}): CatalogEntry[] {
 
   return models
     .filter((m) => {
-      if (!filter.includeDisabled && !isVisibleForReleases(m)) return false;
+      if (!filter.includeHidden && !isVisibleForReleases(m)) return false;
       if (!filter.includeTestDisabled && DISABLED_TEST_MODELS.has(m.id)) return false;
       if (filter.vendor && m.provider !== filter.vendor) return false;
       if (filter.model && m.id !== filter.model) return false;

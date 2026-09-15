@@ -35,7 +35,6 @@ import type {
   ProviderInfo,
   CreditRange,
   CreditRangeContext,
-  EnumDescriptor,
   ValidationResult,
 } from './types.ts';
 import { extractDefaults, descriptorsToSchema, transferValues, validateAll } from './utils.ts';
@@ -128,13 +127,6 @@ class ModelParamsAccessorImpl implements ModelParamsAccessor {
     return extractDefaults(this.def.paramConfig);
   }
 
-  /** @deprecated Use `enum(key)` instead. */
-  getEnumOptions(key: string): (string | number)[] | null {
-    const entry = this.def.paramConfig[key];
-    if (!entry || entry.descriptor.kind !== 'enum') return null;
-    return (entry.descriptor as EnumDescriptor<string | number>).options.map(o => o.id);
-  }
-
   toSchema() {
     return descriptorsToSchema(this.def.paramConfig);
   }
@@ -200,7 +192,6 @@ class ConstrainedParamsAccessor implements ModelParamsAccessor {
   hasFileInput() { return this.inner.hasFileInput(); }
   getDefault(key: string) { return this.inner.getDefault(key); }
   getDefaults() { return this.inner.getDefaults(); }
-  getEnumOptions(key: string) { return this.inner.getEnumOptions(key); }
   toSchema() { return this.inner.toSchema(); }
   transferValues(prev: Record<string, unknown>) { return this.inner.transferValues(prev); }
 

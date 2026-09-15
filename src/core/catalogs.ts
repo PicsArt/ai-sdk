@@ -49,9 +49,6 @@ export interface CatalogResult {
   nextCursor: string | null;
 }
 
-/** @deprecated No longer drives behavior — catalogs are addressed by param key. */
-export type CatalogKind = 'voices' | 'avatars';
-
 /** Binds a param's options to a platform catalog task. */
 export interface CatalogSource {
   /** Catalog workflow name, e.g. `heygen/v1/catalog/voices`. */

@@ -3,8 +3,7 @@
  *
  * Covers the `release` availability tier: the default visible set, opt-in
  * filtering via `release: [...]`, exposure on `model.meta()`, and the shared
- * `isVisibleForReleases` predicate (with `disabled`/`deprecated` layered on
- * top).
+ * `isVisibleForReleases` predicate (with `deprecated` layered on top).
  */
 import assert from 'node:assert';
 import { catalog } from '../../src/core/descriptors/model-accessor.ts';
@@ -35,7 +34,7 @@ for (const m of ALL_MODELS) {
 }
 
 // ── isVisibleForReleases predicate (synthetic models) ─────────────
-const fake = (release?: ReleaseTag, flags: { disabled?: boolean; deprecated?: boolean } = {}): ModelDefinition =>
+const fake = (release?: ReleaseTag, flags: { deprecated?: boolean } = {}): ModelDefinition =>
   ({ id: 'x', release, ...flags } as unknown as ModelDefinition);
 
 assert(isVisibleForReleases(fake()), 'untagged (⇒production) visible by default');
@@ -43,10 +42,9 @@ assert(isVisibleForReleases(fake('production')), 'production visible by default'
 assert(isVisibleForReleases(fake('general-availability')), 'general-availability visible by default');
 assert(!isVisibleForReleases(fake('preview')), 'preview hidden by default');
 assert(isVisibleForReleases(fake('preview'), ['preview']), 'preview visible when requested');
-// disabled / deprecated are hard hides layered on top of release
-assert(!isVisibleForReleases(fake('production', { disabled: true }), RELEASES), 'disabled never visible');
-assert(!isVisibleForReleases(fake('preview', { disabled: true }), RELEASES), 'disabled preview never visible');
+// deprecated is a hard hide layered on top of release
 assert(!isVisibleForReleases(fake('production', { deprecated: true }), RELEASES), 'deprecated never visible');
+assert(!isVisibleForReleases(fake('preview', { deprecated: true }), RELEASES), 'deprecated preview never visible');
 
 // ── catalog.all(): default returns only production + general-availability ──
 const defaultAll = catalog.all();
@@ -84,19 +82,26 @@ for (const m of findPreview) {
   assert.strictEqual(m.meta().release, 'preview', `${m.id}: find({release:['preview']}) returned a non-preview model`);
 }
 
-// ── disabled/deprecated stay hidden even when their release is requested ──
+// ── deprecated stays hidden even when every release is requested ──
 const allIds = new Set<string>(catalog.all({ release: RELEASES }).map((m) => m.id));
-for (const id of ['minimax-02-hd', 'kling-elements', 'eleven-voice-remix']) {
-  const m = getModel(id);
-  assert(m?.disabled, `${id}: expected disabled: true (test fixture assumption)`);
-  assert(!allIds.has(id), `${id}: disabled model must stay hidden even when all releases are requested`);
+for (const m of ALL_MODELS.filter((m) => m.deprecated)) {
+  assert(!allIds.has(m.id), `${m.id}: deprecated model must stay hidden even when all releases are requested`);
 }
 
-// ── preview is opt-in, not a hard hide like disabled/deprecated ──
+// ── EAI-3 phase-2 fixtures: migrated off `disabled` in 6.0 ─────────
+// Pinned by id: dropping the preview tag would silently make these
+// operationally-gated models production-visible. Promote deliberately.
+for (const id of ['kling-elements', 'eleven-voice-remix']) {
+  const m = getModel(id);
+  assert(m, `${id}: missing from catalog`);
+  assert.strictEqual(releaseOf(m!), 'preview', `${id}: must stay release:'preview' until promoted deliberately`);
+}
+
+// ── preview is opt-in, not a hard hide like deprecated ────────────
 // The ids come from the catalog instead of a literal list, so promoting a model
 // out of preview doesn't leave a stale fixture behind.
 const previewIds = ALL_MODELS
-  .filter((m) => releaseOf(m) === 'preview' && !m.disabled && !m.deprecated)
+  .filter((m) => releaseOf(m) === 'preview' && !m.deprecated)
   .map((m) => m.id);
 assert(previewIds.length > 0, 'expected at least one preview model in the catalog');
 for (const id of previewIds) {

@@ -77,6 +77,58 @@ const ai = createClient({
 
 `createClient` throws if neither `apiKey` nor `fetch` is provided.
 
+## Custom Transport
+
+`fetch` swaps out how a request is authenticated; `transport` swaps out the
+requests themselves. Pass one and the SDK stops talking to the workflows API
+altogether — every generation, poll, catalog load and credit estimate goes
+through your implementation instead:
+
+```typescript
+const ai = createClient({ transport: myTransport })
+```
+
+`apiUrl` and the auth source are yours to bake into the transport, so neither is
+required alongside it. Two surfaces still speak the workflows protocol directly
+and keep needing `apiUrl` plus `fetch`/`apiKey` if you use them: `ai.drive` and
+`ai.apis`.
+
+| Method | Required | Serves |
+|--------|----------|--------|
+| `execute(request)` | yes | `syncExecute` models, catalog tasks, and every generation when `submit`/`poll` are absent |
+| `submit(request)` | no | `generate()`, `submit()` — returns the generation id |
+| `poll(handle, options)` | no | `generate()`, `result()`, `subscribe()` — resolves when the job is terminal, calls `options.onProgress` on the way |
+| `status(handle, signal?)` | no | the edit-route probe behind `result(model, id)` on models that have one |
+| `options(workflow, payload)` | no | `getCredits()` — returns credits, or null |
+
+Leave `submit`/`poll` out and the client runs **every** generation through
+`execute()`; the async lifecycle (`submit()` / `result()` / `subscribe()`) then
+rejects with a 400 `unsupported_transport` rather than pretending. Leave
+`options` out and `getCredits()` answers null.
+
+```typescript
+import type { SdkTransport } from '@picsart/ai-sdk'
+
+const myTransport: SdkTransport = {
+  async execute({ workflow, payload, signal }) {
+    const res = await callMyGateway(workflow, payload, signal)
+    return { result: res.output, usage: res.usage }
+  },
+  async submit({ workflow, payload }) {
+    return (await startMyJob(workflow, payload)).id
+  },
+  async poll(handle, options) {
+    const res = await waitForMyJob(handle.id, options)
+    return { result: res.output, usage: res.usage }
+  },
+}
+```
+
+Throw `ApiError` for failures — anything else reaches the caller as a 502
+`generation_failed`. A failed job may also resolve with the platform's
+`{ message, reason, statusCode }` payload as its `result`; the SDK turns that
+into the matching `ApiError` itself.
+
 ## Drive Integration
 
 Auto-save generations to Picsart Drive:
@@ -173,20 +225,29 @@ validates for real.
 
 ## Advanced Lifecycle
 
-For progress tracking, cancellation, and job recovery:
+For progress tracking and job recovery:
 
 ```typescript
-// Submit without waiting
-const handle = await ai.submit(Models.KlingV3Pro, { prompt: 'a sunset' })
+// Submit without waiting — returns the generation id (a string)
+const generationId = await ai.submit(Models.KlingV3, { prompt: 'a sunset' })
 
-// Subscribe to status updates
-for await (const update of ai.subscribe(handle)) {
-  console.log(update.status, update.progress?.percent)
+// Subscribe to updates — the terminal generation.completed event carries the
+// parsed result, so no follow-up result() call is needed
+for await (const e of ai.subscribe(Models.KlingV3, generationId)) {
+  if (e.type === 'generation.progress') console.log(e.progress?.percent)
+  if (e.type === 'generation.completed') console.log(e.result.url)
+  if (e.type === 'generation.failed') console.error(e.error.message)
 }
 
-// Or poll manually
-const status = await ai.status(handle)
+// Or just wait for the parsed result (throws on failure/cancel)
+const result = await ai.result(Models.KlingV3, generationId, { intervalMs: 2000 })
+
+// One-shot snapshot of a stored id (e.g. after a page reload)
+const { value: snapshot } = await ai.subscribe(Models.KlingV3, generationId).next()
 ```
+
+Generation ids are plain strings — store them and recover jobs later with
+`result(model, id)` or `subscribe(model, id)`.
 
 ## Error Handling
 
@@ -240,19 +301,26 @@ Aborts raised by `fetch` itself are deliberately **not** wrapped, so
 `message` is human-readable and may change between versions — branch on `status`
 and `code`, not on the message text.
 
+`ApiError` is the only error type the SDK throws: `ai.apis` and `ai.catalogs`
+report failures the same way, and a custom transport's own error is mapped too
+(a 502 `generation_failed` when it isn't already an `ApiError`).
+
 ## Public API
 
-The SDK exports 8 symbols:
+Key exports (see `src/index.ts` for the full list):
 
 | Export | Type | Description |
 |--------|------|-------------|
 | `createClient` | function | Create an AI client from an API key (or a custom authenticated fetch) |
-| `Models` | object | Model catalog: 108 models + list/search/validate/toSchema |
-| `GenerateResult` | type | `{ url, model, handle, drive? }` |
-| `ClientConfig` | type | `{ apiKey?, fetch?, apiUrl, drive? }` — one of `apiKey` / `fetch` required |
+| `Models` | object | Typed model-id constants (`Models.Flux2Pro` → `'flux-2-pro'`) |
+| `Model`, `catalog` | function / object | Model metadata, params, validation, discovery |
+| `GenerateResult` | type | `{ url, items: [{ url, metadata? }], generationId, usage?, drive? }` |
+| `GenerationEvent` | type | One `ai.subscribe()` update — `generation.progress` / `.completed` / `.failed` |
+| `GenerationEventType` | const | Named event-type constants (`GenerationEventType.Completed` === `'generation.completed'`) |
+| `ClientConfig` | type | `{ apiKey?, fetch?, apiUrl, drive?, transport? }` — one of `apiKey` / `fetch` required unless `transport` is set |
 | `AuthenticatedFetch` | type | `(url, init?) => Promise<Response>` — for the custom-`fetch` path |
-| `SdkTransport` | type | Advanced: custom transport interface |
-| `WorkflowJobHandle` | type | Job handle for submit/status/cancel |
+| `SdkTransport` | type | The transport contract — see [Custom Transport](#custom-transport) |
+| `GenerationOptions` | type | Poll controls for `result()`/`subscribe()` — `{ intervalMs?, maxAttempts?, signal? }` |
 | `ApiError` | class | Unified error: `{ status, code, reason, message }` — see [Error Handling](#error-handling) |
 
 ## Package Structure
@@ -263,16 +331,16 @@ packages/ai-sdk/
   tsconfig.json
   tsup.config.ts
   src/
-    index.ts                    # Public API entry (7 exports)
+    index.ts                    # Public API entry
     client/
       types.ts                  # ClientConfig, GenerateResult, DriveConfig
-      transport.ts              # Authenticated fetch → SdkTransport
+      transport.ts              # Default SdkTransport, over @picsart/workflows-client
       prepare.ts                # Validate input, build payload, parse result
       drive.ts                  # Drive folder management + file saving
       index.ts                  # createClient() factory
     core/
       types.ts                  # ModelDefinition, ParamConfig, GenerationContext
-      workflow.ts               # Generic polling/execution engine
+      workflow.ts               # Task envelope types + the SdkTransport contract
       contracts.ts              # Runtime input validation
       schema.ts                 # ParamConfig → JSON Schema
       response.ts               # Vendor-agnostic result extraction
@@ -282,7 +350,7 @@ packages/ai-sdk/
       voices.ts                 # Voice catalogs (ElevenLabs, OpenAI, Gemini)
       helpers.ts                # Vendor utilities
     generated/
-      model-constants.ts        # AUTO-GENERATED: Models object + 108 constants
+      model-constants.ts        # AUTO-GENERATED: Models object + id constants
       model-input-types.ts      # AUTO-GENERATED: per-model TypeScript input types
     vendors/
       define.ts                 # defineModels() framework + params.* helpers

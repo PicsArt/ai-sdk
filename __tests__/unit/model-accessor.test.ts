@@ -48,10 +48,10 @@ const defaults = p.getDefaults();
 assert(typeof defaults === 'object');
 assert('aspectRatio' in defaults);
 
-// getEnumOptions
-const arOptions = p.getEnumOptions('aspectRatio');
-assert(Array.isArray(arOptions));
-assert(arOptions!.length > 0);
+// enum(key) carries the option list
+const arEntry = p.enum('aspectRatio');
+assert(arEntry, 'aspectRatio should be an enum param');
+assert(arEntry!.options.length > 0);
 
 // file
 const imgParam = p.file('imageUrls');

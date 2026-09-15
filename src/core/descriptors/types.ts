@@ -220,8 +220,6 @@ export interface ModelParamsAccessor {
   hasFileInput(): boolean;
   getDefault(key: string): unknown;
   getDefaults(): Record<string, unknown>;
-  /** @deprecated Use `enum(key)` instead — returns full `EnumEntry` with `.options`, `.default`, etc. */
-  getEnumOptions(key: string): (string | number)[] | null;
   toSchema(): ModelParamSchema;
   transferValues(prev: Record<string, unknown>): Record<string, unknown>;
 }
@@ -303,8 +301,8 @@ export interface ModelFilter {
    * Release tiers to include. Omitted ⇒ the default visible set
    * (`['production', 'general-availability']`). List the tiers you want
    * explicitly to opt into `preview` — e.g. `['preview']` for stage-only
-   * models, or all three to include everything. `disabled`/`deprecated`
-   * models stay hidden regardless.
+   * models, or all three to include everything. `deprecated` models stay
+   * hidden regardless.
    */
   release?: ReleaseTag[];
 }

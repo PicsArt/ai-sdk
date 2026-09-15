@@ -4,12 +4,6 @@
  * Typed Models constants and namespace.
  * Regenerate with: npm run build:model-constants
  */
-import type { ModelDefinition, GenerationMode } from '../core/types.ts';
-import type { ModelParamSchema } from '../core/schema.ts';
-import { ALL_MODELS } from '../vendors/catalog/index.ts';
-import { validateModelInput } from '../core/contracts.ts';
-import { resolveModel } from '../core/resolve.ts';
-import { Model } from '../core/descriptors/model-accessor.ts';
 
 // ── Individual model constants ─────────────────────────────────────
 
@@ -57,7 +51,6 @@ export const ElevenVoiceDesignV2 = 'eleven-voice-design-v2' as const;
 /** Eleven Voice Design v3 — elevenlabs (audio) */
 export const ElevenVoiceDesignV3 = 'eleven-voice-design-v3' as const;
 /** Eleven Voice Remix — elevenlabs (audio) */
-/** @deprecated This model is currently unavailable (disabled). */
 export const ElevenVoiceRemix = 'eleven-voice-remix' as const;
 /** ElevenLabs Music v2 — elevenlabs (audio) */
 export const ElevenlabsMusicV2 = 'elevenlabs-music-v2' as const;
@@ -179,7 +172,6 @@ export const Kling30Image = 'kling-3.0-image' as const;
 /** Kling Avatar — kling (video) */
 export const KlingAvatar = 'kling-avatar' as const;
 /** Kling Elements — kling (image) */
-/** @deprecated This model is currently unavailable (disabled). */
 export const KlingElements = 'kling-elements' as const;
 /** Kling Motion Control 2.6 — kling (video) */
 export const KlingMotionControl = 'kling-motion-control' as const;
@@ -252,9 +244,6 @@ export const Lyria3Clip = 'lyria-3-clip' as const;
 export const Lyria3Pro = 'lyria-3-pro' as const;
 /** Lyria 3.5 — google (audio) */
 export const Lyria35 = 'lyria-3.5' as const;
-/** MiniMax 02 HD — minimax (audio) */
-/** @deprecated This model is currently unavailable (disabled). */
-export const Minimax02Hd = 'minimax-02-hd' as const;
 /** MiniMax H3 — minimax (video) */
 export const MinimaxH3 = 'minimax-h3' as const;
 /** MiniMax H3 Max — minimax (video) */
@@ -489,13 +478,7 @@ export const Wan30Video = 'wan-3.0-video' as const;
 /** Wan 3.0 Prime — wan (video) */
 export const Wan30VideoPrime = 'wan-3.0-video-prime' as const;
 
-// ── Validation result ────────────────────────────────────────────
-
-interface ValidationResult { valid: boolean; errors?: string[] }
-
 // ── Models namespace ─────────────────────────────────────────────
-
-interface ModelFilter { mode?: GenerationMode; provider?: string }
 
 export const Models = {
   AsyncFlashV1,
@@ -613,7 +596,6 @@ export const Models = {
   Lyria3Clip,
   Lyria3Pro,
   Lyria35,
-  Minimax02Hd,
   MinimaxH3,
   MinimaxH3Max,
   MinimaxH3MaxCameraControls,
@@ -723,42 +705,4 @@ export const Models = {
   Wan27VideoEdit,
   Wan30Video,
   Wan30VideoPrime,
-
-  /** @deprecated Use the `catalog` accessor (`catalog.all()` / `catalog.find({ output, provider })`) instead. */
-  list(filter?: ModelFilter): ModelDefinition[] {
-    if (!filter) return [...ALL_MODELS];
-    return ALL_MODELS.filter(m => {
-      if (filter.mode && m.mode !== filter.mode) return false;
-      if (filter.provider && m.provider !== filter.provider) return false;
-      return true;
-    });
-  },
-
-  /** @deprecated Use `Model(id).validate(input)` instead. */
-  validate(model: string, input: unknown): ValidationResult {
-    try {
-      validateModelInput(resolveModel(model), input);
-      return { valid: true };
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      return { valid: false, errors: [message] };
-    }
-  },
-
-  /** @deprecated Use `Model(id).params().toSchema()` instead. */
-  toSchema(id: string): ModelParamSchema {
-    return Model(id).params().toSchema();
-  },
-
-  /** @deprecated Use `Model(id).params().file(key)` instead. */
-  getFileParam(id: string, key: string): { required: boolean; max: number; label?: string; accept?: string } | null {
-    const f = Model(id).params().file(key);
-    if (!f) return null;
-    return { required: f.required ?? false, max: f.array?.max ?? 1, label: f.label, accept: f.accept };
-  },
-
-  /** @deprecated Use `Model(id).params().hasParam(key)` instead. */
-  hasParam(id: string, key: string): boolean {
-    return Model(id).params().hasParam(key);
-  },
 } as const;

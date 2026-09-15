@@ -12,7 +12,6 @@ interface WorkflowJobHandle {
     workflow: string;
     id: string;
 }
-type WorkflowStatus = 'ACCEPTED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'CANCELED' | 'UNKNOWN';
 interface WorkflowProgress {
     percent?: number;
     estimatedSecondsLeft?: number;
@@ -44,45 +43,59 @@ interface CreditUsage {
     /** The remaining balance. */
     balance?: number;
 }
-interface WorkflowStatusResult<TResult = unknown> {
-    handle: WorkflowJobHandle;
-    status: WorkflowStatus;
-    result?: TResult;
-    error?: string;
-    /** Platform error `reason` on a failed task, when the response carried one. */
-    reason?: string;
-    /** Numeric status on the error payload, when the response carried one. */
-    statusCode?: number;
-    progress?: WorkflowProgress;
-    /** Credit usage reported by the platform, when present on the response. */
-    usage?: CreditUsage;
-    raw: unknown;
-}
-/**
- * The transport contract for talking to the workflows backend.
- *
- * `execute` (one-shot synchronous generation) is the only required method.
- * `submit` + `status` are the async submit-and-poll pair — optional, so an
- * execute-only transport can omit them. `options` is the SDK-level
- * credit-estimation call. When a transport omits `submit`, the client routes
- * all generation through `execute`; calling the async lifecycle methods
- * (submit/status/result/subscribe) on such a client throws.
- */
-interface SdkTransport<TPayload = Record<string, unknown>> {
-    execute(request: WorkflowSubmitRequest<TPayload>): Promise<unknown>;
-    submit?(request: WorkflowSubmitRequest<TPayload>): Promise<WorkflowJobHandle>;
-    status?(handle: WorkflowJobHandle, signal?: AbortSignal): Promise<unknown>;
-    options?(workflow: string, payload: Record<string, unknown>): Promise<number | null>;
-}
 interface WorkflowPollOptions {
     intervalMs?: number;
     maxAttempts?: number;
     signal?: AbortSignal;
 }
-interface WorkflowRunOptions extends WorkflowPollOptions {
-    mode?: 'async' | 'sync';
+/**
+ * What a transport hands back from `execute` / `poll` / `status`: the task
+ * result the SDK parses, the platform's credit usage, and — when the
+ * transport has an envelope distinct from the result — the raw payload
+ * (text models read it as a fallback).
+ */
+interface TransportResult<TResult = unknown> {
+    result?: TResult;
+    usage?: CreditUsage;
+    /** Raw payload as the transport received it. Defaults to `result`. */
+    raw?: unknown;
 }
-type WorkflowSubscribeOptions = WorkflowPollOptions;
+/** Poll controls plus the progress sink `ai.subscribe()` drains. */
+interface TransportPollOptions extends WorkflowPollOptions {
+    onProgress?: (progress: WorkflowProgress) => void;
+}
+/**
+ * The transport contract for talking to the generation backend — the one seam
+ * every SDK request passes through. `createClient({ apiUrl, apiKey })` builds
+ * the default implementation over @picsart/workflows-client;
+ * `createClient({ transport })` replaces it wholesale (a different gateway, a
+ * signed proxy, a test double).
+ *
+ * `execute` (one-shot synchronous run) is the only required method — it serves
+ * `syncExecute` models and every catalog task. `submit` + `poll` are the async
+ * submit-and-wait pair: when either is missing, the client routes ALL
+ * generation through `execute`, and the async lifecycle (`submit()` /
+ * `result()` / `subscribe()`) rejects with `unsupported_transport`. `status` is
+ * a single non-blocking read, used to probe which route a bare generation id
+ * was submitted on; `options` is the credit-estimation call behind
+ * `getCredits()`. Omitted optional methods degrade the matching feature rather
+ * than breaking the client.
+ *
+ * Failures should be thrown as {@link ApiError} — anything else reaches the
+ * caller as a 502 `generation_failed`. An `AbortError` is never wrapped.
+ */
+interface SdkTransport<TPayload = Record<string, unknown>> {
+    /** One-shot synchronous run: submit and return the finished result. */
+    execute(request: WorkflowSubmitRequest<TPayload>): Promise<TransportResult>;
+    /** Start an async job and return its generation id. */
+    submit?(request: WorkflowSubmitRequest<TPayload>): Promise<string>;
+    /** Wait for a submitted job to reach a terminal state, reporting progress. */
+    poll?(handle: WorkflowJobHandle, options?: TransportPollOptions): Promise<TransportResult>;
+    /** Read a submitted job's current state in one request — no waiting. */
+    status?(handle: WorkflowJobHandle, signal?: AbortSignal): Promise<TransportResult>;
+    /** Credits this request would cost, or null when pricing is unavailable. */
+    options?(workflow: string, payload: Record<string, unknown>): Promise<number | null>;
+}
 
 /**
  * Per-model compile-time input contracts generated from specs/vendors catalog.
@@ -847,11 +860,6 @@ type ModelInputById = {
     "lyria-3.5": {
         prompt: string;
         imageUrls?: string[];
-    };
-    "minimax-02-hd": {
-        language?: string;
-        accent?: string;
-        prompt: string;
     };
     "minimax-h3": {
         prompt: string;
@@ -1864,6 +1872,8 @@ type ApiSchemas = WorkflowTypes;
  * The `ai.apis` surface — direct, low-level access to the Picsart model APIs.
  * Known API names (keys of {@link ApiSchemas}) get typed params + result;
  * unknown names take an open payload and return an unknown result.
+ *
+ * Failures arrive as {@link ApiError}, the same as the generation surface.
  */
 interface ApisClient {
     /** Run an API by name (mirrors WorkflowsClient.run()). */
@@ -2071,8 +2081,6 @@ interface ModelParamsAccessor {
     hasFileInput(): boolean;
     getDefault(key: string): unknown;
     getDefaults(): Record<string, unknown>;
-    /** @deprecated Use `enum(key)` instead — returns full `EnumEntry` with `.options`, `.default`, etc. */
-    getEnumOptions(key: string): (string | number)[] | null;
     toSchema(): ModelParamSchema;
     transferValues(prev: Record<string, unknown>): Record<string, unknown>;
 }
@@ -2108,7 +2116,7 @@ interface CreditTier {
 }
 /** Top-level model accessor with grouped sub-accessors. */
 /** Result of validating generation input against a model's params. */
-interface ValidationResult$1 {
+interface ValidationResult {
     valid: boolean;
     errors?: string[];
 }
@@ -2121,7 +2129,7 @@ interface ModelDescriptor {
     meta(): ModelMeta;
     /** Validate generation input against this model's params. Returns
      *  `{ valid: true }` or `{ valid: false, errors }` — never throws. */
-    validate(input: unknown): ValidationResult$1;
+    validate(input: unknown): ValidationResult;
     /** Get the credit range for this model, plus the per-tier breakdown in
      *  `.tiers`. Pass context to narrow by resolution/audio. Returns the per-unit
      *  range — callers with time-based parameters should scale by the value
@@ -2137,15 +2145,15 @@ interface ModelDescriptor {
     };
 }
 /** Filter criteria for `catalog.find()`. */
-interface ModelFilter$1 {
+interface ModelFilter {
     output?: GenerationMode;
     provider?: string;
     /**
      * Release tiers to include. Omitted ⇒ the default visible set
      * (`['production', 'general-availability']`). List the tiers you want
      * explicitly to opt into `preview` — e.g. `['preview']` for stage-only
-     * models, or all three to include everything. `disabled`/`deprecated`
-     * models stay hidden regardless.
+     * models, or all three to include everything. `deprecated` models stay
+     * hidden regardless.
      */
     release?: ReleaseTag[];
 }
@@ -2332,16 +2340,11 @@ interface ModelDefinition {
     /** ISO YYYY-MM-DD date the model was added. The 'new' badge is derived from this — see core/badges.ts. */
     addedAt?: string;
     /**
-     * Marks a model as operationally unavailable — backend not deployed,
-     * pricing unconfirmed, catalog/runtime mismatch, etc. Expected to flip
-     * back on once the gate clears. Hidden from default catalog lookups.
-     */
-    disabled?: boolean;
-    /**
      * Marks a model as retired — superseded by a newer model or otherwise no
      * longer offered. Will not come back. Catalog row stays so workflow IDs
      * and toolIds remain resolvable for historical jobs and pricing. Hidden
-     * from default catalog lookups, same as `disabled`.
+     * from default catalog lookups. (Operationally-gated models use
+     * `release: 'preview'` instead.)
      */
     deprecated?: boolean;
     release?: ReleaseTag;
@@ -2414,8 +2417,6 @@ interface CatalogResult {
     /** `null` when the list is complete. */
     nextCursor: string | null;
 }
-/** @deprecated No longer drives behavior — catalogs are addressed by param key. */
-type CatalogKind = 'voices' | 'avatars';
 /** Binds a param's options to a platform catalog task. */
 interface CatalogSource {
     /** Catalog workflow name, e.g. `heygen/v1/catalog/voices`. */
@@ -2482,6 +2483,87 @@ interface CatalogsOptions {
     preload?: boolean;
 }
 
+/**
+ * Per-item vendor metadata promoted from the response. Every key is
+ * best-effort: present when the vendor reports it, absent otherwise.
+ */
+interface GenerateResultItemMetadata {
+    /** Explore image id (recraft explore models). */
+    exploreImageId?: string;
+    /** Voice preview id (ElevenLabs voice design/remix) — pass to the vendor's
+     *  create-voice-from-preview step to persist the voice. */
+    generatedVoiceId?: string;
+    /** Generation seed, when the vendor echoes it. */
+    seed?: number;
+    /** Vendor safety flag for this item (e.g. `has_nsfw_concepts[i]`). */
+    nsfw?: boolean;
+    width?: number;
+    height?: number;
+    contentType?: string;
+    /** Video duration in seconds. */
+    duration?: number;
+    /** Video frame rate. */
+    fps?: number;
+    /** Video file size in bytes. */
+    fileSize?: number;
+}
+
+/**
+ * Failure codes the SDK synthesizes when the platform supplies no `reason`.
+ * An API-supplied `reason` passes through unchanged, so the open `string`
+ * member keeps arbitrary platform reasons assignable while preserving
+ * autocomplete on the known set.
+ */
+type ApiErrorCode = 'unknown_model' | 'wrong_model_mode' | 'validation_error' | 'unsupported_transport' | 'timeout' | 'aborted' | 'canceled' | 'generation_failed' | 'invalid_response' | 'bad_request' | 'unauthorized' | 'payment_required' | 'forbidden' | 'not_found' | 'rate_limited' | 'server_error' | (string & {});
+/** Everything but the message needed to build a {@link ApiError}. */
+interface ApiErrorInit {
+    /**
+     * HTTP status of the failing response. When no HTTP exchange took place the
+     * SDK synthesizes the semantically matching code: 400 for input the SDK
+     * itself rejects, 408 for a poll deadline, 499 for an abort or cancel, 502
+     * for a response it cannot make sense of.
+     */
+    status: number;
+    /** Platform `reason` when present, otherwise an SDK-synthesized code. */
+    code: ApiErrorCode;
+}
+/**
+ * The single error type the SDK throws — the generation surface
+ * (`generate()`, `generateText()`, `submit()`, `result()`), `ai.catalogs`,
+ * and `ai.apis` alike.
+ *
+ * Unrelated to the `Api*` types (`ApiResponse`, `ApiRunOptions`, …), which
+ * describe the low-level `ai.apis` surface — though that surface throws this
+ * error too. ApiError is the only error type the SDK exposes.
+ *
+ * ```ts
+ * try {
+ *   await ai.generate(Models.Flux2Pro, { prompt: 'a cat' });
+ * } catch (err) {
+ *   if (err instanceof ApiError) {
+ *     if (err.status === 402) return topUpCredits();
+ *     if (err.status === 429 || err.status >= 500) return retry();
+ *     if (err.code === 'validation_error') return showFormError(err.message);
+ *   }
+ *   throw err;
+ * }
+ * ```
+ *
+ * Aborts raised by `fetch` itself are never wrapped — a caller checking
+ * `err.name === 'AbortError'` on a `DOMException` keeps working.
+ */
+declare class ApiError extends Error {
+    /** HTTP status, or the synthesized equivalent for non-HTTP failures. */
+    readonly status: number;
+    /** Platform `reason`, or an SDK-synthesized code. Always equal to {@link reason}. */
+    readonly code: ApiErrorCode;
+    /** Alias of {@link code}, named after the platform's own error field. */
+    readonly reason: ApiErrorCode;
+    constructor(message: string, init: ApiErrorInit);
+}
+
+/** Worker-reported progress on a generation.progress event. */
+type GenerationProgress = WorkflowProgress;
 /** A fetch-like function that handles authentication (headers, cookies, etc.). */
 type AuthenticatedFetch = (url: string, init?: RequestInit) => Promise<Response>;
 /** Drive configuration — enables auto-saving generations to Picsart Drive. */
@@ -2503,29 +2585,8 @@ interface AppIdentity {
     id: string;
     type: AppType;
 }
-/**
- * Simple client config — pass the API base URL plus one auth source, and the
- * SDK handles the rest. The SDK knows the Picsart API endpoints and response
- * shapes internally.
- *
- * Provide exactly one of:
- * - `fetch` — your own authenticated fetch (you add headers/cookies), or
- * - `apiKey` — the SDK builds a fetch that sends `Authorization: Bearer <apiKey>`.
- */
-interface ClientConfig {
-    /**
-     * Authenticated fetch function. The SDK calls this for all HTTP requests.
-     * Provide this or `apiKey`. Takes precedence over `apiKey` when both are set.
-     */
-    fetch?: AuthenticatedFetch;
-    /**
-     * Picsart API key. When `fetch` is not provided, the SDK builds an
-     * authenticated fetch that sends `Authorization: Bearer <apiKey>` on every
-     * request (a leading `Bearer ` is stripped if present).
-     */
-    apiKey?: string;
-    /** API base URL (e.g. 'https://api.picsart.com'). */
-    apiUrl: string;
+/** Settings that apply whichever transport serves the client. */
+interface ClientConfigBase {
     /** Enable Drive integration — auto-save generations to a Drive folder. */
     drive?: DriveConfig;
     /**
@@ -2539,21 +2600,76 @@ interface ClientConfig {
      */
     catalogs?: CatalogsOptions;
 }
+/**
+ * The usual config: the API base URL plus one auth source, and the SDK builds
+ * its own transport over @picsart/workflows-client.
+ *
+ * Provide exactly one of:
+ * - `fetch` — your own authenticated fetch (you add headers/cookies), or
+ * - `apiKey` — the SDK builds a fetch that sends `Authorization: Bearer <apiKey>`.
+ */
+interface HttpClientConfig extends ClientConfigBase {
+    /**
+     * Authenticated fetch function. The SDK calls this for all HTTP requests.
+     * Provide this or `apiKey`. Takes precedence over `apiKey` when both are set.
+     */
+    fetch?: AuthenticatedFetch;
+    /**
+     * Picsart API key. When `fetch` is not provided, the SDK builds an
+     * authenticated fetch that sends `Authorization: Bearer <apiKey>` on every
+     * request (a leading `Bearer ` is stripped if present).
+     */
+    apiKey?: string;
+    /** API base URL (e.g. 'https://api.picsart.com'). */
+    apiUrl: string;
+    transport?: undefined;
+}
+/**
+ * Config for a caller-supplied {@link SdkTransport} — you own the wire, so
+ * `apiUrl` and the auth source are yours to bake into the transport and are
+ * not required here (the SDK never passes them to it).
+ *
+ * Two surfaces still speak the workflows protocol directly and therefore keep
+ * needing `apiUrl` plus `fetch`/`apiKey` when you use them: `ai.drive`, and
+ * `ai.apis`. Everything else — generate, the async lifecycle, `getCredits`,
+ * `ai.catalogs` — goes through the transport.
+ */
+interface TransportClientConfig extends ClientConfigBase {
+    /** Transport the client runs on, in place of the built-in one. */
+    transport: SdkTransport;
+    /** Only needed for `ai.drive` / `ai.apis`. */
+    apiUrl?: string;
+    /** Only needed for `ai.drive` / `ai.apis`. */
+    fetch?: AuthenticatedFetch;
+    /** Only needed for `ai.drive` / `ai.apis`. */
+    apiKey?: string;
+}
+/**
+ * Client config — either the built-in transport's shape or a custom
+ * transport's. The two halves are deliberately unexported: they carry the same
+ * fields and differ only in which are required, so `ClientConfig` is the single
+ * name to annotate with.
+ */
+type ClientConfig = HttpClientConfig | TransportClientConfig;
+
 interface GenerateResultItem {
     url: string;
-    metadata?: Record<string, unknown>;
+    metadata?: GenerateResultItemMetadata;
 }
+/** Result of a media generation. */
 interface GenerateResult {
-    /** Primary result URL (convenience shortcut for results[0].url). */
+    /** Primary result URL (convenience shortcut for items[0].url). */
     url: string;
-    /** All result items — single item for normal models, multiple for explore/multi-result models. */
+    /** All result items — one for normal models, multiple for explore/multi-result models. */
+    items: GenerateResultItem[];
+    /** @deprecated Use {@link items} — same array; removed in the next major. */
     results: GenerateResultItem[];
-    /** Model ID that produced this result. */
-    model: string;
-    /** Job handle for status tracking. */
-    handle: WorkflowJobHandle;
-    /** Raw parsed output for advanced consumers. */
-    raw: unknown;
+    /**
+     * The generation id — pass to result()/subscribe() together with the model
+     * id. Absent for syncExecute models: their generation completes inline in
+     * one request, so there is no job to poll or recover.
+     */
+    generationId?: string;
     /** Credit usage reported by the platform — same structure as the pluggable APIs' GenAITaskResponse. */
     usage?: CreditUsage;
     /** Present when Drive is enabled and the file was saved. */
@@ -2565,13 +2681,43 @@ interface GenerateTextResult {
     text: string;
     /** Model ID that produced this result. */
     model: string;
-    /** Job handle for status tracking. */
-    handle: WorkflowJobHandle;
     /** Raw parsed output — carries vendor token usage, finish reason, thinking trace, etc. */
     raw: unknown;
     /** Credit usage reported by the platform — same structure as the pluggable APIs' GenAITaskResponse. */
     usage?: CreditUsage;
 }
+
+/**
+ * Named constants for the {@link GenerationEvent} discriminant — sugar over
+ * the string literals for consumers who prefer `GenerationEventType.Completed`
+ * to `'generation.completed'`. Both compare fine: the event `type` field stays
+ * a literal union, so raw strings keep working (and keep autocompleting).
+ */
+declare const GenerationEventType: {
+    readonly Progress: "generation.progress";
+    readonly Completed: "generation.completed";
+    readonly Failed: "generation.failed";
+};
+type GenerationEventType = (typeof GenerationEventType)[keyof typeof GenerationEventType];
+/**
+ * One `ai.subscribe()` update.
+ * - `generation.progress` — a non-terminal poll; `progress` is present when
+ *   the worker reports it (percent, ETA).
+ * - `generation.completed` — terminal; carries the parsed
+ *   {@link GenerateResult} in `result`, no follow-up `ai.result()` needed.
+ * - `generation.failed` — terminal (worker FAILED or the job was canceled);
+ *   carries the same {@link ApiError} that `ai.result()` would have thrown.
+ */
+type GenerationEvent = {
+    type: 'generation.progress';
+    progress?: GenerationProgress;
+} | {
+    type: 'generation.completed';
+    result: GenerateResult;
+} | {
+    type: 'generation.failed';
+    error: ApiError;
+};
 /** Input-transformation settings injected into the workflow payload as
  *  `options.inputs_transformation` (GenAIOptions, alongside `drive`). */
 interface PayloadInputsTransformationOptions {
@@ -2583,6 +2729,14 @@ interface PayloadInputsTransformationOptions {
      * transformation ignore it.
      */
     downscaleOversizedImages?: boolean;
+}
+/** Polling controls for result()/subscribe() on an already-submitted job. */
+interface GenerationOptions {
+    /** Poll interval in ms. Overrides the model's `pollOptions` and the mode default. */
+    intervalMs?: number;
+    /** Max poll attempts before timing out. Overrides the model's `pollOptions` and the mode default. */
+    maxAttempts?: number;
+    signal?: AbortSignal;
 }
 /** Options for individual generate() / submit() calls. */
 interface GenerateOptions {
@@ -2622,18 +2776,20 @@ interface AiClient {
     generateText<M extends TextModelId>(model: M, params: TextModelInputById[M], options?: GenerateOptions): Promise<GenerateTextResult>;
     /** Get exact credit cost for a model with specific parameters. */
     getCredits<M extends TypedModelId>(model: M, params: ModelInputById[M]): Promise<number | null>;
-    /** Submit a generation job and get a handle back. Media models only. */
-    submit<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<WorkflowJobHandle>;
-    /** Check the current status of a submitted job. */
-    status(handle: WorkflowJobHandle, signal?: AbortSignal): Promise<WorkflowStatusResult<unknown>>;
+    /** Submit a generation job and get its generation id back. Media models only. */
+    submit<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<string>;
     /** Poll a submitted job until it completes and return the parsed result. Media models only. */
-    result(handle: WorkflowJobHandle, model: MediaModelId, options?: WorkflowPollOptions): Promise<GenerateResult>;
-    /** Subscribe to live status updates for a submitted job. */
-    subscribe(handle: WorkflowJobHandle, options?: WorkflowSubscribeOptions): AsyncGenerator<WorkflowStatusResult<unknown>, WorkflowStatusResult<unknown>, void>;
+    result(model: MediaModelId, generationId: string, options?: GenerationOptions): Promise<GenerateResult>;
+    /**
+     * Subscribe to live updates for a submitted job. Yields one
+     * {@link GenerationEvent} per poll; the terminal `generation.completed`
+     * event carries the parsed result in `event.result`, and failures/cancels
+     * arrive as `generation.failed` events (with the {@link ApiError}), not as
+     * exceptions.
+     */
+    subscribe(model: MediaModelId, generationId: string, options?: GenerationOptions): AsyncGenerator<GenerationEvent, void, void>;
     /** Build the vendor-specific payload for a model without submitting. */
     buildPayload<M extends TypedModelId>(model: M, params: ModelInputById[M]): Record<string, unknown>;
-    /** @deprecated Use `apis.run()` instead. Run a raw workflow (not tied to a model). */
-    runWorkflow<TResult = unknown>(workflow: string, payload: Record<string, unknown>, options?: WorkflowRunOptions): Promise<TResult>;
     /**
      * Direct, low-level access to the Picsart model APIs — run any API by name.
      * See {@link ApisClient}.
@@ -2663,22 +2819,15 @@ interface AiClient {
  *   drive: { folder: 'AI Playground' },
  * });
  * ```
+ *
+ * @example With your own transport — the SDK stops talking to the workflows
+ * API entirely, so `apiUrl` and the auth source are the transport's business:
+ * ```ts
+ * const ai = createClient({ transport: myTransport });
+ * ```
  */
-declare function createClient(config: ClientConfig | SdkTransport): AiClient;
+declare function createClient(config: ClientConfig): AiClient;
 
-/**
- * Typed Models constants and namespace.
- * Regenerate with: npm run build:model-constants
- */
-
-interface ValidationResult {
-    valid: boolean;
-    errors?: string[];
-}
-interface ModelFilter {
-    mode?: GenerationMode;
-    provider?: string;
-}
 declare const Models: {
     readonly AsyncFlashV1: "async-flash-v1";
     readonly BytedanceOmnihumanV15: "bytedance-omnihuman-v1.5";
@@ -2795,7 +2944,6 @@ declare const Models: {
     readonly Lyria3Clip: "lyria-3-clip";
     readonly Lyria3Pro: "lyria-3-pro";
     readonly Lyria35: "lyria-3.5";
-    readonly Minimax02Hd: "minimax-02-hd";
     readonly MinimaxH3: "minimax-h3";
     readonly MinimaxH3Max: "minimax-h3-max";
     readonly MinimaxH3MaxCameraControls: "minimax-h3-max-camera-controls";
@@ -2905,21 +3053,6 @@ declare const Models: {
     readonly Wan27VideoEdit: "wan-2.7-video-edit";
     readonly Wan30Video: "wan-3.0-video";
     readonly Wan30VideoPrime: "wan-3.0-video-prime";
-    /** @deprecated Use the `catalog` accessor (`catalog.all()` / `catalog.find({ output, provider })`) instead. */
-    readonly list: (filter?: ModelFilter) => ModelDefinition[];
-    /** @deprecated Use `Model(id).validate(input)` instead. */
-    readonly validate: (model: string, input: unknown) => ValidationResult;
-    /** @deprecated Use `Model(id).params().toSchema()` instead. */
-    readonly toSchema: (id: string) => ModelParamSchema;
-    /** @deprecated Use `Model(id).params().file(key)` instead. */
-    readonly getFileParam: (id: string, key: string) => {
-        required: boolean;
-        max: number;
-        label?: string;
-        accept?: string;
-    } | null;
-    /** @deprecated Use `Model(id).params().hasParam(key)` instead. */
-    readonly hasParam: (id: string, key: string) => boolean;
 };
 
 /**
@@ -2929,61 +3062,6 @@ declare const Models: {
  */
 
 declare function getVoiceById(id: string): VoiceOption | undefined;
-/** @deprecated Load the model's catalog instead (`ai.catalogs.voices(modelId)`) — loaded voices are searched automatically. */
-declare function getVoiceById(id: string, extra: VoiceOption[] | undefined): VoiceOption | undefined;
-
-/**
- * Failure codes the SDK synthesizes when the platform supplies no `reason`.
- * An API-supplied `reason` passes through unchanged, so the open `string`
- * member keeps arbitrary platform reasons assignable while preserving
- * autocomplete on the known set.
- */
-type ApiErrorCode = 'unknown_model' | 'wrong_model_mode' | 'validation_error' | 'unsupported_transport' | 'timeout' | 'aborted' | 'canceled' | 'generation_failed' | 'invalid_response' | 'bad_request' | 'unauthorized' | 'payment_required' | 'forbidden' | 'not_found' | 'rate_limited' | 'server_error' | (string & {});
-/** Everything but the message needed to build a {@link ApiError}. */
-interface ApiErrorInit {
-    /**
-     * HTTP status of the failing response. When no HTTP exchange took place the
-     * SDK synthesizes the semantically matching code: 400 for input the SDK
-     * itself rejects, 408 for a poll deadline, 499 for an abort or cancel, 502
-     * for a response it cannot make sense of.
-     */
-    status: number;
-    /** Platform `reason` when present, otherwise an SDK-synthesized code. */
-    code: ApiErrorCode;
-}
-/**
- * The single error type thrown by the SDK's generation surface —
- * `generate()`, `generateText()`, `submit()`, and `result()`.
- *
- * Unrelated to the `Api*` types (`ApiResponse`, `ApiRunOptions`, …), which
- * describe the low-level `ai.apis` surface. `ai.apis.run()` throws the
- * workflows client's own errors, not this.
- *
- * ```ts
- * try {
- *   await ai.generate(Models.Flux2Pro, { prompt: 'a cat' });
- * } catch (err) {
- *   if (err instanceof ApiError) {
- *     if (err.status === 402) return topUpCredits();
- *     if (err.status === 429 || err.status >= 500) return retry();
- *     if (err.code === 'validation_error') return showFormError(err.message);
- *   }
- *   throw err;
- * }
- * ```
- *
- * Aborts raised by `fetch` itself are never wrapped — a caller checking
- * `err.name === 'AbortError'` on a `DOMException` keeps working.
- */
-declare class ApiError extends Error {
-    /** HTTP status, or the synthesized equivalent for non-HTTP failures. */
-    readonly status: number;
-    /** Platform `reason`, or an SDK-synthesized code. Always equal to {@link reason}. */
-    readonly code: ApiErrorCode;
-    /** Alias of {@link code}, named after the platform's own error field. */
-    readonly reason: ApiErrorCode;
-    constructor(message: string, init: ApiErrorInit);
-}
 
 /**
  * Pricing internals — owns the ModelPricingClient, the per-model cache, and
@@ -3027,7 +3105,7 @@ type ModelFunction = (id: string) => ModelDescriptor;
 declare function _all(filter?: {
     release?: readonly ReleaseTag[];
 }): ModelDescriptor[];
-declare function _find(filter: ModelFilter$1): ModelDescriptor[];
+declare function _find(filter: ModelFilter): ModelDescriptor[];
 declare function _search(query: string, filter?: {
     release?: readonly ReleaseTag[];
 }): ModelDescriptor[];
@@ -3072,15 +3150,21 @@ declare function encodeDeepLinkPayload(modelId: string, context: Partial<Generat
  */
 declare function decodeDeepLinkPayload(encoded: string): DeepLinkResult | null;
 
-/** All models from all vendors. */
+/**
+ * All models from all vendors.
+ * @deprecated Use `catalog.all()` — the descriptor accessors are the supported
+ * surface; this raw array will be removed in the next major.
+ */
 declare const ALL_MODELS: ModelDefinition[];
 /**
  * Models for a generation mode. By default returns only default-visible models
- * (production / general-availability — preview, disabled and deprecated are
- * hidden). `includeDisabled = true` returns every model of the mode, bypassing
- * all gates. For release-tier filtering use `catalog.find({ output, release })`.
+ * (production / general-availability — preview and deprecated are hidden).
+ * `includeHidden = true` returns every model of the mode, bypassing all gates.
+ * For release-tier filtering use `catalog.find({ output, release })`.
+ * @deprecated Use `catalog.all().filter(m => m.mode === mode)` (or
+ * `catalog.find({ output })`) — removed in the next major.
  */
-declare const getModelsByMode: (mode: ModelDefinition["mode"], includeDisabled?: boolean) => ModelDefinition[];
+declare const getModelsByMode: (mode: ModelDefinition["mode"], includeHidden?: boolean) => ModelDefinition[];
 
 /**
  * Release tags shown by default in discovery. `preview` is stage-only and
@@ -3093,24 +3177,22 @@ declare const releaseOf: (m: ModelDefinition) => ReleaseTag;
  * Whether `m` is visible for the requested `releases` (default: the production
  * + general-availability set).
  *
- * `disabled` and `deprecated` are hard hides layered on top of `release`: a
- * model carrying either is never visible, regardless of its release tag or the
- * requested set. (`disabled` is being phased out in favour of
- * `release: 'preview'`, but is still honoured during the migration.)
+ * `deprecated` is a hard hide layered on top of `release`: a deprecated model
+ * is never visible, regardless of its release tag or the requested set.
  */
 declare function isVisibleForReleases(m: ModelDefinition, releases?: readonly ReleaseTag[]): boolean;
 
-/** Look up a model by its ID or vendor modelId. */
+/**
+ * Look up a model by its ID or vendor modelId.
+ * @deprecated Use the `Model(id)` accessor (or `catalog.find(id)`) — this
+ * raw-definition lookup will be removed in the next major.
+ */
 declare const getModel: (id: string) => ModelDefinition | undefined;
-/** Find a model by ID, workflow name, or display name (case-insensitive). */
+/**
+ * Find a model by ID, workflow name, or display name (case-insensitive).
+ * @deprecated Use `catalog.find(ref)` / `catalog.search(query)` — this
+ * raw-definition lookup will be removed in the next major.
+ */
 declare const findModel: (ref: string) => ModelDefinition | undefined;
 
-/**
- * Effect scenes that require two input images (e.g. hugs, kisses, swaps).
- * @deprecated Read `meta.imageSlots` on the `kling/v1/catalog/templates`
- * catalog items instead — this frozen copy is no longer maintained and will be
- * removed in the next major.
- */
-declare const KLING_DUAL_IMAGE_EFFECTS: ReadonlySet<string>;
-
-export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogKind, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateTextResult, type GenerationContext, type GenerationFile, type GenerationMode, KLING_DUAL_IMAGE_EFFECTS, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter$1 as ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TypedModelId, type UserReaction, type ValidationResult$1 as ValidationResult, type VoiceOption, type WorkflowJobHandle, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };

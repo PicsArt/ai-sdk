@@ -37,7 +37,7 @@ interface BaseModelConfig {
   pollOptions?: { intervalMs?: number; maxAttempts?: number };
 }
 
-/** App-visible fields shared by enabled and disabled model configs. */
+/** App-visible fields shared by all app model configs. */
 interface AppModelFields {
   /** Optional API/test name when different from display name (e.g. Gemini "Nano Banana"). */
   specName?: string;
@@ -60,25 +60,17 @@ interface AppModelFields {
   modelId?: string;
 }
 
-/** Enabled app model — both gates false. */
+/** Enabled app model. */
 interface EnabledAppModelConfig extends BaseModelConfig, AppModelFields {
-  disabled?: false;
-  deprecated?: false;
-}
-
-/** Operationally disabled — backend not deployed, catalog mismatch, etc. */
-interface DisabledAppModelConfig extends BaseModelConfig, AppModelFields {
-  disabled: true;
   deprecated?: false;
 }
 
 /** Deprecated — retired/superseded by a newer sibling; not shown to users. */
 interface DeprecatedAppModelConfig extends BaseModelConfig, AppModelFields {
-  disabled?: false;
   deprecated: true;
 }
 
-type AppModelConfig = EnabledAppModelConfig | DisabledAppModelConfig | DeprecatedAppModelConfig;
+type AppModelConfig = EnabledAppModelConfig | DeprecatedAppModelConfig;
 
 // ── Pass-through builder ────────────────────────────────────────────
 
@@ -136,7 +128,6 @@ export function defineModels(
     if (c.pollOptions !== undefined) model.pollOptions = c.pollOptions;
     if (c.badge !== undefined) model.badge = c.badge;
     if (c.addedAt !== undefined) model.addedAt = c.addedAt;
-    if (c.disabled !== undefined) model.disabled = c.disabled;
     if (c.deprecated !== undefined) model.deprecated = c.deprecated;
     if (c.release !== undefined) model.release = c.release;
     if (c.modelId !== undefined) model.modelId = c.modelId;

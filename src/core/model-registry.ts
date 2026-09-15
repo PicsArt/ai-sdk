@@ -37,11 +37,19 @@ for (const model of ALL_MODELS) {
 
 // ── Query functions ──────────────────────────────────────────────────
 
-/** Look up a model by its ID or vendor modelId. */
+/**
+ * Look up a model by its ID or vendor modelId.
+ * @deprecated Use the `Model(id)` accessor (or `catalog.find(id)`) — this
+ * raw-definition lookup will be removed in the next major.
+ */
 export const getModel = (id: string): ModelDefinition | undefined =>
   MODEL_BY_ID.get(id) ?? MODEL_BY_MODEL_ID.get(id);
 
-/** Find a model by ID, workflow name, or display name (case-insensitive). */
+/**
+ * Find a model by ID, workflow name, or display name (case-insensitive).
+ * @deprecated Use `catalog.find(ref)` / `catalog.search(query)` — this
+ * raw-definition lookup will be removed in the next major.
+ */
 export const findModel = (ref: string): ModelDefinition | undefined => {
   const key = ref.trim();
   if (!key) return undefined;
@@ -51,7 +59,7 @@ export const findModel = (ref: string): ModelDefinition | undefined => {
 };
 
 /** Get the first default-visible model for the given generation mode
- *  (production / general-availability — never a preview/disabled/deprecated model). */
+ *  (production / general-availability — never a preview/deprecated model). */
 export const getDefaultModel = (mode: GenerationMode): ModelDefinition => {
   const models = getModelsByMode(mode);
   const model = models.find((m) => isVisibleForReleases(m)) ?? models[0];

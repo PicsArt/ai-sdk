@@ -120,7 +120,6 @@ export type ModelInputById = {
   "lyria-3-clip": { prompt: string; imageUrls?: string[]; };
   "lyria-3-pro": { prompt: string; imageUrls?: string[]; };
   "lyria-3.5": { prompt: string; imageUrls?: string[]; };
-  "minimax-02-hd": { language?: string; accent?: string; prompt: string; };
   "minimax-h3": { prompt: string; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; resolution?: "768P" | "2K"; duration?: number; aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; };
   "minimax-h3-max": { prompt: string; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; resolution?: "480p" | "768p" | "1080p"; duration?: number; aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; promptExpansionMode?: "balanced" | "quality"; seed?: number; enableSafetyChecker?: boolean; };
   "minimax-h3-max-camera-controls": { prompt?: string; startFrame: string; resolution?: "480p" | "768p" | "1080p"; duration?: number; cameraTrajectory?: Array<{ time: number; azimuth: number; elevation: number; distance: number }>; promptExpansionMode?: "balanced" | "quality"; seed?: number; enableSafetyChecker?: boolean; };

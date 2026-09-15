@@ -6,11 +6,6 @@ import type { Constraint, PayloadBuilder, Restriction } from '../../core/types.t
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 
-/** TTS — text only. */
-export const buildMinimaxTTSPayload: PayloadBuilder = (ctx) => ({
-  text: ctx.prompt,
-});
-
 /** Music v2 — `lyrics` is optional: instrumental mode and the lyrics
  * optimizer both run without it. */
 export const buildMinimaxMusicPayload: PayloadBuilder = (ctx) => ({
@@ -81,20 +76,9 @@ const h3MaxConstraints: Constraint[] = [
 ];
 
 export const { MODELS } = defineModels('minimax', [
-  {
-    id: 'minimax-02-hd', name: 'MiniMax 02 HD', modelId: 'minimax-02-hd',
-    addedAt: '2026-02-06',
-    workflow: 'minimax-tts', buildPayload: buildMinimaxTTSPayload,
-    estimatedTime: 15,
-    mode: 'audio', inputType: 'tts',
-    disabled: true, // Backend workflow not deployed
-    description: 'HD voice synthesis with rich tonal depth and consistent delivery.',
-    features: [feat('Consistent', 'characteristic'), feat('Cinematic', 'characteristic')],
-    paramConfig: {
-      ...params.language(true),
-      ...params.prompt({ maxLength: 150 }),
-    },
-  },
+  // minimax-02-hd (minimax-tts) was removed in 6.0: its backend workflow was
+  // never deployed anywhere, so no generation ever existed to resolve — nothing
+  // to deprecate. Re-add as a fresh entry if MiniMax TTS ever ships.
   {
     id: 'minimax-music-v2', name: 'MiniMax Music v2',
     addedAt: '2026-02-06',

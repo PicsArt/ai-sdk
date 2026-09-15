@@ -27,10 +27,9 @@ export function throwIfErrorResult(result: unknown, modelName: string): void {
 export function extractSyncResult(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') return raw;
   const data = raw as Record<string, unknown>;
-  const syncResult = (data.response as Record<string, unknown> | undefined)?.result ?? data.result;
-  const sr = syncResult as Record<string, unknown> | undefined;
-  const imgs = sr && Array.isArray(sr.images) ? sr.images : null;
-  return imgs?.length ? imgs[0] : syncResult;
+  // Unwrap the envelope only — multi-image results (`images[]`) are fanned out
+  // into result items downstream (extractAllResults), not truncated to [0].
+  return (data.response as Record<string, unknown> | undefined)?.result ?? data.result;
 }
 
 export const extractUrl = (result: unknown): string | undefined => {
@@ -187,39 +186,119 @@ export const extractText = (result: unknown): string | undefined => {
   return undefined;
 };
 
-// ── Multi-result extraction (explore endpoints) ─────────────────────
+// ── Multi-result extraction (explore endpoints, multi-image batches) ─
 
 export interface MultiResultItem {
   url: string;
-  exploreImageId?: string;
+  /** The vendor's per-item object, kept for metadata extraction. */
+  source?: Record<string, unknown>;
 }
+
+/** Result-array keys the multi-result fan-out (and per-item metadata) knows. */
+const RESULT_ARRAY_KEYS = ['items', 'images', 'imageUrls', 'urls', 'data', 'previews'] as const;
 
 /**
  * Extract all result items from a multi-result API response.
  * Returns undefined if the response doesn't contain multiple items.
- * Supports responses with `items: [{ url, image_id }, ...]` format.
+ * Supports the result-array shapes extractUrl already knows:
+ * `items[]` (explore), `images[]` (fal-style), `imageUrls[]` (gemini),
+ * `urls: string[]` (seedream) and `data[]` (OpenAI-style) — entries are
+ * URL strings or objects carrying a string `url`.
  */
 export const extractAllResults = (result: unknown): MultiResultItem[] | undefined => {
   if (!result || typeof result !== 'object') return undefined;
   const obj = result as Record<string, unknown>;
-  if (Array.isArray(obj.items) && obj.items.length > 1) {
-    const items: MultiResultItem[] = [];
-    for (const item of obj.items) {
-      if (item && typeof item === 'object') {
-        const it = item as Record<string, unknown>;
-        const url = typeof it.url === 'string' ? it.url : undefined;
-        if (url) {
-          items.push({
-            url,
-            exploreImageId: typeof it.image_id === 'string' ? it.image_id : undefined,
-          });
-        }
-      }
-    }
-    if (items.length > 0) return items;
+  let arr: unknown[] | undefined;
+  for (const key of RESULT_ARRAY_KEYS) {
+    const candidate = obj[key];
+    if (Array.isArray(candidate) && candidate.length > 1) { arr = candidate; break; }
   }
-  return undefined;
+  if (!arr) return undefined;
+
+  const items: MultiResultItem[] = [];
+  for (const entry of arr) {
+    if (typeof entry === 'string') {
+      items.push({ url: entry });
+      continue;
+    }
+    if (entry && typeof entry === 'object') {
+      const it = entry as Record<string, unknown>;
+      if (typeof it.url === 'string') items.push({ url: it.url, source: it });
+    }
+  }
+  return items.length > 0 ? items : undefined;
 };
+
+// ── Per-item vendor metadata ─────────────────────────────────────────
+
+/**
+ * Per-item vendor metadata promoted from the response. Every key is
+ * best-effort: present when the vendor reports it, absent otherwise.
+ */
+export interface GenerateResultItemMetadata {
+  /** Explore image id (recraft explore models). */
+  exploreImageId?: string;
+  /** Voice preview id (ElevenLabs voice design/remix) — pass to the vendor's
+   *  create-voice-from-preview step to persist the voice. */
+  generatedVoiceId?: string;
+  /** Generation seed, when the vendor echoes it. */
+  seed?: number;
+  /** Vendor safety flag for this item (e.g. `has_nsfw_concepts[i]`). */
+  nsfw?: boolean;
+  width?: number;
+  height?: number;
+  contentType?: string;
+  /** Video duration in seconds. */
+  duration?: number;
+  /** Video frame rate. */
+  fps?: number;
+  /** Video file size in bytes. */
+  fileSize?: number;
+}
+
+/**
+ * Build the promoted metadata for one result item. `parsed` is the full
+ * contract-parsed result (carries response-level keys like `seed` and
+ * `has_nsfw_concepts`); `item` is the vendor's per-item object (an `images[]`
+ * / `items[]` entry, or the whole result for single-result models).
+ * `provider` gates vendor-specific promotions: `image_id` means "explore image"
+ * only on recraft, `generated_voice_id` only on elevenlabs — an unrelated
+ * vendor echoing those key names must not leak into the typed metadata.
+ */
+export function buildItemMetadata(
+  parsed: unknown,
+  item: unknown,
+  index: number,
+  provider?: string,
+): GenerateResultItemMetadata | undefined {
+  const meta: GenerateResultItemMetadata = {};
+  const top = (parsed && typeof parsed === 'object') ? parsed as Record<string, unknown> : undefined;
+  const it = (item && typeof item === 'object' && !Array.isArray(item)) ? item as Record<string, unknown> : undefined;
+
+  if (provider === 'recraft' && typeof it?.image_id === 'string') meta.exploreImageId = it.image_id;
+  if (provider === 'elevenlabs' && typeof it?.generated_voice_id === 'string') meta.generatedVoiceId = it.generated_voice_id;
+  if (typeof top?.seed === 'number') meta.seed = top.seed;
+  if (Array.isArray(top?.has_nsfw_concepts) && typeof top.has_nsfw_concepts[index] === 'boolean') {
+    meta.nsfw = top.has_nsfw_concepts[index] as boolean;
+  }
+
+  // Per-item dimensions / content type (fal-style images[] entries).
+  if (typeof it?.width === 'number') meta.width = it.width;
+  if (typeof it?.height === 'number') meta.height = it.height;
+  if (typeof it?.content_type === 'string') meta.contentType = it.content_type;
+
+  // Video results carry technical metadata on the `video` object.
+  const video = (top?.video && typeof top.video === 'object') ? top.video as Record<string, unknown> : undefined;
+  if (video) {
+    if (typeof video.duration === 'number') meta.duration = video.duration;
+    if (typeof video.fps === 'number') meta.fps = video.fps;
+    if (typeof video.file_size === 'number') meta.fileSize = video.file_size;
+    if (meta.width === undefined && typeof video.width === 'number') meta.width = video.width;
+    if (meta.height === undefined && typeof video.height === 'number') meta.height = video.height;
+  }
+
+  return Object.keys(meta).length > 0 ? meta : undefined;
+}
 
 export function toCompletedStatus(
   handle: WorkflowJobHandle,

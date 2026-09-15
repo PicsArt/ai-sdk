@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import type { SdkTransport, WorkflowSubmitRequest } from '../../src/core/workflow.ts';
+import type { SdkTransport, TransportResult, WorkflowSubmitRequest } from '../../src/core/workflow.ts';
 import type { CatalogItem } from '../../src/core/catalogs.ts';
 import { clearHydratedCatalogs, installHydratedCatalog, getHydratedCatalog } from '../../src/core/catalogs.ts';
 import { createCatalogs } from '../../src/client/catalogs.ts';
@@ -50,7 +50,7 @@ const fakeTransport: SdkTransport = {
     }
     if (errorEnvelopeNext) {
       errorEnvelopeNext = false;
-      return { status: 'error', message: 'workspace quota exceeded' };
+      return { result: { status: 'error', message: 'workspace quota exceeded' } };
     }
     const items = itemsFor(request.workflow);
     const payload = request.payload as { cursor?: string; limit?: number };
@@ -58,14 +58,7 @@ const fakeTransport: SdkTransport = {
     const start = payload.cursor ? items.findIndex((i) => i.id === payload.cursor) + 1 : 0;
     const page = items.slice(start, start + limit);
     const nextCursor = start + limit < items.length ? page[page.length - 1].id : null;
-    return {
-      status: 'success',
-      response: {
-        id: 'task-1',
-        status: 'COMPLETED',
-        result: { items: page, version: '2026-08-07', ttlSeconds: 21600, nextCursor },
-      },
-    };
+    return { result: { items: page, version: '2026-08-07', ttlSeconds: 21600, nextCursor } };
   },
 };
 
@@ -118,10 +111,10 @@ assert.strictEqual(avatarOptions[0].defaultVoiceId, 'hg-voice-1');
 assert.strictEqual(avatarOptions[0].gender, 'male');
 assert.strictEqual(avatarOptions[0].provider, 'heygen');
 
-// Catalog params are NOT enums — enum() and getEnumOptions() don't serve them.
+// Catalog params are NOT enums — enum() doesn't serve them.
 assert.strictEqual(Model('heygen-video-avatar').params().enum('videoId'), undefined,
   'enum() must not serve catalog params (breaking, per review)');
-assert.strictEqual(Model('heygen-video-avatar').params().getEnumOptions('voiceId'), null);
+assert.strictEqual(Model('heygen-video-avatar').params().enum('voiceId'), undefined);
 
 // Models sharing a catalog source hydrate together.
 assert.strictEqual(
@@ -134,12 +127,10 @@ const schema = Model('heygen-video-avatar').params().toSchema();
 assert.strictEqual(schema.videoId?.type, 'string');
 assert.strictEqual(schema.videoId?.enum, undefined);
 
-// ── getVoiceById searches loaded catalogs; `extra` outranks them ─────
+// ── getVoiceById searches loaded catalogs ────────────────────────────
 
 assert.strictEqual(getVoiceById('hg-voice-7')?.name, 'Voice 7');
 assert.strictEqual(getVoiceById('not-loaded-anywhere'), undefined);
-const shadow: VoiceOption = { id: 'hg-voice-7', name: 'Caller Override', description: '', tags: [], provider: 'heygen' };
-assert.strictEqual(getVoiceById('hg-voice-7', [shadow])?.name, 'Caller Override');
 
 // ── forceRefresh drops the cached pages and refetches ────────────────
 
@@ -235,15 +226,14 @@ await assert.rejects(
 // ── forceRefresh while a page fetch is in flight: stale write dropped ─
 
 {
-  const resolvers: Array<(v: unknown) => void> = [];
+  const resolvers: Array<(v: TransportResult) => void> = [];
   const deferred: SdkTransport = {
     execute() {
       return new Promise((resolve) => { resolvers.push(resolve); });
     },
   };
-  const makePage = (version: string, items: CatalogItem[]) => ({
-    status: 'success',
-    response: { id: 't', status: 'COMPLETED', result: { items, version, ttlSeconds: 21600, nextCursor: null } },
+  const makePage = (version: string, items: CatalogItem[]): TransportResult => ({
+    result: { items, version, ttlSeconds: 21600, nextCursor: null },
   });
   clearHydratedCatalogs();
   const c = createCatalogs(deferred);
@@ -281,14 +271,7 @@ await assert.rejects(
   const zeroTtl: SdkTransport = {
     async execute(request) {
       executeCalls.push(request);
-      return {
-        status: 'success',
-        response: {
-          id: 't',
-          status: 'COMPLETED',
-          result: { items: avatarItems.slice(0, 3), version: 'v', ttlSeconds: 0, nextCursor: null },
-        },
-      };
+      return { result: { items: avatarItems.slice(0, 3), version: 'v', ttlSeconds: 0, nextCursor: null } };
     },
   };
   const c = createCatalogs(zeroTtl);

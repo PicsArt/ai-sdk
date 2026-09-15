@@ -230,7 +230,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     workflow: 'elevenlabs/v1/voice-remix',
     buildPayload: buildElevenLabsVoiceRemixPayload,
     estimatedTime: 15,
-    mode: 'audio', inputType: 'tts', disabled: true,
+    mode: 'audio', inputType: 'tts', release: 'preview',
     description: 'Remix voice characteristics by describing the desired vocal style.',
     features: [feat('Voice Design', 'characteristic'), feat('Remix', 'characteristic')],
     paramConfig: {

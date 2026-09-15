@@ -14,7 +14,7 @@ import type { ModelInput } from '../../../generated/model-input-types.ts';
 import { getHydratedCatalog } from '../../../core/catalogs.ts';
 import { ApiError } from '../../../core/errors.ts';
 import { registerEditPayloads, registerPayloads } from '../../define.ts';
-import { KLING_DUAL_IMAGE_EFFECTS, MODELS } from './index.ts';
+import { MODELS } from './index.ts';
 
 // ── Per-model input aliases ─────────────────────────────────────────
 
@@ -346,21 +346,29 @@ export const buildKlingElementsPayload = (input: KlingElementsInput): KlingEleme
 
 // ── Video effects (single or dual-image scenes) ─────────────────────
 
+// Dual-image effect scenes — private fallback for when the template catalog
+// isn't hydrated. The public KLING_DUAL_IMAGE_EFFECTS export was removed in
+// 6.0; `meta.imageSlots` on the hydrated catalog is the source of truth.
+const DUAL_IMAGE_EFFECTS: ReadonlySet<string> = new Set([
+  'pet_skateboard', 'daily_ootd', 'toss_run', 'switch_to_silk', 'studio_look',
+  'french_elegance', 'finger_swipe', 'smooth_transition', 'kiss_pro', 'snow_night_kiss',
+  'eternal_kiss', 'cheers_2026', 'fight_pro', 'hug_pro', 'heart_gesture_pro',
+]);
+
 /** The image slot count is a property of the SELECTED EFFECT, not of how many
  *  images the user happened to upload: dual-image scenes require exactly
  *  `images` (length 2), every other scene requires the single `image` field.
  *  The slot count comes from the hydrated template catalog (meta.imageSlots),
- *  falling back to the frozen KLING_DUAL_IMAGE_EFFECTS set when the catalog
+ *  falling back to the frozen DUAL_IMAGE_EFFECTS set when the catalog
  *  isn't loaded. */
-export const buildKlingVideoEffectsPayload = (input: KlingVideoEffectsInput & { style?: string }) => {
-  // `style` carried the effect id before the catalog-bound `templateId` param
-  // (4.1); persisted history still sends it. Alias removed in the next major.
-  const scene = input.templateId ?? input.style;
+export const buildKlingVideoEffectsPayload = (input: KlingVideoEffectsInput) => {
+  // 6.0: the pre-4.1 `style` alias for the effect id is gone — templateId only.
+  const scene = input.templateId;
   const catalogItem = getHydratedCatalog({ workflow: 'kling/v1/catalog/templates' })
     ?.items.find(item => item.id === scene);
   const slots = typeof catalogItem?.meta?.imageSlots === 'number'
     ? catalogItem.meta.imageSlots
-    : (scene && KLING_DUAL_IMAGE_EFFECTS.has(scene) ? 2 : 1);
+    : (scene && DUAL_IMAGE_EFFECTS.has(scene) ? 2 : 1);
   const uploaded = input.imageUrls?.length ?? 0;
   if (uploaded < slots) {
     throw new ApiError(`Kling Video Effects: the "${scene}" effect requires ${slots} image${slots > 1 ? 's' : ''} (got ${uploaded}).`, { status: 400, code: 'validation_error' });

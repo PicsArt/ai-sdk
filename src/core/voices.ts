@@ -12,9 +12,6 @@ export const DEFAULT_GROK_VOICE_ID = 'eve';
 export const ASYNC_DEFAULT_VOICE_ID = 'cca0e076-b350-4966-b570-4c2fca50b525'; // "Jennie"
 export const SEEDAUDIO_DEFAULT_VOICE_ID = 'en_male_tim_uranus_bigtts';
 
-export function getVoiceById(id: string): VoiceOption | undefined;
-/** @deprecated Load the model's catalog instead (`ai.catalogs.voices(modelId)`) — loaded voices are searched automatically. */
-export function getVoiceById(id: string, extra: VoiceOption[] | undefined): VoiceOption | undefined;
-export function getVoiceById(id: string, extra?: VoiceOption[]): VoiceOption | undefined {
-  return [...(extra ?? []), ...getHydratedVoices()].find((v) => v.id === id);
+export function getVoiceById(id: string): VoiceOption | undefined {
+  return getHydratedVoices().find((v) => v.id === id);
 }

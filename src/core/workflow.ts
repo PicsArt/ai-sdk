@@ -1,9 +1,8 @@
-// ── Workflow Client Engine ────────────────────────────────────────────
-// Pure workflow polling/execution engine with no model dependencies.
-
-import { ApiError } from './errors.ts';
-
-// ── Types ────────────────────────────────────────────────────────────
+// ── Workflow wire types ───────────────────────────────────────────────
+// Shapes of the platform task envelope plus the SDK's transport seam.
+// Every byte the generation lifecycle moves goes through an SdkTransport:
+// the built-in one (client/transport.ts) rides on @picsart/workflows-client,
+// and `createClient({ transport })` swaps in any other implementation.
 
 export interface WorkflowSubmitRequest<TPayload = Record<string, unknown>> {
   /** Workflow endpoint, e.g. "veo-text-to-video". */
@@ -74,231 +73,59 @@ export interface WorkflowStatusResult<TResult = unknown> {
   raw: unknown;
 }
 
-/**
- * The transport contract for talking to the workflows backend.
- *
- * `execute` (one-shot synchronous generation) is the only required method.
- * `submit` + `status` are the async submit-and-poll pair — optional, so an
- * execute-only transport can omit them. `options` is the SDK-level
- * credit-estimation call. When a transport omits `submit`, the client routes
- * all generation through `execute`; calling the async lifecycle methods
- * (submit/status/result/subscribe) on such a client throws.
- */
-export interface SdkTransport<TPayload = Record<string, unknown>> {
-  execute(request: WorkflowSubmitRequest<TPayload>): Promise<unknown>;
-  submit?(request: WorkflowSubmitRequest<TPayload>): Promise<WorkflowJobHandle>;
-  status?(handle: WorkflowJobHandle, signal?: AbortSignal): Promise<unknown>;
-  options?(workflow: string, payload: Record<string, unknown>): Promise<number | null>;
-}
-
 export interface WorkflowPollOptions {
   intervalMs?: number;
   maxAttempts?: number;
   signal?: AbortSignal;
 }
 
-export interface WorkflowRunOptions extends WorkflowPollOptions {
-  mode?: 'async' | 'sync';
+/**
+ * What a transport hands back from `execute` / `poll` / `status`: the task
+ * result the SDK parses, the platform's credit usage, and — when the
+ * transport has an envelope distinct from the result — the raw payload
+ * (text models read it as a fallback).
+ */
+export interface TransportResult<TResult = unknown> {
+  result?: TResult;
+  usage?: CreditUsage;
+  /** Raw payload as the transport received it. Defaults to `result`. */
+  raw?: unknown;
 }
 
-export type WorkflowSubscribeOptions = WorkflowPollOptions;
-
-export interface WorkflowClientOptions {
-  pollingIntervalMs?: number;
-  maxAttempts?: number;
-  parseStatus?: <TResult = unknown>(
-    handle: WorkflowJobHandle,
-    raw: unknown,
-  ) => WorkflowStatusResult<TResult>;
-  sleep?: (ms: number) => Promise<void>;
+/** Poll controls plus the progress sink `ai.subscribe()` drains. */
+export interface TransportPollOptions extends WorkflowPollOptions {
+  onProgress?: (progress: WorkflowProgress) => void;
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────
-
-const DEFAULT_POLL_INTERVAL_MS = 2000;
-const DEFAULT_MAX_ATTEMPTS = 300;
-
-const sleepDefault = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
-
-function getNested(raw: unknown, path: string[]): unknown {
-  let current: unknown = raw;
-  for (const key of path) {
-    if (!current || typeof current !== 'object') return undefined;
-    current = (current as Record<string, unknown>)[key];
-  }
-  return current;
-}
-
-function pickFirst(raw: unknown, paths: string[][]): unknown {
-  for (const path of paths) {
-    const value = getNested(raw, path);
-    if (value !== undefined) return value;
-  }
-  return undefined;
-}
-
-function normalizeStatus(status: unknown): WorkflowStatus {
-  if (typeof status !== 'string') return 'UNKNOWN';
-  const s = status.toUpperCase();
-  if (s === 'ACCEPTED') return 'ACCEPTED';
-  if (s === 'IN_PROGRESS' || s === 'PENDING' || s === 'RUNNING') return 'IN_PROGRESS';
-  if (s === 'COMPLETED' || s === 'SUCCESS') return 'COMPLETED';
-  if (s === 'FAILED' || s === 'ERROR') return 'FAILED';
-  if (s === 'CANCELED' || s === 'CANCELLED') return 'CANCELED';
-  return 'UNKNOWN';
-}
-
-/** Parse raw workflow API response into a typed status result. */
-export function parseWorkflowStatus<TResult = unknown>(
-  handle: WorkflowJobHandle,
-  raw: unknown,
-): WorkflowStatusResult<TResult> {
-  const statusRaw = pickFirst(raw, [['response', 'status'], ['status']]);
-  const status = normalizeStatus(statusRaw);
-  const result = pickFirst(raw, [['response', 'result'], ['result']]) as TResult | undefined;
-  const usageRaw = pickFirst(raw, [['response', 'usage'], ['usage']]);
-  // Accept only the platform CreditUsage shape (credits and/or details) —
-  // vendor token usage (prompt_tokens, ...) has neither and must not leak in.
-  const usage = (usageRaw && typeof usageRaw === 'object'
-    && (typeof (usageRaw as Record<string, unknown>).credits === 'number'
-      || Array.isArray((usageRaw as Record<string, unknown>).details)))
-    ? usageRaw as CreditUsage
-    : undefined;
-  const errorRaw = pickFirst(raw, [['response', 'error'], ['response', 'message'], ['error'], ['message'], ['reason']]);
-  const reasonRaw = pickFirst(raw, [['response', 'reason'], ['reason']]);
-  const statusCodeRaw = pickFirst(raw, [['response', 'statusCode'], ['statusCode']]);
-  const progressRaw = pickFirst(raw, [['response', 'progress'], ['progress']]);
-  const progress = (progressRaw && typeof progressRaw === 'object')
-    ? {
-        percent: typeof (progressRaw as Record<string, unknown>).percent === 'number'
-          ? (progressRaw as Record<string, unknown>).percent as number
-          : undefined,
-        estimatedSecondsLeft:
-          typeof (progressRaw as Record<string, unknown>).estimatedSecondsLeft === 'number'
-            ? (progressRaw as Record<string, unknown>).estimatedSecondsLeft as number
-            : undefined,
-      }
-    : undefined;
-
-  return {
-    handle,
-    status,
-    result,
-    error: typeof errorRaw === 'string' ? errorRaw : undefined,
-    reason: typeof reasonRaw === 'string' ? reasonRaw : undefined,
-    statusCode: typeof statusCodeRaw === 'number' ? statusCodeRaw : undefined,
-    progress,
-    usage,
-    raw,
-  };
-}
-
-function isTerminal(status: WorkflowStatus): boolean {
-  return status === 'COMPLETED' || status === 'FAILED' || status === 'CANCELED';
-}
-
-
-// ── Client Factory ───────────────────────────────────────────────────
-
-/** Create a workflow client that handles polling, execution, and lifecycle. */
-export function createWorkflowClient<TPayload = Record<string, unknown>>(
-  transport: SdkTransport<TPayload>,
-  options: WorkflowClientOptions = {},
-) {
-  const parseStatus = options.parseStatus ?? parseWorkflowStatus;
-  const sleep = options.sleep ?? sleepDefault;
-  const defaultPollIntervalMs = options.pollingIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
-  const defaultMaxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
-
-  const submit = async (request: WorkflowSubmitRequest<TPayload>): Promise<WorkflowJobHandle> => {
-    if (!transport.submit) {
-      throw new ApiError('Transport does not support submit (execute-only transport)', {
-        status: 400,
-        code: 'unsupported_transport',
-      });
-    }
-    return transport.submit(request);
-  };
-
-  const status = async <TResult = unknown>(
-    handle: WorkflowJobHandle,
-    signal?: AbortSignal,
-  ): Promise<WorkflowStatusResult<TResult>> => {
-    if (!transport.status) {
-      throw new ApiError('Transport does not support status (execute-only transport)', {
-        status: 400,
-        code: 'unsupported_transport',
-      });
-    }
-    const raw = await transport.status(handle, signal);
-    return parseStatus<TResult>(handle, raw);
-  };
-
-  const result = async <TResult = unknown>(
-    handle: WorkflowJobHandle,
-    pollOptions: WorkflowPollOptions = {},
-  ): Promise<WorkflowStatusResult<TResult>> => {
-    const intervalMs = pollOptions.intervalMs ?? defaultPollIntervalMs;
-    const maxAttempts = pollOptions.maxAttempts ?? defaultMaxAttempts;
-
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      if (pollOptions.signal?.aborted) {
-        throw new ApiError('Operation aborted', { status: 499, code: 'aborted' });
-      }
-      const next = await status<TResult>(handle, pollOptions.signal);
-      if (isTerminal(next.status)) return next;
-      await sleep(intervalMs);
-    }
-    throw new ApiError(
-      `Timed out waiting for workflow ${handle.workflow}:${handle.id}`,
-      { status: 408, code: 'timeout' },
-    );
-  };
-
-  const run = async <TResult = unknown>(
-    request: WorkflowSubmitRequest<TPayload>,
-    runOptions: WorkflowRunOptions = {},
-  ): Promise<WorkflowStatusResult<TResult>> => {
-    const runMode = runOptions.mode;
-
-    // Execute when explicitly asked, or when the transport can't submit-and-poll
-    // (an execute-only transport) and no mode was forced.
-    const useExecute = runMode === 'sync' || (runMode === undefined && !transport.submit);
-
-    if (useExecute) {
-      const raw = await transport.execute(request);
-      const syntheticHandle: WorkflowJobHandle = { workflow: request.workflow, id: 'sync' };
-      const parsed = parseStatus<TResult>(syntheticHandle, raw);
-      return parsed.status === 'UNKNOWN'
-        ? { ...parsed, status: 'COMPLETED' }
-        : parsed;
-    }
-
-    const handle = await submit(request);
-    return result<TResult>(handle, runOptions);
-  };
-
-  const subscribe = async function* <TResult = unknown>(
-    handle: WorkflowJobHandle,
-    subscribeOptions: WorkflowSubscribeOptions = {},
-  ): AsyncGenerator<WorkflowStatusResult<TResult>, WorkflowStatusResult<TResult>, void> {
-    const intervalMs = subscribeOptions.intervalMs ?? defaultPollIntervalMs;
-    const maxAttempts = subscribeOptions.maxAttempts ?? defaultMaxAttempts;
-
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      if (subscribeOptions.signal?.aborted) {
-        throw new ApiError('Operation aborted', { status: 499, code: 'aborted' });
-      }
-      const next = await status<TResult>(handle, subscribeOptions.signal);
-      yield next;
-      if (isTerminal(next.status)) return next;
-      await sleep(intervalMs);
-    }
-    throw new ApiError(
-      `Timed out waiting for workflow ${handle.workflow}:${handle.id}`,
-      { status: 408, code: 'timeout' },
-    );
-  };
-
-  return { submit, status, result, run, subscribe };
+/**
+ * The transport contract for talking to the generation backend — the one seam
+ * every SDK request passes through. `createClient({ apiUrl, apiKey })` builds
+ * the default implementation over @picsart/workflows-client;
+ * `createClient({ transport })` replaces it wholesale (a different gateway, a
+ * signed proxy, a test double).
+ *
+ * `execute` (one-shot synchronous run) is the only required method — it serves
+ * `syncExecute` models and every catalog task. `submit` + `poll` are the async
+ * submit-and-wait pair: when either is missing, the client routes ALL
+ * generation through `execute`, and the async lifecycle (`submit()` /
+ * `result()` / `subscribe()`) rejects with `unsupported_transport`. `status` is
+ * a single non-blocking read, used to probe which route a bare generation id
+ * was submitted on; `options` is the credit-estimation call behind
+ * `getCredits()`. Omitted optional methods degrade the matching feature rather
+ * than breaking the client.
+ *
+ * Failures should be thrown as {@link ApiError} — anything else reaches the
+ * caller as a 502 `generation_failed`. An `AbortError` is never wrapped.
+ */
+export interface SdkTransport<TPayload = Record<string, unknown>> {
+  /** One-shot synchronous run: submit and return the finished result. */
+  execute(request: WorkflowSubmitRequest<TPayload>): Promise<TransportResult>;
+  /** Start an async job and return its generation id. */
+  submit?(request: WorkflowSubmitRequest<TPayload>): Promise<string>;
+  /** Wait for a submitted job to reach a terminal state, reporting progress. */
+  poll?(handle: WorkflowJobHandle, options?: TransportPollOptions): Promise<TransportResult>;
+  /** Read a submitted job's current state in one request — no waiting. */
+  status?(handle: WorkflowJobHandle, signal?: AbortSignal): Promise<TransportResult>;
+  /** Credits this request would cost, or null when pricing is unavailable. */
+  options?(workflow: string, payload: Record<string, unknown>): Promise<number | null>;
 }

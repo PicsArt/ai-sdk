@@ -1,10 +1,10 @@
 import type {
-  WorkflowJobHandle,
   SdkTransport,
-  WorkflowPollOptions,
-  WorkflowSubscribeOptions,
-  WorkflowStatusResult,
-  WorkflowRunOptions,
+  TransportPollOptions,
+  TransportResult,
+  WorkflowJobHandle,
+  WorkflowProgress,
+  WorkflowSubmitRequest,
   CreditUsage,
   ToolUsage,
 } from '../core/workflow.ts';
@@ -13,8 +13,22 @@ import type { DriveFolder, DriveSaveResult, PayloadDriveOptions, DriveClient } f
 import type { ApisClient } from './apis.ts';
 import type { CatalogsClient, CatalogsOptions } from './catalogs.ts';
 
-// Re-export for public API — users need these to type stored job handles + custom transports
-export type { WorkflowJobHandle, SdkTransport, CreditUsage, ToolUsage };
+// Re-export for public API — usage typing plus the transport seam. Writing a
+// transport needs the vocabulary its methods speak (`WorkflowSubmitRequest`,
+// `WorkflowJobHandle`, `TransportResult`), so those come out too; the rest of
+// the Workflow* wire types stay internal.
+export type {
+  SdkTransport,
+  TransportPollOptions,
+  TransportResult,
+  WorkflowJobHandle,
+  WorkflowSubmitRequest,
+  CreditUsage,
+  ToolUsage,
+};
+
+/** Worker-reported progress on a generation.progress event. */
+export type GenerationProgress = WorkflowProgress;
 
 // ── Client config ────────────────────────────────────────────────────
 
@@ -43,29 +57,8 @@ export interface AppIdentity {
   type: AppType;
 }
 
-/**
- * Simple client config — pass the API base URL plus one auth source, and the
- * SDK handles the rest. The SDK knows the Picsart API endpoints and response
- * shapes internally.
- *
- * Provide exactly one of:
- * - `fetch` — your own authenticated fetch (you add headers/cookies), or
- * - `apiKey` — the SDK builds a fetch that sends `Authorization: Bearer <apiKey>`.
- */
-export interface ClientConfig {
-  /**
-   * Authenticated fetch function. The SDK calls this for all HTTP requests.
-   * Provide this or `apiKey`. Takes precedence over `apiKey` when both are set.
-   */
-  fetch?: AuthenticatedFetch;
-  /**
-   * Picsart API key. When `fetch` is not provided, the SDK builds an
-   * authenticated fetch that sends `Authorization: Bearer <apiKey>` on every
-   * request (a leading `Bearer ` is stripped if present).
-   */
-  apiKey?: string;
-  /** API base URL (e.g. 'https://api.picsart.com'). */
-  apiUrl: string;
+/** Settings that apply whichever transport serves the client. */
+interface ClientConfigBase {
   /** Enable Drive integration — auto-save generations to a Drive folder. */
   drive?: DriveConfig;
   /**
@@ -80,24 +73,84 @@ export interface ClientConfig {
   catalogs?: CatalogsOptions;
 }
 
+/**
+ * The usual config: the API base URL plus one auth source, and the SDK builds
+ * its own transport over @picsart/workflows-client.
+ *
+ * Provide exactly one of:
+ * - `fetch` — your own authenticated fetch (you add headers/cookies), or
+ * - `apiKey` — the SDK builds a fetch that sends `Authorization: Bearer <apiKey>`.
+ */
+interface HttpClientConfig extends ClientConfigBase {
+  /**
+   * Authenticated fetch function. The SDK calls this for all HTTP requests.
+   * Provide this or `apiKey`. Takes precedence over `apiKey` when both are set.
+   */
+  fetch?: AuthenticatedFetch;
+  /**
+   * Picsart API key. When `fetch` is not provided, the SDK builds an
+   * authenticated fetch that sends `Authorization: Bearer <apiKey>` on every
+   * request (a leading `Bearer ` is stripped if present).
+   */
+  apiKey?: string;
+  /** API base URL (e.g. 'https://api.picsart.com'). */
+  apiUrl: string;
+  transport?: undefined;
+}
+
+/**
+ * Config for a caller-supplied {@link SdkTransport} — you own the wire, so
+ * `apiUrl` and the auth source are yours to bake into the transport and are
+ * not required here (the SDK never passes them to it).
+ *
+ * Two surfaces still speak the workflows protocol directly and therefore keep
+ * needing `apiUrl` plus `fetch`/`apiKey` when you use them: `ai.drive`, and
+ * `ai.apis`. Everything else — generate, the async lifecycle, `getCredits`,
+ * `ai.catalogs` — goes through the transport.
+ */
+interface TransportClientConfig extends ClientConfigBase {
+  /** Transport the client runs on, in place of the built-in one. */
+  transport: SdkTransport;
+  /** Only needed for `ai.drive` / `ai.apis`. */
+  apiUrl?: string;
+  /** Only needed for `ai.drive` / `ai.apis`. */
+  fetch?: AuthenticatedFetch;
+  /** Only needed for `ai.drive` / `ai.apis`. */
+  apiKey?: string;
+}
+
+/**
+ * Client config — either the built-in transport's shape or a custom
+ * transport's. The two halves are deliberately unexported: they carry the same
+ * fields and differ only in which are required, so `ClientConfig` is the single
+ * name to annotate with.
+ */
+export type ClientConfig = HttpClientConfig | TransportClientConfig;
+
 // ── Result types ─────────────────────────────────────────────────────
+
+import type { GenerateResultItemMetadata } from '../core/response.ts';
+export type { GenerateResultItemMetadata };
 
 export interface GenerateResultItem {
   url: string;
-  metadata?: Record<string, unknown>;
+  metadata?: GenerateResultItemMetadata;
 }
 
+/** Result of a media generation. */
 export interface GenerateResult {
-  /** Primary result URL (convenience shortcut for results[0].url). */
+  /** Primary result URL (convenience shortcut for items[0].url). */
   url: string;
-  /** All result items — single item for normal models, multiple for explore/multi-result models. */
+  /** All result items — one for normal models, multiple for explore/multi-result models. */
+  items: GenerateResultItem[];
+  /** @deprecated Use {@link items} — same array; removed in the next major. */
   results: GenerateResultItem[];
-  /** Model ID that produced this result. */
-  model: string;
-  /** Job handle for status tracking. */
-  handle: WorkflowJobHandle;
-  /** Raw parsed output for advanced consumers. */
-  raw: unknown;
+  /**
+   * The generation id — pass to result()/subscribe() together with the model
+   * id. Absent for syncExecute models: their generation completes inline in
+   * one request, so there is no job to poll or recover.
+   */
+  generationId?: string;
   /** Credit usage reported by the platform — same structure as the pluggable APIs' GenAITaskResponse. */
   usage?: CreditUsage;
   /** Present when Drive is enabled and the file was saved. */
@@ -110,13 +163,43 @@ export interface GenerateTextResult {
   text: string;
   /** Model ID that produced this result. */
   model: string;
-  /** Job handle for status tracking. */
-  handle: WorkflowJobHandle;
   /** Raw parsed output — carries vendor token usage, finish reason, thinking trace, etc. */
   raw: unknown;
   /** Credit usage reported by the platform — same structure as the pluggable APIs' GenAITaskResponse. */
   usage?: CreditUsage;
 }
+
+// ── Generation events (ai.subscribe) ─────────────────────────────────
+
+import type { ApiError } from '../core/errors.ts';
+
+/**
+ * Named constants for the {@link GenerationEvent} discriminant — sugar over
+ * the string literals for consumers who prefer `GenerationEventType.Completed`
+ * to `'generation.completed'`. Both compare fine: the event `type` field stays
+ * a literal union, so raw strings keep working (and keep autocompleting).
+ */
+export const GenerationEventType = {
+  Progress: 'generation.progress',
+  Completed: 'generation.completed',
+  Failed: 'generation.failed',
+} as const;
+export type GenerationEventType =
+  (typeof GenerationEventType)[keyof typeof GenerationEventType];
+
+/**
+ * One `ai.subscribe()` update.
+ * - `generation.progress` — a non-terminal poll; `progress` is present when
+ *   the worker reports it (percent, ETA).
+ * - `generation.completed` — terminal; carries the parsed
+ *   {@link GenerateResult} in `result`, no follow-up `ai.result()` needed.
+ * - `generation.failed` — terminal (worker FAILED or the job was canceled);
+ *   carries the same {@link ApiError} that `ai.result()` would have thrown.
+ */
+export type GenerationEvent =
+  | { type: 'generation.progress'; progress?: GenerationProgress }
+  | { type: 'generation.completed'; result: GenerateResult }
+  | { type: 'generation.failed'; error: ApiError };
 
 /** Input-transformation settings injected into the workflow payload as
  *  `options.inputs_transformation` (GenAIOptions, alongside `drive`). */
@@ -129,6 +212,15 @@ export interface PayloadInputsTransformationOptions {
    * transformation ignore it.
    */
   downscaleOversizedImages?: boolean;
+}
+
+/** Polling controls for result()/subscribe() on an already-submitted job. */
+export interface GenerationOptions {
+  /** Poll interval in ms. Overrides the model's `pollOptions` and the mode default. */
+  intervalMs?: number;
+  /** Max poll attempts before timing out. Overrides the model's `pollOptions` and the mode default. */
+  maxAttempts?: number;
+  signal?: AbortSignal;
 }
 
 /** Options for individual generate() / submit() calls. */
@@ -176,23 +268,23 @@ export interface AiClient {
   /** Get exact credit cost for a model with specific parameters. */
   getCredits<M extends TypedModelId>(model: M, params: ModelInputById[M]): Promise<number | null>;
 
-  /** Submit a generation job and get a handle back. Media models only. */
-  submit<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<WorkflowJobHandle>;
-
-  /** Check the current status of a submitted job. */
-  status(handle: WorkflowJobHandle, signal?: AbortSignal): Promise<WorkflowStatusResult<unknown>>;
+  /** Submit a generation job and get its generation id back. Media models only. */
+  submit<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<string>;
 
   /** Poll a submitted job until it completes and return the parsed result. Media models only. */
-  result(handle: WorkflowJobHandle, model: MediaModelId, options?: WorkflowPollOptions): Promise<GenerateResult>;
+  result(model: MediaModelId, generationId: string, options?: GenerationOptions): Promise<GenerateResult>;
 
-  /** Subscribe to live status updates for a submitted job. */
-  subscribe(handle: WorkflowJobHandle, options?: WorkflowSubscribeOptions): AsyncGenerator<WorkflowStatusResult<unknown>, WorkflowStatusResult<unknown>, void>;
+  /**
+   * Subscribe to live updates for a submitted job. Yields one
+   * {@link GenerationEvent} per poll; the terminal `generation.completed`
+   * event carries the parsed result in `event.result`, and failures/cancels
+   * arrive as `generation.failed` events (with the {@link ApiError}), not as
+   * exceptions.
+   */
+  subscribe(model: MediaModelId, generationId: string, options?: GenerationOptions): AsyncGenerator<GenerationEvent, void, void>;
 
   /** Build the vendor-specific payload for a model without submitting. */
   buildPayload<M extends TypedModelId>(model: M, params: ModelInputById[M]): Record<string, unknown>;
-
-  /** @deprecated Use `apis.run()` instead. Run a raw workflow (not tied to a model). */
-  runWorkflow<TResult = unknown>(workflow: string, payload: Record<string, unknown>, options?: WorkflowRunOptions): Promise<TResult>;
 
   /**
    * Direct, low-level access to the Picsart model APIs — run any API by name.

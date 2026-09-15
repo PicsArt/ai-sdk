@@ -7,9 +7,9 @@
  * matchers keep working.
  */
 import assert from 'node:assert';
-import { createClient } from '../../src/client/index.ts';
+import { createClient, ApiRunMode } from '../../src/client/index.ts';
 import { ApiError } from '../../src/core/errors.ts';
-import type { WorkflowSubmitRequest, WorkflowJobHandle } from '../../src/core/workflow.ts';
+import { mockPlatform, FAST_POLL } from './helpers/mock-platform.ts';
 
 const API = 'https://api.example.com';
 
@@ -98,7 +98,7 @@ const unauthorized = await caught(
 );
 assert.strictEqual(unauthorized.status, 401);
 assert.strictEqual(unauthorized.code, 'unauthorized', 'API reason wins over the status slug');
-assert.strictEqual(unauthorized.message, 'Submit failed (401): Invalid token');
+assert.strictEqual(unauthorized.message, 'Invalid token', "the platform's own message reaches the caller");
 
 const outOfCredits = await caught(
   () => clientReturning(() => json(402, { message: 'Not enough credits' }))
@@ -107,7 +107,7 @@ const outOfCredits = await caught(
 );
 assert.strictEqual(outOfCredits.status, 402);
 assert.strictEqual(outOfCredits.code, 'payment_required', 'status slug fills in when reason is absent');
-assert.strictEqual(outOfCredits.message, 'Submit failed (402): Not enough credits');
+assert.strictEqual(outOfCredits.message, 'Not enough credits');
 
 const rateLimited = await caught(
   () => clientReturning(() => json(429, { message: 'slow down' }))
@@ -126,7 +126,9 @@ const htmlGateway = await caught(
 );
 assert.strictEqual(htmlGateway.status, 502);
 assert.strictEqual(htmlGateway.code, 'bad_gateway');
-assert.strictEqual(htmlGateway.message, 'Submit failed (502): <html>Bad Gateway</html>');
+// A body that isn't JSON carries no platform message, so the transport reports
+// it as such; the status lives on the error's own field.
+assert.match(htmlGateway.message, /Non json response/);
 
 // A 200 with no task id is an unusable response, not a success.
 const noTaskId = await caught(
@@ -135,7 +137,28 @@ const noTaskId = await caught(
 );
 assert.strictEqual(noTaskId.status, 502);
 assert.strictEqual(noTaskId.code, 'invalid_response');
-assert.strictEqual(noTaskId.message, 'No task id in response: {"response":{}}');
+assert.strictEqual(noTaskId.message, 'No task id in response');
+
+// ── ai.apis — the low-level surface throws ApiError too ─────────────
+
+// The workflows client's own error type never reaches a caller: `ai.apis.run`
+// maps it exactly like the generation surface does.
+const apisUnauthorized = await caught(
+  () => clientReturning(() => json(401, { status: 'error', reason: 'unauthorized', message: 'Invalid token' }))
+    .apis.run('media-platform/v1/videos/edit', { x: 1 }, { mode: ApiRunMode.SYNC }),
+  'apis 401',
+);
+assert.strictEqual(apisUnauthorized.status, 401);
+assert.strictEqual(apisUnauthorized.code, 'unauthorized');
+assert.strictEqual(apisUnauthorized.message, 'Invalid token');
+
+const apisOutOfCredits = await caught(
+  () => clientReturning(() => json(402, { message: 'Not enough credits' }))
+    .apis.run('media-platform/v1/videos/edit', { x: 1 }, { mode: ApiRunMode.SYNC }),
+  'apis 402',
+);
+assert.strictEqual(apisOutOfCredits.status, 402);
+assert.strictEqual(apisOutOfCredits.code, 'payment_required', 'status slug fills in for ai.apis as well');
 
 // ── HTTP failures — execute path (syncExecute model) ────────────────
 
@@ -145,7 +168,7 @@ const executeFailed = await caught(
 );
 assert.strictEqual(executeFailed.status, 500);
 assert.strictEqual(executeFailed.code, 'server_error');
-assert.strictEqual(executeFailed.message, 'Execute failed (500): boom');
+assert.match(executeFailed.message, /Non json response/);
 
 const executeReason = await caught(
   () => clientReturning(() => json(422, { status: 'error', reason: 'content_moderation', message: 'blocked' }))
@@ -165,10 +188,7 @@ const executeTaskFailure = await caught(
 );
 assert.strictEqual(executeTaskFailure.status, 422);
 assert.strictEqual(executeTaskFailure.code, 'content_moderation');
-assert.strictEqual(
-  executeTaskFailure.message,
-  'Execute failed (422): Prompt blocked by moderation',
-);
+assert.strictEqual(executeTaskFailure.message, 'Prompt blocked by moderation');
 
 // ── HTTP failures — status/poll path ────────────────────────────────
 
@@ -183,7 +203,7 @@ const statusFailed = await caught(
 );
 assert.strictEqual(statusFailed.status, 503);
 assert.strictEqual(statusFailed.code, 'service_unavailable');
-assert.strictEqual(statusFailed.message, 'Status check failed (503): unavailable');
+assert.match(statusFailed.message, /Non json response/);
 
 // The most common real failure: submit succeeds, then the task fails and the
 // poll returns the platform error response.
@@ -200,100 +220,58 @@ const taskFailure = await caught(
 );
 assert.strictEqual(taskFailure.status, 422);
 assert.strictEqual(taskFailure.code, 'content_moderation');
-assert.strictEqual(
-  taskFailure.message,
-  'Status check failed (422): Prompt blocked by moderation',
-  'the platform message, not the raw JSON body',
-);
+assert.strictEqual(taskFailure.message, 'Prompt blocked by moderation', 'the platform message, not the raw JSON body');
 
 // ── Lifecycle: timeout and abort ────────────────────────────────────
 
-function transportWithStatus(status: () => unknown) {
-  return {
-    async submit(request: WorkflowSubmitRequest) {
-      return { workflow: request.workflow, id: 'mock-1' };
-    },
-    async status() { return status(); },
-    async execute() { return status(); },
-  };
-}
+/** A client whose task polls always report the given status frame. */
+const clientPolling = (status: () => Record<string, unknown>) =>
+  createClient({
+    apiUrl: API,
+    fetch: mockPlatform({ status: () => status() as never }).fetch,
+  });
 
-const pending = createClient(transportWithStatus(() => ({ status: 'IN_PROGRESS' })));
-const handle: WorkflowJobHandle = { workflow: 'flux/v1/generate', id: 'mock-1' };
+const pending = clientPolling(() => ({ status: 'IN_PROGRESS' }));
 
 const timedOut = await caught(
-  () => pending.result(handle, 'flux-2-pro', { maxAttempts: 2, intervalMs: 1 }),
+  () => pending.result('flux-2-pro', 'mock-1', { maxAttempts: 2, intervalMs: 1 }),
   'poll timeout',
 );
 assert.strictEqual(timedOut.status, 408, 'poll timeout mirrors the workflows-client 408 convention');
 assert.strictEqual(timedOut.code, 'timeout');
-assert.strictEqual(timedOut.message, 'Timed out waiting for workflow flux/v1/generate:mock-1');
+assert.strictEqual(timedOut.message, 'Timed out waiting for workflow bfl/v1/flux-2:mock-1');
 
 const controller = new AbortController();
 controller.abort();
 const aborted = await caught(
-  () => pending.result(handle, 'flux-2-pro', { signal: controller.signal }),
+  () => pending.result('flux-2-pro', 'mock-1', { signal: controller.signal, intervalMs: 1 }),
   'abort',
 );
 assert.strictEqual(aborted.status, 499);
 assert.strictEqual(aborted.code, 'aborted');
 assert.strictEqual(aborted.message, 'Operation aborted');
 
-// An execute-only transport still rejects the async lifecycle clearly.
-const executeOnly = createClient({ async execute() { return { status: 'COMPLETED', result: { url: 'u' } }; } });
-const noSubmit = await caught(() => executeOnly.submit('flux-2-pro', { prompt: 'x' }), 'no submit');
-assert.strictEqual(noSubmit.status, 400);
-assert.strictEqual(noSubmit.code, 'unsupported_transport');
-assert.strictEqual(noSubmit.message, 'Transport does not support submit (execute-only transport)');
-
 // ── Job-level failures ──────────────────────────────────────────────
 
+// The adapter contract (pa-pluggable-api-adapter FailedTaskResult): a FAILED
+// task resolves as HTTP 200 with the FailedResult payload in `result` —
+// { message, reason, statusCode }.
 const failedWithReason = await caught(
-  () => createClient(transportWithStatus(() => ({
-    status: 'FAILED', error: 'model exploded', reason: 'content_moderation', statusCode: 422,
-  }))).generate('flux-2-pro', { prompt: 'x' }),
+  () => clientPolling(() => ({
+    status: 'FAILED',
+    result: { message: 'model exploded', reason: 'content_moderation', statusCode: 422 },
+  })).generate('flux-2-pro', { prompt: 'x' }, FAST_POLL),
   'FAILED with reason',
 );
 assert.strictEqual(failedWithReason.status, 422, "the task's own statusCode wins");
 assert.strictEqual(failedWithReason.code, 'content_moderation');
-assert.strictEqual(failedWithReason.message, 'Flux 2 Pro failed: model exploded');
-
-const failedBare = await caught(
-  () => createClient(transportWithStatus(() => ({ status: 'FAILED' })))
-    .generate('flux-2-pro', { prompt: 'x' }),
-  'FAILED bare',
-);
-assert.strictEqual(failedBare.status, 502);
-assert.strictEqual(failedBare.code, 'generation_failed');
-assert.strictEqual(failedBare.message, 'Flux 2 Pro failed: unknown error');
-
-const canceled = await caught(
-  () => createClient(transportWithStatus(() => ({ status: 'CANCELED' })))
-    .generate('flux-2-pro', { prompt: 'x' }),
-  'CANCELED',
-);
-assert.strictEqual(canceled.status, 499);
-assert.strictEqual(canceled.code, 'canceled');
-assert.strictEqual(canceled.message, 'Flux 2 Pro was canceled');
-
-// A nested error envelope — { response: { status:'error', reason, message } }.
-// `response.message` must reach the caller rather than falling through to
-// 'unknown error'.
-const nestedError = await caught(
-  () => createClient(transportWithStatus(() => ({
-    response: { status: 'error', reason: 'content_moderation', message: 'Prompt blocked by moderation' },
-  }))).generate('flux-2-pro', { prompt: 'x' }),
-  'nested error envelope',
-);
-assert.strictEqual(nestedError.status, 502, 'no statusCode in the body, so the 502 fallback');
-assert.strictEqual(nestedError.code, 'content_moderation');
-assert.strictEqual(nestedError.message, 'Flux 2 Pro failed: Prompt blocked by moderation');
+assert.strictEqual(failedWithReason.message, 'Flux 2 Pro failed (422): model exploded');
 
 // A 200 whose *result* carries an error payload.
 const errorPayload = await caught(
-  () => createClient(transportWithStatus(() => ({
+  () => clientPolling(() => ({
     status: 'COMPLETED', result: { status: 429, message: 'quota exceeded' },
-  }))).generate('flux-2-pro', { prompt: 'x' }),
+  })).generate('flux-2-pro', { prompt: 'x' }, FAST_POLL),
   'error payload in result',
 );
 assert.strictEqual(errorPayload.status, 429);
@@ -301,8 +279,8 @@ assert.strictEqual(errorPayload.code, 'rate_limited');
 assert.strictEqual(errorPayload.message, 'Flux 2 Pro failed (429): quota exceeded');
 
 const unparseable = await caught(
-  () => createClient(transportWithStatus(() => ({ status: 'COMPLETED', result: { foo: 1 } })))
-    .generate('flux-2-pro', { prompt: 'x' }),
+  () => clientPolling(() => ({ status: 'COMPLETED', result: { foo: 1 } }))
+    .generate('flux-2-pro', { prompt: 'x' }, FAST_POLL),
   'unparseable result',
 );
 assert.strictEqual(unparseable.status, 502);
@@ -310,8 +288,8 @@ assert.strictEqual(unparseable.code, 'invalid_response');
 assert.strictEqual(unparseable.message, 'Flux 2 Pro: unexpected response — no result URL');
 
 const noText = await caught(
-  () => createClient(transportWithStatus(() => ({ status: 'COMPLETED', result: { foo: 1 } })))
-    .generateText('claude-opus-4-8', { prompt: 'x' }),
+  () => clientPolling(() => ({ status: 'COMPLETED', result: { foo: 1 } }))
+    .generateText('claude-opus-4-8', { prompt: 'x' }, FAST_POLL),
   'unparseable text result',
 );
 assert.strictEqual(noText.status, 502);

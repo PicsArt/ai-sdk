@@ -236,39 +236,31 @@ export const extractAllResults = (result: unknown): MultiResultItem[] | undefine
  * best-effort: present when the vendor reports it, absent otherwise.
  */
 export interface GenerateResultItemMetadata {
-  /** Explore image id (recraft explore models). */
+  /** Explore image id (recraft explore models) — pass back as `sourceImageId`
+   *  to iterate on this image. */
   exploreImageId?: string;
   /** Voice preview id (ElevenLabs voice design/remix) — pass to the vendor's
    *  create-voice-from-preview step to persist the voice. */
   generatedVoiceId?: string;
-  /** Generation seed, when the vendor echoes it. */
-  seed?: number;
-  /** Vendor safety flag for this item (e.g. `has_nsfw_concepts[i]`). */
-  nsfw?: boolean;
-  width?: number;
-  height?: number;
-  contentType?: string;
-  /** Video duration in seconds. */
-  duration?: number;
-  /** Video frame rate. */
-  fps?: number;
-  /** Video file size in bytes. */
-  fileSize?: number;
+  /** URL of the generated video's last frame, when the model was asked for it
+   *  (`returnLastFrame`, seedance) — the seed for frame-chaining flows. */
+  lastFrameUrl?: string;
 }
 
 /**
- * Build the promoted metadata for one result item. `parsed` is the full
- * contract-parsed result (carries response-level keys like `seed` and
- * `has_nsfw_concepts`); `item` is the vendor's per-item object (an `images[]`
- * / `items[]` entry, or the whole result for single-result models).
- * `provider` gates vendor-specific promotions: `image_id` means "explore image"
- * only on recraft, `generated_voice_id` only on elevenlabs — an unrelated
- * vendor echoing those key names must not leak into the typed metadata.
+ * Build the promoted metadata for one result item — only fields a consumer
+ * acts on, nothing speculative. `item` is the vendor's per-item object (an
+ * `images[]` / `items[]` entry, or the whole result for single-result models);
+ * `parsed` is the full contract-parsed result (carries response-level keys
+ * like `last_frame_url`). `provider` gates vendor-specific promotions:
+ * `image_id` means "explore image" only on recraft, `generated_voice_id` only
+ * on elevenlabs — an unrelated vendor echoing those key names must not leak
+ * into the typed metadata.
  */
 export function buildItemMetadata(
   parsed: unknown,
   item: unknown,
-  index: number,
+  _index: number,
   provider?: string,
 ): GenerateResultItemMetadata | undefined {
   const meta: GenerateResultItemMetadata = {};
@@ -277,25 +269,10 @@ export function buildItemMetadata(
 
   if (provider === 'recraft' && typeof it?.image_id === 'string') meta.exploreImageId = it.image_id;
   if (provider === 'elevenlabs' && typeof it?.generated_voice_id === 'string') meta.generatedVoiceId = it.generated_voice_id;
-  if (typeof top?.seed === 'number') meta.seed = top.seed;
-  if (Array.isArray(top?.has_nsfw_concepts) && typeof top.has_nsfw_concepts[index] === 'boolean') {
-    meta.nsfw = top.has_nsfw_concepts[index] as boolean;
-  }
-
-  // Per-item dimensions / content type (fal-style images[] entries).
-  if (typeof it?.width === 'number') meta.width = it.width;
-  if (typeof it?.height === 'number') meta.height = it.height;
-  if (typeof it?.content_type === 'string') meta.contentType = it.content_type;
-
-  // Video results carry technical metadata on the `video` object.
-  const video = (top?.video && typeof top.video === 'object') ? top.video as Record<string, unknown> : undefined;
-  if (video) {
-    if (typeof video.duration === 'number') meta.duration = video.duration;
-    if (typeof video.fps === 'number') meta.fps = video.fps;
-    if (typeof video.file_size === 'number') meta.fileSize = video.file_size;
-    if (meta.width === undefined && typeof video.width === 'number') meta.width = video.width;
-    if (meta.height === undefined && typeof video.height === 'number') meta.height = video.height;
-  }
+  // The last frame rides the response next to the video url (seedance
+  // `returnLastFrame`); item-level wins if a vendor ever nests it per item.
+  const lastFrame = it?.last_frame_url ?? top?.last_frame_url;
+  if (typeof lastFrame === 'string') meta.lastFrameUrl = lastFrame;
 
   return Object.keys(meta).length > 0 ? meta : undefined;
 }

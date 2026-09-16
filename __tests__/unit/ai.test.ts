@@ -311,8 +311,11 @@ assert.throws(
   'subscribe() should reject text models',
 );
 
-// ── Test: items[].metadata promotion (seed / nsfw / dims / video) ─────
+// ── Test: items[].metadata — only actionable fields, nothing speculative ──
 
+// Vendor extras (seed, safety flags, dimensions) are NOT promoted: no consumer
+// acts on them, and every survivor in GenerateResultItemMetadata must be one a
+// consumer feeds back into a flow.
 const metaPlatform = mockPlatform({
   status: () => ({
     status: 'COMPLETED',
@@ -329,26 +332,24 @@ const metaPlatform = mockPlatform({
 const metaGen = await createClient({ apiUrl: 'https://api.test', fetch: metaPlatform.fetch })
   .generate('flux-2-pro', { prompt: 'meta' }, FAST_POLL);
 assert.strictEqual(metaGen.items.length, 2, 'images[] with 2 entries fans out to 2 items');
-assert.deepStrictEqual(
-  metaGen.items[0].metadata,
-  { seed: 42, nsfw: false, width: 1024, height: 768, contentType: 'image/png' },
-  'per-item metadata promoted from the vendor response',
-);
-assert.deepStrictEqual(metaGen.items[1].metadata, { seed: 42, nsfw: true });
+assert.strictEqual(metaGen.items[0].metadata, undefined, 'vendor extras are not promoted into metadata');
+assert.strictEqual(metaGen.items[1].metadata, undefined);
 
-const videoPlatform = mockPlatform({
+// The seedance last frame (returnLastFrame) IS promoted — frame-chaining flows
+// feed it back as the next generation's startFrame.
+const lastFramePlatform = mockPlatform({
   status: () => ({
     status: 'COMPLETED',
-    result: { video: { url: 'https://x/v.mp4', duration: 5, fps: 24, file_size: 999, width: 1280, height: 720 } },
+    result: { video_url: 'https://x/v.mp4', last_frame_url: 'https://x/last.png' },
   }),
 });
-const videoGen = await createClient({ apiUrl: 'https://api.test', fetch: videoPlatform.fetch })
-  .generate('kling-v3', { prompt: 'video meta' }, FAST_POLL);
-assert.strictEqual(videoGen.items[0].url, 'https://x/v.mp4');
+const lastFrameGen = await createClient({ apiUrl: 'https://api.test', fetch: lastFramePlatform.fetch })
+  .generate('seedance-2.5', { prompt: 'chain me' }, FAST_POLL);
+assert.strictEqual(lastFrameGen.items[0].url, 'https://x/v.mp4');
 assert.deepStrictEqual(
-  videoGen.items[0].metadata,
-  { width: 1280, height: 720, duration: 5, fps: 24, fileSize: 999 },
-  'video technical metadata promoted',
+  lastFrameGen.items[0].metadata,
+  { lastFrameUrl: 'https://x/last.png' },
+  'last_frame_url promoted to metadata.lastFrameUrl',
 );
 
 // ── Test: multi-image fan-out (async and sync-execute paths) ──────────

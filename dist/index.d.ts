@@ -2488,24 +2488,15 @@ interface CatalogsOptions {
  * best-effort: present when the vendor reports it, absent otherwise.
  */
 interface GenerateResultItemMetadata {
-    /** Explore image id (recraft explore models). */
+    /** Explore image id (recraft explore models) — pass back as `sourceImageId`
+     *  to iterate on this image. */
     exploreImageId?: string;
     /** Voice preview id (ElevenLabs voice design/remix) — pass to the vendor's
      *  create-voice-from-preview step to persist the voice. */
     generatedVoiceId?: string;
-    /** Generation seed, when the vendor echoes it. */
-    seed?: number;
-    /** Vendor safety flag for this item (e.g. `has_nsfw_concepts[i]`). */
-    nsfw?: boolean;
-    width?: number;
-    height?: number;
-    contentType?: string;
-    /** Video duration in seconds. */
-    duration?: number;
-    /** Video frame rate. */
-    fps?: number;
-    /** Video file size in bytes. */
-    fileSize?: number;
+    /** URL of the generated video's last frame, when the model was asked for it
+     *  (`returnLastFrame`, seedance) — the seed for frame-chaining flows. */
+    lastFrameUrl?: string;
 }
 
 /**

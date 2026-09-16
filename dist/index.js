@@ -9411,27 +9411,14 @@ var extractAllResults = (result) => {
   }
   return items.length > 0 ? items : void 0;
 };
-function buildItemMetadata(parsed, item, index, provider) {
+function buildItemMetadata(parsed, item, _index, provider) {
   const meta = {};
   const top = parsed && typeof parsed === "object" ? parsed : void 0;
   const it = item && typeof item === "object" && !Array.isArray(item) ? item : void 0;
   if (provider === "recraft" && typeof it?.image_id === "string") meta.exploreImageId = it.image_id;
   if (provider === "elevenlabs" && typeof it?.generated_voice_id === "string") meta.generatedVoiceId = it.generated_voice_id;
-  if (typeof top?.seed === "number") meta.seed = top.seed;
-  if (Array.isArray(top?.has_nsfw_concepts) && typeof top.has_nsfw_concepts[index] === "boolean") {
-    meta.nsfw = top.has_nsfw_concepts[index];
-  }
-  if (typeof it?.width === "number") meta.width = it.width;
-  if (typeof it?.height === "number") meta.height = it.height;
-  if (typeof it?.content_type === "string") meta.contentType = it.content_type;
-  const video = top?.video && typeof top.video === "object" ? top.video : void 0;
-  if (video) {
-    if (typeof video.duration === "number") meta.duration = video.duration;
-    if (typeof video.fps === "number") meta.fps = video.fps;
-    if (typeof video.file_size === "number") meta.fileSize = video.file_size;
-    if (meta.width === void 0 && typeof video.width === "number") meta.width = video.width;
-    if (meta.height === void 0 && typeof video.height === "number") meta.height = video.height;
-  }
+  const lastFrame = it?.last_frame_url ?? top?.last_frame_url;
+  if (typeof lastFrame === "string") meta.lastFrameUrl = lastFrame;
   return Object.keys(meta).length > 0 ? meta : void 0;
 }
 function toCompletedStatus(handle, result, raw, usage) {

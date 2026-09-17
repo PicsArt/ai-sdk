@@ -8,7 +8,7 @@
  * That's why -video-edit entries share `workflow: 'seedance'` with the base
  * cards but differ in payload construction.
  */
-import type { Constraint, PayloadBuilder } from '../../core/types.ts';
+import type { Constraint, GenerationContext, PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts'; // p for output_format enum, not exposed via params.*
 
@@ -222,23 +222,32 @@ export const buildSeedance20VideoExtendPayloadFor =
     generate_audio: ctx.generateAudio ?? true,
   });
 
-/** `mp4_8bit` is a Picsart-side re-encode that only applies at 1080p — the one
- *  resolution the vendor delivers as 10-bit H.265/HEVC. 480p and 720p already
- *  arrive as 8-bit H.264 (the worker accepts the value there and skips the
- *  re-encode), so the option is hidden rather than offered as a no-op.
- *  `when` supports equality only, hence one rule per lower resolution. */
-const SEEDANCE_25_8BIT_REASON =
-  '8-bit MP4 applies to 1080p only — 480p and 720p are already 8-bit H.264.';
-const seedance25FormatConstraints: Constraint[] = ['480p', '720p'].map((resolution) => ({
-  when: { resolution: { is: resolution } },
-  then: { outputFormat: { allowed: ['mp4', 'mov'], reason: SEEDANCE_25_8BIT_REASON } },
-}));
+/** Color depth is a choice in exactly one case: 1080p in the mp4 container —
+ *  the only output the vendor renders as 10-bit H.265/HEVC, which the worker can
+ *  re-encode to 8-bit H.264. 480p and 720p already arrive 8-bit and mov has no
+ *  8-bit variant, so the param is constrained away there instead of being
+ *  offered as a no-op. `when` supports equality only, hence one rule per lower
+ *  resolution. */
+const SEEDANCE_25_DEPTH_RESOLUTION_REASON =
+  'Color depth applies to 1080p only — 480p and 720p are always 8-bit.';
+const SEEDANCE_25_DEPTH_CONTAINER_REASON = 'Color depth applies to the mp4 container only.';
+const seedance25ColorDepthConstraints: Constraint[] = [
+  ...['480p', '720p'].map((resolution) => ({
+    when: { resolution: { is: resolution } },
+    then: { colorDepth: { disabled: true as const, reason: SEEDANCE_25_DEPTH_RESOLUTION_REASON } },
+  })),
+  {
+    when: { outputFormat: { is: 'mov' } },
+    then: { colorDepth: { disabled: true, reason: SEEDANCE_25_DEPTH_CONTAINER_REASON } },
+  },
+];
 
 /** Seedance 2.5 — same v2 request shape as 2.0, with three differences:
  *  - audio-only input IS allowed (2.5 lifts the "need an image or video" rule),
  *    so we reuse the 2.0 constraints minus the leading audio-only block.
  *  - wider content limits (30 images / 10 videos / 10 audios).
- *  - new `output_format` (mp4/mov/mp4_8bit) parameter, sent on every 2.5 flow.
+ *  - new `output_format` (mp4/mov/mp4_8bit) parameter, sent on every 2.5 flow;
+ *    the catalog splits it into `outputFormat` + `colorDepth`.
  *  Resolution goes up to 1080p (no 4k).
  *  The trailing rule enforces last_frame pairing: the vendor rejects a
  *  last_frame supplied on its own, and refs are already mutually exclusive
@@ -266,7 +275,7 @@ const seedance25Constraints: Constraint[] = [
     when: { endFrame: { exists: true } },
     then: { aspectRatio: { allowed: ['adaptive'], reason: SEEDANCE_25_FRAME_ADAPTIVE_REASON } },
   },
-  ...seedance25FormatConstraints,
+  ...seedance25ColorDepthConstraints,
 ];
 
 /** Worker aliases sharing the Seedance 2.5 request shape.
@@ -274,6 +283,15 @@ const seedance25Constraints: Constraint[] = [
  *  vendor endpoint with moderation disabled — full capability parity, bills
  *  under the `seedance-2.5` pricing key. */
 type Seedance25Alias = 'seedance_2_5' | 'seedance_2_5_without_moderation';
+
+/** The worker takes container and color depth in one field: 'mp4_8bit' is its
+ *  8-bit re-encode of the mp4, so the depth only applies to mp4. Below 1080p the
+ *  worker accepts 'mp4_8bit' and skips the re-encode (that output is already
+ *  8-bit), so no resolution check is needed here. */
+const seedance25OutputFormat = (ctx: GenerationContext): string => {
+  if (ctx.outputFormat === 'mov') return 'mov';
+  return ctx.colorDepth === '8bit' ? 'mp4_8bit' : 'mp4';
+};
 
 /** Seedance 2.5 — text-to-video / image-to-video / multimodal refs.
  *  Mirrors buildSeedance20PayloadFor but lifts the reference caps to 30/10/10
@@ -319,7 +337,7 @@ export const buildSeedance25PayloadFor =
       duration: ctx.duration ?? 5,
       resolution: ctx.resolution ?? '1080p',
       generate_audio: ctx.generateAudio ?? true,
-      output_format: ctx.outputFormat ?? 'mp4',
+      output_format: seedance25OutputFormat(ctx),
       ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
     };
   };
@@ -347,7 +365,7 @@ export const buildSeedance25VideoEditPayloadFor =
     duration: -1,
     resolution: ctx.resolution ?? '1080p',
     generate_audio: ctx.generateAudio ?? true,
-    output_format: ctx.outputFormat ?? 'mp4',
+    output_format: seedance25OutputFormat(ctx),
     ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
   });
 
@@ -372,20 +390,16 @@ export const buildSeedance25VideoExtendPayloadFor =
     duration: ctx.duration ?? 15,
     resolution: ctx.resolution ?? '1080p',
     generate_audio: ctx.generateAudio ?? true,
-    output_format: ctx.outputFormat ?? 'mp4',
+    output_format: seedance25OutputFormat(ctx),
   });
 
 const SEEDANCE_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', 'adaptive'];
-/** 2.5 containers. `mp4` and `mov` come straight from the vendor; `mp4_8bit` is
- *  the same mp4 re-encoded by the worker to 8-bit H.264 (1080p only — see
- *  seedance25FormatConstraints). The 8-bit re-encode is the one that plays
- *  everywhere, so it carries the plain 'MP4' label and the vendor's own mp4 is
- *  labelled by what makes it special at 1080p — its 10-bit color depth. */
-const SEEDANCE_25_FORMATS = [
-  { id: 'mp4_8bit', label: 'MP4' },
-  { id: 'mp4', label: 'MP4 10Bit' },
-  { id: 'mov', label: 'MOV' },
-];
+const SEEDANCE_25_FORMATS = ['mp4', 'mov'];
+/** Output color depth. '10bit' is what the vendor renders at 1080p; '8bit' asks
+ *  the worker to re-encode it to H.264 8-bit, which browsers and editors can
+ *  actually decode. Selectable only where it means something — see
+ *  seedance25ColorDepthConstraints. */
+const SEEDANCE_25_COLOR_DEPTHS = ['10bit', '8bit'];
 const SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 /** 2.5 accepts any whole second in 4-30s, so it is a range, not an option
  *  list — an enum would hide the values in between. */
@@ -401,7 +415,7 @@ export const { MODELS } = defineModels('seedance', [
     estimatedTime: 20,
     mode: 'video', inputType: 't2v',
     badge: ['new', 'premium', 'hot'],
-    description: 'Latest cinematic video with audio, multi-reference input, and mp4/mov/8-bit output. Up to 30s.',
+    description: 'Latest cinematic video with audio, multi-reference input, and mp4/mov output in 10- or 8-bit. Up to 30s.',
     features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
     paramConfig: {
       ...params.prompt(),
@@ -411,6 +425,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
+      ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
       ...params.videoInputs(10, 'Reference Videos', false, {
@@ -436,7 +451,7 @@ export const { MODELS } = defineModels('seedance', [
     estimatedTime: 20,
     mode: 'video', inputType: 't2v',
     badge: ['new', 'premium', 'hot'],
-    description: 'Seedance 2.5 with vendor moderation disabled — cinematic video with audio, multi-reference input, and mp4/mov/8-bit output. Up to 30s.',
+    description: 'Seedance 2.5 with vendor moderation disabled — cinematic video with audio, multi-reference input, and mp4/mov output in 10- or 8-bit. Up to 30s.',
     features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
     paramConfig: {
       ...params.prompt(),
@@ -446,6 +461,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
+      ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
       ...params.videoInputs(10, 'Reference Videos', false, {
@@ -463,7 +479,7 @@ export const { MODELS } = defineModels('seedance', [
     addedAt: '2026-08-06',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoEditPayloadFor('seedance_2_5'),
-    constraints: seedance25FormatConstraints,
+    constraints: seedance25ColorDepthConstraints,
     estimatedTime: 60,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -478,6 +494,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
+      ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
       ...params.videoInput('Source Video', 'reference', true, undefined, undefined, SEEDANCE_25_MAX_VIDEO_BYTES),
       ...params.imageInput(30, 'Reference Images'),
     },
@@ -488,7 +505,7 @@ export const { MODELS } = defineModels('seedance', [
     release: 'preview',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoEditPayloadFor('seedance_2_5_without_moderation'),
-    constraints: seedance25FormatConstraints,
+    constraints: seedance25ColorDepthConstraints,
     estimatedTime: 60,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -503,6 +520,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
+      ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
       ...params.videoInput('Source Video', 'reference', true, undefined, undefined, SEEDANCE_25_MAX_VIDEO_BYTES),
       ...params.imageInput(30, 'Reference Images'),
     },
@@ -512,7 +530,7 @@ export const { MODELS } = defineModels('seedance', [
     addedAt: '2026-08-06',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoExtendPayloadFor('seedance_2_5'),
-    constraints: seedance25FormatConstraints,
+    constraints: seedance25ColorDepthConstraints,
     estimatedTime: 200,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -527,6 +545,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
       ...params.generateAudio(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
+      ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
       ...params.videoInputs(10, 'Source Videos', true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES }),
     },
   },
@@ -536,7 +555,7 @@ export const { MODELS } = defineModels('seedance', [
     release: 'preview',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoExtendPayloadFor('seedance_2_5_without_moderation'),
-    constraints: seedance25FormatConstraints,
+    constraints: seedance25ColorDepthConstraints,
     estimatedTime: 200,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -551,6 +570,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
       ...params.generateAudio(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
+      ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
       ...params.videoInputs(10, 'Source Videos', true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES }),
     },
   },

@@ -3784,11 +3784,18 @@ var buildSeedance20VideoExtendPayloadFor = (modelAlias) => (ctx) => ({
   resolution: ctx.resolution ?? "720p",
   generate_audio: ctx.generateAudio ?? true
 });
-var SEEDANCE_25_8BIT_REASON = "8-bit MP4 applies to 1080p only \u2014 480p and 720p are already 8-bit H.264.";
-var seedance25FormatConstraints = ["480p", "720p"].map((resolution) => ({
-  when: { resolution: { is: resolution } },
-  then: { outputFormat: { allowed: ["mp4", "mov"], reason: SEEDANCE_25_8BIT_REASON } }
-}));
+var SEEDANCE_25_DEPTH_RESOLUTION_REASON = "Color depth applies to 1080p only \u2014 480p and 720p are always 8-bit.";
+var SEEDANCE_25_DEPTH_CONTAINER_REASON = "Color depth applies to the mp4 container only.";
+var seedance25ColorDepthConstraints = [
+  ...["480p", "720p"].map((resolution) => ({
+    when: { resolution: { is: resolution } },
+    then: { colorDepth: { disabled: true, reason: SEEDANCE_25_DEPTH_RESOLUTION_REASON } }
+  })),
+  {
+    when: { outputFormat: { is: "mov" } },
+    then: { colorDepth: { disabled: true, reason: SEEDANCE_25_DEPTH_CONTAINER_REASON } }
+  }
+];
 var SEEDANCE_25_FRAME_ADAPTIVE_REASON = "First/Last Frame mode requires an adaptive aspect ratio \u2014 the vendor rejects any fixed ratio.";
 var seedance25Constraints = [
   ...seedance20Constraints.slice(1),
@@ -3811,8 +3818,12 @@ var seedance25Constraints = [
     when: { endFrame: { exists: true } },
     then: { aspectRatio: { allowed: ["adaptive"], reason: SEEDANCE_25_FRAME_ADAPTIVE_REASON } }
   },
-  ...seedance25FormatConstraints
+  ...seedance25ColorDepthConstraints
 ];
+var seedance25OutputFormat = (ctx) => {
+  if (ctx.outputFormat === "mov") return "mov";
+  return ctx.colorDepth === "8bit" ? "mp4_8bit" : "mp4";
+};
 var buildSeedance25PayloadFor = (modelAlias) => (ctx) => {
   const refImages = ctx.imageUrls ?? [];
   const refVideos = ctx.videoUrls ?? [];
@@ -3844,7 +3855,7 @@ var buildSeedance25PayloadFor = (modelAlias) => (ctx) => {
     duration: ctx.duration ?? 5,
     resolution: ctx.resolution ?? "1080p",
     generate_audio: ctx.generateAudio ?? true,
-    output_format: ctx.outputFormat ?? "mp4",
+    output_format: seedance25OutputFormat(ctx),
     ...ctx.returnLastFrame ? { return_last_frame: true } : {}
   };
 };
@@ -3863,7 +3874,7 @@ var buildSeedance25VideoEditPayloadFor = (modelAlias) => (ctx) => ({
   duration: -1,
   resolution: ctx.resolution ?? "1080p",
   generate_audio: ctx.generateAudio ?? true,
-  output_format: ctx.outputFormat ?? "mp4",
+  output_format: seedance25OutputFormat(ctx),
   ...ctx.returnLastFrame ? { return_last_frame: true } : {}
 });
 var buildSeedance25VideoExtendPayloadFor = (modelAlias) => (ctx) => ({
@@ -3880,14 +3891,11 @@ var buildSeedance25VideoExtendPayloadFor = (modelAlias) => (ctx) => ({
   duration: ctx.duration ?? 15,
   resolution: ctx.resolution ?? "1080p",
   generate_audio: ctx.generateAudio ?? true,
-  output_format: ctx.outputFormat ?? "mp4"
+  output_format: seedance25OutputFormat(ctx)
 });
 var SEEDANCE_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"];
-var SEEDANCE_25_FORMATS = [
-  { id: "mp4_8bit", label: "MP4" },
-  { id: "mp4", label: "MP4 10Bit" },
-  { id: "mov", label: "MOV" }
-];
+var SEEDANCE_25_FORMATS = ["mp4", "mov"];
+var SEEDANCE_25_COLOR_DEPTHS = ["10bit", "8bit"];
 var SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 var SEEDANCE_25_DURATION = { min: 4, max: 30 };
 var { MODELS: MODELS12 } = defineModels("seedance", [
@@ -3903,7 +3911,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     mode: "video",
     inputType: "t2v",
     badge: ["new", "premium", "hot"],
-    description: "Latest cinematic video with audio, multi-reference input, and mp4/mov/8-bit output. Up to 30s.",
+    description: "Latest cinematic video with audio, multi-reference input, and mp4/mov output in 10- or 8-bit. Up to 30s.",
     features: [feat("Reference Image", "frame"), feat("Start/End Frame", "frame"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("4-30 sec", "duration")],
     paramConfig: {
       ...params.prompt(),
@@ -3913,6 +3921,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
+      ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, "Reference Images", false, "reference", { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
       ...params.videoInputs(10, "Reference Videos", false, {
@@ -3941,7 +3950,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     mode: "video",
     inputType: "t2v",
     badge: ["new", "premium", "hot"],
-    description: "Seedance 2.5 with vendor moderation disabled \u2014 cinematic video with audio, multi-reference input, and mp4/mov/8-bit output. Up to 30s.",
+    description: "Seedance 2.5 with vendor moderation disabled \u2014 cinematic video with audio, multi-reference input, and mp4/mov output in 10- or 8-bit. Up to 30s.",
     features: [feat("Reference Image", "frame"), feat("Start/End Frame", "frame"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("4-30 sec", "duration")],
     paramConfig: {
       ...params.prompt(),
@@ -3951,6 +3960,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
+      ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, "Reference Images", false, "reference", { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
       ...params.videoInputs(10, "Reference Videos", false, {
@@ -3970,7 +3980,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     addedAt: "2026-08-06",
     workflow: "seedance",
     buildPayload: buildSeedance25VideoEditPayloadFor("seedance_2_5"),
-    constraints: seedance25FormatConstraints,
+    constraints: seedance25ColorDepthConstraints,
     estimatedTime: 60,
     mode: "video",
     inputType: "v2v",
@@ -3986,6 +3996,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
+      ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
       ...params.videoInput("Source Video", "reference", true, void 0, void 0, SEEDANCE_25_MAX_VIDEO_BYTES),
       ...params.imageInput(30, "Reference Images")
     }
@@ -3998,7 +4009,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     release: "preview",
     workflow: "seedance",
     buildPayload: buildSeedance25VideoEditPayloadFor("seedance_2_5_without_moderation"),
-    constraints: seedance25FormatConstraints,
+    constraints: seedance25ColorDepthConstraints,
     estimatedTime: 60,
     mode: "video",
     inputType: "v2v",
@@ -4014,6 +4025,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
+      ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
       ...params.videoInput("Source Video", "reference", true, void 0, void 0, SEEDANCE_25_MAX_VIDEO_BYTES),
       ...params.imageInput(30, "Reference Images")
     }
@@ -4025,7 +4037,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     addedAt: "2026-08-06",
     workflow: "seedance",
     buildPayload: buildSeedance25VideoExtendPayloadFor("seedance_2_5"),
-    constraints: seedance25FormatConstraints,
+    constraints: seedance25ColorDepthConstraints,
     estimatedTime: 200,
     mode: "video",
     inputType: "v2v",
@@ -4041,6 +4053,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
       ...params.generateAudio(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
+      ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
       ...params.videoInputs(10, "Source Videos", true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES })
     }
   },
@@ -4052,7 +4065,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     release: "preview",
     workflow: "seedance",
     buildPayload: buildSeedance25VideoExtendPayloadFor("seedance_2_5_without_moderation"),
-    constraints: seedance25FormatConstraints,
+    constraints: seedance25ColorDepthConstraints,
     estimatedTime: 200,
     mode: "video",
     inputType: "v2v",
@@ -4068,6 +4081,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
       ...params.generateAudio(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
+      ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
       ...params.videoInputs(10, "Source Videos", true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES })
     }
   },

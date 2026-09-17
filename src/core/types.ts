@@ -175,6 +175,7 @@ export interface GenerationContext {
   returnLastFrame?: boolean;
   background?: string;
   outputFormat?: string;
+  colorDepth?: string;
   guidance?: number;
   seed?: number;
   substyle?: string;

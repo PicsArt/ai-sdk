@@ -1509,7 +1509,7 @@ type ModelInputById = {
         duration?: number;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
-        outputFormat?: "mp4" | "mov";
+        outputFormat?: "mp4" | "mov" | "mp4_8bit";
         imageUrls?: string[];
         videoUrls?: string[];
         audioUrls?: string[];
@@ -1522,7 +1522,7 @@ type ModelInputById = {
         resolution?: "480p" | "720p" | "1080p";
         generateAudio?: boolean;
         returnLastFrame?: boolean;
-        outputFormat?: "mp4" | "mov";
+        outputFormat?: "mp4" | "mov" | "mp4_8bit";
         videoUrl: string;
         imageUrls?: string[];
     };
@@ -1532,7 +1532,7 @@ type ModelInputById = {
         resolution?: "480p" | "720p" | "1080p";
         duration?: number;
         generateAudio?: boolean;
-        outputFormat?: "mp4" | "mov";
+        outputFormat?: "mp4" | "mov" | "mp4_8bit";
         videoUrls: [string, ...string[]];
     };
     "seedance-2.5-without-moderation": {
@@ -1542,7 +1542,7 @@ type ModelInputById = {
         duration?: number;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
-        outputFormat?: "mp4" | "mov";
+        outputFormat?: "mp4" | "mov" | "mp4_8bit";
         imageUrls?: string[];
         videoUrls?: string[];
         audioUrls?: string[];
@@ -1555,7 +1555,7 @@ type ModelInputById = {
         resolution?: "480p" | "720p" | "1080p";
         generateAudio?: boolean;
         returnLastFrame?: boolean;
-        outputFormat?: "mp4" | "mov";
+        outputFormat?: "mp4" | "mov" | "mp4_8bit";
         videoUrl: string;
         imageUrls?: string[];
     };
@@ -1565,7 +1565,7 @@ type ModelInputById = {
         resolution?: "480p" | "720p" | "1080p";
         duration?: number;
         generateAudio?: boolean;
-        outputFormat?: "mp4" | "mov";
+        outputFormat?: "mp4" | "mov" | "mp4_8bit";
         videoUrls: [string, ...string[]];
     };
     "seedance-i2v": {

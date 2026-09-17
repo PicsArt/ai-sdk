@@ -222,11 +222,23 @@ export const buildSeedance20VideoExtendPayloadFor =
     generate_audio: ctx.generateAudio ?? true,
   });
 
+/** `mp4_8bit` is a Picsart-side re-encode that only applies at 1080p — the one
+ *  resolution the vendor delivers as 10-bit H.265/HEVC. 480p and 720p already
+ *  arrive as 8-bit H.264 (the worker accepts the value there and skips the
+ *  re-encode), so the option is hidden rather than offered as a no-op.
+ *  `when` supports equality only, hence one rule per lower resolution. */
+const SEEDANCE_25_8BIT_REASON =
+  '8-bit MP4 applies to 1080p only — 480p and 720p are already 8-bit H.264.';
+const seedance25FormatConstraints: Constraint[] = ['480p', '720p'].map((resolution) => ({
+  when: { resolution: { is: resolution } },
+  then: { outputFormat: { allowed: ['mp4', 'mov'], reason: SEEDANCE_25_8BIT_REASON } },
+}));
+
 /** Seedance 2.5 — same v2 request shape as 2.0, with three differences:
  *  - audio-only input IS allowed (2.5 lifts the "need an image or video" rule),
  *    so we reuse the 2.0 constraints minus the leading audio-only block.
  *  - wider content limits (30 images / 10 videos / 10 audios).
- *  - new `output_format` (mp4/mov) parameter, sent on every 2.5 flow.
+ *  - new `output_format` (mp4/mov/mp4_8bit) parameter, sent on every 2.5 flow.
  *  Resolution goes up to 1080p (no 4k).
  *  The trailing rule enforces last_frame pairing: the vendor rejects a
  *  last_frame supplied on its own, and refs are already mutually exclusive
@@ -254,6 +266,7 @@ const seedance25Constraints: Constraint[] = [
     when: { endFrame: { exists: true } },
     then: { aspectRatio: { allowed: ['adaptive'], reason: SEEDANCE_25_FRAME_ADAPTIVE_REASON } },
   },
+  ...seedance25FormatConstraints,
 ];
 
 /** Worker aliases sharing the Seedance 2.5 request shape.
@@ -363,6 +376,10 @@ export const buildSeedance25VideoExtendPayloadFor =
   });
 
 const SEEDANCE_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', 'adaptive'];
+/** 2.5 containers. `mp4` and `mov` come straight from the vendor; `mp4_8bit` is
+ *  the same mp4 re-encoded by the worker to 8-bit H.264 (1080p only — see
+ *  seedance25FormatConstraints). */
+const SEEDANCE_25_FORMATS = ['mp4', 'mov', { id: 'mp4_8bit', label: 'MP4 8-bit' }];
 const SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 /** 2.5 accepts any whole second in 4-30s, so it is a range, not an option
  *  list — an enum would hide the values in between. */
@@ -378,7 +395,7 @@ export const { MODELS } = defineModels('seedance', [
     estimatedTime: 20,
     mode: 'video', inputType: 't2v',
     badge: ['new', 'premium', 'hot'],
-    description: 'Latest cinematic video with audio, multi-reference input, and mp4/mov output. Up to 30s.',
+    description: 'Latest cinematic video with audio, multi-reference input, and mp4/mov/8-bit output. Up to 30s.',
     features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
     paramConfig: {
       ...params.prompt(),
@@ -387,7 +404,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
-      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
       ...params.videoInputs(10, 'Reference Videos', false, {
@@ -413,7 +430,7 @@ export const { MODELS } = defineModels('seedance', [
     estimatedTime: 20,
     mode: 'video', inputType: 't2v',
     badge: ['new', 'premium', 'hot'],
-    description: 'Seedance 2.5 with vendor moderation disabled — cinematic video with audio, multi-reference input, and mp4/mov output. Up to 30s.',
+    description: 'Seedance 2.5 with vendor moderation disabled — cinematic video with audio, multi-reference input, and mp4/mov/8-bit output. Up to 30s.',
     features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
     paramConfig: {
       ...params.prompt(),
@@ -422,7 +439,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
-      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
       ...params.videoInputs(10, 'Reference Videos', false, {
@@ -440,6 +457,7 @@ export const { MODELS } = defineModels('seedance', [
     addedAt: '2026-08-06',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoEditPayloadFor('seedance_2_5'),
+    constraints: seedance25FormatConstraints,
     estimatedTime: 60,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -453,7 +471,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
-      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...params.videoInput('Source Video', 'reference', true, undefined, undefined, SEEDANCE_25_MAX_VIDEO_BYTES),
       ...params.imageInput(30, 'Reference Images'),
     },
@@ -464,6 +482,7 @@ export const { MODELS } = defineModels('seedance', [
     release: 'preview',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoEditPayloadFor('seedance_2_5_without_moderation'),
+    constraints: seedance25FormatConstraints,
     estimatedTime: 60,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -477,7 +496,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
-      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...params.videoInput('Source Video', 'reference', true, undefined, undefined, SEEDANCE_25_MAX_VIDEO_BYTES),
       ...params.imageInput(30, 'Reference Images'),
     },
@@ -487,6 +506,7 @@ export const { MODELS } = defineModels('seedance', [
     addedAt: '2026-08-06',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoExtendPayloadFor('seedance_2_5'),
+    constraints: seedance25FormatConstraints,
     estimatedTime: 200,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -500,7 +520,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
       ...params.generateAudio(),
-      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...params.videoInputs(10, 'Source Videos', true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES }),
     },
   },
@@ -510,6 +530,7 @@ export const { MODELS } = defineModels('seedance', [
     release: 'preview',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoExtendPayloadFor('seedance_2_5_without_moderation'),
+    constraints: seedance25FormatConstraints,
     estimatedTime: 200,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -523,7 +544,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
       ...params.generateAudio(),
-      ...p.enum('outputFormat', ['mp4', 'mov'], 'mp4', { label: 'Format' }),
+      ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...params.videoInputs(10, 'Source Videos', true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES }),
     },
   },

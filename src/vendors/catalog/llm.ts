@@ -62,10 +62,26 @@ const { MODELS: ANTHROPIC } = defineModels('anthropic', [
     paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
   },
   {
+    id: 'claude-sonnet-5', name: 'Claude Sonnet 5',
+    workflow: 'claude/v1/messages', addedAt: '2026-09-16', estimatedTime: 6,
+    mode: 'text', inputType: 'i2t',
+    description: 'Latest Sonnet — frontier reasoning at everyday latency and cost.',
+    features: [feat('Vision', 'input')],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
+  },
+  {
     id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6',
     workflow: 'claude/v1/messages', addedAt: ADDED, estimatedTime: 6,
     mode: 'text', inputType: 'i2t', badge: ['popular'],
     description: 'Balanced Claude model — strong reasoning at lower latency and cost.',
+    features: [feat('Vision', 'input')],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
+  },
+  {
+    id: 'claude-sonnet-4-5', name: 'Claude Sonnet 4.5',
+    workflow: 'claude/v1/messages', addedAt: '2026-09-16', estimatedTime: 6,
+    mode: 'text', inputType: 'i2t',
+    description: 'Previous-generation Sonnet — balanced reasoning, latency, and cost.',
     features: [feat('Vision', 'input')],
     paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
   },
@@ -143,6 +159,88 @@ const { MODELS: OPENAI_LLM } = defineModels('openai', [
       ...thinkingParam(['low', 'medium', 'high'])
     },
   },
+  {
+    id: 'gpt-5.2', name: 'GPT-5.2',
+    workflow: 'chat-completions', addedAt: '2026-09-16', estimatedTime: 8,
+    mode: 'text', inputType: 'i2t',
+    description: 'GPT-5.2 reasoning model — strong general-purpose text generation.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high'])
+    },
+  },
+  {
+    id: 'gpt-5.1', name: 'GPT-5.1',
+    workflow: 'chat-completions', addedAt: '2026-09-16', estimatedTime: 8,
+    mode: 'text', inputType: 'i2t',
+    description: 'GPT-5.1 reasoning model — reliable general-purpose text generation.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high'])
+    },
+  },
+  {
+    id: 'gpt-5', name: 'GPT-5',
+    workflow: 'chat-completions', addedAt: '2026-09-16', estimatedTime: 8,
+    mode: 'text', inputType: 'i2t',
+    description: 'GPT-5 reasoning model for general-purpose text generation.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high'])
+    },
+  },
+  {
+    id: 'gpt-5-mini', name: 'GPT-5 Mini',
+    workflow: 'chat-completions', addedAt: '2026-09-16', estimatedTime: 5,
+    mode: 'text', inputType: 'i2t', badge: ['fast'],
+    description: 'Fast, lightweight GPT-5 model for high-volume text tasks.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high'])
+    },
+  },
+  // gpt-4o / gpt-4.1 families are not reasoning models: the worker's chat-completions
+  // route rejects reasoning_effort for them, so no thinking param is exposed.
+  {
+    id: 'gpt-4o', name: 'GPT-4o',
+    workflow: 'chat-completions', addedAt: '2026-09-16', estimatedTime: 5,
+    mode: 'text', inputType: 'i2t',
+    description: 'Multimodal GPT-4o — solid quality at low latency, no reasoning pass.',
+    features: [feat('Vision', 'input')],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
+  },
+  {
+    id: 'gpt-4o-mini', name: 'GPT-4o Mini',
+    workflow: 'chat-completions', addedAt: '2026-09-16', estimatedTime: 4,
+    mode: 'text', inputType: 'i2t', badge: ['fast'],
+    description: 'Small, cost-efficient GPT-4o tier for high-volume text tasks.',
+    features: [feat('Vision', 'input')],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
+  },
+  {
+    id: 'gpt-4.1-mini', name: 'GPT-4.1 Mini',
+    workflow: 'chat-completions', addedAt: '2026-09-16', estimatedTime: 4,
+    mode: 'text', inputType: 'i2t', badge: ['fast'],
+    description: 'Compact GPT-4.1 tier — fast text generation with vision input.',
+    features: [feat('Vision', 'input')],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
+  },
+  {
+    id: 'gpt-4.1-nano', name: 'GPT-4.1 Nano',
+    workflow: 'chat-completions', addedAt: '2026-09-16', estimatedTime: 3,
+    mode: 'text', inputType: 'i2t', badge: ['fast'],
+    description: 'The smallest, fastest GPT-4.1 tier for lightweight text tasks.',
+    features: [feat('Vision', 'input')],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
+  },
 ]);
 
 // Gemini 3 Pro uses the native `gemini` workflow (video input, thinkingLevel).
@@ -207,6 +305,18 @@ const { MODELS: GEMINI_LLM } = defineModels('google', [
     paramConfig: {
       ...params.prompt(),
       ...params.imageInput(8, 'Images'),
+    },
+  },
+  {
+    id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash',
+    workflow: 'chat-completions', addedAt: '2026-09-16', estimatedTime: 4,
+    mode: 'text', inputType: 'i2t', badge: ['fast'],
+    description: 'Proven fast Gemini tier — low-latency multimodal text generation.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high']),
     },
   },
 ]);

@@ -8744,6 +8744,18 @@ var { MODELS: ANTHROPIC } = defineModels("anthropic", [
     paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
   },
   {
+    id: "claude-sonnet-5",
+    name: "Claude Sonnet 5",
+    workflow: "claude/v1/messages",
+    addedAt: "2026-09-16",
+    estimatedTime: 6,
+    mode: "text",
+    inputType: "i2t",
+    description: "Latest Sonnet \u2014 frontier reasoning at everyday latency and cost.",
+    features: [feat("Vision", "input")],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
+  },
+  {
     id: "claude-sonnet-4-6",
     name: "Claude Sonnet 4.6",
     workflow: "claude/v1/messages",
@@ -8753,6 +8765,18 @@ var { MODELS: ANTHROPIC } = defineModels("anthropic", [
     inputType: "i2t",
     badge: ["popular"],
     description: "Balanced Claude model \u2014 strong reasoning at lower latency and cost.",
+    features: [feat("Vision", "input")],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
+  },
+  {
+    id: "claude-sonnet-4-5",
+    name: "Claude Sonnet 4.5",
+    workflow: "claude/v1/messages",
+    addedAt: "2026-09-16",
+    estimatedTime: 6,
+    mode: "text",
+    inputType: "i2t",
+    description: "Previous-generation Sonnet \u2014 balanced reasoning, latency, and cost.",
     features: [feat("Vision", "input")],
     paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
   },
@@ -8858,6 +8882,124 @@ var { MODELS: OPENAI_LLM } = defineModels("openai", [
       ...params.imageInput(8, "Images"),
       ...thinkingParam(["low", "medium", "high"])
     }
+  },
+  {
+    id: "gpt-5.2",
+    name: "GPT-5.2",
+    workflow: "chat-completions",
+    addedAt: "2026-09-16",
+    estimatedTime: 8,
+    mode: "text",
+    inputType: "i2t",
+    description: "GPT-5.2 reasoning model \u2014 strong general-purpose text generation.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  {
+    id: "gpt-5.1",
+    name: "GPT-5.1",
+    workflow: "chat-completions",
+    addedAt: "2026-09-16",
+    estimatedTime: 8,
+    mode: "text",
+    inputType: "i2t",
+    description: "GPT-5.1 reasoning model \u2014 reliable general-purpose text generation.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  {
+    id: "gpt-5",
+    name: "GPT-5",
+    workflow: "chat-completions",
+    addedAt: "2026-09-16",
+    estimatedTime: 8,
+    mode: "text",
+    inputType: "i2t",
+    description: "GPT-5 reasoning model for general-purpose text generation.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  {
+    id: "gpt-5-mini",
+    name: "GPT-5 Mini",
+    workflow: "chat-completions",
+    addedAt: "2026-09-16",
+    estimatedTime: 5,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["fast"],
+    description: "Fast, lightweight GPT-5 model for high-volume text tasks.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  // gpt-4o / gpt-4.1 families are not reasoning models: the worker's chat-completions
+  // route rejects reasoning_effort for them, so no thinking param is exposed.
+  {
+    id: "gpt-4o",
+    name: "GPT-4o",
+    workflow: "chat-completions",
+    addedAt: "2026-09-16",
+    estimatedTime: 5,
+    mode: "text",
+    inputType: "i2t",
+    description: "Multimodal GPT-4o \u2014 solid quality at low latency, no reasoning pass.",
+    features: [feat("Vision", "input")],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
+  },
+  {
+    id: "gpt-4o-mini",
+    name: "GPT-4o Mini",
+    workflow: "chat-completions",
+    addedAt: "2026-09-16",
+    estimatedTime: 4,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["fast"],
+    description: "Small, cost-efficient GPT-4o tier for high-volume text tasks.",
+    features: [feat("Vision", "input")],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
+  },
+  {
+    id: "gpt-4.1-mini",
+    name: "GPT-4.1 Mini",
+    workflow: "chat-completions",
+    addedAt: "2026-09-16",
+    estimatedTime: 4,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["fast"],
+    description: "Compact GPT-4.1 tier \u2014 fast text generation with vision input.",
+    features: [feat("Vision", "input")],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
+  },
+  {
+    id: "gpt-4.1-nano",
+    name: "GPT-4.1 Nano",
+    workflow: "chat-completions",
+    addedAt: "2026-09-16",
+    estimatedTime: 3,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["fast"],
+    description: "The smallest, fastest GPT-4.1 tier for lightweight text tasks.",
+    features: [feat("Vision", "input")],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
   }
 ]);
 var { MODELS: GEMINI_LLM } = defineModels("google", [
@@ -8946,6 +9088,23 @@ var { MODELS: GEMINI_LLM } = defineModels("google", [
       ...params.prompt(),
       ...params.imageInput(8, "Images")
     }
+  },
+  {
+    id: "gemini-2.5-flash",
+    name: "Gemini 2.5 Flash",
+    workflow: "chat-completions",
+    addedAt: "2026-09-16",
+    estimatedTime: 4,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["fast"],
+    description: "Proven fast Gemini tier \u2014 low-latency multimodal text generation.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
   }
 ]);
 var MODELS35 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM];
@@ -9004,20 +9163,31 @@ registerPayloads(MODELS35, {
   "claude-fable-5": buildClaudePayload("claude-fable-5"),
   "claude-opus-5": buildClaudePayload("claude-opus-5"),
   "claude-opus-4-8": buildClaudePayload("claude-opus-4-8"),
+  "claude-sonnet-5": buildClaudePayload("claude-sonnet-5"),
   "claude-sonnet-4-6": buildClaudePayload("claude-sonnet-4-6"),
+  "claude-sonnet-4-5": buildClaudePayload("claude-sonnet-4-5"),
   "claude-haiku-4-5": buildClaudePayload("claude-haiku-4-5"),
   "gpt-6-astra": buildOpenAiPayload("gpt-6-astra"),
   "gpt-5.6-sol": buildOpenAiPayload("gpt-5.6-sol"),
   "gpt-5.6-terra": buildOpenAiPayload("gpt-5.6-terra"),
   "gpt-5.6-luna": buildOpenAiPayload("gpt-5.6-luna"),
   "gpt-5.5": buildOpenAiPayload("gpt-5.5"),
+  "gpt-5.2": buildOpenAiPayload("gpt-5.2"),
+  "gpt-5.1": buildOpenAiPayload("gpt-5.1"),
+  "gpt-5": buildOpenAiPayload("gpt-5"),
+  "gpt-5-mini": buildOpenAiPayload("gpt-5-mini"),
+  "gpt-4o": buildOpenAiPayload("gpt-4o"),
+  "gpt-4o-mini": buildOpenAiPayload("gpt-4o-mini"),
+  "gpt-4.1-mini": buildOpenAiPayload("gpt-4.1-mini"),
+  "gpt-4.1-nano": buildOpenAiPayload("gpt-4.1-nano"),
   "gemini-3-pro": buildGeminiPayload("gemini-3-pro-preview"),
   // Flash models route through chat-completions (OpenAI-shaped), not the
-  // native `gemini` workflow. flash-lite has no thinking param → reasoning_effort omitted.
+  // native `gemini` workflow.
   "gemini-3.8-flash": buildOpenAiPayload("gemini-3.8-flash"),
   "gemini-3.7-flash": buildOpenAiPayload("gemini-3.7-flash"),
   "gemini-3.6-flash": buildOpenAiPayload("gemini-3.6-flash"),
-  "gemini-3.5-flash-lite": buildOpenAiPayload("gemini-3.5-flash-lite")
+  "gemini-3.5-flash-lite": buildOpenAiPayload("gemini-3.5-flash-lite"),
+  "gemini-2.5-flash": buildOpenAiPayload("gemini-2.5-flash")
 });
 
 // src/vendors/catalog/captionsai.ts
@@ -11694,7 +11864,9 @@ var ClaudeFable51 = "claude-fable-5-1";
 var ClaudeHaiku45 = "claude-haiku-4-5";
 var ClaudeOpus48 = "claude-opus-4-8";
 var ClaudeOpus5 = "claude-opus-5";
+var ClaudeSonnet45 = "claude-sonnet-4-5";
 var ClaudeSonnet46 = "claude-sonnet-4-6";
+var ClaudeSonnet5 = "claude-sonnet-5";
 var CreatifyAurora = "creatify-aurora";
 var ElevenAudioIsolation = "eleven-audio-isolation";
 var ElevenDubbing = "eleven-dubbing";
@@ -11716,6 +11888,7 @@ var FluxKontextMax = "flux-kontext-max";
 var FluxKontextPro = "flux-kontext-pro";
 var FluxVideoEdit = "flux-video-edit";
 var FluxVideoUpscale = "flux-video-upscale";
+var Gemini25Flash = "gemini-2.5-flash";
 var Gemini25FlashImage = "gemini-2.5-flash-image";
 var Gemini25FlashTts = "gemini-2.5-flash-tts";
 var Gemini25ProTts = "gemini-2.5-pro-tts";
@@ -11729,6 +11902,14 @@ var Gemini37Flash = "gemini-3.7-flash";
 var Gemini38Flash = "gemini-3.8-flash";
 var GeminiOmni11FlashPreview = "gemini-omni-1.1-flash-preview";
 var GeminiOmniFlashPreview = "gemini-omni-flash-preview";
+var Gpt41Mini = "gpt-4.1-mini";
+var Gpt41Nano = "gpt-4.1-nano";
+var Gpt4o = "gpt-4o";
+var Gpt4oMini = "gpt-4o-mini";
+var Gpt5 = "gpt-5";
+var Gpt5Mini = "gpt-5-mini";
+var Gpt51 = "gpt-5.1";
+var Gpt52 = "gpt-5.2";
 var Gpt55 = "gpt-5.5";
 var Gpt56Luna = "gpt-5.6-luna";
 var Gpt56Sol = "gpt-5.6-sol";
@@ -11919,7 +12100,9 @@ var Models = {
   ClaudeHaiku45,
   ClaudeOpus48,
   ClaudeOpus5,
+  ClaudeSonnet45,
   ClaudeSonnet46,
+  ClaudeSonnet5,
   CreatifyAurora,
   ElevenAudioIsolation,
   ElevenDubbing,
@@ -11941,6 +12124,7 @@ var Models = {
   FluxKontextPro,
   FluxVideoEdit,
   FluxVideoUpscale,
+  Gemini25Flash,
   Gemini25FlashImage,
   Gemini25FlashTts,
   Gemini25ProTts,
@@ -11954,6 +12138,14 @@ var Models = {
   Gemini38Flash,
   GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,
+  Gpt41Mini,
+  Gpt41Nano,
+  Gpt4o,
+  Gpt4oMini,
+  Gpt5,
+  Gpt5Mini,
+  Gpt51,
+  Gpt52,
   Gpt55,
   Gpt56Luna,
   Gpt56Sol,

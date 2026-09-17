@@ -15,7 +15,9 @@ export type ModelInputById = {
   "claude-haiku-4-5": { prompt: string; imageUrls?: string[]; };
   "claude-opus-4-8": { prompt: string; imageUrls?: string[]; };
   "claude-opus-5": { prompt: string; imageUrls?: string[]; };
+  "claude-sonnet-4-5": { prompt: string; imageUrls?: string[]; };
   "claude-sonnet-4-6": { prompt: string; imageUrls?: string[]; };
+  "claude-sonnet-5": { prompt: string; imageUrls?: string[]; };
   "creatify-aurora": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; };
   "eleven-audio-isolation": { audioUrl: string; };
   "eleven-dubbing": { audioUrl: string; language: string; };
@@ -37,6 +39,7 @@ export type ModelInputById = {
   "flux-kontext-pro": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-video-edit": { videoUrl: string; prompt: string; safetyTolerance?: number; };
   "flux-video-upscale": { videoUrl: string; upscaleFactor?: number; creativity?: 0 | 1; prompt?: string; safetyTolerance?: number; };
+  "gemini-2.5-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-2.5-flash-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "gemini-2.5-flash-tts": { language?: string; accent?: string; prompt: string; voiceId?: string; };
   "gemini-2.5-pro-tts": { language?: string; accent?: string; prompt: string; voiceId?: string; };
@@ -50,6 +53,14 @@ export type ModelInputById = {
   "gemini-3.8-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-omni-1.1-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; resolution?: "360p" | "720p" | "1080p" | "4k"; duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrl?: string; videoUrls?: string[]; };
   "gemini-omni-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; duration?: 3 | 5 | 6 | 8 | 10; imageUrls?: string[]; videoUrl?: string; };
+  "gpt-4.1-mini": { prompt: string; imageUrls?: string[]; };
+  "gpt-4.1-nano": { prompt: string; imageUrls?: string[]; };
+  "gpt-4o": { prompt: string; imageUrls?: string[]; };
+  "gpt-4o-mini": { prompt: string; imageUrls?: string[]; };
+  "gpt-5": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
+  "gpt-5-mini": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
+  "gpt-5.1": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
+  "gpt-5.2": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gpt-5.5": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gpt-5.6-luna": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gpt-5.6-sol": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
@@ -235,7 +246,7 @@ export type TypedModelId = keyof ModelInputById;
 export type ModelInput<M extends TypedModelId> = ModelInputById[M];
 
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-6" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
+export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
 export type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /** Ensure caller does not pass keys unsupported by the target model input shape. */

@@ -28,8 +28,12 @@ export const ClaudeHaiku45 = 'claude-haiku-4-5' as const;
 export const ClaudeOpus48 = 'claude-opus-4-8' as const;
 /** Claude Opus 5 — anthropic (text) */
 export const ClaudeOpus5 = 'claude-opus-5' as const;
+/** Claude Sonnet 4.5 — anthropic (text) */
+export const ClaudeSonnet45 = 'claude-sonnet-4-5' as const;
 /** Claude Sonnet 4.6 — anthropic (text) */
 export const ClaudeSonnet46 = 'claude-sonnet-4-6' as const;
+/** Claude Sonnet 5 — anthropic (text) */
+export const ClaudeSonnet5 = 'claude-sonnet-5' as const;
 /** Creatify Aurora HD — creatify (video) */
 export const CreatifyAurora = 'creatify-aurora' as const;
 /** Eleven Audio Isolation — elevenlabs (audio) */
@@ -72,6 +76,8 @@ export const FluxKontextPro = 'flux-kontext-pro' as const;
 export const FluxVideoEdit = 'flux-video-edit' as const;
 /** Flux Video Upscale — flux (video) */
 export const FluxVideoUpscale = 'flux-video-upscale' as const;
+/** Gemini 2.5 Flash — google (text) */
+export const Gemini25Flash = 'gemini-2.5-flash' as const;
 /** Nano Banana — google (image) */
 export const Gemini25FlashImage = 'gemini-2.5-flash-image' as const;
 /** Gemini 2.5 Flash TTS — google (audio) */
@@ -98,6 +104,22 @@ export const Gemini38Flash = 'gemini-3.8-flash' as const;
 export const GeminiOmni11FlashPreview = 'gemini-omni-1.1-flash-preview' as const;
 /** Gemini Omni — google (video) */
 export const GeminiOmniFlashPreview = 'gemini-omni-flash-preview' as const;
+/** GPT-4.1 Mini — openai (text) */
+export const Gpt41Mini = 'gpt-4.1-mini' as const;
+/** GPT-4.1 Nano — openai (text) */
+export const Gpt41Nano = 'gpt-4.1-nano' as const;
+/** GPT-4o — openai (text) */
+export const Gpt4o = 'gpt-4o' as const;
+/** GPT-4o Mini — openai (text) */
+export const Gpt4oMini = 'gpt-4o-mini' as const;
+/** GPT-5 — openai (text) */
+export const Gpt5 = 'gpt-5' as const;
+/** GPT-5 Mini — openai (text) */
+export const Gpt5Mini = 'gpt-5-mini' as const;
+/** GPT-5.1 — openai (text) */
+export const Gpt51 = 'gpt-5.1' as const;
+/** GPT-5.2 — openai (text) */
+export const Gpt52 = 'gpt-5.2' as const;
 /** GPT-5.5 — openai (text) */
 export const Gpt55 = 'gpt-5.5' as const;
 /** GPT-5.6 Luna — openai (text) */
@@ -491,7 +513,9 @@ export const Models = {
   ClaudeHaiku45,
   ClaudeOpus48,
   ClaudeOpus5,
+  ClaudeSonnet45,
   ClaudeSonnet46,
+  ClaudeSonnet5,
   CreatifyAurora,
   ElevenAudioIsolation,
   ElevenDubbing,
@@ -513,6 +537,7 @@ export const Models = {
   FluxKontextPro,
   FluxVideoEdit,
   FluxVideoUpscale,
+  Gemini25Flash,
   Gemini25FlashImage,
   Gemini25FlashTts,
   Gemini25ProTts,
@@ -526,6 +551,14 @@ export const Models = {
   Gemini38Flash,
   GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,
+  Gpt41Mini,
+  Gpt41Nano,
+  Gpt4o,
+  Gpt4oMini,
+  Gpt5,
+  Gpt5Mini,
+  Gpt51,
+  Gpt52,
   Gpt55,
   Gpt56Luna,
   Gpt56Sol,

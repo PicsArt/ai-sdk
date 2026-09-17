@@ -153,7 +153,15 @@ type ModelInputById = {
         prompt: string;
         imageUrls?: string[];
     };
+    "claude-sonnet-4-5": {
+        prompt: string;
+        imageUrls?: string[];
+    };
     "claude-sonnet-4-6": {
+        prompt: string;
+        imageUrls?: string[];
+    };
+    "claude-sonnet-5": {
         prompt: string;
         imageUrls?: string[];
     };
@@ -266,6 +274,11 @@ type ModelInputById = {
         prompt?: string;
         safetyTolerance?: number;
     };
+    "gemini-2.5-flash": {
+        prompt: string;
+        imageUrls?: string[];
+        thinking?: "off" | "low" | "medium" | "high";
+    };
     "gemini-2.5-flash-image": {
         prompt: string;
         aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto";
@@ -349,6 +362,42 @@ type ModelInputById = {
         duration?: 3 | 5 | 6 | 8 | 10;
         imageUrls?: string[];
         videoUrl?: string;
+    };
+    "gpt-4.1-mini": {
+        prompt: string;
+        imageUrls?: string[];
+    };
+    "gpt-4.1-nano": {
+        prompt: string;
+        imageUrls?: string[];
+    };
+    "gpt-4o": {
+        prompt: string;
+        imageUrls?: string[];
+    };
+    "gpt-4o-mini": {
+        prompt: string;
+        imageUrls?: string[];
+    };
+    "gpt-5": {
+        prompt: string;
+        imageUrls?: string[];
+        thinking?: "off" | "low" | "medium" | "high";
+    };
+    "gpt-5-mini": {
+        prompt: string;
+        imageUrls?: string[];
+        thinking?: "off" | "low" | "medium" | "high";
+    };
+    "gpt-5.1": {
+        prompt: string;
+        imageUrls?: string[];
+        thinking?: "off" | "low" | "medium" | "high";
+    };
+    "gpt-5.2": {
+        prompt: string;
+        imageUrls?: string[];
+        thinking?: "off" | "low" | "medium" | "high";
     };
     "gpt-5.5": {
         prompt: string;
@@ -1710,7 +1759,7 @@ type ModelInputById = {
 type TypedModelId = keyof ModelInputById;
 type ModelInput<M extends TypedModelId> = ModelInputById[M];
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-6" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
+type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
 type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /**
@@ -2830,7 +2879,9 @@ declare const Models: {
     readonly ClaudeHaiku45: "claude-haiku-4-5";
     readonly ClaudeOpus48: "claude-opus-4-8";
     readonly ClaudeOpus5: "claude-opus-5";
+    readonly ClaudeSonnet45: "claude-sonnet-4-5";
     readonly ClaudeSonnet46: "claude-sonnet-4-6";
+    readonly ClaudeSonnet5: "claude-sonnet-5";
     readonly CreatifyAurora: "creatify-aurora";
     readonly ElevenAudioIsolation: "eleven-audio-isolation";
     readonly ElevenDubbing: "eleven-dubbing";
@@ -2852,6 +2903,7 @@ declare const Models: {
     readonly FluxKontextPro: "flux-kontext-pro";
     readonly FluxVideoEdit: "flux-video-edit";
     readonly FluxVideoUpscale: "flux-video-upscale";
+    readonly Gemini25Flash: "gemini-2.5-flash";
     readonly Gemini25FlashImage: "gemini-2.5-flash-image";
     readonly Gemini25FlashTts: "gemini-2.5-flash-tts";
     readonly Gemini25ProTts: "gemini-2.5-pro-tts";
@@ -2865,6 +2917,14 @@ declare const Models: {
     readonly Gemini38Flash: "gemini-3.8-flash";
     readonly GeminiOmni11FlashPreview: "gemini-omni-1.1-flash-preview";
     readonly GeminiOmniFlashPreview: "gemini-omni-flash-preview";
+    readonly Gpt41Mini: "gpt-4.1-mini";
+    readonly Gpt41Nano: "gpt-4.1-nano";
+    readonly Gpt4o: "gpt-4o";
+    readonly Gpt4oMini: "gpt-4o-mini";
+    readonly Gpt5: "gpt-5";
+    readonly Gpt5Mini: "gpt-5-mini";
+    readonly Gpt51: "gpt-5.1";
+    readonly Gpt52: "gpt-5.2";
     readonly Gpt55: "gpt-5.5";
     readonly Gpt56Luna: "gpt-5.6-luna";
     readonly Gpt56Sol: "gpt-5.6-sol";

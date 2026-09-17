@@ -16,13 +16,6 @@ type ChatParams = WorkflowTypes['chat-completions']['params'];
 type ClaudeParams = WorkflowTypes['claude/v1/messages']['params'];
 type GeminiParams = WorkflowTypes['gemini']['params'];
 
-// The live claude/v1/messages workflow accepts claude-fable-5-1, but the
-// published @picsart/workflows-types (1.1.128) doesn't list it in its `model`
-// enum yet. Widen locally until the types package catches up, then drop
-// ClaudeModel/ClaudePayload and revert to ClaudeParams.
-type ClaudeModel = ClaudeParams['model'] | 'claude-fable-5-1';
-type ClaudePayload = Omit<ClaudeParams, 'model'> & { model: ClaudeModel };
-
 const CLAUDE_MAX_TOKENS = 8192;
 
 function inferVideoMime(url: string): string {
@@ -56,7 +49,7 @@ const buildOpenAiPayload = (modelId: ChatParams['model']) => (input: OpenAiInput
 // ── Claude (claude/v1/messages) — shared by all Claude text models ──
 type ClaudeInput = ModelInput<'claude-opus-4-8'>;
 
-const buildClaudePayload = (modelId: ClaudeModel) => (input: ClaudeInput): ClaudePayload => {
+const buildClaudePayload = (modelId: ClaudeParams['model']) => (input: ClaudeInput): ClaudeParams => {
   const content: ClaudeParams['messages'][number]['content'] = [{ type: 'text', text: input.prompt }];
   for (const url of input.imageUrls ?? []) {
     content.push({ type: 'image', source: { type: 'url', url } });
@@ -95,18 +88,29 @@ registerPayloads(MODELS, {
   'claude-fable-5': buildClaudePayload('claude-fable-5'),
   'claude-opus-5': buildClaudePayload('claude-opus-5'),
   'claude-opus-4-8': buildClaudePayload('claude-opus-4-8'),
+  'claude-sonnet-5': buildClaudePayload('claude-sonnet-5'),
   'claude-sonnet-4-6': buildClaudePayload('claude-sonnet-4-6'),
+  'claude-sonnet-4-5': buildClaudePayload('claude-sonnet-4-5'),
   'claude-haiku-4-5': buildClaudePayload('claude-haiku-4-5'),
   'gpt-6-astra': buildOpenAiPayload('gpt-6-astra'),
   'gpt-5.6-sol': buildOpenAiPayload('gpt-5.6-sol'),
   'gpt-5.6-terra': buildOpenAiPayload('gpt-5.6-terra'),
   'gpt-5.6-luna': buildOpenAiPayload('gpt-5.6-luna'),
   'gpt-5.5': buildOpenAiPayload('gpt-5.5'),
+  'gpt-5.2': buildOpenAiPayload('gpt-5.2'),
+  'gpt-5.1': buildOpenAiPayload('gpt-5.1'),
+  'gpt-5': buildOpenAiPayload('gpt-5'),
+  'gpt-5-mini': buildOpenAiPayload('gpt-5-mini'),
+  'gpt-4o': buildOpenAiPayload('gpt-4o'),
+  'gpt-4o-mini': buildOpenAiPayload('gpt-4o-mini'),
+  'gpt-4.1-mini': buildOpenAiPayload('gpt-4.1-mini'),
+  'gpt-4.1-nano': buildOpenAiPayload('gpt-4.1-nano'),
   'gemini-3-pro': buildGeminiPayload('gemini-3-pro-preview'),
   // Flash models route through chat-completions (OpenAI-shaped), not the
-  // native `gemini` workflow. flash-lite has no thinking param → reasoning_effort omitted.
+  // native `gemini` workflow.
   'gemini-3.8-flash': buildOpenAiPayload('gemini-3.8-flash'),
   'gemini-3.7-flash': buildOpenAiPayload('gemini-3.7-flash'),
   'gemini-3.6-flash': buildOpenAiPayload('gemini-3.6-flash'),
   'gemini-3.5-flash-lite': buildOpenAiPayload('gemini-3.5-flash-lite'),
+  'gemini-2.5-flash': buildOpenAiPayload('gemini-2.5-flash'),
 });

@@ -3883,7 +3883,11 @@ var buildSeedance25VideoExtendPayloadFor = (modelAlias) => (ctx) => ({
   output_format: ctx.outputFormat ?? "mp4"
 });
 var SEEDANCE_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"];
-var SEEDANCE_25_FORMATS = ["mp4", "mov", { id: "mp4_8bit", label: "MP4 8-bit" }];
+var SEEDANCE_25_FORMATS = [
+  { id: "mp4_8bit", label: "MP4" },
+  { id: "mp4", label: "MP4 10Bit" },
+  { id: "mov", label: "MOV" }
+];
 var SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 var SEEDANCE_25_DURATION = { min: 4, max: 30 };
 var { MODELS: MODELS12 } = defineModels("seedance", [

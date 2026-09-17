@@ -378,8 +378,14 @@ export const buildSeedance25VideoExtendPayloadFor =
 const SEEDANCE_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', 'adaptive'];
 /** 2.5 containers. `mp4` and `mov` come straight from the vendor; `mp4_8bit` is
  *  the same mp4 re-encoded by the worker to 8-bit H.264 (1080p only — see
- *  seedance25FormatConstraints). */
-const SEEDANCE_25_FORMATS = ['mp4', 'mov', { id: 'mp4_8bit', label: 'MP4 8-bit' }];
+ *  seedance25FormatConstraints). The 8-bit re-encode is the one that plays
+ *  everywhere, so it carries the plain 'MP4' label and the vendor's own mp4 is
+ *  labelled by what makes it special at 1080p — its 10-bit color depth. */
+const SEEDANCE_25_FORMATS = [
+  { id: 'mp4_8bit', label: 'MP4' },
+  { id: 'mp4', label: 'MP4 10Bit' },
+  { id: 'mov', label: 'MOV' },
+];
 const SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 /** 2.5 accepts any whole second in 4-30s, so it is a range, not an option
  *  list — an enum would hide the values in between. */

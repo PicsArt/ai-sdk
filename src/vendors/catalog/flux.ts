@@ -24,6 +24,18 @@ const fluxAspectRatios = ['1:1', '16:9', '9:16', '4:3', '3:4', '21:9', '9:21'];
 // FluxResolution enum values; the backend caps every tier at 4MP total area.
 const fluxResolutions = ['1K', '2K', '4K'];
 
+// Flux3ImageAspectRatio enum values — a superset of the FLUX.2 ratios, and
+// lowercase `auto` (not `0:0`) for "follow the first reference image".
+const flux3ImageAspectRatios = [
+  'auto', '21:9', '2:1', '16:9', '3:2', '7:5', '4:3', '5:4',
+  '1:1', '4:5', '3:4', '5:7', '2:3', '9:16', '1:2',
+];
+
+// Flux3ImageResolution enum values. Lowercase — the FLUX 3 image endpoint takes
+// a named tier (not `width`/`height` like FLUX.2) and its casing differs from
+// the `1K`/`2K`/`4K` of `fluxResolutions` above. Copy it exactly.
+const flux3ImageResolutions = ['512sq', '768sq', '1k', '2k', '4k'];
+
 // ── Payload builders ────────────────────────────────────────────────
 
 /**
@@ -190,6 +202,42 @@ export const { MODELS } = defineModels('flux', [
       ...params.aspectRatio(['1:1', '16:9', '9:16', '4:3', '3:4', '21:9', '9:21'], '1:1'),
       ...params.count(),
       ...params.imageInput(1, 'Source Image'),
+    },
+  },
+  {
+    // Pure pass-through: every Command field already carries the SDK's own
+    // unified name (prompt, imageUrls, aspectRatio, resolution, count,
+    // safetyTolerance), so no payload builder is needed. Like the flux-2
+    // entries this is one workflow for both directions — supplying imageUrls
+    // switches the vendor into editing mode — hence inputType 't2i'.
+    //
+    // The Command's `version` field pins the endpoint contract version
+    // ('latest' today; the vendor will add dated release tags). It selects a
+    // contract rather than shaping a generation, so it is not surfaced as a
+    // param; the vendor default applies.
+    id: 'flux-3-image', name: 'Flux 3 Image',
+    workflow: 'bfl/v1/flux-3-image',
+    mode: 'image', inputType: 't2i',
+    // Early-access at the vendor — stage only until it is cleared for prod.
+    release: 'preview',
+    addedAt: '2026-09-22',
+    estimatedTime: 75,
+    description: 'Generate and edit images with up to 10 references — multi-reference composition, precise local edits and text rendering, natively up to 4K.',
+    features: [
+      feat('Multi-Image Input', 'input'),
+      feat('4K', 'resolution'),
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(flux3ImageAspectRatios, 'auto'),
+      ...params.resolution(flux3ImageResolutions, '1k'),
+      ...params.count(),
+      // Up to 10 references; the first one drives the output ratio while
+      // aspectRatio is 'auto'.
+      ...params.imageInput(10, 'Reference Images', false, 'reference'),
+      // Moderation level: 0 (strict) … 4 (permissive). Narrower than the 0–6
+      // of the FLUX.2 / Kontext endpoints.
+      ...p.range('safetyTolerance', 0, 4, 2, { label: 'Safety Tolerance' }),
     },
   },
   {

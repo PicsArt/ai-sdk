@@ -357,26 +357,26 @@ interface OpenaiImagesGenerateCommand {
     moderation?: string;
     background?: string;
     partial_images?: number;
-    options?: GenAIOptions$2D;
+    options?: GenAIOptions$2E;
 }
-interface GenAIOptions$2D {
-    safety_checks?: SafetyChecksOptions$2D;
-    drive?: DriveOptions$2D;
-    inputs_transformation?: InputsTransformationOptions$2x;
+interface GenAIOptions$2E {
+    safety_checks?: SafetyChecksOptions$2E;
+    drive?: DriveOptions$2E;
+    inputs_transformation?: InputsTransformationOptions$2y;
 }
-interface SafetyChecksOptions$2D {
+interface SafetyChecksOptions$2E {
     enabled?: boolean;
 }
-interface DriveOptions$2D {
+interface DriveOptions$2E {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2D;
+    folder?: DriveFolderOptions$2E;
 }
-interface DriveFolderOptions$2D {
+interface DriveFolderOptions$2E {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$2x {
+interface InputsTransformationOptions$2y {
     downscale_oversized_images?: boolean;
 }
 interface OpenaiImagesGenerateResponse {
@@ -535,7 +535,7 @@ interface GeminiImagesCommand {
     generationConfig?: GenerationConfig;
     model?: GeminiV1ImageModel;
     count?: number;
-    options?: GenAIOptions$2C;
+    options?: GenAIOptions$2D;
 }
 interface Content {
     parts: GeminiPart[];
@@ -606,24 +606,24 @@ interface SpeakerVoiceConfig {
     voiceConfig: VoiceConfig;
 }
 type GeminiV1ImageModel = "gemini-2.5-flash-image" | "gemini-3-pro-image" | "gemini-3-pro-image-preview" | "gemini-3.1-flash-image" | "gemini-3.1-flash-lite-image" | "gemini-3.1-flash-image-preview" | "gemini-2.5-flash-image-preview" | "instant-ramen" | "spicy-mayo";
-interface GenAIOptions$2C {
-    safety_checks?: SafetyChecksOptions$2C;
-    drive?: DriveOptions$2C;
-    inputs_transformation?: InputsTransformationOptions$2w;
+interface GenAIOptions$2D {
+    safety_checks?: SafetyChecksOptions$2D;
+    drive?: DriveOptions$2D;
+    inputs_transformation?: InputsTransformationOptions$2x;
 }
-interface SafetyChecksOptions$2C {
+interface SafetyChecksOptions$2D {
     enabled?: boolean;
 }
-interface DriveOptions$2C {
+interface DriveOptions$2D {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2C;
+    folder?: DriveFolderOptions$2D;
 }
-interface DriveFolderOptions$2C {
+interface DriveFolderOptions$2D {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$2w {
+interface InputsTransformationOptions$2x {
     downscale_oversized_images?: boolean;
 }
 interface GeminiV1ImagesResult {
@@ -645,7 +645,7 @@ interface VirtualTryOnCommand {
     model?: string;
     source: VirtualTryOnSource;
     config?: VirtualTryOnConfig;
-    options?: GenAIOptions$2B;
+    options?: GenAIOptions$2C;
 }
 interface VirtualTryOnSource {
     personImage: string;
@@ -665,24 +665,24 @@ interface VirtualTryOnConfig {
     personDescription?: string;
     productDescription?: string;
 }
-interface GenAIOptions$2B {
-    safety_checks?: SafetyChecksOptions$2B;
-    drive?: DriveOptions$2B;
-    inputs_transformation?: InputsTransformationOptions$2v;
+interface GenAIOptions$2C {
+    safety_checks?: SafetyChecksOptions$2C;
+    drive?: DriveOptions$2C;
+    inputs_transformation?: InputsTransformationOptions$2w;
 }
-interface SafetyChecksOptions$2B {
+interface SafetyChecksOptions$2C {
     enabled?: boolean;
 }
-interface DriveOptions$2B {
+interface DriveOptions$2C {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2B;
+    folder?: DriveFolderOptions$2C;
 }
-interface DriveFolderOptions$2B {
+interface DriveFolderOptions$2C {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$2v {
+interface InputsTransformationOptions$2w {
     downscale_oversized_images?: boolean;
 }
 interface VirtualTryOnResponse {
@@ -707,29 +707,29 @@ interface OpenAiSoraCommand {
     seconds?: number;
     size?: "720x1280" | "1280x720" | "1024x1792" | "1792x1024" | "1080x1920" | "1920x1080";
     characters?: SoraCharacterReference$1[];
-    options?: GenAIOptions$2A;
+    options?: GenAIOptions$2B;
 }
 interface SoraCharacterReference$1 {
     id: string;
 }
-interface GenAIOptions$2A {
-    safety_checks?: SafetyChecksOptions$2A;
-    drive?: DriveOptions$2A;
-    inputs_transformation?: InputsTransformationOptions$2u;
+interface GenAIOptions$2B {
+    safety_checks?: SafetyChecksOptions$2B;
+    drive?: DriveOptions$2B;
+    inputs_transformation?: InputsTransformationOptions$2v;
 }
-interface SafetyChecksOptions$2A {
+interface SafetyChecksOptions$2B {
     enabled?: boolean;
 }
-interface DriveOptions$2A {
+interface DriveOptions$2B {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2A;
+    folder?: DriveFolderOptions$2B;
 }
-interface DriveFolderOptions$2A {
+interface DriveFolderOptions$2B {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$2u {
+interface InputsTransformationOptions$2v {
     downscale_oversized_images?: boolean;
 }
 interface OpenaiSoraResponse {
@@ -754,7 +754,7 @@ interface ClaudeV1MessagesCommand {
     tool_choice?: ClaudeToolChoiceToolParam | "auto" | "any" | "tool";
     service_tier?: "auto" | "flex" | "priority" | "default";
     context_management?: ClaudeContextManagement;
-    options?: GenAIOptions$2z;
+    options?: GenAIOptions$2A;
 }
 type ClaudeV1Models = "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "claude-3-7-sonnet" | "claude-3-5-sonnet" | "claude-3-5-haiku-latest" | "claude-haiku-4-5" | "claude-sonnet-4-0" | "claude-opus-4-0" | "claude-opus-4-5" | "claude-fable-5" | "claude-fable-5-1";
 interface ClaudeMessageParam {
@@ -817,6 +817,43 @@ interface ContextCriterion {
     type: string;
     value: number;
 }
+interface GenAIOptions$2A {
+    safety_checks?: SafetyChecksOptions$2A;
+    drive?: DriveOptions$2A;
+    inputs_transformation?: InputsTransformationOptions$2u;
+}
+interface SafetyChecksOptions$2A {
+    enabled?: boolean;
+}
+interface DriveOptions$2A {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$2A;
+}
+interface DriveFolderOptions$2A {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$2u {
+    downscale_oversized_images?: boolean;
+}
+type EmptyModel$2 = Record<string, never>;
+
+interface OpenAiImageEditingCommand {
+    images: string[];
+    prompt: string;
+    model: string;
+    mask?: string;
+    n?: number;
+    size?: string;
+    quality?: string;
+    background?: string;
+    input_fidelity?: string;
+    output_compression?: number;
+    output_format?: string;
+    partial_images?: number;
+    options?: GenAIOptions$2z;
+}
 interface GenAIOptions$2z {
     safety_checks?: SafetyChecksOptions$2z;
     drive?: DriveOptions$2z;
@@ -835,43 +872,6 @@ interface DriveFolderOptions$2z {
     id?: string;
 }
 interface InputsTransformationOptions$2t {
-    downscale_oversized_images?: boolean;
-}
-type EmptyModel$2 = Record<string, never>;
-
-interface OpenAiImageEditingCommand {
-    images: string[];
-    prompt: string;
-    model: string;
-    mask?: string;
-    n?: number;
-    size?: string;
-    quality?: string;
-    background?: string;
-    input_fidelity?: string;
-    output_compression?: number;
-    output_format?: string;
-    partial_images?: number;
-    options?: GenAIOptions$2y;
-}
-interface GenAIOptions$2y {
-    safety_checks?: SafetyChecksOptions$2y;
-    drive?: DriveOptions$2y;
-    inputs_transformation?: InputsTransformationOptions$2s;
-}
-interface SafetyChecksOptions$2y {
-    enabled?: boolean;
-}
-interface DriveOptions$2y {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2y;
-}
-interface DriveFolderOptions$2y {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$2s {
     downscale_oversized_images?: boolean;
 }
 interface OpenAiImageEditingResult {
@@ -2344,30 +2344,30 @@ interface GeminiV2ImagesCommand {
     imageSize?: ImageResolution$1;
     model: GeminiV2ImageModel;
     count?: number;
-    options?: GenAIOptions$2x;
+    options?: GenAIOptions$2y;
     thinkingConfig?: ThinkingConfig$1;
 }
 type AspectRatio$1 = "auto" | "1:1" | "2:3" | "3:2" | "3:4" | "4:3" | "4:5" | "5:4" | "9:16" | "16:9" | "21:9" | "1:4" | "4:1" | "1:8" | "8:1";
 type ImageResolution$1 = "0.5K" | "1K" | "2K" | "4K";
 type GeminiV2ImageModel = "gemini-2.5-flash-image" | "gemini-3-pro-image" | "gemini-3-pro-image-preview" | "gemini-3.1-flash-image" | "gemini-3.1-flash-lite-image" | "gemini-3.1-flash-image-preview" | "instant-ramen" | "spicy-mayo";
-interface GenAIOptions$2x {
-    safety_checks?: SafetyChecksOptions$2x;
-    drive?: DriveOptions$2x;
-    inputs_transformation?: InputsTransformationOptions$2r;
+interface GenAIOptions$2y {
+    safety_checks?: SafetyChecksOptions$2y;
+    drive?: DriveOptions$2y;
+    inputs_transformation?: InputsTransformationOptions$2s;
 }
-interface SafetyChecksOptions$2x {
+interface SafetyChecksOptions$2y {
     enabled?: boolean;
 }
-interface DriveOptions$2x {
+interface DriveOptions$2y {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2x;
+    folder?: DriveFolderOptions$2y;
 }
-interface DriveFolderOptions$2x {
+interface DriveFolderOptions$2y {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$2r {
+interface InputsTransformationOptions$2s {
     downscale_oversized_images?: boolean;
 }
 interface ThinkingConfig$1 {
@@ -2404,7 +2404,7 @@ interface RecraftImagesCommand {
     size?: string;
     image_format?: "webp" | "png";
     controls?: UserControls;
-    options?: GenAIOptions$2w;
+    options?: GenAIOptions$2x;
 }
 interface UserControls {
     artistic_level?: number;
@@ -2412,24 +2412,24 @@ interface UserControls {
     colors?: string[];
     no_text?: boolean;
 }
-interface GenAIOptions$2w {
-    safety_checks?: SafetyChecksOptions$2w;
-    drive?: DriveOptions$2w;
-    inputs_transformation?: InputsTransformationOptions$2q;
+interface GenAIOptions$2x {
+    safety_checks?: SafetyChecksOptions$2x;
+    drive?: DriveOptions$2x;
+    inputs_transformation?: InputsTransformationOptions$2r;
 }
-interface SafetyChecksOptions$2w {
+interface SafetyChecksOptions$2x {
     enabled?: boolean;
 }
-interface DriveOptions$2w {
+interface DriveOptions$2x {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2w;
+    folder?: DriveFolderOptions$2x;
 }
-interface DriveFolderOptions$2w {
+interface DriveFolderOptions$2x {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$2q {
+interface InputsTransformationOptions$2r {
     downscale_oversized_images?: boolean;
 }
 interface RecraftImagesResponse {
@@ -2455,26 +2455,26 @@ interface RecraftReplaceBackgroundCommand {
     negative_prompt?: string;
     n?: number;
     random_seed?: number;
-    options?: GenAIOptions$2v;
+    options?: GenAIOptions$2w;
 }
-interface GenAIOptions$2v {
-    safety_checks?: SafetyChecksOptions$2v;
-    drive?: DriveOptions$2v;
-    inputs_transformation?: InputsTransformationOptions$2p;
+interface GenAIOptions$2w {
+    safety_checks?: SafetyChecksOptions$2w;
+    drive?: DriveOptions$2w;
+    inputs_transformation?: InputsTransformationOptions$2q;
 }
-interface SafetyChecksOptions$2v {
+interface SafetyChecksOptions$2w {
     enabled?: boolean;
 }
-interface DriveOptions$2v {
+interface DriveOptions$2w {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2v;
+    folder?: DriveFolderOptions$2w;
 }
-interface DriveFolderOptions$2v {
+interface DriveFolderOptions$2w {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$2p {
+interface InputsTransformationOptions$2q {
     downscale_oversized_images?: boolean;
 }
 interface RecraftReplaceBackgroundResponse {
@@ -2501,6 +2501,46 @@ interface RecraftVectorizeCommand {
     small_shape_filter?: number;
     svg_compression?: number;
     upscale?: number;
+    options?: GenAIOptions$2v;
+}
+interface GenAIOptions$2v {
+    safety_checks?: SafetyChecksOptions$2v;
+    drive?: DriveOptions$2v;
+    inputs_transformation?: InputsTransformationOptions$2p;
+}
+interface SafetyChecksOptions$2v {
+    enabled?: boolean;
+}
+interface DriveOptions$2v {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$2v;
+}
+interface DriveFolderOptions$2v {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$2p {
+    downscale_oversized_images?: boolean;
+}
+interface RecraftVectorizeResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: RecraftVectorizeResult;
+}
+interface RecraftVectorizeResult {
+    items: RecraftVectorizeResultItem[];
+}
+interface RecraftVectorizeResultItem {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface RecraftCrispUpscaleCommand {
+    image_url: string;
+    image_format?: string;
+    upscale?: string;
     options?: GenAIOptions$2u;
 }
 interface GenAIOptions$2u {
@@ -2523,21 +2563,21 @@ interface DriveFolderOptions$2u {
 interface InputsTransformationOptions$2o {
     downscale_oversized_images?: boolean;
 }
-interface RecraftVectorizeResponse {
+interface RecraftCrispUpscaleResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: RecraftVectorizeResult;
+    result: RecraftCrispUpscaleResult;
 }
-interface RecraftVectorizeResult {
-    items: RecraftVectorizeResultItem[];
+interface RecraftCrispUpscaleResult {
+    items: RecraftCrispUpscaleResultItem[];
 }
-interface RecraftVectorizeResultItem {
+interface RecraftCrispUpscaleResultItem {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface RecraftCrispUpscaleCommand {
+interface RecraftCreativeUpscaleCommand {
     image_url: string;
     image_format?: string;
     upscale?: string;
@@ -2563,46 +2603,6 @@ interface DriveFolderOptions$2t {
 interface InputsTransformationOptions$2n {
     downscale_oversized_images?: boolean;
 }
-interface RecraftCrispUpscaleResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: RecraftCrispUpscaleResult;
-}
-interface RecraftCrispUpscaleResult {
-    items: RecraftCrispUpscaleResultItem[];
-}
-interface RecraftCrispUpscaleResultItem {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface RecraftCreativeUpscaleCommand {
-    image_url: string;
-    image_format?: string;
-    upscale?: string;
-    options?: GenAIOptions$2s;
-}
-interface GenAIOptions$2s {
-    safety_checks?: SafetyChecksOptions$2s;
-    drive?: DriveOptions$2s;
-    inputs_transformation?: InputsTransformationOptions$2m;
-}
-interface SafetyChecksOptions$2s {
-    enabled?: boolean;
-}
-interface DriveOptions$2s {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2s;
-}
-interface DriveFolderOptions$2s {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$2m {
-    downscale_oversized_images?: boolean;
-}
 interface RecraftCreativeUpscaleResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -2623,26 +2623,26 @@ interface RecraftVariateImageCommand {
     image_format?: string;
     n?: number;
     random_seed?: number;
-    options?: GenAIOptions$2r;
+    options?: GenAIOptions$2s;
 }
-interface GenAIOptions$2r {
-    safety_checks?: SafetyChecksOptions$2r;
-    drive?: DriveOptions$2r;
-    inputs_transformation?: InputsTransformationOptions$2l;
+interface GenAIOptions$2s {
+    safety_checks?: SafetyChecksOptions$2s;
+    drive?: DriveOptions$2s;
+    inputs_transformation?: InputsTransformationOptions$2m;
 }
-interface SafetyChecksOptions$2r {
+interface SafetyChecksOptions$2s {
     enabled?: boolean;
 }
-interface DriveOptions$2r {
+interface DriveOptions$2s {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2r;
+    folder?: DriveFolderOptions$2s;
 }
-interface DriveFolderOptions$2r {
+interface DriveFolderOptions$2s {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$2l {
+interface InputsTransformationOptions$2m {
     downscale_oversized_images?: boolean;
 }
 interface RecraftVariateImageResponse {
@@ -2673,7 +2673,7 @@ interface KlingTextToVideoCommand {
     shot_type?: KlingShotType$1;
     multi_prompt?: MultiPromptItem$2[];
     voice_list?: VoiceItem$1[];
-    options?: GenAIOptions$2q;
+    options?: GenAIOptions$2r;
 }
 type KlingModels$1 = "kling-v2-5-turbo" | "kling-v2-6" | "kling-v3" | "kling-v3-turbo";
 type KlingSound$2 = "on" | "off";
@@ -2689,24 +2689,24 @@ interface MultiPromptItem$2 {
 interface VoiceItem$1 {
     voice_id: string;
 }
-interface GenAIOptions$2q {
-    safety_checks?: SafetyChecksOptions$2q;
-    drive?: DriveOptions$2q;
-    inputs_transformation?: InputsTransformationOptions$2k;
+interface GenAIOptions$2r {
+    safety_checks?: SafetyChecksOptions$2r;
+    drive?: DriveOptions$2r;
+    inputs_transformation?: InputsTransformationOptions$2l;
 }
-interface SafetyChecksOptions$2q {
+interface SafetyChecksOptions$2r {
     enabled?: boolean;
 }
-interface DriveOptions$2q {
+interface DriveOptions$2r {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2q;
+    folder?: DriveFolderOptions$2r;
 }
-interface DriveFolderOptions$2q {
+interface DriveFolderOptions$2r {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$2k {
+interface InputsTransformationOptions$2l {
     downscale_oversized_images?: boolean;
 }
 interface KlingTextToVideoResponse {
@@ -2733,7 +2733,7 @@ interface KlingImageToVideoCommand {
     shot_type?: KlingShotType;
     multi_prompt?: MultiPromptItem$1[];
     voice_list?: VoiceItem[];
-    options?: GenAIOptions$2p;
+    options?: GenAIOptions$2q;
     image?: string;
     image_tail?: string;
     element_list?: I2VElementItem[];
@@ -2751,6 +2751,44 @@ interface MultiPromptItem$1 {
 }
 interface VoiceItem {
     voice_id: string;
+}
+interface GenAIOptions$2q {
+    safety_checks?: SafetyChecksOptions$2q;
+    drive?: DriveOptions$2q;
+    inputs_transformation?: InputsTransformationOptions$2k;
+}
+interface SafetyChecksOptions$2q {
+    enabled?: boolean;
+}
+interface DriveOptions$2q {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$2q;
+}
+interface DriveFolderOptions$2q {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$2k {
+    downscale_oversized_images?: boolean;
+}
+interface I2VElementItem {
+    element_id: string;
+}
+interface KlingImageToVideoResponse {
+    result: KlingVideoResult$5;
+}
+interface KlingVideoResult$5 {
+    url: string;
+    duration: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface KlingTextToAudioCommand {
+    prompt: string;
+    duration: number;
+    options?: GenAIOptions$2p;
 }
 interface GenAIOptions$2p {
     safety_checks?: SafetyChecksOptions$2p;
@@ -2772,22 +2810,22 @@ interface DriveFolderOptions$2p {
 interface InputsTransformationOptions$2j {
     downscale_oversized_images?: boolean;
 }
-interface I2VElementItem {
-    element_id: string;
+interface KlingTextToAudioResponse {
+    result: KlingAudioResult;
 }
-interface KlingImageToVideoResponse {
-    result: KlingVideoResult$5;
-}
-interface KlingVideoResult$5 {
-    url: string;
-    duration: string;
+interface KlingAudioResult {
+    url_mp3: string;
+    url_wav: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface KlingTextToAudioCommand {
-    prompt: string;
-    duration: number;
+interface KlingVideoToAudioCommand {
+    video_url?: string;
+    video_id?: string;
+    sound_effect_prompt?: string;
+    bgm_prompt?: string;
+    asmr_mode?: boolean;
     options?: GenAIOptions$2o;
 }
 interface GenAIOptions$2o {
@@ -2808,44 +2846,6 @@ interface DriveFolderOptions$2o {
     id?: string;
 }
 interface InputsTransformationOptions$2i {
-    downscale_oversized_images?: boolean;
-}
-interface KlingTextToAudioResponse {
-    result: KlingAudioResult;
-}
-interface KlingAudioResult {
-    url_mp3: string;
-    url_wav: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface KlingVideoToAudioCommand {
-    video_url?: string;
-    video_id?: string;
-    sound_effect_prompt?: string;
-    bgm_prompt?: string;
-    asmr_mode?: boolean;
-    options?: GenAIOptions$2n;
-}
-interface GenAIOptions$2n {
-    safety_checks?: SafetyChecksOptions$2n;
-    drive?: DriveOptions$2n;
-    inputs_transformation?: InputsTransformationOptions$2h;
-}
-interface SafetyChecksOptions$2n {
-    enabled?: boolean;
-}
-interface DriveOptions$2n {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2n;
-}
-interface DriveFolderOptions$2n {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$2h {
     downscale_oversized_images?: boolean;
 }
 interface KlingVideoToAudioResponse {
@@ -2871,7 +2871,7 @@ interface KlingOmniVideoCommand {
     multi_shot?: boolean;
     shot_type?: "customize";
     multi_prompt?: MultiPromptItem[];
-    options?: GenAIOptions$2m;
+    options?: GenAIOptions$2n;
 }
 type KlingOmniModels = "kling-video-o1" | "kling-v3-omni";
 interface ReferenceImage$1 {
@@ -2897,6 +2897,45 @@ interface MultiPromptItem {
     prompt: string;
     duration: string;
 }
+interface GenAIOptions$2n {
+    safety_checks?: SafetyChecksOptions$2n;
+    drive?: DriveOptions$2n;
+    inputs_transformation?: InputsTransformationOptions$2h;
+}
+interface SafetyChecksOptions$2n {
+    enabled?: boolean;
+}
+interface DriveOptions$2n {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$2n;
+}
+interface DriveFolderOptions$2n {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$2h {
+    downscale_oversized_images?: boolean;
+}
+interface KlingOmniVideoResponse {
+    result: KlingVideoResult$3;
+}
+interface KlingVideoResult$3 {
+    url: string;
+    duration: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface KlingAvatarCommand {
+    image?: string;
+    audio_id?: string;
+    sound_file?: string;
+    prompt?: string;
+    mode?: KlingAvatarMode;
+    options?: GenAIOptions$2m;
+}
+type KlingAvatarMode = "std" | "pro";
 interface GenAIOptions$2m {
     safety_checks?: SafetyChecksOptions$2m;
     drive?: DriveOptions$2m;
@@ -2917,25 +2956,29 @@ interface DriveFolderOptions$2m {
 interface InputsTransformationOptions$2g {
     downscale_oversized_images?: boolean;
 }
-interface KlingOmniVideoResponse {
-    result: KlingVideoResult$3;
+interface KlingAvatarResponse {
+    result: KlingVideoResult$2;
 }
-interface KlingVideoResult$3 {
+interface KlingVideoResult$2 {
     url: string;
     duration: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface KlingAvatarCommand {
-    image?: string;
-    audio_id?: string;
-    sound_file?: string;
+interface KlingMotionControlCommand {
+    model_name?: "kling-v2-6" | "kling-v3";
     prompt?: string;
-    mode?: KlingAvatarMode;
+    image_url: string;
+    video_url: string;
+    character_orientation: KlingCharacterOrientation;
+    keep_original_sound?: KlingKeepOriginalSound;
+    mode: KlingMotionControlMode;
     options?: GenAIOptions$2l;
 }
-type KlingAvatarMode = "std" | "pro";
+type KlingCharacterOrientation = "image" | "video";
+type KlingKeepOriginalSound = "yes" | "no";
+type KlingMotionControlMode = "std" | "pro";
 interface GenAIOptions$2l {
     safety_checks?: SafetyChecksOptions$2l;
     drive?: DriveOptions$2l;
@@ -2956,29 +2999,44 @@ interface DriveFolderOptions$2l {
 interface InputsTransformationOptions$2f {
     downscale_oversized_images?: boolean;
 }
-interface KlingAvatarResponse {
-    result: KlingVideoResult$2;
+interface KlingMotionControlResponse {
+    result: KlingVideoResult$1;
 }
-interface KlingVideoResult$2 {
+interface KlingVideoResult$1 {
     url: string;
     duration: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface KlingMotionControlCommand {
-    model_name?: "kling-v2-6" | "kling-v3";
-    prompt?: string;
-    image_url: string;
-    video_url: string;
-    character_orientation: KlingCharacterOrientation;
-    keep_original_sound?: KlingKeepOriginalSound;
-    mode: KlingMotionControlMode;
+interface KlingElementsCommand {
+    element_name: string;
+    element_description: string;
+    reference_type: KlingElementReferenceType;
+    element_image_list?: ElementImageList;
+    element_video_list?: ElementVideoList;
+    element_voice_id?: string;
+    tag_list?: ElementTagItem[];
     options?: GenAIOptions$2k;
 }
-type KlingCharacterOrientation = "image" | "video";
-type KlingKeepOriginalSound = "yes" | "no";
-type KlingMotionControlMode = "std" | "pro";
+type KlingElementReferenceType = "video_refer" | "image_refer";
+interface ElementImageList {
+    frontal_image: string;
+    refer_images: ElementReferImage[];
+}
+interface ElementReferImage {
+    image_url: string;
+}
+interface ElementVideoList {
+    refer_videos: ElementReferVideo[];
+}
+interface ElementReferVideo {
+    video_url: string;
+}
+interface ElementTagItem {
+    tag_id: KlingElementTag;
+}
+type KlingElementTag = "o_101" | "o_102" | "o_103" | "o_104" | "o_105" | "o_106" | "o_107" | "o_108";
 interface GenAIOptions$2k {
     safety_checks?: SafetyChecksOptions$2k;
     drive?: DriveOptions$2k;
@@ -2999,44 +3057,23 @@ interface DriveFolderOptions$2k {
 interface InputsTransformationOptions$2e {
     downscale_oversized_images?: boolean;
 }
-interface KlingMotionControlResponse {
-    result: KlingVideoResult$1;
+interface KlingElementsResponse {
+    result: KlingElementsResult;
 }
-interface KlingVideoResult$1 {
-    url: string;
-    duration: string;
-    mimeType?: string;
+interface KlingElementsResult {
+    element_id: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface KlingElementsCommand {
-    element_name: string;
-    element_description: string;
-    reference_type: KlingElementReferenceType;
-    element_image_list?: ElementImageList;
-    element_video_list?: ElementVideoList;
-    element_voice_id?: string;
-    tag_list?: ElementTagItem[];
+interface SoundGenerationCommand {
+    text: string;
+    loop?: boolean;
+    duration_seconds?: number;
+    prompt_influence?: number;
+    output_format?: "mp3_22050_32" | "mp3_44100_32" | "mp3_44100_64" | "mp3_44100_96" | "mp3_44100_128" | "mp3_44100_192" | "mp3_48000_192" | "pcm_16000" | "pcm_22050" | "pcm_24000" | "pcm_44100" | "pcm_48000";
+    model_id?: "eleven_text_to_sound_v2";
     options?: GenAIOptions$2j;
 }
-type KlingElementReferenceType = "video_refer" | "image_refer";
-interface ElementImageList {
-    frontal_image: string;
-    refer_images: ElementReferImage[];
-}
-interface ElementReferImage {
-    image_url: string;
-}
-interface ElementVideoList {
-    refer_videos: ElementReferVideo[];
-}
-interface ElementReferVideo {
-    video_url: string;
-}
-interface ElementTagItem {
-    tag_id: KlingElementTag;
-}
-type KlingElementTag = "o_101" | "o_102" | "o_103" | "o_104" | "o_105" | "o_106" | "o_107" | "o_108";
 interface GenAIOptions$2j {
     safety_checks?: SafetyChecksOptions$2j;
     drive?: DriveOptions$2j;
@@ -3055,43 +3092,6 @@ interface DriveFolderOptions$2j {
     id?: string;
 }
 interface InputsTransformationOptions$2d {
-    downscale_oversized_images?: boolean;
-}
-interface KlingElementsResponse {
-    result: KlingElementsResult;
-}
-interface KlingElementsResult {
-    element_id: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface SoundGenerationCommand {
-    text: string;
-    loop?: boolean;
-    duration_seconds?: number;
-    prompt_influence?: number;
-    output_format?: "mp3_22050_32" | "mp3_44100_32" | "mp3_44100_64" | "mp3_44100_96" | "mp3_44100_128" | "mp3_44100_192" | "mp3_48000_192" | "pcm_16000" | "pcm_22050" | "pcm_24000" | "pcm_44100" | "pcm_48000";
-    model_id?: "eleven_text_to_sound_v2";
-    options?: GenAIOptions$2i;
-}
-interface GenAIOptions$2i {
-    safety_checks?: SafetyChecksOptions$2i;
-    drive?: DriveOptions$2i;
-    inputs_transformation?: InputsTransformationOptions$2c;
-}
-interface SafetyChecksOptions$2i {
-    enabled?: boolean;
-}
-interface DriveOptions$2i {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2i;
-}
-interface DriveFolderOptions$2i {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$2c {
     downscale_oversized_images?: boolean;
 }
 interface SoundGenerationResponse {
@@ -3113,7 +3113,7 @@ interface TextToSpeechCommand {
     voice_settings?: VoiceSettings$1;
     language_code?: string;
     seed?: number;
-    options?: GenAIOptions$2h;
+    options?: GenAIOptions$2i;
 }
 interface VoiceSettings$1 {
     stability?: number;
@@ -3122,24 +3122,24 @@ interface VoiceSettings$1 {
     speed?: number;
     use_speaker_boost?: boolean;
 }
-interface GenAIOptions$2h {
-    safety_checks?: SafetyChecksOptions$2h;
-    drive?: DriveOptions$2h;
-    inputs_transformation?: InputsTransformationOptions$2b;
+interface GenAIOptions$2i {
+    safety_checks?: SafetyChecksOptions$2i;
+    drive?: DriveOptions$2i;
+    inputs_transformation?: InputsTransformationOptions$2c;
 }
-interface SafetyChecksOptions$2h {
+interface SafetyChecksOptions$2i {
     enabled?: boolean;
 }
-interface DriveOptions$2h {
+interface DriveOptions$2i {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2h;
+    folder?: DriveFolderOptions$2i;
 }
-interface DriveFolderOptions$2h {
+interface DriveFolderOptions$2i {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$2b {
+interface InputsTransformationOptions$2c {
     downscale_oversized_images?: boolean;
 }
 interface TextToSpeechResponse {
@@ -3161,7 +3161,7 @@ interface SpeechToSpeechCommand {
     voice_settings?: VoiceSettings;
     seed?: number;
     remove_background_noise?: boolean;
-    options?: GenAIOptions$2g;
+    options?: GenAIOptions$2h;
 }
 interface VoiceSettings {
     stability?: number;
@@ -3169,24 +3169,24 @@ interface VoiceSettings {
     style?: number;
     speed?: number;
 }
-interface GenAIOptions$2g {
-    safety_checks?: SafetyChecksOptions$2g;
-    drive?: DriveOptions$2g;
-    inputs_transformation?: InputsTransformationOptions$2a;
+interface GenAIOptions$2h {
+    safety_checks?: SafetyChecksOptions$2h;
+    drive?: DriveOptions$2h;
+    inputs_transformation?: InputsTransformationOptions$2b;
 }
-interface SafetyChecksOptions$2g {
+interface SafetyChecksOptions$2h {
     enabled?: boolean;
 }
-interface DriveOptions$2g {
+interface DriveOptions$2h {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2g;
+    folder?: DriveFolderOptions$2h;
 }
-interface DriveFolderOptions$2g {
+interface DriveFolderOptions$2h {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$2a {
+interface InputsTransformationOptions$2b {
     downscale_oversized_images?: boolean;
 }
 interface SpeechToSpeechResponse {
@@ -3238,7 +3238,7 @@ interface VeoVideoGenCommand {
     negativePrompt?: string;
     model?: "veo-2.0-generate-001" | "veo-2.0-generate-exp" | "veo-3.0-generate-001" | "veo-3.0-fast-generate-001" | "veo-3.0-generate-preview" | "veo-3.1-generate-001" | "veo-3.1-fast-generate-001" | "veo-3.1-generate-preview" | "veo-3.1-fast-generate-preview" | "veo-3.1-lite-generate-preview";
     parameters?: VeoVideoParameters;
-    options?: GenAIOptions$2f;
+    options?: GenAIOptions$2g;
 }
 interface VeoImage {
     url?: string;
@@ -3270,24 +3270,24 @@ interface VeoVideoParameters {
     generateAudio?: boolean;
     resizeMode?: "crop" | "pad";
 }
-interface GenAIOptions$2f {
-    safety_checks?: SafetyChecksOptions$2f;
-    drive?: DriveOptions$2f;
-    inputs_transformation?: InputsTransformationOptions$29;
+interface GenAIOptions$2g {
+    safety_checks?: SafetyChecksOptions$2g;
+    drive?: DriveOptions$2g;
+    inputs_transformation?: InputsTransformationOptions$2a;
 }
-interface SafetyChecksOptions$2f {
+interface SafetyChecksOptions$2g {
     enabled?: boolean;
 }
-interface DriveOptions$2f {
+interface DriveOptions$2g {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2f;
+    folder?: DriveFolderOptions$2g;
 }
-interface DriveFolderOptions$2f {
+interface DriveFolderOptions$2g {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$29 {
+interface InputsTransformationOptions$2a {
     downscale_oversized_images?: boolean;
 }
 interface VeoVideoGenResponse {
@@ -3322,7 +3322,7 @@ interface HeygenVideoGenerateCommand {
     remove_background?: boolean;
     background?: BackgroundConfig;
     voice_settings?: VoiceSettingsConfig;
-    options?: GenAIOptions$2e;
+    options?: GenAIOptions$2f;
 }
 interface BackgroundConfig {
     type: "color" | "image";
@@ -3335,24 +3335,24 @@ interface VoiceSettingsConfig {
     pitch?: number;
     locale?: string;
 }
-interface GenAIOptions$2e {
-    safety_checks?: SafetyChecksOptions$2e;
-    drive?: DriveOptions$2e;
-    inputs_transformation?: InputsTransformationOptions$28;
+interface GenAIOptions$2f {
+    safety_checks?: SafetyChecksOptions$2f;
+    drive?: DriveOptions$2f;
+    inputs_transformation?: InputsTransformationOptions$29;
 }
-interface SafetyChecksOptions$2e {
+interface SafetyChecksOptions$2f {
     enabled?: boolean;
 }
-interface DriveOptions$2e {
+interface DriveOptions$2f {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2e;
+    folder?: DriveFolderOptions$2f;
 }
-interface DriveFolderOptions$2e {
+interface DriveFolderOptions$2f {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$28 {
+interface InputsTransformationOptions$29 {
     downscale_oversized_images?: boolean;
 }
 interface HeygenVideoGenerateResponse {
@@ -3433,6 +3433,44 @@ interface OpenAiSoraExtensionsCommand {
     video_id: string;
     prompt: string;
     seconds?: number;
+    options?: GenAIOptions$2e;
+}
+interface GenAIOptions$2e {
+    safety_checks?: SafetyChecksOptions$2e;
+    drive?: DriveOptions$2e;
+    inputs_transformation?: InputsTransformationOptions$28;
+}
+interface SafetyChecksOptions$2e {
+    enabled?: boolean;
+}
+interface DriveOptions$2e {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$2e;
+}
+interface DriveFolderOptions$2e {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$28 {
+    downscale_oversized_images?: boolean;
+}
+interface OpenAiSoraExtensionsResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: OpenAiSoraResult$1;
+}
+interface OpenAiSoraResult$1 {
+    videoUrl: string;
+    videoId: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface OpenAiSoraEditsCommand {
+    video_id: string;
+    prompt: string;
+    model?: "sora-2-pro" | "sora-2";
     options?: GenAIOptions$2d;
 }
 interface GenAIOptions$2d {
@@ -3455,23 +3493,34 @@ interface DriveFolderOptions$2d {
 interface InputsTransformationOptions$27 {
     downscale_oversized_images?: boolean;
 }
-interface OpenAiSoraExtensionsResponse {
+interface OpenAiSoraEditsResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: OpenAiSoraResult$1;
+    result: OpenAiSoraResult;
 }
-interface OpenAiSoraResult$1 {
+interface OpenAiSoraResult {
     videoUrl: string;
     videoId: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface OpenAiSoraEditsCommand {
-    video_id: string;
+interface OpenAiSoraBatchCommand {
+    requests: SoraBatchRequest[];
+    options?: GenAIOptions$2c;
+}
+interface SoraBatchRequest {
+    custom_id: string;
     prompt: string;
     model?: "sora-2-pro" | "sora-2";
-    options?: GenAIOptions$2c;
+    size?: "720x1280" | "1280x720" | "1024x1792" | "1792x1024" | "1080x1920" | "1920x1080";
+    seconds?: number;
+    input_reference_file_id?: string;
+    input_reference_image_url?: string;
+    characters?: SoraCharacterReference[];
+}
+interface SoraCharacterReference {
+    id: string;
 }
 interface GenAIOptions$2c {
     safety_checks?: SafetyChecksOptions$2c;
@@ -3491,55 +3540,6 @@ interface DriveFolderOptions$2c {
     id?: string;
 }
 interface InputsTransformationOptions$26 {
-    downscale_oversized_images?: boolean;
-}
-interface OpenAiSoraEditsResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: OpenAiSoraResult;
-}
-interface OpenAiSoraResult {
-    videoUrl: string;
-    videoId: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface OpenAiSoraBatchCommand {
-    requests: SoraBatchRequest[];
-    options?: GenAIOptions$2b;
-}
-interface SoraBatchRequest {
-    custom_id: string;
-    prompt: string;
-    model?: "sora-2-pro" | "sora-2";
-    size?: "720x1280" | "1280x720" | "1024x1792" | "1792x1024" | "1080x1920" | "1920x1080";
-    seconds?: number;
-    input_reference_file_id?: string;
-    input_reference_image_url?: string;
-    characters?: SoraCharacterReference[];
-}
-interface SoraCharacterReference {
-    id: string;
-}
-interface GenAIOptions$2b {
-    safety_checks?: SafetyChecksOptions$2b;
-    drive?: DriveOptions$2b;
-    inputs_transformation?: InputsTransformationOptions$25;
-}
-interface SafetyChecksOptions$2b {
-    enabled?: boolean;
-}
-interface DriveOptions$2b {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2b;
-}
-interface DriveFolderOptions$2b {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$25 {
     downscale_oversized_images?: boolean;
 }
 interface OpenAiSoraBatchResponse {
@@ -3564,7 +3564,7 @@ interface GeminiV1AudiosCommand {
     model: GeminiTtsModel;
     voiceName?: PrebuiltVoiceName;
     multiSpeakerVoiceConfigs?: SpeakerVoiceConfigDto[];
-    options?: GenAIOptions$2a;
+    options?: GenAIOptions$2b;
 }
 type GeminiTtsModel = "gemini-2.5-flash-tts" | "gemini-2.5-pro-tts";
 type PrebuiltVoiceName = "Puck" | "Kore" | "Charon" | "Fenrir" | "Aoede" | "Leda" | "Zephyr" | "Orus" | "Autonoe" | "Callirrhoe" | "Despina" | "Erinome" | "Gacrux" | "Laomedeia" | "Pulcherrima" | "Sulafat" | "Vindemiatrix" | "Achernar" | "Achird" | "Algenib" | "Algieba" | "Alnilam" | "Enceladus" | "Iapetus" | "Rasalgethi" | "Sadachbia" | "Sadaltager" | "Schedar" | "Umbriel" | "Zubenelgenubi";
@@ -3572,24 +3572,24 @@ interface SpeakerVoiceConfigDto {
     speaker: string;
     voiceName: PrebuiltVoiceName;
 }
-interface GenAIOptions$2a {
-    safety_checks?: SafetyChecksOptions$2a;
-    drive?: DriveOptions$2a;
-    inputs_transformation?: InputsTransformationOptions$24;
+interface GenAIOptions$2b {
+    safety_checks?: SafetyChecksOptions$2b;
+    drive?: DriveOptions$2b;
+    inputs_transformation?: InputsTransformationOptions$25;
 }
-interface SafetyChecksOptions$2a {
+interface SafetyChecksOptions$2b {
     enabled?: boolean;
 }
-interface DriveOptions$2a {
+interface DriveOptions$2b {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2a;
+    folder?: DriveFolderOptions$2b;
 }
-interface DriveFolderOptions$2a {
+interface DriveFolderOptions$2b {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$24 {
+interface InputsTransformationOptions$25 {
     downscale_oversized_images?: boolean;
 }
 interface GeminiV1AudiosResult {
@@ -3612,27 +3612,27 @@ interface LyriaMusicCommand {
     negativePrompt?: string;
     sampleCount?: number;
     seed?: number;
-    options?: GenAIOptions$29;
+    options?: GenAIOptions$2a;
 }
 type LyriaModels = "lyria-002";
-interface GenAIOptions$29 {
-    safety_checks?: SafetyChecksOptions$29;
-    drive?: DriveOptions$29;
-    inputs_transformation?: InputsTransformationOptions$23;
+interface GenAIOptions$2a {
+    safety_checks?: SafetyChecksOptions$2a;
+    drive?: DriveOptions$2a;
+    inputs_transformation?: InputsTransformationOptions$24;
 }
-interface SafetyChecksOptions$29 {
+interface SafetyChecksOptions$2a {
     enabled?: boolean;
 }
-interface DriveOptions$29 {
+interface DriveOptions$2a {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$29;
+    folder?: DriveFolderOptions$2a;
 }
-interface DriveFolderOptions$29 {
+interface DriveFolderOptions$2a {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$23 {
+interface InputsTransformationOptions$24 {
     downscale_oversized_images?: boolean;
 }
 interface LyriaMusicResult {
@@ -3653,26 +3653,26 @@ interface RecraftExploreCommand {
     prompt: string;
     model?: "recraftv4" | "recraftv4_vector" | "recraftv4_pro" | "recraftv4_pro_vector";
     size?: string;
-    options?: GenAIOptions$28;
+    options?: GenAIOptions$29;
 }
-interface GenAIOptions$28 {
-    safety_checks?: SafetyChecksOptions$28;
-    drive?: DriveOptions$28;
-    inputs_transformation?: InputsTransformationOptions$22;
+interface GenAIOptions$29 {
+    safety_checks?: SafetyChecksOptions$29;
+    drive?: DriveOptions$29;
+    inputs_transformation?: InputsTransformationOptions$23;
 }
-interface SafetyChecksOptions$28 {
+interface SafetyChecksOptions$29 {
     enabled?: boolean;
 }
-interface DriveOptions$28 {
+interface DriveOptions$29 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$28;
+    folder?: DriveFolderOptions$29;
 }
-interface DriveFolderOptions$28 {
+interface DriveFolderOptions$29 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$22 {
+interface InputsTransformationOptions$23 {
     downscale_oversized_images?: boolean;
 }
 interface RecraftExploreResponse {
@@ -3693,26 +3693,26 @@ interface RecraftExploreResultItem {
 interface RecraftExploreSimilarCommand {
     source_image_id: string;
     similarity: number;
-    options?: GenAIOptions$27;
+    options?: GenAIOptions$28;
 }
-interface GenAIOptions$27 {
-    safety_checks?: SafetyChecksOptions$27;
-    drive?: DriveOptions$27;
-    inputs_transformation?: InputsTransformationOptions$21;
+interface GenAIOptions$28 {
+    safety_checks?: SafetyChecksOptions$28;
+    drive?: DriveOptions$28;
+    inputs_transformation?: InputsTransformationOptions$22;
 }
-interface SafetyChecksOptions$27 {
+interface SafetyChecksOptions$28 {
     enabled?: boolean;
 }
-interface DriveOptions$27 {
+interface DriveOptions$28 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$27;
+    folder?: DriveFolderOptions$28;
 }
-interface DriveFolderOptions$27 {
+interface DriveFolderOptions$28 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$21 {
+interface InputsTransformationOptions$22 {
     downscale_oversized_images?: boolean;
 }
 interface RecraftExploreSimilarResponse {
@@ -3738,28 +3738,28 @@ interface KlingImageGenerationCommand {
     n?: number;
     aspect_ratio?: KlingImageAspectRatio$2;
     callback_url?: string;
-    options?: GenAIOptions$26;
+    options?: GenAIOptions$27;
 }
 type KlingImageModels = "kling-v2-1" | "kling-v3";
 type KlingImageAspectRatio$2 = "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4";
-interface GenAIOptions$26 {
-    safety_checks?: SafetyChecksOptions$26;
-    drive?: DriveOptions$26;
-    inputs_transformation?: InputsTransformationOptions$20;
+interface GenAIOptions$27 {
+    safety_checks?: SafetyChecksOptions$27;
+    drive?: DriveOptions$27;
+    inputs_transformation?: InputsTransformationOptions$21;
 }
-interface SafetyChecksOptions$26 {
+interface SafetyChecksOptions$27 {
     enabled?: boolean;
 }
-interface DriveOptions$26 {
+interface DriveOptions$27 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$26;
+    folder?: DriveFolderOptions$27;
 }
-interface DriveFolderOptions$26 {
+interface DriveFolderOptions$27 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$20 {
+interface InputsTransformationOptions$21 {
     downscale_oversized_images?: boolean;
 }
 interface KlingImageGenerationResponse {
@@ -3781,7 +3781,7 @@ interface KlingOmniImageCommand {
     aspect_ratio?: KlingImageAspectRatio$1;
     resolution?: KlingV3OmniResolution;
     n?: number;
-    options?: GenAIOptions$25;
+    options?: GenAIOptions$26;
 }
 type KlingOmniImageModels = "kling-image-o1" | "kling-v3-omni";
 interface OmniImageReference {
@@ -3789,24 +3789,24 @@ interface OmniImageReference {
 }
 type KlingImageAspectRatio$1 = "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4";
 type KlingV3OmniResolution = "1k" | "2k" | "4k";
-interface GenAIOptions$25 {
-    safety_checks?: SafetyChecksOptions$25;
-    drive?: DriveOptions$25;
-    inputs_transformation?: InputsTransformationOptions$1$;
+interface GenAIOptions$26 {
+    safety_checks?: SafetyChecksOptions$26;
+    drive?: DriveOptions$26;
+    inputs_transformation?: InputsTransformationOptions$20;
 }
-interface SafetyChecksOptions$25 {
+interface SafetyChecksOptions$26 {
     enabled?: boolean;
 }
-interface DriveOptions$25 {
+interface DriveOptions$26 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$25;
+    folder?: DriveFolderOptions$26;
 }
-interface DriveFolderOptions$25 {
+interface DriveFolderOptions$26 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1$ {
+interface InputsTransformationOptions$20 {
     downscale_oversized_images?: boolean;
 }
 interface KlingOmniImageResponse {
@@ -3830,30 +3830,30 @@ interface KlingMultiImageToImageCommand {
     n?: number;
     aspect_ratio?: KlingImageAspectRatio;
     callback_url?: string;
-    options?: GenAIOptions$24;
+    options?: GenAIOptions$25;
 }
 interface SubjectImage {
     subject_image: string;
 }
 type KlingImageAspectRatio = "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4";
-interface GenAIOptions$24 {
-    safety_checks?: SafetyChecksOptions$24;
-    drive?: DriveOptions$24;
-    inputs_transformation?: InputsTransformationOptions$1_;
+interface GenAIOptions$25 {
+    safety_checks?: SafetyChecksOptions$25;
+    drive?: DriveOptions$25;
+    inputs_transformation?: InputsTransformationOptions$1$;
 }
-interface SafetyChecksOptions$24 {
+interface SafetyChecksOptions$25 {
     enabled?: boolean;
 }
-interface DriveOptions$24 {
+interface DriveOptions$25 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$24;
+    folder?: DriveFolderOptions$25;
 }
-interface DriveFolderOptions$24 {
+interface DriveFolderOptions$25 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1_ {
+interface InputsTransformationOptions$1$ {
     downscale_oversized_images?: boolean;
 }
 interface KlingMultiImageToImageResponse {
@@ -3878,26 +3878,26 @@ interface WanImagesCommand {
     prompt_extend?: boolean;
     watermark?: boolean;
     seed?: number;
-    options?: GenAIOptions$23;
+    options?: GenAIOptions$24;
 }
-interface GenAIOptions$23 {
-    safety_checks?: SafetyChecksOptions$23;
-    drive?: DriveOptions$23;
-    inputs_transformation?: InputsTransformationOptions$1Z;
+interface GenAIOptions$24 {
+    safety_checks?: SafetyChecksOptions$24;
+    drive?: DriveOptions$24;
+    inputs_transformation?: InputsTransformationOptions$1_;
 }
-interface SafetyChecksOptions$23 {
+interface SafetyChecksOptions$24 {
     enabled?: boolean;
 }
-interface DriveOptions$23 {
+interface DriveOptions$24 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$23;
+    folder?: DriveFolderOptions$24;
 }
-interface DriveFolderOptions$23 {
+interface DriveFolderOptions$24 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1Z {
+interface InputsTransformationOptions$1_ {
     downscale_oversized_images?: boolean;
 }
 interface WanImagesResponse {
@@ -4194,26 +4194,26 @@ interface LTXV23RetakeVideoResponse {
 
 interface AudioIsolationCommand {
     audio_url: string;
-    options?: GenAIOptions$22;
+    options?: GenAIOptions$23;
 }
-interface GenAIOptions$22 {
-    safety_checks?: SafetyChecksOptions$22;
-    drive?: DriveOptions$22;
-    inputs_transformation?: InputsTransformationOptions$1Y;
+interface GenAIOptions$23 {
+    safety_checks?: SafetyChecksOptions$23;
+    drive?: DriveOptions$23;
+    inputs_transformation?: InputsTransformationOptions$1Z;
 }
-interface SafetyChecksOptions$22 {
+interface SafetyChecksOptions$23 {
     enabled?: boolean;
 }
-interface DriveOptions$22 {
+interface DriveOptions$23 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$22;
+    folder?: DriveFolderOptions$23;
 }
-interface DriveFolderOptions$22 {
+interface DriveFolderOptions$23 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1Y {
+interface InputsTransformationOptions$1Z {
     downscale_oversized_images?: boolean;
 }
 interface AudioIsolationResponse {
@@ -4234,26 +4234,26 @@ interface DubbingCommand {
     source_url?: string;
     num_speakers?: number;
     watermark?: boolean;
-    options?: GenAIOptions$21;
+    options?: GenAIOptions$22;
 }
-interface GenAIOptions$21 {
-    safety_checks?: SafetyChecksOptions$21;
-    drive?: DriveOptions$21;
-    inputs_transformation?: InputsTransformationOptions$1X;
+interface GenAIOptions$22 {
+    safety_checks?: SafetyChecksOptions$22;
+    drive?: DriveOptions$22;
+    inputs_transformation?: InputsTransformationOptions$1Y;
 }
-interface SafetyChecksOptions$21 {
+interface SafetyChecksOptions$22 {
     enabled?: boolean;
 }
-interface DriveOptions$21 {
+interface DriveOptions$22 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$21;
+    folder?: DriveFolderOptions$22;
 }
-interface DriveFolderOptions$21 {
+interface DriveFolderOptions$22 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1X {
+interface InputsTransformationOptions$1Y {
     downscale_oversized_images?: boolean;
 }
 interface DubbingResponse {
@@ -4277,26 +4277,26 @@ interface VoiceRemixCommand {
     seed?: number;
     guidance_scale?: number;
     output_format?: "mp3_22050_32" | "mp3_44100_32" | "mp3_44100_64" | "mp3_44100_96" | "mp3_44100_128" | "mp3_44100_192" | "mp3_48000_192" | "pcm_16000" | "pcm_22050" | "pcm_24000" | "pcm_44100" | "pcm_48000";
-    options?: GenAIOptions$20;
+    options?: GenAIOptions$21;
 }
-interface GenAIOptions$20 {
-    safety_checks?: SafetyChecksOptions$20;
-    drive?: DriveOptions$20;
-    inputs_transformation?: InputsTransformationOptions$1W;
+interface GenAIOptions$21 {
+    safety_checks?: SafetyChecksOptions$21;
+    drive?: DriveOptions$21;
+    inputs_transformation?: InputsTransformationOptions$1X;
 }
-interface SafetyChecksOptions$20 {
+interface SafetyChecksOptions$21 {
     enabled?: boolean;
 }
-interface DriveOptions$20 {
+interface DriveOptions$21 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$20;
+    folder?: DriveFolderOptions$21;
 }
-interface DriveFolderOptions$20 {
+interface DriveFolderOptions$21 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1W {
+interface InputsTransformationOptions$1X {
     downscale_oversized_images?: boolean;
 }
 interface VoiceRemixResponse {
@@ -4320,11 +4320,55 @@ interface TextToDialogueCommand {
     language_code?: string;
     seed?: number;
     output_format?: "mp3_22050_32" | "mp3_44100_32" | "mp3_44100_64" | "mp3_44100_96" | "mp3_44100_128" | "mp3_44100_192" | "mp3_48000_192" | "pcm_16000" | "pcm_22050" | "pcm_24000" | "pcm_44100" | "pcm_48000";
-    options?: GenAIOptions$1$;
+    options?: GenAIOptions$20;
 }
 interface ConversationItem {
     voice_id: string;
     text: string;
+}
+interface GenAIOptions$20 {
+    safety_checks?: SafetyChecksOptions$20;
+    drive?: DriveOptions$20;
+    inputs_transformation?: InputsTransformationOptions$1W;
+}
+interface SafetyChecksOptions$20 {
+    enabled?: boolean;
+}
+interface DriveOptions$20 {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$20;
+}
+interface DriveFolderOptions$20 {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$1W {
+    downscale_oversized_images?: boolean;
+}
+interface TextToDialogueResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: DialogueAudioResult;
+}
+interface DialogueAudioResult {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface VoiceDesignCommand {
+    voice_description: string;
+    model_id?: "eleven_multilingual_ttv_v2" | "eleven_ttv_v3";
+    text?: string;
+    auto_generate_text?: boolean;
+    loudness?: number;
+    quality?: number;
+    seed?: number;
+    guidance_scale?: number;
+    should_enhance?: boolean;
+    output_format?: "mp3_22050_32" | "mp3_44100_32" | "mp3_44100_64" | "mp3_44100_96" | "mp3_44100_128" | "mp3_44100_192" | "mp3_48000_192" | "pcm_16000" | "pcm_22050" | "pcm_24000" | "pcm_44100" | "pcm_48000";
+    options?: GenAIOptions$1$;
 }
 interface GenAIOptions$1$ {
     safety_checks?: SafetyChecksOptions$1$;
@@ -4346,20 +4390,24 @@ interface DriveFolderOptions$1$ {
 interface InputsTransformationOptions$1V {
     downscale_oversized_images?: boolean;
 }
-interface TextToDialogueResponse {
+interface VoiceDesignResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: DialogueAudioResult;
+    result: VoiceDesignResult;
 }
-interface DialogueAudioResult {
+interface VoiceDesignResult {
+    previews: VoiceDesignPreview[];
+    driveFile?: Record<string, unknown>;
+}
+interface VoiceDesignPreview {
+    generated_voice_id: string;
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface VoiceDesignCommand {
+interface VoiceCreatePreviewsCommand {
     voice_description: string;
-    model_id?: "eleven_multilingual_ttv_v2" | "eleven_ttv_v3";
     text?: string;
     auto_generate_text?: boolean;
     loudness?: number;
@@ -4390,54 +4438,6 @@ interface DriveFolderOptions$1_ {
 interface InputsTransformationOptions$1U {
     downscale_oversized_images?: boolean;
 }
-interface VoiceDesignResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: VoiceDesignResult;
-}
-interface VoiceDesignResult {
-    previews: VoiceDesignPreview[];
-    driveFile?: Record<string, unknown>;
-}
-interface VoiceDesignPreview {
-    generated_voice_id: string;
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface VoiceCreatePreviewsCommand {
-    voice_description: string;
-    text?: string;
-    auto_generate_text?: boolean;
-    loudness?: number;
-    quality?: number;
-    seed?: number;
-    guidance_scale?: number;
-    should_enhance?: boolean;
-    output_format?: "mp3_22050_32" | "mp3_44100_32" | "mp3_44100_64" | "mp3_44100_96" | "mp3_44100_128" | "mp3_44100_192" | "mp3_48000_192" | "pcm_16000" | "pcm_22050" | "pcm_24000" | "pcm_44100" | "pcm_48000";
-    options?: GenAIOptions$1Z;
-}
-interface GenAIOptions$1Z {
-    safety_checks?: SafetyChecksOptions$1Z;
-    drive?: DriveOptions$1Z;
-    inputs_transformation?: InputsTransformationOptions$1T;
-}
-interface SafetyChecksOptions$1Z {
-    enabled?: boolean;
-}
-interface DriveOptions$1Z {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1Z;
-}
-interface DriveFolderOptions$1Z {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$1T {
-    downscale_oversized_images?: boolean;
-}
 interface VoiceCreatePreviewsResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -4466,6 +4466,50 @@ interface WanImageToVideoFirstFrameCommand {
     shot_type?: "single" | "multi";
     watermark?: boolean;
     seed?: number;
+    options?: GenAIOptions$1Z;
+}
+interface GenAIOptions$1Z {
+    safety_checks?: SafetyChecksOptions$1Z;
+    drive?: DriveOptions$1Z;
+    inputs_transformation?: InputsTransformationOptions$1T;
+}
+interface SafetyChecksOptions$1Z {
+    enabled?: boolean;
+}
+interface DriveOptions$1Z {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$1Z;
+}
+interface DriveFolderOptions$1Z {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$1T {
+    downscale_oversized_images?: boolean;
+}
+interface WanImageToVideoFirstFrameResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: WanImageToVideoFirstFrameResult;
+}
+interface WanImageToVideoFirstFrameResult {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface WanTextToVideoCommand {
+    prompt: string;
+    negative_prompt?: string;
+    audio_url?: string;
+    model?: "wan2.6-t2v";
+    size?: string;
+    duration?: number;
+    prompt_extend?: boolean;
+    shot_type?: "single" | "multi";
+    watermark?: boolean;
+    seed?: number;
     options?: GenAIOptions$1Y;
 }
 interface GenAIOptions$1Y {
@@ -4488,25 +4532,24 @@ interface DriveFolderOptions$1Y {
 interface InputsTransformationOptions$1S {
     downscale_oversized_images?: boolean;
 }
-interface WanImageToVideoFirstFrameResponse {
+interface WanTextToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: WanImageToVideoFirstFrameResult;
+    result: WanTextToVideoResult;
 }
-interface WanImageToVideoFirstFrameResult {
+interface WanTextToVideoResult {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface WanTextToVideoCommand {
+interface WanReferenceToVideoCommand {
     prompt: string;
+    reference_urls: string[];
     negative_prompt?: string;
-    audio_url?: string;
-    model?: "wan2.6-t2v";
+    model?: "wan2.6-r2v";
     size?: string;
     duration?: number;
-    prompt_extend?: boolean;
     shot_type?: "single" | "multi";
     watermark?: boolean;
     seed?: number;
@@ -4532,49 +4575,6 @@ interface DriveFolderOptions$1X {
 interface InputsTransformationOptions$1R {
     downscale_oversized_images?: boolean;
 }
-interface WanTextToVideoResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: WanTextToVideoResult;
-}
-interface WanTextToVideoResult {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface WanReferenceToVideoCommand {
-    prompt: string;
-    reference_urls: string[];
-    negative_prompt?: string;
-    model?: "wan2.6-r2v";
-    size?: string;
-    duration?: number;
-    shot_type?: "single" | "multi";
-    watermark?: boolean;
-    seed?: number;
-    options?: GenAIOptions$1W;
-}
-interface GenAIOptions$1W {
-    safety_checks?: SafetyChecksOptions$1W;
-    drive?: DriveOptions$1W;
-    inputs_transformation?: InputsTransformationOptions$1Q;
-}
-interface SafetyChecksOptions$1W {
-    enabled?: boolean;
-}
-interface DriveOptions$1W {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1W;
-}
-interface DriveFolderOptions$1W {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$1Q {
-    downscale_oversized_images?: boolean;
-}
 interface WanReferenceToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -4597,26 +4597,26 @@ interface WanImageToVideoFirstAndLastFramesCommand {
     prompt_extend?: boolean;
     watermark?: boolean;
     seed?: number;
-    options?: GenAIOptions$1V;
+    options?: GenAIOptions$1W;
 }
-interface GenAIOptions$1V {
-    safety_checks?: SafetyChecksOptions$1V;
-    drive?: DriveOptions$1V;
-    inputs_transformation?: InputsTransformationOptions$1P;
+interface GenAIOptions$1W {
+    safety_checks?: SafetyChecksOptions$1W;
+    drive?: DriveOptions$1W;
+    inputs_transformation?: InputsTransformationOptions$1Q;
 }
-interface SafetyChecksOptions$1V {
+interface SafetyChecksOptions$1W {
     enabled?: boolean;
 }
-interface DriveOptions$1V {
+interface DriveOptions$1W {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1V;
+    folder?: DriveFolderOptions$1W;
 }
-interface DriveFolderOptions$1V {
+interface DriveFolderOptions$1W {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1P {
+interface InputsTransformationOptions$1Q {
     downscale_oversized_images?: boolean;
 }
 interface WanImageToVideoFirstAndLastFramesResponse {
@@ -4693,7 +4693,7 @@ interface Lyria3MusicCommand {
     prompt: string;
     model?: Lyria3Models;
     image?: Lyria3ImageInput;
-    options?: GenAIOptions$1U;
+    options?: GenAIOptions$1V;
 }
 type Lyria3Models = "lyria-3-clip-preview" | "lyria-3-pro-preview" | "lyria-3.5";
 interface Lyria3ImageInput {
@@ -4702,24 +4702,24 @@ interface Lyria3ImageInput {
     uri?: string;
     data?: string;
 }
-interface GenAIOptions$1U {
-    safety_checks?: SafetyChecksOptions$1U;
-    drive?: DriveOptions$1U;
-    inputs_transformation?: InputsTransformationOptions$1O;
+interface GenAIOptions$1V {
+    safety_checks?: SafetyChecksOptions$1V;
+    drive?: DriveOptions$1V;
+    inputs_transformation?: InputsTransformationOptions$1P;
 }
-interface SafetyChecksOptions$1U {
+interface SafetyChecksOptions$1V {
     enabled?: boolean;
 }
-interface DriveOptions$1U {
+interface DriveOptions$1V {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1U;
+    folder?: DriveFolderOptions$1V;
 }
-interface DriveFolderOptions$1U {
+interface DriveFolderOptions$1V {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1O {
+interface InputsTransformationOptions$1P {
     downscale_oversized_images?: boolean;
 }
 interface Lyria3MusicResult {
@@ -4746,26 +4746,26 @@ interface WanV2TextToVideoCommand {
     prompt_extend?: boolean;
     watermark?: boolean;
     seed?: number;
-    options?: GenAIOptions$1T;
+    options?: GenAIOptions$1U;
 }
-interface GenAIOptions$1T {
-    safety_checks?: SafetyChecksOptions$1T;
-    drive?: DriveOptions$1T;
-    inputs_transformation?: InputsTransformationOptions$1N;
+interface GenAIOptions$1U {
+    safety_checks?: SafetyChecksOptions$1U;
+    drive?: DriveOptions$1U;
+    inputs_transformation?: InputsTransformationOptions$1O;
 }
-interface SafetyChecksOptions$1T {
+interface SafetyChecksOptions$1U {
     enabled?: boolean;
 }
-interface DriveOptions$1T {
+interface DriveOptions$1U {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1T;
+    folder?: DriveFolderOptions$1U;
 }
-interface DriveFolderOptions$1T {
+interface DriveFolderOptions$1U {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1N {
+interface InputsTransformationOptions$1O {
     downscale_oversized_images?: boolean;
 }
 interface WanV2TextToVideoResponse {
@@ -4789,30 +4789,30 @@ interface WanV2ImageToVideoCommand {
     prompt_extend?: boolean;
     watermark?: boolean;
     seed?: number;
-    options?: GenAIOptions$1S;
+    options?: GenAIOptions$1T;
 }
 interface WanV2I2VMediaItem {
     type: "first_frame" | "last_frame" | "driving_audio" | "first_clip";
     url: string;
 }
-interface GenAIOptions$1S {
-    safety_checks?: SafetyChecksOptions$1S;
-    drive?: DriveOptions$1S;
-    inputs_transformation?: InputsTransformationOptions$1M;
+interface GenAIOptions$1T {
+    safety_checks?: SafetyChecksOptions$1T;
+    drive?: DriveOptions$1T;
+    inputs_transformation?: InputsTransformationOptions$1N;
 }
-interface SafetyChecksOptions$1S {
+interface SafetyChecksOptions$1T {
     enabled?: boolean;
 }
-interface DriveOptions$1S {
+interface DriveOptions$1T {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1S;
+    folder?: DriveFolderOptions$1T;
 }
-interface DriveFolderOptions$1S {
+interface DriveFolderOptions$1T {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1M {
+interface InputsTransformationOptions$1N {
     downscale_oversized_images?: boolean;
 }
 interface WanV2ImageToVideoResponse {
@@ -4837,7 +4837,7 @@ interface WanV2ReferenceToVideoCommand {
     duration?: number;
     watermark?: boolean;
     seed?: number;
-    options?: GenAIOptions$1R;
+    options?: GenAIOptions$1S;
 }
 interface WanV2R2VMediaItem {
     type: "reference_image" | "reference_video" | "first_frame";
@@ -4847,24 +4847,24 @@ interface WanV2R2VMediaItem {
 interface WanV2R2VVoiceReference {
     url: string;
 }
-interface GenAIOptions$1R {
-    safety_checks?: SafetyChecksOptions$1R;
-    drive?: DriveOptions$1R;
-    inputs_transformation?: InputsTransformationOptions$1L;
+interface GenAIOptions$1S {
+    safety_checks?: SafetyChecksOptions$1S;
+    drive?: DriveOptions$1S;
+    inputs_transformation?: InputsTransformationOptions$1M;
 }
-interface SafetyChecksOptions$1R {
+interface SafetyChecksOptions$1S {
     enabled?: boolean;
 }
-interface DriveOptions$1R {
+interface DriveOptions$1S {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1R;
+    folder?: DriveFolderOptions$1S;
 }
-interface DriveFolderOptions$1R {
+interface DriveFolderOptions$1S {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1L {
+interface InputsTransformationOptions$1M {
     downscale_oversized_images?: boolean;
 }
 interface WanV2ReferenceToVideoResponse {
@@ -4890,30 +4890,30 @@ interface WanV2VideoEditCommand {
     audio_setting?: "auto" | "origin";
     watermark?: boolean;
     seed?: number;
-    options?: GenAIOptions$1Q;
+    options?: GenAIOptions$1R;
 }
 interface WanV2VideoEditMediaItem {
     type: "video" | "reference_image";
     url: string;
 }
-interface GenAIOptions$1Q {
-    safety_checks?: SafetyChecksOptions$1Q;
-    drive?: DriveOptions$1Q;
-    inputs_transformation?: InputsTransformationOptions$1K;
+interface GenAIOptions$1R {
+    safety_checks?: SafetyChecksOptions$1R;
+    drive?: DriveOptions$1R;
+    inputs_transformation?: InputsTransformationOptions$1L;
 }
-interface SafetyChecksOptions$1Q {
+interface SafetyChecksOptions$1R {
     enabled?: boolean;
 }
-interface DriveOptions$1Q {
+interface DriveOptions$1R {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1Q;
+    folder?: DriveFolderOptions$1R;
 }
-interface DriveFolderOptions$1Q {
+interface DriveFolderOptions$1R {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1K {
+interface InputsTransformationOptions$1L {
     downscale_oversized_images?: boolean;
 }
 interface WanV2VideoEditResponse {
@@ -5109,9 +5109,48 @@ interface FluxOutpaintingCommand {
     mode?: "fast" | "high";
     safetyTolerance?: number;
     outputFormat?: "jpeg" | "png";
-    options?: GenAIOptions$1P;
+    options?: GenAIOptions$1Q;
 }
 type FluxOutpaintingModel = "flux-tools/outpainting-v1" | "flux-tools/outpainting-v1-fast-private";
+interface GenAIOptions$1Q {
+    safety_checks?: SafetyChecksOptions$1Q;
+    drive?: DriveOptions$1Q;
+    inputs_transformation?: InputsTransformationOptions$1K;
+}
+interface SafetyChecksOptions$1Q {
+    enabled?: boolean;
+}
+interface DriveOptions$1Q {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$1Q;
+}
+interface DriveFolderOptions$1Q {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$1K {
+    downscale_oversized_images?: boolean;
+}
+interface FluxOutpaintingResult {
+    result: GeneratedImageResult$6;
+}
+interface GeneratedImageResult$6 {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface TextToImageCommand$1 {
+    promptText: string;
+    ratio: "1920:1080" | "1080:1920" | "1024:1024" | "1360:768" | "1080:1080" | "1168:880" | "1440:1080" | "1080:1440" | "1808:768" | "2112:912";
+    referenceImages?: ReferenceImage[];
+    options?: GenAIOptions$1P;
+}
+interface ReferenceImage {
+    uri: string;
+    tag?: string;
+}
 interface GenAIOptions$1P {
     safety_checks?: SafetyChecksOptions$1P;
     drive?: DriveOptions$1P;
@@ -5132,7 +5171,9 @@ interface DriveFolderOptions$1P {
 interface InputsTransformationOptions$1J {
     downscale_oversized_images?: boolean;
 }
-interface FluxOutpaintingResult {
+interface TextToImageResponse$1 {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
     result: GeneratedImageResult$5;
 }
 interface GeneratedImageResult$5 {
@@ -5141,15 +5182,26 @@ interface GeneratedImageResult$5 {
     driveFile?: Record<string, unknown>;
 }
 
-interface TextToImageCommand$1 {
-    promptText: string;
-    ratio: "1920:1080" | "1080:1920" | "1024:1024" | "1360:768" | "1080:1080" | "1168:880" | "1440:1080" | "1080:1440" | "1808:768" | "2112:912";
-    referenceImages?: ReferenceImage[];
+interface CharacterPerformanceCommand {
+    character: MediaReference;
+    reference: VideoReference;
+    ratio: "1280:720" | "720:1280" | "960:960" | "1104:832" | "832:1104" | "1584:672";
+    bodyControl?: boolean;
+    expressionIntensity?: number;
+    seed?: number;
+    contentModeration?: ContentModeration$3;
     options?: GenAIOptions$1O;
 }
-interface ReferenceImage {
+interface MediaReference {
+    type: "video" | "image";
     uri: string;
-    tag?: string;
+}
+interface VideoReference {
+    type: "video";
+    uri: string;
+}
+interface ContentModeration$3 {
+    publicFigureThreshold: "auto" | "low";
 }
 interface GenAIOptions$1O {
     safety_checks?: SafetyChecksOptions$1O;
@@ -5169,58 +5221,6 @@ interface DriveFolderOptions$1O {
     id?: string;
 }
 interface InputsTransformationOptions$1I {
-    downscale_oversized_images?: boolean;
-}
-interface TextToImageResponse$1 {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: GeneratedImageResult$4;
-}
-interface GeneratedImageResult$4 {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface CharacterPerformanceCommand {
-    character: MediaReference;
-    reference: VideoReference;
-    ratio: "1280:720" | "720:1280" | "960:960" | "1104:832" | "832:1104" | "1584:672";
-    bodyControl?: boolean;
-    expressionIntensity?: number;
-    seed?: number;
-    contentModeration?: ContentModeration$3;
-    options?: GenAIOptions$1N;
-}
-interface MediaReference {
-    type: "video" | "image";
-    uri: string;
-}
-interface VideoReference {
-    type: "video";
-    uri: string;
-}
-interface ContentModeration$3 {
-    publicFigureThreshold: "auto" | "low";
-}
-interface GenAIOptions$1N {
-    safety_checks?: SafetyChecksOptions$1N;
-    drive?: DriveOptions$1N;
-    inputs_transformation?: InputsTransformationOptions$1H;
-}
-interface SafetyChecksOptions$1N {
-    enabled?: boolean;
-}
-interface DriveOptions$1N {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1N;
-}
-interface DriveFolderOptions$1N {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$1H {
     downscale_oversized_images?: boolean;
 }
 interface CharacterPerformanceResponse {
@@ -5244,7 +5244,7 @@ interface VideoToVideoCommand {
     promptImage?: PromptImage$1[];
     contentModeration?: ContentModeration$2;
     transformVideo?: ContentModeration$2;
-    options?: GenAIOptions$1M;
+    options?: GenAIOptions$1N;
 }
 interface ImageReference {
     type: "image";
@@ -5258,6 +5258,49 @@ interface PromptImage$1 {
     };
 }
 interface ContentModeration$2 {
+    publicFigureThreshold: "auto" | "low";
+}
+interface GenAIOptions$1N {
+    safety_checks?: SafetyChecksOptions$1N;
+    drive?: DriveOptions$1N;
+    inputs_transformation?: InputsTransformationOptions$1H;
+}
+interface SafetyChecksOptions$1N {
+    enabled?: boolean;
+}
+interface DriveOptions$1N {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$1N;
+}
+interface DriveFolderOptions$1N {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$1H {
+    downscale_oversized_images?: boolean;
+}
+interface VideoToVideoResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: GeneratedVideoResult$6;
+}
+interface GeneratedVideoResult$6 {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface ImageToVideoCommand$2 {
+    promptText: string;
+    ratio: "1280:720" | "720:1280" | "1104:832" | "960:960" | "832:1104";
+    duration: 5 | 8 | 10;
+    seed?: number;
+    contentModeration?: ContentModeration$1;
+    options?: GenAIOptions$1M;
+    promptImage: PromptImage[];
+}
+interface ContentModeration$1 {
     publicFigureThreshold: "auto" | "low";
 }
 interface GenAIOptions$1M {
@@ -5278,49 +5321,6 @@ interface DriveFolderOptions$1M {
     id?: string;
 }
 interface InputsTransformationOptions$1G {
-    downscale_oversized_images?: boolean;
-}
-interface VideoToVideoResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: GeneratedVideoResult$6;
-}
-interface GeneratedVideoResult$6 {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface ImageToVideoCommand$2 {
-    promptText: string;
-    ratio: "1280:720" | "720:1280" | "1104:832" | "960:960" | "832:1104";
-    duration: 5 | 8 | 10;
-    seed?: number;
-    contentModeration?: ContentModeration$1;
-    options?: GenAIOptions$1L;
-    promptImage: PromptImage[];
-}
-interface ContentModeration$1 {
-    publicFigureThreshold: "auto" | "low";
-}
-interface GenAIOptions$1L {
-    safety_checks?: SafetyChecksOptions$1L;
-    drive?: DriveOptions$1L;
-    inputs_transformation?: InputsTransformationOptions$1F;
-}
-interface SafetyChecksOptions$1L {
-    enabled?: boolean;
-}
-interface DriveOptions$1L {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1L;
-}
-interface DriveFolderOptions$1L {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$1F {
     downscale_oversized_images?: boolean;
 }
 interface PromptImage {
@@ -5344,29 +5344,29 @@ interface TextToVideoCommand$1 {
     duration: 5 | 8 | 10;
     seed?: number;
     contentModeration?: ContentModeration;
-    options?: GenAIOptions$1K;
+    options?: GenAIOptions$1L;
 }
 interface ContentModeration {
     publicFigureThreshold: "auto" | "low";
 }
-interface GenAIOptions$1K {
-    safety_checks?: SafetyChecksOptions$1K;
-    drive?: DriveOptions$1K;
-    inputs_transformation?: InputsTransformationOptions$1E;
+interface GenAIOptions$1L {
+    safety_checks?: SafetyChecksOptions$1L;
+    drive?: DriveOptions$1L;
+    inputs_transformation?: InputsTransformationOptions$1F;
 }
-interface SafetyChecksOptions$1K {
+interface SafetyChecksOptions$1L {
     enabled?: boolean;
 }
-interface DriveOptions$1K {
+interface DriveOptions$1L {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1K;
+    folder?: DriveFolderOptions$1L;
 }
-interface DriveFolderOptions$1K {
+interface DriveFolderOptions$1L {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1E {
+interface InputsTransformationOptions$1F {
     downscale_oversized_images?: boolean;
 }
 interface TextToVideoResponse$1 {
@@ -5389,7 +5389,7 @@ interface ImageToVideoCommand$1 {
     callback_url?: string;
     resolution?: "540p" | "720p" | "1080p" | "4k";
     duration?: "5s" | "9s";
-    options?: GenAIOptions$1J;
+    options?: GenAIOptions$1K;
 }
 interface Keyframes {
     frame0?: KeyframeImage;
@@ -5399,24 +5399,24 @@ interface KeyframeImage {
     type: string;
     url: string;
 }
-interface GenAIOptions$1J {
-    safety_checks?: SafetyChecksOptions$1J;
-    drive?: DriveOptions$1J;
-    inputs_transformation?: InputsTransformationOptions$1D;
+interface GenAIOptions$1K {
+    safety_checks?: SafetyChecksOptions$1K;
+    drive?: DriveOptions$1K;
+    inputs_transformation?: InputsTransformationOptions$1E;
 }
-interface SafetyChecksOptions$1J {
+interface SafetyChecksOptions$1K {
     enabled?: boolean;
 }
-interface DriveOptions$1J {
+interface DriveOptions$1K {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1J;
+    folder?: DriveFolderOptions$1K;
 }
-interface DriveFolderOptions$1J {
+interface DriveFolderOptions$1K {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1D {
+interface InputsTransformationOptions$1E {
     downscale_oversized_images?: boolean;
 }
 interface ImageToVideoResponse$1 {
@@ -5445,29 +5445,29 @@ interface MediaReframeCommand {
     y_end?: number;
     format?: string;
     callback_url?: string;
-    options?: GenAIOptions$1I;
+    options?: GenAIOptions$1J;
 }
 interface Media {
     url: string;
 }
-interface GenAIOptions$1I {
-    safety_checks?: SafetyChecksOptions$1I;
-    drive?: DriveOptions$1I;
-    inputs_transformation?: InputsTransformationOptions$1C;
+interface GenAIOptions$1J {
+    safety_checks?: SafetyChecksOptions$1J;
+    drive?: DriveOptions$1J;
+    inputs_transformation?: InputsTransformationOptions$1D;
 }
-interface SafetyChecksOptions$1I {
+interface SafetyChecksOptions$1J {
     enabled?: boolean;
 }
-interface DriveOptions$1I {
+interface DriveOptions$1J {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1I;
+    folder?: DriveFolderOptions$1J;
 }
-interface DriveFolderOptions$1I {
+interface DriveFolderOptions$1J {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1C {
+interface InputsTransformationOptions$1D {
     downscale_oversized_images?: boolean;
 }
 interface MediaReframeResponse {
@@ -5495,7 +5495,7 @@ interface SeedreamCommand {
     response_format?: "url" | "b64_json";
     watermark?: boolean;
     optimize_prompt_options?: OptimizePromptOptions;
-    options?: GenAIOptions$1H;
+    options?: GenAIOptions$1I;
 }
 type SeedreamModelAlias = "seedream_4_0" | "seedream_4_7" | "seedream_4_5" | "seedream_5_0_lite" | "seedream_5_0_pro";
 type SeedreamResolution = "1K" | "2K" | "3K" | "4K";
@@ -5509,30 +5509,30 @@ interface OptimizePromptOptions {
 }
 type OptimizePromptMode = "standard" | "fast";
 type OptimizePromptThinking = "enabled" | "disabled";
-interface GenAIOptions$1H {
-    safety_checks?: SafetyChecksOptions$1H;
-    drive?: DriveOptions$1H;
-    inputs_transformation?: InputsTransformationOptions$1B;
+interface GenAIOptions$1I {
+    safety_checks?: SafetyChecksOptions$1I;
+    drive?: DriveOptions$1I;
+    inputs_transformation?: InputsTransformationOptions$1C;
 }
-interface SafetyChecksOptions$1H {
+interface SafetyChecksOptions$1I {
     enabled?: boolean;
 }
-interface DriveOptions$1H {
+interface DriveOptions$1I {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1H;
+    folder?: DriveFolderOptions$1I;
 }
-interface DriveFolderOptions$1H {
+interface DriveFolderOptions$1I {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1B {
+interface InputsTransformationOptions$1C {
     downscale_oversized_images?: boolean;
 }
 interface SeedreamResult {
-    result: GeneratedImageResult$3;
+    result: GeneratedImageResult$4;
 }
-interface GeneratedImageResult$3 {
+interface GeneratedImageResult$4 {
     urls: string[];
     b64_jsons: string[];
     mimeType?: string;
@@ -5550,7 +5550,7 @@ interface SeedanceCommand {
     return_last_frame?: boolean;
     watermark?: boolean;
     camerafixed?: boolean;
-    options?: GenAIOptions$1G;
+    options?: GenAIOptions$1H;
 }
 type SeedanceModelAlias = "seedance_1_0_pro" | "seedance_1_0_pro_fast" | "seedance_1_5_pro" | "seedance_2_0" | "seedance_2_0_without_moderation" | "seedance_2_0_fast" | "seedance_2_0_mini" | "seedance_2_5" | "seedance_2_5_without_moderation";
 interface ContentItem {
@@ -5575,24 +5575,24 @@ type FrameRole = "first_frame" | "last_frame" | "reference_image" | "reference_v
 type Resolution = "480p" | "720p" | "1080p" | "4k";
 type Ratio = "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "21:9" | "adaptive";
 type OutputFormat = "mp4" | "mov" | "mp4_8bit";
-interface GenAIOptions$1G {
-    safety_checks?: SafetyChecksOptions$1G;
-    drive?: DriveOptions$1G;
-    inputs_transformation?: InputsTransformationOptions$1A;
+interface GenAIOptions$1H {
+    safety_checks?: SafetyChecksOptions$1H;
+    drive?: DriveOptions$1H;
+    inputs_transformation?: InputsTransformationOptions$1B;
 }
-interface SafetyChecksOptions$1G {
+interface SafetyChecksOptions$1H {
     enabled?: boolean;
 }
-interface DriveOptions$1G {
+interface DriveOptions$1H {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1G;
+    folder?: DriveFolderOptions$1H;
 }
-interface DriveFolderOptions$1G {
+interface DriveFolderOptions$1H {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1A {
+interface InputsTransformationOptions$1B {
     downscale_oversized_images?: boolean;
 }
 interface SeedanceResponse {
@@ -5613,30 +5613,30 @@ interface RunwayImageToVideoCommand {
     promptText: string;
     duration?: 5 | 10;
     ratio: "1280:768" | "768:1280" | "1280:720" | "720:1280" | "1104:832" | "832:1104" | "960:960" | "1584:672";
-    options?: GenAIOptions$1F;
+    options?: GenAIOptions$1G;
 }
 interface RunwayPromptImage {
     uri: string;
     position: "first" | "last";
 }
-interface GenAIOptions$1F {
-    safety_checks?: SafetyChecksOptions$1F;
-    drive?: DriveOptions$1F;
-    inputs_transformation?: InputsTransformationOptions$1z;
+interface GenAIOptions$1G {
+    safety_checks?: SafetyChecksOptions$1G;
+    drive?: DriveOptions$1G;
+    inputs_transformation?: InputsTransformationOptions$1A;
 }
-interface SafetyChecksOptions$1F {
+interface SafetyChecksOptions$1G {
     enabled?: boolean;
 }
-interface DriveOptions$1F {
+interface DriveOptions$1G {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1F;
+    folder?: DriveFolderOptions$1G;
 }
-interface DriveFolderOptions$1F {
+interface DriveFolderOptions$1G {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1z {
+interface InputsTransformationOptions$1A {
     downscale_oversized_images?: boolean;
 }
 interface RunwayVideoResponse {
@@ -5658,28 +5658,28 @@ interface PikaTextToVideoCommand {
     negativePrompt?: string;
     seed?: number;
     duration?: PikaDuration$3;
-    options?: GenAIOptions$1E;
+    options?: GenAIOptions$1F;
 }
 type PikaResolution$3 = "720p" | "1080p";
 type PikaDuration$3 = "5" | "10";
-interface GenAIOptions$1E {
-    safety_checks?: SafetyChecksOptions$1E;
-    drive?: DriveOptions$1E;
-    inputs_transformation?: InputsTransformationOptions$1y;
+interface GenAIOptions$1F {
+    safety_checks?: SafetyChecksOptions$1F;
+    drive?: DriveOptions$1F;
+    inputs_transformation?: InputsTransformationOptions$1z;
 }
-interface SafetyChecksOptions$1E {
+interface SafetyChecksOptions$1F {
     enabled?: boolean;
 }
-interface DriveOptions$1E {
+interface DriveOptions$1F {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1E;
+    folder?: DriveFolderOptions$1F;
 }
-interface DriveFolderOptions$1E {
+interface DriveFolderOptions$1F {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1y {
+interface InputsTransformationOptions$1z {
     downscale_oversized_images?: boolean;
 }
 interface PikaTextToVideoResponse {
@@ -5700,28 +5700,28 @@ interface PikaImageToVideoCommand {
     negativePrompt?: string;
     seed?: number;
     duration?: PikaDuration$2;
-    options?: GenAIOptions$1D;
+    options?: GenAIOptions$1E;
 }
 type PikaResolution$2 = "720p" | "1080p";
 type PikaDuration$2 = "5" | "10";
-interface GenAIOptions$1D {
-    safety_checks?: SafetyChecksOptions$1D;
-    drive?: DriveOptions$1D;
-    inputs_transformation?: InputsTransformationOptions$1x;
+interface GenAIOptions$1E {
+    safety_checks?: SafetyChecksOptions$1E;
+    drive?: DriveOptions$1E;
+    inputs_transformation?: InputsTransformationOptions$1y;
 }
-interface SafetyChecksOptions$1D {
+interface SafetyChecksOptions$1E {
     enabled?: boolean;
 }
-interface DriveOptions$1D {
+interface DriveOptions$1E {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1D;
+    folder?: DriveFolderOptions$1E;
 }
-interface DriveFolderOptions$1D {
+interface DriveFolderOptions$1E {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1x {
+interface InputsTransformationOptions$1y {
     downscale_oversized_images?: boolean;
 }
 interface PikaImageToVideoResponse {
@@ -5744,29 +5744,29 @@ interface PikaScenesCommand {
     seed?: number;
     ingredientsMode?: PikaIngredientsMode;
     duration?: PikaDuration$1;
-    options?: GenAIOptions$1C;
+    options?: GenAIOptions$1D;
 }
 type PikaResolution$1 = "720p" | "1080p";
 type PikaIngredientsMode = "creative" | "precise";
 type PikaDuration$1 = "5" | "10";
-interface GenAIOptions$1C {
-    safety_checks?: SafetyChecksOptions$1C;
-    drive?: DriveOptions$1C;
-    inputs_transformation?: InputsTransformationOptions$1w;
+interface GenAIOptions$1D {
+    safety_checks?: SafetyChecksOptions$1D;
+    drive?: DriveOptions$1D;
+    inputs_transformation?: InputsTransformationOptions$1x;
 }
-interface SafetyChecksOptions$1C {
+interface SafetyChecksOptions$1D {
     enabled?: boolean;
 }
-interface DriveOptions$1C {
+interface DriveOptions$1D {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1C;
+    folder?: DriveFolderOptions$1D;
 }
-interface DriveFolderOptions$1C {
+interface DriveFolderOptions$1D {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1w {
+interface InputsTransformationOptions$1x {
     downscale_oversized_images?: boolean;
 }
 interface PikaScenesResponse {
@@ -5788,28 +5788,28 @@ interface PikaFramesCommand {
     negativePrompt?: string;
     seed?: number;
     duration?: PikaDuration;
-    options?: GenAIOptions$1B;
+    options?: GenAIOptions$1C;
 }
 type PikaResolution = "720p" | "1080p";
 type PikaDuration = "5" | "10";
-interface GenAIOptions$1B {
-    safety_checks?: SafetyChecksOptions$1B;
-    drive?: DriveOptions$1B;
-    inputs_transformation?: InputsTransformationOptions$1v;
+interface GenAIOptions$1C {
+    safety_checks?: SafetyChecksOptions$1C;
+    drive?: DriveOptions$1C;
+    inputs_transformation?: InputsTransformationOptions$1w;
 }
-interface SafetyChecksOptions$1B {
+interface SafetyChecksOptions$1C {
     enabled?: boolean;
 }
-interface DriveOptions$1B {
+interface DriveOptions$1C {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1B;
+    folder?: DriveFolderOptions$1C;
 }
-interface DriveFolderOptions$1B {
+interface DriveFolderOptions$1C {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1v {
+interface InputsTransformationOptions$1w {
     downscale_oversized_images?: boolean;
 }
 interface PikaFramesResponse {
@@ -5837,7 +5837,7 @@ interface IdeogramV3GenerateCommand {
     num_images?: number;
     character_reference_images?: string[];
     character_reference_images_mask?: string;
-    options?: GenAIOptions$1A;
+    options?: GenAIOptions$1B;
 }
 type IdeogramMagicPromptEnum = "AUTO" | "ON" | "OFF";
 type IdeogramStyleTypes = "AUTO" | "GENERAL" | "REALISTIC" | "DESIGN" | "FICTION";
@@ -5848,19 +5848,19 @@ interface StorageParam$5 {
     destination: string;
 }
 type IdeogramRenderingSpeed$2 = "TURBO" | "DEFAULT" | "QUALITY" | "FLASH";
-interface GenAIOptions$1A {
-    safety_checks?: SafetyChecksOptions$1A;
-    drive?: DriveOptions$1A;
+interface GenAIOptions$1B {
+    safety_checks?: SafetyChecksOptions$1B;
+    drive?: DriveOptions$1B;
 }
-interface SafetyChecksOptions$1A {
+interface SafetyChecksOptions$1B {
     enabled?: boolean;
 }
-interface DriveOptions$1A {
+interface DriveOptions$1B {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1A;
+    folder?: DriveFolderOptions$1B;
 }
-interface DriveFolderOptions$1A {
+interface DriveFolderOptions$1B {
     path?: string;
     id?: string;
 }
@@ -5894,7 +5894,7 @@ interface IdeogramV3EditCommand {
     color_palette?: ColorPalettesWithName$1;
     num_images?: number;
     storage?: StorageParam$4;
-    options?: GenAIOptions$1z;
+    options?: GenAIOptions$1A;
 }
 type IdeogramRenderingSpeed$1 = "TURBO" | "DEFAULT" | "QUALITY" | "FLASH";
 interface ColorPalettesWithName$1 {
@@ -5903,19 +5903,19 @@ interface ColorPalettesWithName$1 {
 interface StorageParam$4 {
     destination: string;
 }
-interface GenAIOptions$1z {
-    safety_checks?: SafetyChecksOptions$1z;
-    drive?: DriveOptions$1z;
+interface GenAIOptions$1A {
+    safety_checks?: SafetyChecksOptions$1A;
+    drive?: DriveOptions$1A;
 }
-interface SafetyChecksOptions$1z {
+interface SafetyChecksOptions$1A {
     enabled?: boolean;
 }
-interface DriveOptions$1z {
+interface DriveOptions$1A {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1z;
+    folder?: DriveFolderOptions$1A;
 }
-interface DriveFolderOptions$1z {
+interface DriveFolderOptions$1A {
     path?: string;
     id?: string;
 }
@@ -5952,7 +5952,7 @@ interface IdeogramV3RemixCommand {
     num_images?: number;
     character_reference_images?: string[];
     character_reference_images_mask?: string;
-    options?: GenAIOptions$1y;
+    options?: GenAIOptions$1z;
 }
 interface ColorPalettesWithName {
     name: string;
@@ -5961,19 +5961,19 @@ type IdeogramRenderingSpeed = "TURBO" | "DEFAULT" | "QUALITY" | "FLASH";
 interface StorageParam$3 {
     destination: string;
 }
-interface GenAIOptions$1y {
-    safety_checks?: SafetyChecksOptions$1y;
-    drive?: DriveOptions$1y;
+interface GenAIOptions$1z {
+    safety_checks?: SafetyChecksOptions$1z;
+    drive?: DriveOptions$1z;
 }
-interface SafetyChecksOptions$1y {
+interface SafetyChecksOptions$1z {
     enabled?: boolean;
 }
-interface DriveOptions$1y {
+interface DriveOptions$1z {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1y;
+    folder?: DriveFolderOptions$1z;
 }
-interface DriveFolderOptions$1y {
+interface DriveFolderOptions$1z {
     path?: string;
     id?: string;
 }
@@ -6242,7 +6242,7 @@ interface ChatCompletionsCommand {
     stop?: string | string[];
     tools?: ToolDefinition[];
     tool_choice?: Record<string, unknown>;
-    options?: GenAIOptions$1x;
+    options?: GenAIOptions$1y;
 }
 interface ChatMessage {
     role: "system" | "user" | "assistant" | "tool";
@@ -6270,24 +6270,24 @@ interface FunctionDefinition {
     parameters?: Record<string, unknown>;
     strict?: boolean;
 }
-interface GenAIOptions$1x {
-    safety_checks?: SafetyChecksOptions$1x;
-    drive?: DriveOptions$1x;
-    inputs_transformation?: InputsTransformationOptions$1u;
+interface GenAIOptions$1y {
+    safety_checks?: SafetyChecksOptions$1y;
+    drive?: DriveOptions$1y;
+    inputs_transformation?: InputsTransformationOptions$1v;
 }
-interface SafetyChecksOptions$1x {
+interface SafetyChecksOptions$1y {
     enabled?: boolean;
 }
-interface DriveOptions$1x {
+interface DriveOptions$1y {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1x;
+    folder?: DriveFolderOptions$1y;
 }
-interface DriveFolderOptions$1x {
+interface DriveFolderOptions$1y {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1u {
+interface InputsTransformationOptions$1v {
     downscale_oversized_images?: boolean;
 }
 interface ChatCompletionsResponse {
@@ -6326,31 +6326,31 @@ interface AvatarCreateCommand {
     startScript?: string;
     documentIds?: string[];
     imageProcessing?: "optimize" | "none";
-    options?: GenAIOptions$1w;
+    options?: GenAIOptions$1x;
 }
 interface AvatarVoiceInput {
     type: "runway-live-preset" | "custom";
     presetId?: "victoria" | "vincent" | "clara" | "drew" | "skye" | "max" | "morgan" | "felix" | "mia" | "marcus" | "summer" | "ruby" | "aurora" | "jasper" | "leo" | "adrian" | "nina" | "emma" | "blake" | "david" | "maya" | "nathan" | "sam" | "georgia" | "petra" | "adam" | "zach" | "violet" | "roman" | "luna";
     id?: string;
 }
-interface GenAIOptions$1w {
-    safety_checks?: SafetyChecksOptions$1w;
-    drive?: DriveOptions$1w;
-    inputs_transformation?: InputsTransformationOptions$1t;
+interface GenAIOptions$1x {
+    safety_checks?: SafetyChecksOptions$1x;
+    drive?: DriveOptions$1x;
+    inputs_transformation?: InputsTransformationOptions$1u;
 }
-interface SafetyChecksOptions$1w {
+interface SafetyChecksOptions$1x {
     enabled?: boolean;
 }
-interface DriveOptions$1w {
+interface DriveOptions$1x {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1w;
+    folder?: DriveFolderOptions$1x;
 }
-interface DriveFolderOptions$1w {
+interface DriveFolderOptions$1x {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1t {
+interface InputsTransformationOptions$1u {
     downscale_oversized_images?: boolean;
 }
 interface AvatarCreateResponse {
@@ -6450,31 +6450,31 @@ interface AvatarUpdateCommand {
     startScript?: string;
     documentIds?: string[];
     imageProcessing?: "optimize" | "none";
-    options?: GenAIOptions$1v;
+    options?: GenAIOptions$1w;
 }
 interface AvatarVoiceUpdateInput {
     type: "runway-live-preset" | "custom";
     presetId?: "victoria" | "vincent" | "clara" | "drew" | "skye" | "max" | "morgan" | "felix" | "mia" | "marcus" | "summer" | "ruby" | "aurora" | "jasper" | "leo" | "adrian" | "nina" | "emma" | "blake" | "david" | "maya" | "nathan" | "sam" | "georgia" | "petra" | "adam" | "zach" | "violet" | "roman" | "luna";
     id?: string;
 }
-interface GenAIOptions$1v {
-    safety_checks?: SafetyChecksOptions$1v;
-    drive?: DriveOptions$1v;
-    inputs_transformation?: InputsTransformationOptions$1s;
+interface GenAIOptions$1w {
+    safety_checks?: SafetyChecksOptions$1w;
+    drive?: DriveOptions$1w;
+    inputs_transformation?: InputsTransformationOptions$1t;
 }
-interface SafetyChecksOptions$1v {
+interface SafetyChecksOptions$1w {
     enabled?: boolean;
 }
-interface DriveOptions$1v {
+interface DriveOptions$1w {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1v;
+    folder?: DriveFolderOptions$1w;
 }
-interface DriveFolderOptions$1v {
+interface DriveFolderOptions$1w {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1s {
+interface InputsTransformationOptions$1t {
     downscale_oversized_images?: boolean;
 }
 interface AvatarUpdateResponse {
@@ -6522,26 +6522,26 @@ interface RealtimeSessionCommand {
     avatarId?: string;
     personality?: string;
     startScript?: string;
-    options?: GenAIOptions$1u;
+    options?: GenAIOptions$1v;
 }
-interface GenAIOptions$1u {
-    safety_checks?: SafetyChecksOptions$1u;
-    drive?: DriveOptions$1u;
-    inputs_transformation?: InputsTransformationOptions$1r;
+interface GenAIOptions$1v {
+    safety_checks?: SafetyChecksOptions$1v;
+    drive?: DriveOptions$1v;
+    inputs_transformation?: InputsTransformationOptions$1s;
 }
-interface SafetyChecksOptions$1u {
+interface SafetyChecksOptions$1v {
     enabled?: boolean;
 }
-interface DriveOptions$1u {
+interface DriveOptions$1v {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1u;
+    folder?: DriveFolderOptions$1v;
 }
-interface DriveFolderOptions$1u {
+interface DriveFolderOptions$1v {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1r {
+interface InputsTransformationOptions$1s {
     downscale_oversized_images?: boolean;
 }
 interface RealtimeSessionResponse {
@@ -6563,31 +6563,31 @@ interface AvatarVideoCommand {
     text?: string;
     audio?: string;
     voice?: AvatarVideoVoiceInput;
-    options?: GenAIOptions$1t;
+    options?: GenAIOptions$1u;
 }
 interface AvatarVideoVoiceInput {
     type: "preset" | "custom";
     presetId?: "victoria" | "vincent" | "clara" | "drew" | "skye" | "max" | "morgan" | "felix" | "mia" | "marcus" | "summer" | "ruby" | "aurora" | "jasper" | "leo" | "adrian" | "nina" | "emma" | "blake" | "david" | "maya" | "nathan" | "sam" | "georgia" | "petra" | "adam" | "zach" | "violet" | "roman" | "luna";
     id?: string;
 }
-interface GenAIOptions$1t {
-    safety_checks?: SafetyChecksOptions$1t;
-    drive?: DriveOptions$1t;
-    inputs_transformation?: InputsTransformationOptions$1q;
+interface GenAIOptions$1u {
+    safety_checks?: SafetyChecksOptions$1u;
+    drive?: DriveOptions$1u;
+    inputs_transformation?: InputsTransformationOptions$1r;
 }
-interface SafetyChecksOptions$1t {
+interface SafetyChecksOptions$1u {
     enabled?: boolean;
 }
-interface DriveOptions$1t {
+interface DriveOptions$1u {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1t;
+    folder?: DriveFolderOptions$1u;
 }
-interface DriveFolderOptions$1t {
+interface DriveFolderOptions$1u {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1q {
+interface InputsTransformationOptions$1r {
     downscale_oversized_images?: boolean;
 }
 interface AvatarVideoResponse {
@@ -6611,30 +6611,30 @@ interface QwenImageEditCommand {
     drop_cond_tokens_prob?: number;
     seed?: number;
     output_format?: "JPEG" | "PNG" | "HEIC" | "WEBP";
-    options?: GenAIOptions$1s;
+    options?: GenAIOptions$1t;
     model?: "model-qwent-image-edit-lightning" | "model-qwent-image-edit-vton";
     num_inference_steps?: number;
     guidance_scale?: number;
     max_pixels?: number;
 }
-interface GenAIOptions$1s {
-    safety_checks?: SafetyChecksOptions$1s;
-    drive?: DriveOptions$1s;
-    inputs_transformation?: InputsTransformationOptions$1p;
+interface GenAIOptions$1t {
+    safety_checks?: SafetyChecksOptions$1t;
+    drive?: DriveOptions$1t;
+    inputs_transformation?: InputsTransformationOptions$1q;
 }
-interface SafetyChecksOptions$1s {
+interface SafetyChecksOptions$1t {
     enabled?: boolean;
 }
-interface DriveOptions$1s {
+interface DriveOptions$1t {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1s;
+    folder?: DriveFolderOptions$1t;
 }
-interface DriveFolderOptions$1s {
+interface DriveFolderOptions$1t {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1p {
+interface InputsTransformationOptions$1q {
     downscale_oversized_images?: boolean;
 }
 interface QwenImageEditResponse {
@@ -6694,31 +6694,31 @@ interface XAiTtsCommand {
     language: string;
     voice_id?: string;
     output_format?: XAiTtsOutputFormat;
-    options?: GenAIOptions$1r;
+    options?: GenAIOptions$1s;
 }
 interface XAiTtsOutputFormat {
     codec?: string;
     sample_rate?: number;
     bit_rate?: number;
 }
-interface GenAIOptions$1r {
-    safety_checks?: SafetyChecksOptions$1r;
-    drive?: DriveOptions$1r;
-    inputs_transformation?: InputsTransformationOptions$1o;
+interface GenAIOptions$1s {
+    safety_checks?: SafetyChecksOptions$1s;
+    drive?: DriveOptions$1s;
+    inputs_transformation?: InputsTransformationOptions$1p;
 }
-interface SafetyChecksOptions$1r {
+interface SafetyChecksOptions$1s {
     enabled?: boolean;
 }
-interface DriveOptions$1r {
+interface DriveOptions$1s {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1r;
+    folder?: DriveFolderOptions$1s;
 }
-interface DriveFolderOptions$1r {
+interface DriveFolderOptions$1s {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1o {
+interface InputsTransformationOptions$1p {
     downscale_oversized_images?: boolean;
 }
 interface XAiTtsResponse {
@@ -6739,26 +6739,26 @@ interface XAiImagesGenerationsCommand {
     n?: number;
     resolution?: "1k" | "2k";
     quality?: "low" | "medium";
-    options?: GenAIOptions$1q;
+    options?: GenAIOptions$1r;
 }
-interface GenAIOptions$1q {
-    safety_checks?: SafetyChecksOptions$1q;
-    drive?: DriveOptions$1q;
-    inputs_transformation?: InputsTransformationOptions$1n;
+interface GenAIOptions$1r {
+    safety_checks?: SafetyChecksOptions$1r;
+    drive?: DriveOptions$1r;
+    inputs_transformation?: InputsTransformationOptions$1o;
 }
-interface SafetyChecksOptions$1q {
+interface SafetyChecksOptions$1r {
     enabled?: boolean;
 }
-interface DriveOptions$1q {
+interface DriveOptions$1r {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1q;
+    folder?: DriveFolderOptions$1r;
 }
-interface DriveFolderOptions$1q {
+interface DriveFolderOptions$1r {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1n {
+interface InputsTransformationOptions$1o {
     downscale_oversized_images?: boolean;
 }
 interface XAiImagesGenerationsResponse {
@@ -6784,29 +6784,29 @@ interface XAiImagesEditsCommand {
     model?: "grok-imagine-image" | "grok-imagine-image-quality" | "grok-imagine-image-2.0";
     n?: number;
     resolution?: "1k" | "2k";
-    options?: GenAIOptions$1p;
+    options?: GenAIOptions$1q;
 }
 interface XAiImageUrl$1 {
     url: string;
 }
-interface GenAIOptions$1p {
-    safety_checks?: SafetyChecksOptions$1p;
-    drive?: DriveOptions$1p;
-    inputs_transformation?: InputsTransformationOptions$1m;
+interface GenAIOptions$1q {
+    safety_checks?: SafetyChecksOptions$1q;
+    drive?: DriveOptions$1q;
+    inputs_transformation?: InputsTransformationOptions$1n;
 }
-interface SafetyChecksOptions$1p {
+interface SafetyChecksOptions$1q {
     enabled?: boolean;
 }
-interface DriveOptions$1p {
+interface DriveOptions$1q {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1p;
+    folder?: DriveFolderOptions$1q;
 }
-interface DriveFolderOptions$1p {
+interface DriveFolderOptions$1q {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1m {
+interface InputsTransformationOptions$1n {
     downscale_oversized_images?: boolean;
 }
 interface XAiImagesEditsResponse {
@@ -6833,9 +6833,49 @@ interface XAiVideosGenerationsCommand {
     duration?: number;
     resolution?: "480p" | "720p" | "1080p";
     size?: "848x480" | "1696x960" | "1280x720" | "1920x1080";
-    options?: GenAIOptions$1o;
+    options?: GenAIOptions$1p;
 }
 interface XAiImageUrl {
+    url: string;
+}
+interface GenAIOptions$1p {
+    safety_checks?: SafetyChecksOptions$1p;
+    drive?: DriveOptions$1p;
+    inputs_transformation?: InputsTransformationOptions$1m;
+}
+interface SafetyChecksOptions$1p {
+    enabled?: boolean;
+}
+interface DriveOptions$1p {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$1p;
+}
+interface DriveFolderOptions$1p {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$1m {
+    downscale_oversized_images?: boolean;
+}
+interface XAiVideosGenerationsResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: XAiVideoGenerationResult$2;
+}
+interface XAiVideoGenerationResult$2 {
+    url: string;
+    mimeType: string;
+    duration: number;
+    driveFile?: Record<string, unknown>;
+}
+
+interface XAiVideosEditsCommand {
+    prompt: string;
+    video: XAiVideoUrl$1;
+    options?: GenAIOptions$1o;
+}
+interface XAiVideoUrl$1 {
     url: string;
 }
 interface GenAIOptions$1o {
@@ -6858,24 +6898,25 @@ interface DriveFolderOptions$1o {
 interface InputsTransformationOptions$1l {
     downscale_oversized_images?: boolean;
 }
-interface XAiVideosGenerationsResponse {
+interface XAiVideosEditsResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: XAiVideoGenerationResult$2;
+    result: XAiVideoGenerationResult$1;
 }
-interface XAiVideoGenerationResult$2 {
+interface XAiVideoGenerationResult$1 {
     url: string;
     mimeType: string;
     duration: number;
     driveFile?: Record<string, unknown>;
 }
 
-interface XAiVideosEditsCommand {
+interface XAiVideosExtensionsCommand {
     prompt: string;
-    video: XAiVideoUrl$1;
+    video: XAiVideoUrl;
+    duration?: number;
     options?: GenAIOptions$1n;
 }
-interface XAiVideoUrl$1 {
+interface XAiVideoUrl {
     url: string;
 }
 interface GenAIOptions$1n {
@@ -6898,26 +6939,26 @@ interface DriveFolderOptions$1n {
 interface InputsTransformationOptions$1k {
     downscale_oversized_images?: boolean;
 }
-interface XAiVideosEditsResponse {
+interface XAiVideosExtensionsResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: XAiVideoGenerationResult$1;
+    result: XAiVideoGenerationResult;
 }
-interface XAiVideoGenerationResult$1 {
+interface XAiVideoGenerationResult {
     url: string;
     mimeType: string;
     duration: number;
     driveFile?: Record<string, unknown>;
 }
 
-interface XAiVideosExtensionsCommand {
+interface HappyhorseTextToVideoCommand {
     prompt: string;
-    video: XAiVideoUrl;
+    resolution?: "720P" | "1080P";
+    ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
     duration?: number;
+    seed?: number;
+    watermark?: boolean;
     options?: GenAIOptions$1m;
-}
-interface XAiVideoUrl {
-    url: string;
 }
 interface GenAIOptions$1m {
     safety_checks?: SafetyChecksOptions$1m;
@@ -6939,26 +6980,29 @@ interface DriveFolderOptions$1m {
 interface InputsTransformationOptions$1j {
     downscale_oversized_images?: boolean;
 }
-interface XAiVideosExtensionsResponse {
+interface HappyhorseTextToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: XAiVideoGenerationResult;
+    result: HappyhorseTextToVideoResult;
 }
-interface XAiVideoGenerationResult {
+interface HappyhorseTextToVideoResult {
     url: string;
-    mimeType: string;
-    duration: number;
+    mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface HappyhorseTextToVideoCommand {
-    prompt: string;
+interface HappyhorseImageToVideoCommand {
+    media: HappyhorseI2VMediaItem[];
+    prompt?: string;
     resolution?: "720P" | "1080P";
-    ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
     duration?: number;
     seed?: number;
     watermark?: boolean;
     options?: GenAIOptions$1l;
+}
+interface HappyhorseI2VMediaItem {
+    type: "first_frame";
+    url: string;
 }
 interface GenAIOptions$1l {
     safety_checks?: SafetyChecksOptions$1l;
@@ -6980,50 +7024,6 @@ interface DriveFolderOptions$1l {
 interface InputsTransformationOptions$1i {
     downscale_oversized_images?: boolean;
 }
-interface HappyhorseTextToVideoResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: HappyhorseTextToVideoResult;
-}
-interface HappyhorseTextToVideoResult {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface HappyhorseImageToVideoCommand {
-    media: HappyhorseI2VMediaItem[];
-    prompt?: string;
-    resolution?: "720P" | "1080P";
-    duration?: number;
-    seed?: number;
-    watermark?: boolean;
-    options?: GenAIOptions$1k;
-}
-interface HappyhorseI2VMediaItem {
-    type: "first_frame";
-    url: string;
-}
-interface GenAIOptions$1k {
-    safety_checks?: SafetyChecksOptions$1k;
-    drive?: DriveOptions$1k;
-    inputs_transformation?: InputsTransformationOptions$1h;
-}
-interface SafetyChecksOptions$1k {
-    enabled?: boolean;
-}
-interface DriveOptions$1k {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1k;
-}
-interface DriveFolderOptions$1k {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$1h {
-    downscale_oversized_images?: boolean;
-}
 interface HappyhorseImageToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -7042,7 +7042,7 @@ interface WhisperxVideoCaptionsCommand {
     alignment?: AlignmentOptions$1;
     diarization?: DiarizationOptions$1;
     output?: OutputOptions$1;
-    options?: GenAIOptions$1j;
+    options?: GenAIOptions$1k;
 }
 interface WhisperParameters$1 {
     language?: "en" | "es" | "fr" | "de" | "it" | "pt" | "nl" | "pl" | "ja" | "zh" | "ru";
@@ -7066,24 +7066,24 @@ interface OutputOptions$1 {
     include_word_segments?: boolean;
     include_char_segments?: boolean;
 }
-interface GenAIOptions$1j {
-    safety_checks?: SafetyChecksOptions$1j;
-    drive?: DriveOptions$1j;
-    inputs_transformation?: InputsTransformationOptions$1g;
+interface GenAIOptions$1k {
+    safety_checks?: SafetyChecksOptions$1k;
+    drive?: DriveOptions$1k;
+    inputs_transformation?: InputsTransformationOptions$1h;
 }
-interface SafetyChecksOptions$1j {
+interface SafetyChecksOptions$1k {
     enabled?: boolean;
 }
-interface DriveOptions$1j {
+interface DriveOptions$1k {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1j;
+    folder?: DriveFolderOptions$1k;
 }
-interface DriveFolderOptions$1j {
+interface DriveFolderOptions$1k {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1g {
+interface InputsTransformationOptions$1h {
     downscale_oversized_images?: boolean;
 }
 interface WhisperxVideoCaptionsResponse {
@@ -7127,8 +7127,48 @@ interface QwenMakeupCommand {
     drop_cond_tokens_prob?: number;
     seed?: number;
     output_format?: "JPEG" | "PNG" | "HEIC" | "WEBP";
-    options?: GenAIOptions$1i;
+    options?: GenAIOptions$1j;
     model?: "model-qwent-image-edit-lightning-makeup";
+}
+interface GenAIOptions$1j {
+    safety_checks?: SafetyChecksOptions$1j;
+    drive?: DriveOptions$1j;
+    inputs_transformation?: InputsTransformationOptions$1g;
+}
+interface SafetyChecksOptions$1j {
+    enabled?: boolean;
+}
+interface DriveOptions$1j {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$1j;
+}
+interface DriveFolderOptions$1j {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$1g {
+    downscale_oversized_images?: boolean;
+}
+interface QwenMakeupResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: QwenImageEditResultData$1;
+}
+interface QwenImageEditResultData$1 {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface FluxTextToImageCommand {
+    prompt: string;
+    images?: string[];
+    width?: number;
+    height?: number;
+    num_inference_steps?: number;
+    seed?: number;
+    options?: GenAIOptions$1i;
 }
 interface GenAIOptions$1i {
     safety_checks?: SafetyChecksOptions$1i;
@@ -7150,46 +7190,6 @@ interface DriveFolderOptions$1i {
 interface InputsTransformationOptions$1f {
     downscale_oversized_images?: boolean;
 }
-interface QwenMakeupResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: QwenImageEditResultData$1;
-}
-interface QwenImageEditResultData$1 {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface FluxTextToImageCommand {
-    prompt: string;
-    images?: string[];
-    width?: number;
-    height?: number;
-    num_inference_steps?: number;
-    seed?: number;
-    options?: GenAIOptions$1h;
-}
-interface GenAIOptions$1h {
-    safety_checks?: SafetyChecksOptions$1h;
-    drive?: DriveOptions$1h;
-    inputs_transformation?: InputsTransformationOptions$1e;
-}
-interface SafetyChecksOptions$1h {
-    enabled?: boolean;
-}
-interface DriveOptions$1h {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1h;
-}
-interface DriveFolderOptions$1h {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$1e {
-    downscale_oversized_images?: boolean;
-}
 interface FluxTextToImageResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -7208,7 +7208,7 @@ interface GeminiV3ImagesCommand {
     imageSize?: ImageResolution;
     model: GeminiImageModel;
     count?: number;
-    options?: GenAIOptions$1g;
+    options?: GenAIOptions$1h;
     thinkingConfig?: ThinkingConfig;
 }
 interface GeminiImagePart {
@@ -7222,24 +7222,24 @@ interface PartInlineData {
 type AspectRatio = "auto" | "1:1" | "2:3" | "3:2" | "3:4" | "4:3" | "4:5" | "5:4" | "9:16" | "16:9" | "21:9" | "1:4" | "4:1" | "1:8" | "8:1";
 type ImageResolution = "0.5K" | "1K" | "2K" | "4K";
 type GeminiImageModel = "gemini-2.5-flash-image" | "gemini-3-pro-image" | "gemini-3-pro-image-preview" | "gemini-3.1-flash-image" | "gemini-3.1-flash-lite-image" | "gemini-3.1-flash-image-preview";
-interface GenAIOptions$1g {
-    safety_checks?: SafetyChecksOptions$1g;
-    drive?: DriveOptions$1g;
-    inputs_transformation?: InputsTransformationOptions$1d;
+interface GenAIOptions$1h {
+    safety_checks?: SafetyChecksOptions$1h;
+    drive?: DriveOptions$1h;
+    inputs_transformation?: InputsTransformationOptions$1e;
 }
-interface SafetyChecksOptions$1g {
+interface SafetyChecksOptions$1h {
     enabled?: boolean;
 }
-interface DriveOptions$1g {
+interface DriveOptions$1h {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1g;
+    folder?: DriveFolderOptions$1h;
 }
-interface DriveFolderOptions$1g {
+interface DriveFolderOptions$1h {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1d {
+interface InputsTransformationOptions$1e {
     downscale_oversized_images?: boolean;
 }
 interface ThinkingConfig {
@@ -7269,30 +7269,30 @@ interface HappyhorseReferenceToVideoCommand {
     duration?: number;
     seed?: number;
     watermark?: boolean;
-    options?: GenAIOptions$1f;
+    options?: GenAIOptions$1g;
 }
 interface HappyhorseR2VMediaItem {
     type: "reference_image";
     url: string;
 }
-interface GenAIOptions$1f {
-    safety_checks?: SafetyChecksOptions$1f;
-    drive?: DriveOptions$1f;
-    inputs_transformation?: InputsTransformationOptions$1c;
+interface GenAIOptions$1g {
+    safety_checks?: SafetyChecksOptions$1g;
+    drive?: DriveOptions$1g;
+    inputs_transformation?: InputsTransformationOptions$1d;
 }
-interface SafetyChecksOptions$1f {
+interface SafetyChecksOptions$1g {
     enabled?: boolean;
 }
-interface DriveOptions$1f {
+interface DriveOptions$1g {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1f;
+    folder?: DriveFolderOptions$1g;
 }
-interface DriveFolderOptions$1f {
+interface DriveFolderOptions$1g {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1c {
+interface InputsTransformationOptions$1d {
     downscale_oversized_images?: boolean;
 }
 interface HappyhorseReferenceToVideoResponse {
@@ -7313,30 +7313,30 @@ interface HappyhorseVideoEditCommand {
     audio_setting?: "auto" | "origin";
     seed?: number;
     watermark?: boolean;
-    options?: GenAIOptions$1e;
+    options?: GenAIOptions$1f;
 }
 interface HappyhorseV2VMediaItem {
     type: "video" | "reference_image";
     url: string;
 }
-interface GenAIOptions$1e {
-    safety_checks?: SafetyChecksOptions$1e;
-    drive?: DriveOptions$1e;
-    inputs_transformation?: InputsTransformationOptions$1b;
+interface GenAIOptions$1f {
+    safety_checks?: SafetyChecksOptions$1f;
+    drive?: DriveOptions$1f;
+    inputs_transformation?: InputsTransformationOptions$1c;
 }
-interface SafetyChecksOptions$1e {
+interface SafetyChecksOptions$1f {
     enabled?: boolean;
 }
-interface DriveOptions$1e {
+interface DriveOptions$1f {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1e;
+    folder?: DriveFolderOptions$1f;
 }
-interface DriveFolderOptions$1e {
+interface DriveFolderOptions$1f {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1b {
+interface InputsTransformationOptions$1c {
     downscale_oversized_images?: boolean;
 }
 interface HappyhorseVideoEditResponse {
@@ -7361,26 +7361,26 @@ interface AiExpandCommand {
     upscale_num_timesteps?: number;
     upscale_noise_level?: number;
     model?: "model-simpleaiexpander-v1" | "model-simpleaiexpander-v2" | "model-simpleaiexpander-v2-1" | "model-simpleaiexpander-v2-2";
-    options?: GenAIOptions$1d;
+    options?: GenAIOptions$1e;
 }
-interface GenAIOptions$1d {
-    safety_checks?: SafetyChecksOptions$1d;
-    drive?: DriveOptions$1d;
-    inputs_transformation?: InputsTransformationOptions$1a;
+interface GenAIOptions$1e {
+    safety_checks?: SafetyChecksOptions$1e;
+    drive?: DriveOptions$1e;
+    inputs_transformation?: InputsTransformationOptions$1b;
 }
-interface SafetyChecksOptions$1d {
+interface SafetyChecksOptions$1e {
     enabled?: boolean;
 }
-interface DriveOptions$1d {
+interface DriveOptions$1e {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1d;
+    folder?: DriveFolderOptions$1e;
 }
-interface DriveFolderOptions$1d {
+interface DriveFolderOptions$1e {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$1a {
+interface InputsTransformationOptions$1b {
     downscale_oversized_images?: boolean;
 }
 interface AiExpandResponse {
@@ -7405,26 +7405,26 @@ interface QwenTextToImageCommand {
     enable_thinking?: boolean;
     watermark?: boolean;
     seed?: number;
-    options?: GenAIOptions$1c;
+    options?: GenAIOptions$1d;
 }
-interface GenAIOptions$1c {
-    safety_checks?: SafetyChecksOptions$1c;
-    drive?: DriveOptions$1c;
-    inputs_transformation?: InputsTransformationOptions$19;
+interface GenAIOptions$1d {
+    safety_checks?: SafetyChecksOptions$1d;
+    drive?: DriveOptions$1d;
+    inputs_transformation?: InputsTransformationOptions$1a;
 }
-interface SafetyChecksOptions$1c {
+interface SafetyChecksOptions$1d {
     enabled?: boolean;
 }
-interface DriveOptions$1c {
+interface DriveOptions$1d {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1c;
+    folder?: DriveFolderOptions$1d;
 }
-interface DriveFolderOptions$1c {
+interface DriveFolderOptions$1d {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$19 {
+interface InputsTransformationOptions$1a {
     downscale_oversized_images?: boolean;
 }
 interface QwenTextToImageResponse {
@@ -7453,6 +7453,47 @@ interface QwenImageToImageCommand {
     enable_thinking?: boolean;
     watermark?: boolean;
     seed?: number;
+    options?: GenAIOptions$1c;
+}
+interface GenAIOptions$1c {
+    safety_checks?: SafetyChecksOptions$1c;
+    drive?: DriveOptions$1c;
+    inputs_transformation?: InputsTransformationOptions$19;
+}
+interface SafetyChecksOptions$1c {
+    enabled?: boolean;
+}
+interface DriveOptions$1c {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$1c;
+}
+interface DriveFolderOptions$1c {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$19 {
+    downscale_oversized_images?: boolean;
+}
+interface QwenImageToImageResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: QwenImageToImageResult;
+}
+interface QwenImageToImageResult {
+    items: QwenImageToImageResultItem[];
+}
+interface QwenImageToImageResultItem {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface FaceCorrectionCommand {
+    image_url: string;
+    types: ("blemish" | "eye-bag" | "face-smooth" | "wrinkle")[];
+    restore_colors?: boolean;
+    model?: "preview-model-face-correction-v1" | "model-face-correction-v1";
     options?: GenAIOptions$1b;
 }
 interface GenAIOptions$1b {
@@ -7475,26 +7516,30 @@ interface DriveFolderOptions$1b {
 interface InputsTransformationOptions$18 {
     downscale_oversized_images?: boolean;
 }
-interface QwenImageToImageResponse {
+interface FaceCorrectionResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: QwenImageToImageResult;
+    result: FaceCorrectionResultData;
 }
-interface QwenImageToImageResult {
-    items: QwenImageToImageResultItem[];
-}
-interface QwenImageToImageResultItem {
+interface FaceCorrectionResultData {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface FaceCorrectionCommand {
-    image_url: string;
-    types: ("blemish" | "eye-bag" | "face-smooth" | "wrinkle")[];
-    restore_colors?: boolean;
-    model?: "preview-model-face-correction-v1" | "model-face-correction-v1";
+interface TextToImageCommand {
+    prompt: string;
+    model?: "uni-1" | "uni-1-max";
+    aspect_ratio?: "3:1" | "2:1" | "16:9" | "3:2" | "1:1" | "2:3" | "9:16" | "1:2" | "1:3";
+    style?: "auto" | "manga";
+    output_format?: "png" | "jpeg";
+    image_ref?: LumaImageRef$1[];
+    web_search?: boolean;
     options?: GenAIOptions$1a;
+}
+interface LumaImageRef$1 {
+    url?: string;
+    data?: string;
 }
 interface GenAIOptions$1a {
     safety_checks?: SafetyChecksOptions$1a;
@@ -7516,30 +7561,34 @@ interface DriveFolderOptions$1a {
 interface InputsTransformationOptions$17 {
     downscale_oversized_images?: boolean;
 }
-interface FaceCorrectionResponse {
+interface TextToImageResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: FaceCorrectionResultData;
+    result: LumaResultPayload$1;
 }
-interface FaceCorrectionResultData {
+interface LumaResultPayload$1 {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface TextToImageCommand {
+interface ImageEditCommand {
     prompt: string;
+    source: Source;
     model?: "uni-1" | "uni-1-max";
-    aspect_ratio?: "3:1" | "2:1" | "16:9" | "3:2" | "1:1" | "2:3" | "9:16" | "1:2" | "1:3";
     style?: "auto" | "manga";
-    output_format?: "png" | "jpeg";
-    image_ref?: LumaImageRef$1[];
-    web_search?: boolean;
+    image_ref?: LumaImageRef[];
     options?: GenAIOptions$19;
 }
-interface LumaImageRef$1 {
+interface Source {
     url?: string;
     data?: string;
+    media_type?: string;
+}
+interface LumaImageRef {
+    url?: string;
+    data?: string;
+    media_type?: string;
 }
 interface GenAIOptions$19 {
     safety_checks?: SafetyChecksOptions$19;
@@ -7561,34 +7610,24 @@ interface DriveFolderOptions$19 {
 interface InputsTransformationOptions$16 {
     downscale_oversized_images?: boolean;
 }
-interface TextToImageResponse {
+interface ImageEditResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: LumaResultPayload$1;
+    result: LumaResultPayload;
 }
-interface LumaResultPayload$1 {
+interface LumaResultPayload {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface ImageEditCommand {
-    prompt: string;
-    source: Source;
-    model?: "uni-1" | "uni-1-max";
-    style?: "auto" | "manga";
-    image_ref?: LumaImageRef[];
+interface QwenMultipatchEnhancementCommand {
+    image: string;
+    num_inference_steps?: number;
+    target_scale?: number;
+    output_format?: "JPEG" | "PNG";
+    model?: "qwen-multipatch-enhancement" | "preview-qwen-multipatch-enhancement";
     options?: GenAIOptions$18;
-}
-interface Source {
-    url?: string;
-    data?: string;
-    media_type?: string;
-}
-interface LumaImageRef {
-    url?: string;
-    data?: string;
-    media_type?: string;
 }
 interface GenAIOptions$18 {
     safety_checks?: SafetyChecksOptions$18;
@@ -7610,24 +7649,29 @@ interface DriveFolderOptions$18 {
 interface InputsTransformationOptions$15 {
     downscale_oversized_images?: boolean;
 }
-interface ImageEditResponse {
+interface QwenMultipatchEnhancementResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: LumaResultPayload;
+    result: QwenMultipatchEnhancementResultData;
 }
-interface LumaResultPayload {
+interface QwenMultipatchEnhancementResultData {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface QwenMultipatchEnhancementCommand {
-    image: string;
-    num_inference_steps?: number;
-    target_scale?: number;
-    output_format?: "JPEG" | "PNG";
-    model?: "qwen-multipatch-enhancement" | "preview-qwen-multipatch-enhancement";
+interface VideoSegmentationCommand {
+    video_url: string;
+    references: ReferenceMask[];
+    multi_objects_mode?: boolean;
+    min_object_area?: number;
+    segment_ref_frames?: boolean;
+    output_pixel_format?: "yuv444p" | "yuv420p";
     options?: GenAIOptions$17;
+}
+interface ReferenceMask {
+    frame_index: number;
+    mask_url: string;
 }
 interface GenAIOptions$17 {
     safety_checks?: SafetyChecksOptions$17;
@@ -7649,30 +7693,24 @@ interface DriveFolderOptions$17 {
 interface InputsTransformationOptions$14 {
     downscale_oversized_images?: boolean;
 }
-interface QwenMultipatchEnhancementResponse {
+interface VideoSegmentationResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: QwenMultipatchEnhancementResultData;
+    result: VideoSegmentationResultData;
 }
-interface QwenMultipatchEnhancementResultData {
+interface VideoSegmentationResultData {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface VideoSegmentationCommand {
-    video_url: string;
-    references: ReferenceMask[];
-    multi_objects_mode?: boolean;
-    min_object_area?: number;
-    segment_ref_frames?: boolean;
-    output_pixel_format?: "yuv444p" | "yuv420p";
+interface KlingVideoEffectsCommand {
+    image?: string;
+    images?: string[];
+    effect_scene: KlingEffectScene;
     options?: GenAIOptions$16;
 }
-interface ReferenceMask {
-    frame_index: number;
-    mask_url: string;
-}
+type KlingEffectScene = "korean_baseball" | "pet_skateboard" | "daily_ootd" | "tiny_beast_printer" | "landmark_reveal" | "winter_charm" | "flash_ride" | "maestro_of_magic" | "magic_carpet_ride" | "good_luck_spirit" | "shooting_star" | "sparkler_wand" | "sovereign_scepter" | "dirt_rush" | "return_of_the_king" | "dance_with_dragon" | "minimalist_light" | "martial_meow" | "sassy_shake" | "knock_at_a_door_revenge" | "palm_sized_figure_pro" | "prank_box" | "perler_beads" | "spring_bloom" | "toss_run" | "switch_to_silk" | "get_rich_quick" | "make_it_rain" | "twist_shake" | "the_hip_sway" | "send_my_love" | "funky_martian" | "wealth_drive" | "the_high_kick" | "the_exercise" | "lucky_veggie" | "studio_look" | "flash_drive" | "shush_my_dreams" | "french_elegance" | "finger_swipe" | "advent_of_flora" | "smooth_transition" | "kiss_pro" | "raid_check" | "snow_night_kiss" | "eternal_kiss" | "fortune_in_motion" | "chinese_trend" | "sedan_chair_dance" | "skyfall" | "good_luck_dance" | "laicai_dance" | "yangge_dance" | "color_mixing" | "lantern_festival_cuju" | "unique_firework" | "unique_spring_couplets" | "horse_mask" | "fortune_knocks_cartoon" | "tangyuan_to_animal" | "hot_feet_dance" | "swag_dance" | "pigeon_dance" | "bloodline_dance" | "chanel_dance" | "cute_dance" | "love_theme_song" | "pumpitup_dance" | "city_to_village" | "fortune_god_transform" | "new_year_feast" | "ring_in_new" | "horse_year_firework" | "crystal_horse" | "drunk_dance" | "drunk_dance_pet" | "daoma_dance" | "bouncy_dance" | "smooth_sailing_dance" | "new_year_greeting" | "lion_dance" | "prosperity" | "great_success" | "golden_horse_fortune" | "red_packet_box" | "lucky_horse_year" | "lucky_red_packet" | "lucky_money_come" | "lion_dance_pet" | "dumpling_making_pet" | "fish_making_pet" | "pet_red_packet" | "lantern_glow" | "expression_challenge" | "overdrive" | "heart_gesture_dance" | "poping" | "martial_arts" | "running" | "nezha" | "motorcycle_dance" | "subject_3_dance" | "ghost_step_dance" | "phantom_jewel" | "zoom_out" | "cheers_2026" | "fight_pro" | "hug_pro" | "heart_gesture_pro" | "dollar_rain_pro" | "pet_bee_pro" | "countdown_teleport" | "santa_random_surprise" | "magic_match_tree" | "bullet_time_360" | "happy_birthday" | "birthday_star" | "thumbs_up_pro" | "tiger_hug_pro" | "pet_lion_pro" | "surprise_bouquet" | "bouquet_drop" | "firework_2026" | "glamour_photo_shoot" | "box_of_joy" | "first_toast_of_the_year" | "my_santa_pic" | "santa_gift" | "steampunk_christmas" | "snowglobe" | "christmas_photo_shoot" | "ornament_crash" | "santa_express" | "instant_christmas" | "coronation_of_frost" | "building_sweater" | "spark_in_the_snow" | "scarlet_and_snow" | "bullet_time_lite" | "jumping_ginger_joy" | "pure_white_wings" | "black_wings" | "golden_wing" | "pink_pink_wings" | "venomous_spider" | "luminous_elf" | "woodland_elf" | "swish_swish" | "snowboarding" | "witch_transform" | "vampire_transform" | "pumpkin_head_transform" | "demon_transform" | "mummy_transform" | "zombie_transform" | "cute_pumpkin_transform" | "halloween_escape" | "tennis_trend" | "football_live" | "f1_live" | "whirling_beverage" | "spielberg_transition";
 interface GenAIOptions$16 {
     safety_checks?: SafetyChecksOptions$16;
     drive?: DriveOptions$16;
@@ -7693,24 +7731,24 @@ interface DriveFolderOptions$16 {
 interface InputsTransformationOptions$13 {
     downscale_oversized_images?: boolean;
 }
-interface VideoSegmentationResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: VideoSegmentationResultData;
+interface KlingVideoEffectsResponse {
+    result: KlingVideoResult;
 }
-interface VideoSegmentationResultData {
+interface KlingVideoResult {
     url: string;
+    duration: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface KlingVideoEffectsCommand {
-    image?: string;
-    images?: string[];
-    effect_scene: KlingEffectScene;
+interface SanaSprintCommand {
+    prompt: string;
+    num_inference_steps?: number;
+    guidance_scale?: number;
+    width?: number;
+    height?: number;
     options?: GenAIOptions$15;
 }
-type KlingEffectScene = "korean_baseball" | "pet_skateboard" | "daily_ootd" | "tiny_beast_printer" | "landmark_reveal" | "winter_charm" | "flash_ride" | "maestro_of_magic" | "magic_carpet_ride" | "good_luck_spirit" | "shooting_star" | "sparkler_wand" | "sovereign_scepter" | "dirt_rush" | "return_of_the_king" | "dance_with_dragon" | "minimalist_light" | "martial_meow" | "sassy_shake" | "knock_at_a_door_revenge" | "palm_sized_figure_pro" | "prank_box" | "perler_beads" | "spring_bloom" | "toss_run" | "switch_to_silk" | "get_rich_quick" | "make_it_rain" | "twist_shake" | "the_hip_sway" | "send_my_love" | "funky_martian" | "wealth_drive" | "the_high_kick" | "the_exercise" | "lucky_veggie" | "studio_look" | "flash_drive" | "shush_my_dreams" | "french_elegance" | "finger_swipe" | "advent_of_flora" | "smooth_transition" | "kiss_pro" | "raid_check" | "snow_night_kiss" | "eternal_kiss" | "fortune_in_motion" | "chinese_trend" | "sedan_chair_dance" | "skyfall" | "good_luck_dance" | "laicai_dance" | "yangge_dance" | "color_mixing" | "lantern_festival_cuju" | "unique_firework" | "unique_spring_couplets" | "horse_mask" | "fortune_knocks_cartoon" | "tangyuan_to_animal" | "hot_feet_dance" | "swag_dance" | "pigeon_dance" | "bloodline_dance" | "chanel_dance" | "cute_dance" | "love_theme_song" | "pumpitup_dance" | "city_to_village" | "fortune_god_transform" | "new_year_feast" | "ring_in_new" | "horse_year_firework" | "crystal_horse" | "drunk_dance" | "drunk_dance_pet" | "daoma_dance" | "bouncy_dance" | "smooth_sailing_dance" | "new_year_greeting" | "lion_dance" | "prosperity" | "great_success" | "golden_horse_fortune" | "red_packet_box" | "lucky_horse_year" | "lucky_red_packet" | "lucky_money_come" | "lion_dance_pet" | "dumpling_making_pet" | "fish_making_pet" | "pet_red_packet" | "lantern_glow" | "expression_challenge" | "overdrive" | "heart_gesture_dance" | "poping" | "martial_arts" | "running" | "nezha" | "motorcycle_dance" | "subject_3_dance" | "ghost_step_dance" | "phantom_jewel" | "zoom_out" | "cheers_2026" | "fight_pro" | "hug_pro" | "heart_gesture_pro" | "dollar_rain_pro" | "pet_bee_pro" | "countdown_teleport" | "santa_random_surprise" | "magic_match_tree" | "bullet_time_360" | "happy_birthday" | "birthday_star" | "thumbs_up_pro" | "tiger_hug_pro" | "pet_lion_pro" | "surprise_bouquet" | "bouquet_drop" | "firework_2026" | "glamour_photo_shoot" | "box_of_joy" | "first_toast_of_the_year" | "my_santa_pic" | "santa_gift" | "steampunk_christmas" | "snowglobe" | "christmas_photo_shoot" | "ornament_crash" | "santa_express" | "instant_christmas" | "coronation_of_frost" | "building_sweater" | "spark_in_the_snow" | "scarlet_and_snow" | "bullet_time_lite" | "jumping_ginger_joy" | "pure_white_wings" | "black_wings" | "golden_wing" | "pink_pink_wings" | "venomous_spider" | "luminous_elf" | "woodland_elf" | "swish_swish" | "snowboarding" | "witch_transform" | "vampire_transform" | "pumpkin_head_transform" | "demon_transform" | "mummy_transform" | "zombie_transform" | "cute_pumpkin_transform" | "halloween_escape" | "tennis_trend" | "football_live" | "f1_live" | "whirling_beverage" | "spielberg_transition";
 interface GenAIOptions$15 {
     safety_checks?: SafetyChecksOptions$15;
     drive?: DriveOptions$15;
@@ -7731,22 +7769,21 @@ interface DriveFolderOptions$15 {
 interface InputsTransformationOptions$12 {
     downscale_oversized_images?: boolean;
 }
-interface KlingVideoEffectsResponse {
-    result: KlingVideoResult;
+interface SanaSprintResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: SanaSprintResultData;
 }
-interface KlingVideoResult {
+interface SanaSprintResultData {
     url: string;
-    duration: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface SanaSprintCommand {
-    prompt: string;
-    num_inference_steps?: number;
-    guidance_scale?: number;
-    width?: number;
-    height?: number;
+interface VideoInpaintingCommand {
+    video_url: string;
+    mask_url: string;
+    preserve_format?: boolean;
     options?: GenAIOptions$14;
 }
 interface GenAIOptions$14 {
@@ -7769,43 +7806,6 @@ interface DriveFolderOptions$14 {
 interface InputsTransformationOptions$11 {
     downscale_oversized_images?: boolean;
 }
-interface SanaSprintResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: SanaSprintResultData;
-}
-interface SanaSprintResultData {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface VideoInpaintingCommand {
-    video_url: string;
-    mask_url: string;
-    preserve_format?: boolean;
-    options?: GenAIOptions$13;
-}
-interface GenAIOptions$13 {
-    safety_checks?: SafetyChecksOptions$13;
-    drive?: DriveOptions$13;
-    inputs_transformation?: InputsTransformationOptions$10;
-}
-interface SafetyChecksOptions$13 {
-    enabled?: boolean;
-}
-interface DriveOptions$13 {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$13;
-}
-interface DriveFolderOptions$13 {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$10 {
-    downscale_oversized_images?: boolean;
-}
 interface VideoInpaintingResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -7824,25 +7824,25 @@ interface IdeogramV4GenerateCommand {
     rendering_speed?: IdeogramV4RenderingSpeed$1;
     enable_copyright_detection?: boolean;
     storage?: StorageParam$2;
-    options?: GenAIOptions$12;
+    options?: GenAIOptions$13;
 }
 type IdeogramV4RenderingSpeed$1 = "TURBO" | "DEFAULT" | "QUALITY";
 interface StorageParam$2 {
     destination: string;
 }
-interface GenAIOptions$12 {
-    safety_checks?: SafetyChecksOptions$12;
-    drive?: DriveOptions$12;
+interface GenAIOptions$13 {
+    safety_checks?: SafetyChecksOptions$13;
+    drive?: DriveOptions$13;
 }
-interface SafetyChecksOptions$12 {
+interface SafetyChecksOptions$13 {
     enabled?: boolean;
 }
-interface DriveOptions$12 {
+interface DriveOptions$13 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$12;
+    folder?: DriveFolderOptions$13;
 }
-interface DriveFolderOptions$12 {
+interface DriveFolderOptions$13 {
     path?: string;
     id?: string;
 }
@@ -7877,7 +7877,7 @@ interface GeminiOmniVideoGenCommand {
     durationSeconds?: number;
     aspectRatio?: "16:9" | "9:16";
     model?: "gemini-omni-flash-preview" | "gemini-omni-1.1-flash-preview";
-    options?: GenAIOptions$11;
+    options?: GenAIOptions$12;
 }
 interface GeminiOmniImage {
     url?: string;
@@ -7888,24 +7888,24 @@ interface GeminiOmniVideo {
     url?: string;
     bytesBase64Encoded?: string;
 }
-interface GenAIOptions$11 {
-    safety_checks?: SafetyChecksOptions$11;
-    drive?: DriveOptions$11;
-    inputs_transformation?: InputsTransformationOptions$$;
+interface GenAIOptions$12 {
+    safety_checks?: SafetyChecksOptions$12;
+    drive?: DriveOptions$12;
+    inputs_transformation?: InputsTransformationOptions$10;
 }
-interface SafetyChecksOptions$11 {
+interface SafetyChecksOptions$12 {
     enabled?: boolean;
 }
-interface DriveOptions$11 {
+interface DriveOptions$12 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$11;
+    folder?: DriveFolderOptions$12;
 }
-interface DriveFolderOptions$11 {
+interface DriveFolderOptions$12 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$$ {
+interface InputsTransformationOptions$10 {
     downscale_oversized_images?: boolean;
 }
 interface GeminiOmniVideoGenResponse {
@@ -7927,6 +7927,58 @@ interface TextToVideoCommand {
     quality: "360p" | "540p" | "720p" | "1080p";
     aspect_ratio: "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "2:3" | "3:2" | "21:9";
     duration: number;
+    negative_prompt?: string;
+    motion_mode?: "normal" | "fast";
+    water_mark?: boolean;
+    seed?: number;
+    generate_audio_switch?: boolean;
+    generate_multi_clip_switch?: boolean;
+    sound_effect_switch?: boolean;
+    sound_effect_content?: string;
+    lip_sync_switch?: boolean;
+    lip_sync_tts_content?: string;
+    lip_sync_tts_speaker_id?: string;
+    options?: GenAIOptions$11;
+}
+interface GenAIOptions$11 {
+    safety_checks?: SafetyChecksOptions$11;
+    drive?: DriveOptions$11;
+    inputs_transformation?: InputsTransformationOptions$$;
+}
+interface SafetyChecksOptions$11 {
+    enabled?: boolean;
+}
+interface DriveOptions$11 {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$11;
+}
+interface DriveFolderOptions$11 {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$$ {
+    downscale_oversized_images?: boolean;
+}
+interface TextToVideoResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: TextToVideoResult;
+}
+interface TextToVideoResult {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface ImageToVideoCommand {
+    image_url: string;
+    image_urls?: string[];
+    prompt: string;
+    model: "v4.5" | "v5" | "v5.5" | "v5.6" | "v6" | "c1";
+    quality: "360p" | "540p" | "720p" | "1080p";
+    duration: number;
+    template_id?: number;
     negative_prompt?: string;
     motion_mode?: "normal" | "fast";
     water_mark?: boolean;
@@ -7960,37 +8012,32 @@ interface DriveFolderOptions$10 {
 interface InputsTransformationOptions$_ {
     downscale_oversized_images?: boolean;
 }
-interface TextToVideoResponse {
+interface ImageToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: TextToVideoResult;
+    result: ImageToVideoResult;
 }
-interface TextToVideoResult {
+interface ImageToVideoResult {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface ImageToVideoCommand {
-    image_url: string;
-    image_urls?: string[];
+interface ReferenceToVideoCommand {
+    image_references: ReferenceImageItem[];
     prompt: string;
     model: "v4.5" | "v5" | "v5.5" | "v5.6" | "v6" | "c1";
     quality: "360p" | "540p" | "720p" | "1080p";
+    aspect_ratio: "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "2:3" | "3:2" | "21:9";
     duration: number;
-    template_id?: number;
-    negative_prompt?: string;
-    motion_mode?: "normal" | "fast";
-    water_mark?: boolean;
     seed?: number;
     generate_audio_switch?: boolean;
-    generate_multi_clip_switch?: boolean;
-    sound_effect_switch?: boolean;
-    sound_effect_content?: string;
-    lip_sync_switch?: boolean;
-    lip_sync_tts_content?: string;
-    lip_sync_tts_speaker_id?: string;
     options?: GenAIOptions$$;
+}
+interface ReferenceImageItem {
+    url: string;
+    type?: "subject" | "background";
+    ref_name?: string;
 }
 interface GenAIOptions$$ {
     safety_checks?: SafetyChecksOptions$$;
@@ -8012,32 +8059,23 @@ interface DriveFolderOptions$$ {
 interface InputsTransformationOptions$Z {
     downscale_oversized_images?: boolean;
 }
-interface ImageToVideoResponse {
+interface ReferenceToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: ImageToVideoResult;
+    result: ReferenceToVideoResult;
 }
-interface ImageToVideoResult {
+interface ReferenceToVideoResult {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface ReferenceToVideoCommand {
-    image_references: ReferenceImageItem[];
-    prompt: string;
-    model: "v4.5" | "v5" | "v5.5" | "v5.6" | "v6" | "c1";
-    quality: "360p" | "540p" | "720p" | "1080p";
-    aspect_ratio: "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "2:3" | "3:2" | "21:9";
-    duration: number;
-    seed?: number;
-    generate_audio_switch?: boolean;
+interface FontSimilaritySearchCommand {
+    image: string;
+    font_count?: number;
+    max_number_of_words?: number;
+    find_similar_fonts?: boolean;
     options?: GenAIOptions$_;
-}
-interface ReferenceImageItem {
-    url: string;
-    type?: "subject" | "background";
-    ref_name?: string;
 }
 interface GenAIOptions$_ {
     safety_checks?: SafetyChecksOptions$_;
@@ -8059,23 +8097,41 @@ interface DriveFolderOptions$_ {
 interface InputsTransformationOptions$Y {
     downscale_oversized_images?: boolean;
 }
-interface ReferenceToVideoResponse {
+interface FontSimilaritySearchResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: ReferenceToVideoResult;
+    result: FontSimilaritySearchResultData;
 }
-interface ReferenceToVideoResult {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
+interface FontSimilaritySearchResultData {
+    id: string;
+    result: FontSimilaritySearchDetection[];
+}
+interface FontSimilaritySearchDetection {
+    bounding_box: number[];
+    similar_fonts: unknown[][];
 }
 
-interface FontSimilaritySearchCommand {
-    image: string;
-    font_count?: number;
-    max_number_of_words?: number;
-    find_similar_fonts?: boolean;
+interface VideoCommand {
+    prompt: string;
+    aspect_ratio?: "9:16" | "3:4" | "1:1" | "4:3" | "16:9" | "21:9";
+    user_id?: string;
+    video?: VideoGenerationOptions;
     options?: GenAIOptions$Z;
+}
+interface VideoGenerationOptions {
+    resolution?: "540p" | "720p" | "1080p";
+    duration?: "5s" | "10s";
+    hdr?: boolean;
+    exr_export?: boolean;
+    loop?: boolean;
+    start_frame?: VideoImageRef$1;
+    end_frame?: VideoImageRef$1;
+}
+interface VideoImageRef$1 {
+    url?: string;
+    data?: string;
+    media_type?: string;
+    generation_id?: string;
 }
 interface GenAIOptions$Z {
     safety_checks?: SafetyChecksOptions$Z;
@@ -8097,62 +8153,6 @@ interface DriveFolderOptions$Z {
 interface InputsTransformationOptions$X {
     downscale_oversized_images?: boolean;
 }
-interface FontSimilaritySearchResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: FontSimilaritySearchResultData;
-}
-interface FontSimilaritySearchResultData {
-    id: string;
-    result: FontSimilaritySearchDetection[];
-}
-interface FontSimilaritySearchDetection {
-    bounding_box: number[];
-    similar_fonts: unknown[][];
-}
-
-interface VideoCommand {
-    prompt: string;
-    aspect_ratio?: "9:16" | "3:4" | "1:1" | "4:3" | "16:9" | "21:9";
-    user_id?: string;
-    video?: VideoGenerationOptions;
-    options?: GenAIOptions$Y;
-}
-interface VideoGenerationOptions {
-    resolution?: "540p" | "720p" | "1080p";
-    duration?: "5s" | "10s";
-    hdr?: boolean;
-    exr_export?: boolean;
-    loop?: boolean;
-    start_frame?: VideoImageRef$1;
-    end_frame?: VideoImageRef$1;
-}
-interface VideoImageRef$1 {
-    url?: string;
-    data?: string;
-    media_type?: string;
-    generation_id?: string;
-}
-interface GenAIOptions$Y {
-    safety_checks?: SafetyChecksOptions$Y;
-    drive?: DriveOptions$Y;
-    inputs_transformation?: InputsTransformationOptions$W;
-}
-interface SafetyChecksOptions$Y {
-    enabled?: boolean;
-}
-interface DriveOptions$Y {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$Y;
-}
-interface DriveFolderOptions$Y {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$W {
-    downscale_oversized_images?: boolean;
-}
 interface VideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -8169,7 +8169,7 @@ interface VideoEditCommand {
     source: VideoSource$1;
     user_id?: string;
     video: VideoEditOptions;
-    options?: GenAIOptions$X;
+    options?: GenAIOptions$Y;
 }
 interface VideoSource$1 {
     generation_id?: string;
@@ -8212,24 +8212,24 @@ interface VideoEditControl {
     augmentation?: number;
     sparsity?: number;
 }
-interface GenAIOptions$X {
-    safety_checks?: SafetyChecksOptions$X;
-    drive?: DriveOptions$X;
-    inputs_transformation?: InputsTransformationOptions$V;
+interface GenAIOptions$Y {
+    safety_checks?: SafetyChecksOptions$Y;
+    drive?: DriveOptions$Y;
+    inputs_transformation?: InputsTransformationOptions$W;
 }
-interface SafetyChecksOptions$X {
+interface SafetyChecksOptions$Y {
     enabled?: boolean;
 }
-interface DriveOptions$X {
+interface DriveOptions$Y {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$X;
+    folder?: DriveFolderOptions$Y;
 }
-interface DriveFolderOptions$X {
+interface DriveFolderOptions$Y {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$V {
+interface InputsTransformationOptions$W {
     downscale_oversized_images?: boolean;
 }
 interface VideoEditResponse {
@@ -8249,7 +8249,7 @@ interface VideoReframeCommand {
     source: VideoSource;
     user_id?: string;
     video?: VideoReframeOptions;
-    options?: GenAIOptions$W;
+    options?: GenAIOptions$X;
 }
 interface VideoSource {
     generation_id?: string;
@@ -8267,24 +8267,24 @@ interface VideoSourcePosition {
     w_norm: number;
     h_norm: number;
 }
-interface GenAIOptions$W {
-    safety_checks?: SafetyChecksOptions$W;
-    drive?: DriveOptions$W;
-    inputs_transformation?: InputsTransformationOptions$U;
+interface GenAIOptions$X {
+    safety_checks?: SafetyChecksOptions$X;
+    drive?: DriveOptions$X;
+    inputs_transformation?: InputsTransformationOptions$V;
 }
-interface SafetyChecksOptions$W {
+interface SafetyChecksOptions$X {
     enabled?: boolean;
 }
-interface DriveOptions$W {
+interface DriveOptions$X {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$W;
+    folder?: DriveFolderOptions$X;
 }
-interface DriveFolderOptions$W {
+interface DriveFolderOptions$X {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$U {
+interface InputsTransformationOptions$V {
     downscale_oversized_images?: boolean;
 }
 interface VideoReframeResponse {
@@ -8306,7 +8306,7 @@ interface DiffbirEnhancementCommand {
     seed?: number;
     output_format?: string;
     max_output_area_mp?: number;
-    options?: GenAIOptions$V;
+    options?: GenAIOptions$W;
     model_execution_mode?: string;
 }
 interface DiffbirEnhancementUpscale {
@@ -8344,24 +8344,24 @@ interface DiffbirEnhancementColourCorrection {
     enabled?: boolean;
     blending?: number;
 }
-interface GenAIOptions$V {
-    safety_checks?: SafetyChecksOptions$V;
-    drive?: DriveOptions$V;
-    inputs_transformation?: InputsTransformationOptions$T;
+interface GenAIOptions$W {
+    safety_checks?: SafetyChecksOptions$W;
+    drive?: DriveOptions$W;
+    inputs_transformation?: InputsTransformationOptions$U;
 }
-interface SafetyChecksOptions$V {
+interface SafetyChecksOptions$W {
     enabled?: boolean;
 }
-interface DriveOptions$V {
+interface DriveOptions$W {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$V;
+    folder?: DriveFolderOptions$W;
 }
-interface DriveFolderOptions$V {
+interface DriveFolderOptions$W {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$T {
+interface InputsTransformationOptions$U {
     downscale_oversized_images?: boolean;
 }
 interface DiffbirEnhancementResponse {
@@ -8386,26 +8386,26 @@ interface StableDiffusionInpaintCommand {
     output_image_format?: "PNG" | "JPEG" | "WEBP";
     num_outputs?: number;
     model?: "model-stable-diffusion-inpaint-1-5-0" | "model-smartbg-v5-0-1";
-    options?: GenAIOptions$U;
+    options?: GenAIOptions$V;
 }
-interface GenAIOptions$U {
-    safety_checks?: SafetyChecksOptions$U;
-    drive?: DriveOptions$U;
-    inputs_transformation?: InputsTransformationOptions$S;
+interface GenAIOptions$V {
+    safety_checks?: SafetyChecksOptions$V;
+    drive?: DriveOptions$V;
+    inputs_transformation?: InputsTransformationOptions$T;
 }
-interface SafetyChecksOptions$U {
+interface SafetyChecksOptions$V {
     enabled?: boolean;
 }
-interface DriveOptions$U {
+interface DriveOptions$V {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$U;
+    folder?: DriveFolderOptions$V;
 }
-interface DriveFolderOptions$U {
+interface DriveFolderOptions$V {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$S {
+interface InputsTransformationOptions$T {
     downscale_oversized_images?: boolean;
 }
 interface StableDiffusionInpaintResponse {
@@ -8428,7 +8428,7 @@ interface AsyncTtsCommand {
     transcript: string;
     voice?: AsyncVoice;
     output_format: AsyncOutputFormat;
-    options?: GenAIOptions$T;
+    options?: GenAIOptions$U;
 }
 type AsyncModelId = "async_flash_v1.0";
 interface AsyncVoice {
@@ -8444,24 +8444,24 @@ interface AsyncOutputFormat {
 }
 type AsyncVoiceContainerFormat = "raw" | "mp3" | "wav";
 type AsyncVoiceEncodingFormat = "pcm_f32le" | "pcm_s16le";
-interface GenAIOptions$T {
-    safety_checks?: SafetyChecksOptions$T;
-    drive?: DriveOptions$T;
-    inputs_transformation?: InputsTransformationOptions$R;
+interface GenAIOptions$U {
+    safety_checks?: SafetyChecksOptions$U;
+    drive?: DriveOptions$U;
+    inputs_transformation?: InputsTransformationOptions$S;
 }
-interface SafetyChecksOptions$T {
+interface SafetyChecksOptions$U {
     enabled?: boolean;
 }
-interface DriveOptions$T {
+interface DriveOptions$U {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$T;
+    folder?: DriveFolderOptions$U;
 }
-interface DriveFolderOptions$T {
+interface DriveFolderOptions$U {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$R {
+interface InputsTransformationOptions$S {
     downscale_oversized_images?: boolean;
 }
 interface AsyncTtsResponse {
@@ -8482,7 +8482,51 @@ interface Happyhorse11TextToVideoCommand$1 {
     duration?: number;
     seed?: number;
     watermark?: boolean;
+    options?: GenAIOptions$T;
+}
+interface GenAIOptions$T {
+    safety_checks?: SafetyChecksOptions$T;
+    drive?: DriveOptions$T;
+    inputs_transformation?: InputsTransformationOptions$R;
+}
+interface SafetyChecksOptions$T {
+    enabled?: boolean;
+}
+interface DriveOptions$T {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$T;
+}
+interface DriveFolderOptions$T {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$R {
+    downscale_oversized_images?: boolean;
+}
+interface Happyhorse11TextToVideoResponse$1 {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: Happyhorse11TextToVideoResult$1;
+}
+interface Happyhorse11TextToVideoResult$1 {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface Happyhorse11ImageToVideoCommand$1 {
+    media: Happyhorse11I2VMediaItem$1[];
+    prompt?: string;
+    resolution?: "720P" | "1080P";
+    duration?: number;
+    seed?: number;
+    watermark?: boolean;
     options?: GenAIOptions$S;
+}
+interface Happyhorse11I2VMediaItem$1 {
+    type: "first_frame";
+    url: string;
 }
 interface GenAIOptions$S {
     safety_checks?: SafetyChecksOptions$S;
@@ -8504,28 +8548,29 @@ interface DriveFolderOptions$S {
 interface InputsTransformationOptions$Q {
     downscale_oversized_images?: boolean;
 }
-interface Happyhorse11TextToVideoResponse$1 {
+interface Happyhorse11ImageToVideoResponse$1 {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: Happyhorse11TextToVideoResult$1;
+    result: Happyhorse11ImageToVideoResult$1;
 }
-interface Happyhorse11TextToVideoResult$1 {
+interface Happyhorse11ImageToVideoResult$1 {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface Happyhorse11ImageToVideoCommand$1 {
-    media: Happyhorse11I2VMediaItem$1[];
-    prompt?: string;
+interface Happyhorse11ReferenceToVideoCommand$1 {
+    prompt: string;
+    media: Happyhorse11R2VMediaItem$1[];
     resolution?: "720P" | "1080P";
+    ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
     duration?: number;
     seed?: number;
     watermark?: boolean;
     options?: GenAIOptions$R;
 }
-interface Happyhorse11I2VMediaItem$1 {
-    type: "first_frame";
+interface Happyhorse11R2VMediaItem$1 {
+    type: "reference_image";
     url: string;
 }
 interface GenAIOptions$R {
@@ -8546,51 +8591,6 @@ interface DriveFolderOptions$R {
     id?: string;
 }
 interface InputsTransformationOptions$P {
-    downscale_oversized_images?: boolean;
-}
-interface Happyhorse11ImageToVideoResponse$1 {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: Happyhorse11ImageToVideoResult$1;
-}
-interface Happyhorse11ImageToVideoResult$1 {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface Happyhorse11ReferenceToVideoCommand$1 {
-    prompt: string;
-    media: Happyhorse11R2VMediaItem$1[];
-    resolution?: "720P" | "1080P";
-    ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
-    duration?: number;
-    seed?: number;
-    watermark?: boolean;
-    options?: GenAIOptions$Q;
-}
-interface Happyhorse11R2VMediaItem$1 {
-    type: "reference_image";
-    url: string;
-}
-interface GenAIOptions$Q {
-    safety_checks?: SafetyChecksOptions$Q;
-    drive?: DriveOptions$Q;
-    inputs_transformation?: InputsTransformationOptions$O;
-}
-interface SafetyChecksOptions$Q {
-    enabled?: boolean;
-}
-interface DriveOptions$Q {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$Q;
-}
-interface DriveFolderOptions$Q {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$O {
     downscale_oversized_images?: boolean;
 }
 interface Happyhorse11ReferenceToVideoResponse$1 {
@@ -8626,26 +8626,26 @@ interface SodV2Command {
     photo: string;
     postprocess_image: boolean;
     model?: "model-sod-v8-2" | "model-sod-v10" | "model-sod-v10-1" | "model-sod-v11-0" | "model-sod-v11-2";
-    options?: GenAIOptions$P;
+    options?: GenAIOptions$Q;
 }
-interface GenAIOptions$P {
-    safety_checks?: SafetyChecksOptions$P;
-    drive?: DriveOptions$P;
-    inputs_transformation?: InputsTransformationOptions$N;
+interface GenAIOptions$Q {
+    safety_checks?: SafetyChecksOptions$Q;
+    drive?: DriveOptions$Q;
+    inputs_transformation?: InputsTransformationOptions$O;
 }
-interface SafetyChecksOptions$P {
+interface SafetyChecksOptions$Q {
     enabled?: boolean;
 }
-interface DriveOptions$P {
+interface DriveOptions$Q {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$P;
+    folder?: DriveFolderOptions$Q;
 }
-interface DriveFolderOptions$P {
+interface DriveFolderOptions$Q {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$N {
+interface InputsTransformationOptions$O {
     downscale_oversized_images?: boolean;
 }
 interface SodV2Response {
@@ -8670,6 +8670,44 @@ interface FluxVtoCommand {
     seed?: number;
     safetyTolerance?: number;
     outputFormat?: "jpeg" | "png" | "webp";
+    options?: GenAIOptions$P;
+}
+interface GenAIOptions$P {
+    safety_checks?: SafetyChecksOptions$P;
+    drive?: DriveOptions$P;
+    inputs_transformation?: InputsTransformationOptions$N;
+}
+interface SafetyChecksOptions$P {
+    enabled?: boolean;
+}
+interface DriveOptions$P {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$P;
+}
+interface DriveFolderOptions$P {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$N {
+    downscale_oversized_images?: boolean;
+}
+interface FluxVtoResult {
+    result: GeneratedImageResult$3;
+}
+interface GeneratedImageResult$3 {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface Happyhorse11TextToVideoCommand {
+    prompt: string;
+    resolution?: "720P" | "1080P";
+    ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+    duration?: number;
+    seed?: number;
+    watermark?: boolean;
     options?: GenAIOptions$O;
 }
 interface GenAIOptions$O {
@@ -8692,23 +8730,29 @@ interface DriveFolderOptions$O {
 interface InputsTransformationOptions$M {
     downscale_oversized_images?: boolean;
 }
-interface FluxVtoResult {
-    result: GeneratedImageResult$2;
+interface Happyhorse11TextToVideoResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: Happyhorse11TextToVideoResult;
 }
-interface GeneratedImageResult$2 {
+interface Happyhorse11TextToVideoResult {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface Happyhorse11TextToVideoCommand {
-    prompt: string;
+interface Happyhorse11ImageToVideoCommand {
+    media: Happyhorse11I2VMediaItem[];
+    prompt?: string;
     resolution?: "720P" | "1080P";
-    ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
     duration?: number;
     seed?: number;
     watermark?: boolean;
     options?: GenAIOptions$N;
+}
+interface Happyhorse11I2VMediaItem {
+    type: "first_frame";
+    url: string;
 }
 interface GenAIOptions$N {
     safety_checks?: SafetyChecksOptions$N;
@@ -8730,28 +8774,29 @@ interface DriveFolderOptions$N {
 interface InputsTransformationOptions$L {
     downscale_oversized_images?: boolean;
 }
-interface Happyhorse11TextToVideoResponse {
+interface Happyhorse11ImageToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: Happyhorse11TextToVideoResult;
+    result: Happyhorse11ImageToVideoResult;
 }
-interface Happyhorse11TextToVideoResult {
+interface Happyhorse11ImageToVideoResult {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface Happyhorse11ImageToVideoCommand {
-    media: Happyhorse11I2VMediaItem[];
-    prompt?: string;
+interface Happyhorse11ReferenceToVideoCommand {
+    prompt: string;
+    media: Happyhorse11R2VMediaItem[];
     resolution?: "720P" | "1080P";
+    ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
     duration?: number;
     seed?: number;
     watermark?: boolean;
     options?: GenAIOptions$M;
 }
-interface Happyhorse11I2VMediaItem {
-    type: "first_frame";
+interface Happyhorse11R2VMediaItem {
+    type: "reference_image";
     url: string;
 }
 interface GenAIOptions$M {
@@ -8772,51 +8817,6 @@ interface DriveFolderOptions$M {
     id?: string;
 }
 interface InputsTransformationOptions$K {
-    downscale_oversized_images?: boolean;
-}
-interface Happyhorse11ImageToVideoResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: Happyhorse11ImageToVideoResult;
-}
-interface Happyhorse11ImageToVideoResult {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface Happyhorse11ReferenceToVideoCommand {
-    prompt: string;
-    media: Happyhorse11R2VMediaItem[];
-    resolution?: "720P" | "1080P";
-    ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
-    duration?: number;
-    seed?: number;
-    watermark?: boolean;
-    options?: GenAIOptions$L;
-}
-interface Happyhorse11R2VMediaItem {
-    type: "reference_image";
-    url: string;
-}
-interface GenAIOptions$L {
-    safety_checks?: SafetyChecksOptions$L;
-    drive?: DriveOptions$L;
-    inputs_transformation?: InputsTransformationOptions$J;
-}
-interface SafetyChecksOptions$L {
-    enabled?: boolean;
-}
-interface DriveOptions$L {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$L;
-}
-interface DriveFolderOptions$L {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$J {
     downscale_oversized_images?: boolean;
 }
 interface Happyhorse11ReferenceToVideoResponse {
@@ -8911,6 +8911,44 @@ interface MusicGenerationCommand {
     model_id?: "music_v1" | "music_v2";
     force_instrumental?: boolean;
     output_format?: "mp3_22050_32" | "mp3_44100_32" | "mp3_44100_64" | "mp3_44100_96" | "mp3_44100_128" | "mp3_44100_192" | "mp3_48000_192" | "pcm_16000" | "pcm_22050" | "pcm_24000" | "pcm_44100" | "pcm_48000";
+    options?: GenAIOptions$L;
+}
+interface GenAIOptions$L {
+    safety_checks?: SafetyChecksOptions$L;
+    drive?: DriveOptions$L;
+    inputs_transformation?: InputsTransformationOptions$J;
+}
+interface SafetyChecksOptions$L {
+    enabled?: boolean;
+}
+interface DriveOptions$L {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$L;
+}
+interface DriveFolderOptions$L {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$J {
+    downscale_oversized_images?: boolean;
+}
+interface MusicGenerationResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: AudioResult;
+}
+interface AudioResult {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface EffectsCommand {
+    image_url: string;
+    effect_name: string;
+    style_image_url?: string;
+    skip_upsample?: boolean;
     options?: GenAIOptions$K;
 }
 interface GenAIOptions$K {
@@ -8931,44 +8969,6 @@ interface DriveFolderOptions$K {
     id?: string;
 }
 interface InputsTransformationOptions$I {
-    downscale_oversized_images?: boolean;
-}
-interface MusicGenerationResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: AudioResult;
-}
-interface AudioResult {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface EffectsCommand {
-    image_url: string;
-    effect_name: string;
-    style_image_url?: string;
-    skip_upsample?: boolean;
-    options?: GenAIOptions$J;
-}
-interface GenAIOptions$J {
-    safety_checks?: SafetyChecksOptions$J;
-    drive?: DriveOptions$J;
-    inputs_transformation?: InputsTransformationOptions$H;
-}
-interface SafetyChecksOptions$J {
-    enabled?: boolean;
-}
-interface DriveOptions$J {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$J;
-}
-interface DriveFolderOptions$J {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$H {
     downscale_oversized_images?: boolean;
 }
 interface EffectsResponse {
@@ -8998,6 +8998,44 @@ interface ImageCaptioningCommand {
     model?: "preview-picsart-image-captioning-v1" | "picsart-image-captioning-v1";
     caption_model?: "blip2" | "moondream";
     prompt?: string;
+    options?: GenAIOptions$J;
+}
+interface GenAIOptions$J {
+    safety_checks?: SafetyChecksOptions$J;
+    drive?: DriveOptions$J;
+    inputs_transformation?: InputsTransformationOptions$H;
+}
+interface SafetyChecksOptions$J {
+    enabled?: boolean;
+}
+interface DriveOptions$J {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$J;
+}
+interface DriveFolderOptions$J {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$H {
+    downscale_oversized_images?: boolean;
+}
+interface ImageCaptioningResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: ImageCaptioningResultData;
+}
+interface ImageCaptioningResultData {
+    caption: string;
+}
+
+interface QwenHaircutsCommand {
+    image: string | string[];
+    model?: string;
+    prompt?: string;
+    system_prompt?: string;
+    negative_prompt?: string;
+    metadata?: Record<string, unknown>;
     options?: GenAIOptions$I;
 }
 interface GenAIOptions$I {
@@ -9018,44 +9056,6 @@ interface DriveFolderOptions$I {
     id?: string;
 }
 interface InputsTransformationOptions$G {
-    downscale_oversized_images?: boolean;
-}
-interface ImageCaptioningResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: ImageCaptioningResultData;
-}
-interface ImageCaptioningResultData {
-    caption: string;
-}
-
-interface QwenHaircutsCommand {
-    image: string | string[];
-    model?: string;
-    prompt?: string;
-    system_prompt?: string;
-    negative_prompt?: string;
-    metadata?: Record<string, unknown>;
-    options?: GenAIOptions$H;
-}
-interface GenAIOptions$H {
-    safety_checks?: SafetyChecksOptions$H;
-    drive?: DriveOptions$H;
-    inputs_transformation?: InputsTransformationOptions$F;
-}
-interface SafetyChecksOptions$H {
-    enabled?: boolean;
-}
-interface DriveOptions$H {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$H;
-}
-interface DriveFolderOptions$H {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$F {
     downscale_oversized_images?: boolean;
 }
 interface QwenHaircutsResponse {
@@ -9089,27 +9089,27 @@ interface AvatarGenerationCommand {
     skin_fix?: boolean;
     model: "dreamshaper-sfw" | "3d-cartoon" | "yamers-anime";
     num_outputs?: number;
-    options?: GenAIOptions$G;
+    options?: GenAIOptions$H;
     model_execution_mode?: string;
 }
-interface GenAIOptions$G {
-    safety_checks?: SafetyChecksOptions$G;
-    drive?: DriveOptions$G;
-    inputs_transformation?: InputsTransformationOptions$E;
+interface GenAIOptions$H {
+    safety_checks?: SafetyChecksOptions$H;
+    drive?: DriveOptions$H;
+    inputs_transformation?: InputsTransformationOptions$F;
 }
-interface SafetyChecksOptions$G {
+interface SafetyChecksOptions$H {
     enabled?: boolean;
 }
-interface DriveOptions$G {
+interface DriveOptions$H {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$G;
+    folder?: DriveFolderOptions$H;
 }
-interface DriveFolderOptions$G {
+interface DriveFolderOptions$H {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$E {
+interface InputsTransformationOptions$F {
     downscale_oversized_images?: boolean;
 }
 interface AvatarGenerationResponse {
@@ -9130,30 +9130,30 @@ interface QwenChatCommand {
     top_p?: number;
     seed?: number;
     enable_thinking?: boolean;
-    options?: GenAIOptions$F;
+    options?: GenAIOptions$G;
 }
 interface QwenChatMessage {
     role: "system" | "user" | "assistant";
     content: string | unknown[];
 }
-interface GenAIOptions$F {
-    safety_checks?: SafetyChecksOptions$F;
-    drive?: DriveOptions$F;
-    inputs_transformation?: InputsTransformationOptions$D;
+interface GenAIOptions$G {
+    safety_checks?: SafetyChecksOptions$G;
+    drive?: DriveOptions$G;
+    inputs_transformation?: InputsTransformationOptions$E;
 }
-interface SafetyChecksOptions$F {
+interface SafetyChecksOptions$G {
     enabled?: boolean;
 }
-interface DriveOptions$F {
+interface DriveOptions$G {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$F;
+    folder?: DriveFolderOptions$G;
 }
-interface DriveFolderOptions$F {
+interface DriveFolderOptions$G {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$D {
+interface InputsTransformationOptions$E {
     downscale_oversized_images?: boolean;
 }
 interface QwenChatResponse {
@@ -9193,28 +9193,28 @@ interface Flux3VideoCommand {
     safetyTolerance?: number;
     webhookUrl?: string;
     draft?: boolean;
-    options?: GenAIOptions$E;
+    options?: GenAIOptions$F;
 }
 type Flux3VideoAspectRatio = "auto" | "21:9" | "2:1" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
 type Flux3VideoResolution = "hd" | "fhd";
-interface GenAIOptions$E {
-    safety_checks?: SafetyChecksOptions$E;
-    drive?: DriveOptions$E;
-    inputs_transformation?: InputsTransformationOptions$C;
+interface GenAIOptions$F {
+    safety_checks?: SafetyChecksOptions$F;
+    drive?: DriveOptions$F;
+    inputs_transformation?: InputsTransformationOptions$D;
 }
-interface SafetyChecksOptions$E {
+interface SafetyChecksOptions$F {
     enabled?: boolean;
 }
-interface DriveOptions$E {
+interface DriveOptions$F {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$E;
+    folder?: DriveFolderOptions$F;
 }
-interface DriveFolderOptions$E {
+interface DriveFolderOptions$F {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$C {
+interface InputsTransformationOptions$D {
     downscale_oversized_images?: boolean;
 }
 interface Flux3VideoResult {
@@ -9235,26 +9235,26 @@ interface PapHaircutsCommand {
     prompt?: string;
     negative_prompt?: string;
     metadata?: Record<string, unknown>;
-    options?: GenAIOptions$D;
+    options?: GenAIOptions$E;
 }
-interface GenAIOptions$D {
-    safety_checks?: SafetyChecksOptions$D;
-    drive?: DriveOptions$D;
-    inputs_transformation?: InputsTransformationOptions$B;
+interface GenAIOptions$E {
+    safety_checks?: SafetyChecksOptions$E;
+    drive?: DriveOptions$E;
+    inputs_transformation?: InputsTransformationOptions$C;
 }
-interface SafetyChecksOptions$D {
+interface SafetyChecksOptions$E {
     enabled?: boolean;
 }
-interface DriveOptions$D {
+interface DriveOptions$E {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$D;
+    folder?: DriveFolderOptions$E;
 }
-interface DriveFolderOptions$D {
+interface DriveFolderOptions$E {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$B {
+interface InputsTransformationOptions$C {
     downscale_oversized_images?: boolean;
 }
 interface PapHaircutsResponse {
@@ -9276,7 +9276,7 @@ interface SeedAudioCommand {
     references?: ReferenceResource[];
     audio_config?: AudioConfig;
     watermark?: Watermark;
-    options?: GenAIOptions$C;
+    options?: GenAIOptions$D;
 }
 interface ReferenceResource {
     speaker?: string;
@@ -9304,24 +9304,24 @@ interface AigcMetadata {
     content_propagator?: string;
     propagate_id?: string;
 }
-interface GenAIOptions$C {
-    safety_checks?: SafetyChecksOptions$C;
-    drive?: DriveOptions$C;
-    inputs_transformation?: InputsTransformationOptions$A;
+interface GenAIOptions$D {
+    safety_checks?: SafetyChecksOptions$D;
+    drive?: DriveOptions$D;
+    inputs_transformation?: InputsTransformationOptions$B;
 }
-interface SafetyChecksOptions$C {
+interface SafetyChecksOptions$D {
     enabled?: boolean;
 }
-interface DriveOptions$C {
+interface DriveOptions$D {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$C;
+    folder?: DriveFolderOptions$D;
 }
-interface DriveFolderOptions$C {
+interface DriveFolderOptions$D {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$A {
+interface InputsTransformationOptions$B {
     downscale_oversized_images?: boolean;
 }
 interface SeedAudioResponse {
@@ -9339,25 +9339,25 @@ interface IdeogramPImageGenerateCommand {
     resolution?: "2048x2048" | "1440x2880" | "2880x1440" | "1664x2496" | "2496x1664" | "1792x2240" | "2240x1792" | "1440x2560" | "2560x1440" | "1600x2560" | "2560x1600" | "1728x2304" | "2304x1728" | "1296x3168" | "3168x1296" | "1152x2944" | "2944x1152" | "1248x3328" | "3328x1248" | "1280x3072" | "3072x1280" | "1024x3072" | "3072x1024" | "1024x1024" | "896x1120" | "1120x896" | "864x1152" | "1152x864" | "832x1248" | "1248x832" | "800x1280" | "1280x800" | "720x1280" | "1280x720" | "720x1440" | "1440x720";
     rendering_speed?: IdeogramPImageRenderingSpeed;
     storage?: StorageParam$1;
-    options?: GenAIOptions$B;
+    options?: GenAIOptions$C;
 }
 type IdeogramPImageRenderingSpeed = "very-low" | "low" | "medium" | "high";
 interface StorageParam$1 {
     destination: string;
 }
-interface GenAIOptions$B {
-    safety_checks?: SafetyChecksOptions$B;
-    drive?: DriveOptions$B;
+interface GenAIOptions$C {
+    safety_checks?: SafetyChecksOptions$C;
+    drive?: DriveOptions$C;
 }
-interface SafetyChecksOptions$B {
+interface SafetyChecksOptions$C {
     enabled?: boolean;
 }
-interface DriveOptions$B {
+interface DriveOptions$C {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$B;
+    folder?: DriveFolderOptions$C;
 }
-interface DriveFolderOptions$B {
+interface DriveFolderOptions$C {
     path?: string;
     id?: string;
 }
@@ -9385,26 +9385,26 @@ interface HidreamT2ICommand {
     aspectRatio?: string;
     seed?: number;
     model?: "picsart-hidream-t2i" | "preview-picsart-hidream-t2i";
-    options?: GenAIOptions$A;
+    options?: GenAIOptions$B;
 }
-interface GenAIOptions$A {
-    safety_checks?: SafetyChecksOptions$A;
-    drive?: DriveOptions$A;
-    inputs_transformation?: InputsTransformationOptions$z;
+interface GenAIOptions$B {
+    safety_checks?: SafetyChecksOptions$B;
+    drive?: DriveOptions$B;
+    inputs_transformation?: InputsTransformationOptions$A;
 }
-interface SafetyChecksOptions$A {
+interface SafetyChecksOptions$B {
     enabled?: boolean;
 }
-interface DriveOptions$A {
+interface DriveOptions$B {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$A;
+    folder?: DriveFolderOptions$B;
 }
-interface DriveFolderOptions$A {
+interface DriveFolderOptions$B {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$z {
+interface InputsTransformationOptions$A {
     downscale_oversized_images?: boolean;
 }
 interface HidreamT2IResponse {
@@ -9426,30 +9426,30 @@ interface EnhanceVideoCommand {
     resolution_limit?: number;
     bitrate_level?: BitrateLevel;
     fps?: number;
-    options?: GenAIOptions$z;
+    options?: GenAIOptions$A;
 }
 type ToolVersion = "standard" | "professional";
 type Scene = "common" | "ugc" | "short_series" | "aigc" | "old_film";
 type EnhanceResolution = "720p" | "1080p" | "2k" | "4k" | "8k";
 type BitrateLevel = "low" | "medium" | "high";
-interface GenAIOptions$z {
-    safety_checks?: SafetyChecksOptions$z;
-    drive?: DriveOptions$z;
-    inputs_transformation?: InputsTransformationOptions$y;
+interface GenAIOptions$A {
+    safety_checks?: SafetyChecksOptions$A;
+    drive?: DriveOptions$A;
+    inputs_transformation?: InputsTransformationOptions$z;
 }
-interface SafetyChecksOptions$z {
+interface SafetyChecksOptions$A {
     enabled?: boolean;
 }
-interface DriveOptions$z {
+interface DriveOptions$A {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$z;
+    folder?: DriveFolderOptions$A;
 }
-interface DriveFolderOptions$z {
+interface DriveFolderOptions$A {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$y {
+interface InputsTransformationOptions$z {
     downscale_oversized_images?: boolean;
 }
 interface EnhanceVideoResponse {
@@ -9473,7 +9473,7 @@ interface MinimaxVideoGenerationCommand {
     ratio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
     aigc_watermark?: boolean;
     callback_url?: string;
-    options?: GenAIOptions$y;
+    options?: GenAIOptions$z;
 }
 interface MinimaxContentItem {
     type: "text" | "image_url" | "video_url" | "audio_url";
@@ -9486,24 +9486,24 @@ interface MinimaxContentItem {
 interface MinimaxMediaUrl {
     url: string;
 }
-interface GenAIOptions$y {
-    safety_checks?: SafetyChecksOptions$y;
-    drive?: DriveOptions$y;
-    inputs_transformation?: InputsTransformationOptions$x;
+interface GenAIOptions$z {
+    safety_checks?: SafetyChecksOptions$z;
+    drive?: DriveOptions$z;
+    inputs_transformation?: InputsTransformationOptions$y;
 }
-interface SafetyChecksOptions$y {
+interface SafetyChecksOptions$z {
     enabled?: boolean;
 }
-interface DriveOptions$y {
+interface DriveOptions$z {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$y;
+    folder?: DriveFolderOptions$z;
 }
-interface DriveFolderOptions$y {
+interface DriveFolderOptions$z {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$x {
+interface InputsTransformationOptions$y {
     downscale_oversized_images?: boolean;
 }
 interface MinimaxVideoGenerationResponse {
@@ -9576,26 +9576,26 @@ interface ImageSegmentationCommand {
     image_url: string;
     model: "picsart-multimatting-v13" | "picsart-sky-v1" | "preview-picsart-multimatting-v13" | "preview-picsart-sky-v1";
     segmentation_class?: "all" | "background" | "hair" | "skin" | "lips" | "eyes" | "clothes" | "glasses" | "teeth" | "foreground";
-    options?: GenAIOptions$x;
+    options?: GenAIOptions$y;
 }
-interface GenAIOptions$x {
-    safety_checks?: SafetyChecksOptions$x;
-    drive?: DriveOptions$x;
-    inputs_transformation?: InputsTransformationOptions$w;
+interface GenAIOptions$y {
+    safety_checks?: SafetyChecksOptions$y;
+    drive?: DriveOptions$y;
+    inputs_transformation?: InputsTransformationOptions$x;
 }
-interface SafetyChecksOptions$x {
+interface SafetyChecksOptions$y {
     enabled?: boolean;
 }
-interface DriveOptions$x {
+interface DriveOptions$y {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$x;
+    folder?: DriveFolderOptions$y;
 }
-interface DriveFolderOptions$x {
+interface DriveFolderOptions$y {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$w {
+interface InputsTransformationOptions$x {
     downscale_oversized_images?: boolean;
 }
 interface ImageSegmentationResponse {
@@ -9618,30 +9618,30 @@ interface WanV3VideoCommand {
     enable_thinking?: boolean;
     watermark?: boolean;
     seed?: number;
-    options?: GenAIOptions$w;
+    options?: GenAIOptions$x;
 }
 interface WanV3MediaItem {
     type: "reference_image" | "reference_video" | "reference_audio" | "first_frame" | "last_frame" | "file" | "link";
     url: string;
 }
-interface GenAIOptions$w {
-    safety_checks?: SafetyChecksOptions$w;
-    drive?: DriveOptions$w;
-    inputs_transformation?: InputsTransformationOptions$v;
+interface GenAIOptions$x {
+    safety_checks?: SafetyChecksOptions$x;
+    drive?: DriveOptions$x;
+    inputs_transformation?: InputsTransformationOptions$w;
 }
-interface SafetyChecksOptions$w {
+interface SafetyChecksOptions$x {
     enabled?: boolean;
 }
-interface DriveOptions$w {
+interface DriveOptions$x {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$w;
+    folder?: DriveFolderOptions$x;
 }
-interface DriveFolderOptions$w {
+interface DriveFolderOptions$x {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$v {
+interface InputsTransformationOptions$w {
     downscale_oversized_images?: boolean;
 }
 interface WanV3VideoResponse {
@@ -9860,26 +9860,26 @@ interface PhotoAdjustCommand {
     colour_correction_node?: string;
     output_format?: string;
     metadata?: Record<string, unknown>;
-    options?: GenAIOptions$v;
+    options?: GenAIOptions$w;
 }
-interface GenAIOptions$v {
-    safety_checks?: SafetyChecksOptions$v;
-    drive?: DriveOptions$v;
-    inputs_transformation?: InputsTransformationOptions$u;
+interface GenAIOptions$w {
+    safety_checks?: SafetyChecksOptions$w;
+    drive?: DriveOptions$w;
+    inputs_transformation?: InputsTransformationOptions$v;
 }
-interface SafetyChecksOptions$v {
+interface SafetyChecksOptions$w {
     enabled?: boolean;
 }
-interface DriveOptions$v {
+interface DriveOptions$w {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$v;
+    folder?: DriveFolderOptions$w;
 }
-interface DriveFolderOptions$v {
+interface DriveFolderOptions$w {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$u {
+interface InputsTransformationOptions$v {
     downscale_oversized_images?: boolean;
 }
 interface PhotoAdjustResponse {
@@ -9960,7 +9960,48 @@ interface Hailuo02ProTextToVideoCommand {
     prompt: string;
     prompt_optimizer?: boolean;
     callback_url?: string;
+    options?: GenAIOptions$v;
+}
+interface GenAIOptions$v {
+    safety_checks?: SafetyChecksOptions$v;
+    drive?: DriveOptions$v;
+    inputs_transformation?: InputsTransformationOptions$u;
+}
+interface SafetyChecksOptions$v {
+    enabled?: boolean;
+}
+interface DriveOptions$v {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$v;
+}
+interface DriveFolderOptions$v {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$u {
+    downscale_oversized_images?: boolean;
+}
+interface Hailuo02ProTextToVideoResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: MinimaxVideoResult$7;
+}
+interface MinimaxVideoResult$7 {
+    url: string;
+    mimeType?: string;
+    duration?: number;
+    ratio?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface Hailuo02ProImageToVideoCommand {
+    prompt: string;
+    prompt_optimizer?: boolean;
+    callback_url?: string;
     options?: GenAIOptions$u;
+    image_url: string;
+    end_image_url?: string;
 }
 interface GenAIOptions$u {
     safety_checks?: SafetyChecksOptions$u;
@@ -9982,12 +10023,12 @@ interface DriveFolderOptions$u {
 interface InputsTransformationOptions$t {
     downscale_oversized_images?: boolean;
 }
-interface Hailuo02ProTextToVideoResponse {
+interface Hailuo02ProImageToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: MinimaxVideoResult$7;
+    result: MinimaxVideoResult$6;
 }
-interface MinimaxVideoResult$7 {
+interface MinimaxVideoResult$6 {
     url: string;
     mimeType?: string;
     duration?: number;
@@ -9995,13 +10036,12 @@ interface MinimaxVideoResult$7 {
     driveFile?: Record<string, unknown>;
 }
 
-interface Hailuo02ProImageToVideoCommand {
+interface Hailuo23StandardTextToVideoCommand {
     prompt: string;
     prompt_optimizer?: boolean;
     callback_url?: string;
     options?: GenAIOptions$t;
-    image_url: string;
-    end_image_url?: string;
+    duration?: 6 | 10;
 }
 interface GenAIOptions$t {
     safety_checks?: SafetyChecksOptions$t;
@@ -10023,12 +10063,12 @@ interface DriveFolderOptions$t {
 interface InputsTransformationOptions$s {
     downscale_oversized_images?: boolean;
 }
-interface Hailuo02ProImageToVideoResponse {
+interface Hailuo23StandardTextToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: MinimaxVideoResult$6;
+    result: MinimaxVideoResult$5;
 }
-interface MinimaxVideoResult$6 {
+interface MinimaxVideoResult$5 {
     url: string;
     mimeType?: string;
     duration?: number;
@@ -10036,11 +10076,12 @@ interface MinimaxVideoResult$6 {
     driveFile?: Record<string, unknown>;
 }
 
-interface Hailuo23StandardTextToVideoCommand {
+interface Hailuo23StandardImageToVideoCommand {
     prompt: string;
     prompt_optimizer?: boolean;
     callback_url?: string;
     options?: GenAIOptions$s;
+    image_url: string;
     duration?: 6 | 10;
 }
 interface GenAIOptions$s {
@@ -10063,12 +10104,12 @@ interface DriveFolderOptions$s {
 interface InputsTransformationOptions$r {
     downscale_oversized_images?: boolean;
 }
-interface Hailuo23StandardTextToVideoResponse {
+interface Hailuo23StandardImageToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: MinimaxVideoResult$5;
+    result: MinimaxVideoResult$4;
 }
-interface MinimaxVideoResult$5 {
+interface MinimaxVideoResult$4 {
     url: string;
     mimeType?: string;
     duration?: number;
@@ -10076,13 +10117,11 @@ interface MinimaxVideoResult$5 {
     driveFile?: Record<string, unknown>;
 }
 
-interface Hailuo23StandardImageToVideoCommand {
+interface Hailuo23ProTextToVideoCommand {
     prompt: string;
     prompt_optimizer?: boolean;
     callback_url?: string;
     options?: GenAIOptions$r;
-    image_url: string;
-    duration?: 6 | 10;
 }
 interface GenAIOptions$r {
     safety_checks?: SafetyChecksOptions$r;
@@ -10104,12 +10143,12 @@ interface DriveFolderOptions$r {
 interface InputsTransformationOptions$q {
     downscale_oversized_images?: boolean;
 }
-interface Hailuo23StandardImageToVideoResponse {
+interface Hailuo23ProTextToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: MinimaxVideoResult$4;
+    result: MinimaxVideoResult$3;
 }
-interface MinimaxVideoResult$4 {
+interface MinimaxVideoResult$3 {
     url: string;
     mimeType?: string;
     duration?: number;
@@ -10117,11 +10156,12 @@ interface MinimaxVideoResult$4 {
     driveFile?: Record<string, unknown>;
 }
 
-interface Hailuo23ProTextToVideoCommand {
+interface Hailuo23ProImageToVideoCommand {
     prompt: string;
     prompt_optimizer?: boolean;
     callback_url?: string;
     options?: GenAIOptions$q;
+    image_url: string;
 }
 interface GenAIOptions$q {
     safety_checks?: SafetyChecksOptions$q;
@@ -10143,12 +10183,12 @@ interface DriveFolderOptions$q {
 interface InputsTransformationOptions$p {
     downscale_oversized_images?: boolean;
 }
-interface Hailuo23ProTextToVideoResponse {
+interface Hailuo23ProImageToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: MinimaxVideoResult$3;
+    result: MinimaxVideoResult$2;
 }
-interface MinimaxVideoResult$3 {
+interface MinimaxVideoResult$2 {
     url: string;
     mimeType?: string;
     duration?: number;
@@ -10156,12 +10196,13 @@ interface MinimaxVideoResult$3 {
     driveFile?: Record<string, unknown>;
 }
 
-interface Hailuo23ProImageToVideoCommand {
+interface Hailuo23FastStandardImageToVideoCommand {
     prompt: string;
     prompt_optimizer?: boolean;
     callback_url?: string;
     options?: GenAIOptions$p;
     image_url: string;
+    duration?: 6 | 10;
 }
 interface GenAIOptions$p {
     safety_checks?: SafetyChecksOptions$p;
@@ -10183,12 +10224,12 @@ interface DriveFolderOptions$p {
 interface InputsTransformationOptions$o {
     downscale_oversized_images?: boolean;
 }
-interface Hailuo23ProImageToVideoResponse {
+interface Hailuo23FastStandardImageToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: MinimaxVideoResult$2;
+    result: MinimaxVideoResult$1;
 }
-interface MinimaxVideoResult$2 {
+interface MinimaxVideoResult$1 {
     url: string;
     mimeType?: string;
     duration?: number;
@@ -10196,13 +10237,12 @@ interface MinimaxVideoResult$2 {
     driveFile?: Record<string, unknown>;
 }
 
-interface Hailuo23FastStandardImageToVideoCommand {
+interface Hailuo23FastProImageToVideoCommand {
     prompt: string;
     prompt_optimizer?: boolean;
     callback_url?: string;
     options?: GenAIOptions$o;
     image_url: string;
-    duration?: 6 | 10;
 }
 interface GenAIOptions$o {
     safety_checks?: SafetyChecksOptions$o;
@@ -10224,12 +10264,12 @@ interface DriveFolderOptions$o {
 interface InputsTransformationOptions$n {
     downscale_oversized_images?: boolean;
 }
-interface Hailuo23FastStandardImageToVideoResponse {
+interface Hailuo23FastProImageToVideoResponse {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: MinimaxVideoResult$1;
+    result: MinimaxVideoResult;
 }
-interface MinimaxVideoResult$1 {
+interface MinimaxVideoResult {
     url: string;
     mimeType?: string;
     duration?: number;
@@ -10237,12 +10277,18 @@ interface MinimaxVideoResult$1 {
     driveFile?: Record<string, unknown>;
 }
 
-interface Hailuo23FastProImageToVideoCommand {
+interface MinimaxMusicV2Command {
     prompt: string;
-    prompt_optimizer?: boolean;
-    callback_url?: string;
+    lyrics?: string;
+    audio_setting?: MinimaxMusicAudioSettingDto$1;
+    lyrics_optimizer?: boolean;
+    is_instrumental?: boolean;
     options?: GenAIOptions$n;
-    image_url: string;
+}
+interface MinimaxMusicAudioSettingDto$1 {
+    sample_rate?: 16000 | 24000 | 32000 | 44100;
+    bitrate?: 32000 | 64000 | 128000 | 256000;
+    format?: "mp3" | "wav" | "pcm";
 }
 interface GenAIOptions$n {
     safety_checks?: SafetyChecksOptions$n;
@@ -10264,28 +10310,26 @@ interface DriveFolderOptions$n {
 interface InputsTransformationOptions$m {
     downscale_oversized_images?: boolean;
 }
-interface Hailuo23FastProImageToVideoResponse {
+interface MinimaxMusicV2Response {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: MinimaxVideoResult;
+    result: MinimaxMusicResult$1;
 }
-interface MinimaxVideoResult {
+interface MinimaxMusicResult$1 {
     url: string;
     mimeType?: string;
-    duration?: number;
-    ratio?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface MinimaxMusicV2Command {
+interface MinimaxMusicV3Command {
     prompt: string;
     lyrics?: string;
-    audio_setting?: MinimaxMusicAudioSettingDto$1;
+    audio_setting?: MinimaxMusicAudioSettingDto;
     lyrics_optimizer?: boolean;
     is_instrumental?: boolean;
     options?: GenAIOptions$m;
 }
-interface MinimaxMusicAudioSettingDto$1 {
+interface MinimaxMusicAudioSettingDto {
     sample_rate?: 16000 | 24000 | 32000 | 44100;
     bitrate?: 32000 | 64000 | 128000 | 256000;
     format?: "mp3" | "wav" | "pcm";
@@ -10310,30 +10354,25 @@ interface DriveFolderOptions$m {
 interface InputsTransformationOptions$l {
     downscale_oversized_images?: boolean;
 }
-interface MinimaxMusicV2Response {
+interface MinimaxMusicV3Response {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: MinimaxMusicResult$1;
+    result: MinimaxMusicResult;
 }
-interface MinimaxMusicResult$1 {
+interface MinimaxMusicResult {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
 
-interface MinimaxMusicV3Command {
-    prompt: string;
-    lyrics?: string;
-    audio_setting?: MinimaxMusicAudioSettingDto;
-    lyrics_optimizer?: boolean;
-    is_instrumental?: boolean;
+interface SeedreamLayerSeparationCommand {
+    image: string;
+    prompt?: string;
+    resolution?: SeedreamLayerSeparationResolution;
+    watermark?: boolean;
     options?: GenAIOptions$l;
 }
-interface MinimaxMusicAudioSettingDto {
-    sample_rate?: 16000 | 24000 | 32000 | 44100;
-    bitrate?: 32000 | 64000 | 128000 | 256000;
-    format?: "mp3" | "wav" | "pcm";
-}
+type SeedreamLayerSeparationResolution = "1K" | "2K";
 interface GenAIOptions$l {
     safety_checks?: SafetyChecksOptions$l;
     drive?: DriveOptions$l;
@@ -10352,45 +10391,6 @@ interface DriveFolderOptions$l {
     id?: string;
 }
 interface InputsTransformationOptions$k {
-    downscale_oversized_images?: boolean;
-}
-interface MinimaxMusicV3Response {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: MinimaxMusicResult;
-}
-interface MinimaxMusicResult {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface SeedreamLayerSeparationCommand {
-    image: string;
-    prompt?: string;
-    resolution?: SeedreamLayerSeparationResolution;
-    watermark?: boolean;
-    options?: GenAIOptions$k;
-}
-type SeedreamLayerSeparationResolution = "1K" | "2K";
-interface GenAIOptions$k {
-    safety_checks?: SafetyChecksOptions$k;
-    drive?: DriveOptions$k;
-    inputs_transformation?: InputsTransformationOptions$j;
-}
-interface SafetyChecksOptions$k {
-    enabled?: boolean;
-}
-interface DriveOptions$k {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$k;
-}
-interface DriveFolderOptions$k {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$j {
     downscale_oversized_images?: boolean;
 }
 interface SeedreamLayerSeparationResponse {
@@ -10423,26 +10423,26 @@ interface RecraftStylesCommand {
     source_style_weights?: number[];
     prompt?: string;
     mix_policy?: "PaletteMatch" | "MaxWeight";
-    options?: GenAIOptions$j;
+    options?: GenAIOptions$k;
 }
-interface GenAIOptions$j {
-    safety_checks?: SafetyChecksOptions$j;
-    drive?: DriveOptions$j;
-    inputs_transformation?: InputsTransformationOptions$i;
+interface GenAIOptions$k {
+    safety_checks?: SafetyChecksOptions$k;
+    drive?: DriveOptions$k;
+    inputs_transformation?: InputsTransformationOptions$j;
 }
-interface SafetyChecksOptions$j {
+interface SafetyChecksOptions$k {
     enabled?: boolean;
 }
-interface DriveOptions$j {
+interface DriveOptions$k {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$j;
+    folder?: DriveFolderOptions$k;
 }
-interface DriveFolderOptions$j {
+interface DriveFolderOptions$k {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$i {
+interface InputsTransformationOptions$j {
     downscale_oversized_images?: boolean;
 }
 interface RecraftStylesResponse {
@@ -10499,27 +10499,27 @@ interface FlowTemplateTextItem {
 interface PicsartFlowEffectsCommand {
     template: string;
     imageUrls: string[];
-    options?: GenAIOptions$i;
+    options?: GenAIOptions$j;
     moderationLevel?: "none" | "low" | "medium" | "high";
 }
-interface GenAIOptions$i {
-    safety_checks?: SafetyChecksOptions$i;
-    drive?: DriveOptions$i;
-    inputs_transformation?: InputsTransformationOptions$h;
+interface GenAIOptions$j {
+    safety_checks?: SafetyChecksOptions$j;
+    drive?: DriveOptions$j;
+    inputs_transformation?: InputsTransformationOptions$i;
 }
-interface SafetyChecksOptions$i {
+interface SafetyChecksOptions$j {
     enabled?: boolean;
 }
-interface DriveOptions$i {
+interface DriveOptions$j {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$i;
+    folder?: DriveFolderOptions$j;
 }
-interface DriveFolderOptions$i {
+interface DriveFolderOptions$j {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$h {
+interface InputsTransformationOptions$i {
     downscale_oversized_images?: boolean;
 }
 interface PicsartFlowEffectsResponse {
@@ -10547,27 +10547,27 @@ interface OmniHumanCommand {
     turbo_mode?: boolean;
     mask_url?: string | string[];
     seed?: number;
-    options?: GenAIOptions$h;
+    options?: GenAIOptions$i;
 }
 type OmniHumanResolution = "720p" | "1080p";
-interface GenAIOptions$h {
-    safety_checks?: SafetyChecksOptions$h;
-    drive?: DriveOptions$h;
-    inputs_transformation?: InputsTransformationOptions$g;
+interface GenAIOptions$i {
+    safety_checks?: SafetyChecksOptions$i;
+    drive?: DriveOptions$i;
+    inputs_transformation?: InputsTransformationOptions$h;
 }
-interface SafetyChecksOptions$h {
+interface SafetyChecksOptions$i {
     enabled?: boolean;
 }
-interface DriveOptions$h {
+interface DriveOptions$i {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$h;
+    folder?: DriveFolderOptions$i;
 }
-interface DriveFolderOptions$h {
+interface DriveFolderOptions$i {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$g {
+interface InputsTransformationOptions$h {
     downscale_oversized_images?: boolean;
 }
 interface OmniHumanResponse {
@@ -10593,7 +10593,7 @@ interface BflFlux2Command {
     outputFormat?: "jpeg" | "png";
     promptUpsampling?: boolean;
     safetyTolerance?: number;
-    options?: GenAIOptions$g;
+    options?: GenAIOptions$h;
     model: FluxV2Model;
     count?: number;
     steps?: number;
@@ -10602,6 +10602,52 @@ interface BflFlux2Command {
     width?: number;
     height?: number;
     resolution?: FluxResolution;
+}
+interface GenAIOptions$h {
+    safety_checks?: SafetyChecksOptions$h;
+    drive?: DriveOptions$h;
+    inputs_transformation?: InputsTransformationOptions$g;
+}
+interface SafetyChecksOptions$h {
+    enabled?: boolean;
+}
+interface DriveOptions$h {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$h;
+}
+interface DriveFolderOptions$h {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$g {
+    downscale_oversized_images?: boolean;
+}
+type FluxV2Model = "flux-2-flex" | "flux-2-pro" | "flux-2-pro-preview" | "flux-2-max";
+type FluxResolution = "1K" | "2K" | "4K";
+interface BflFlux2Result {
+    result: BflFlux2ResultBody;
+}
+interface BflFlux2ResultBody {
+    items: GeneratedImageResult$2[];
+}
+interface GeneratedImageResult$2 {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface BflFluxKontextCommand {
+    prompt: string;
+    seed?: number;
+    aspectRatio?: "0:0" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "9:21";
+    outputFormat?: "jpeg" | "png";
+    promptUpsampling?: boolean;
+    safetyTolerance?: number;
+    options?: GenAIOptions$g;
+    model: FluxKontextModel;
+    count?: number;
+    imageUrls?: string[];
 }
 interface GenAIOptions$g {
     safety_checks?: SafetyChecksOptions$g;
@@ -10623,60 +10669,14 @@ interface DriveFolderOptions$g {
 interface InputsTransformationOptions$f {
     downscale_oversized_images?: boolean;
 }
-type FluxV2Model = "flux-2-flex" | "flux-2-pro" | "flux-2-pro-preview" | "flux-2-max";
-type FluxResolution = "1K" | "2K" | "4K";
-interface BflFlux2Result {
-    result: BflFlux2ResultBody;
-}
-interface BflFlux2ResultBody {
-    items: GeneratedImageResult$1[];
-}
-interface GeneratedImageResult$1 {
-    url: string;
-    mimeType?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface BflFluxKontextCommand {
-    prompt: string;
-    seed?: number;
-    aspectRatio?: "0:0" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "9:21";
-    outputFormat?: "jpeg" | "png";
-    promptUpsampling?: boolean;
-    safetyTolerance?: number;
-    options?: GenAIOptions$f;
-    model: FluxKontextModel;
-    count?: number;
-    imageUrls?: string[];
-}
-interface GenAIOptions$f {
-    safety_checks?: SafetyChecksOptions$f;
-    drive?: DriveOptions$f;
-    inputs_transformation?: InputsTransformationOptions$e;
-}
-interface SafetyChecksOptions$f {
-    enabled?: boolean;
-}
-interface DriveOptions$f {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$f;
-}
-interface DriveFolderOptions$f {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$e {
-    downscale_oversized_images?: boolean;
-}
 type FluxKontextModel = "flux-kontext-max" | "flux-kontext-pro";
 interface BflFluxKontextResult {
     result: BflFluxKontextResultBody;
 }
 interface BflFluxKontextResultBody {
-    items: GeneratedImageResult[];
+    items: GeneratedImageResult$1[];
 }
-interface GeneratedImageResult {
+interface GeneratedImageResult$1 {
     url: string;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
@@ -10701,26 +10701,26 @@ interface ParakeetSliceResultData {
 interface ParakeetUnifiedEnCommand {
     url: string;
     model?: "preview-model-parakeet-unified-en-v1" | "model-parakeet-unified-en-v1";
-    options?: GenAIOptions$e;
+    options?: GenAIOptions$f;
 }
-interface GenAIOptions$e {
-    safety_checks?: SafetyChecksOptions$e;
-    drive?: DriveOptions$e;
-    inputs_transformation?: InputsTransformationOptions$d;
+interface GenAIOptions$f {
+    safety_checks?: SafetyChecksOptions$f;
+    drive?: DriveOptions$f;
+    inputs_transformation?: InputsTransformationOptions$e;
 }
-interface SafetyChecksOptions$e {
+interface SafetyChecksOptions$f {
     enabled?: boolean;
 }
-interface DriveOptions$e {
+interface DriveOptions$f {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$e;
+    folder?: DriveFolderOptions$f;
 }
-interface DriveFolderOptions$e {
+interface DriveFolderOptions$f {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$d {
+interface InputsTransformationOptions$e {
     downscale_oversized_images?: boolean;
 }
 interface ParakeetUnifiedEnResponse {
@@ -10747,26 +10747,26 @@ interface CreativeEnhancementCommand {
     creative_conditioning_strength?: number;
     creative_processing_size?: number;
     output_format?: "JPEG" | "PNG" | "HEIC" | "WEBP";
-    options?: GenAIOptions$d;
+    options?: GenAIOptions$e;
 }
-interface GenAIOptions$d {
-    safety_checks?: SafetyChecksOptions$d;
-    drive?: DriveOptions$d;
-    inputs_transformation?: InputsTransformationOptions$c;
+interface GenAIOptions$e {
+    safety_checks?: SafetyChecksOptions$e;
+    drive?: DriveOptions$e;
+    inputs_transformation?: InputsTransformationOptions$d;
 }
-interface SafetyChecksOptions$d {
+interface SafetyChecksOptions$e {
     enabled?: boolean;
 }
-interface DriveOptions$d {
+interface DriveOptions$e {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$d;
+    folder?: DriveFolderOptions$e;
 }
-interface DriveFolderOptions$d {
+interface DriveFolderOptions$e {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$c {
+interface InputsTransformationOptions$d {
     downscale_oversized_images?: boolean;
 }
 interface CreativeEnhancementResponse {
@@ -10792,26 +10792,26 @@ interface FaceCollageCommand {
     variant?: number;
     decoration?: number;
     model?: "preview-model-face-collage-v1" | "model-face-collage-v1";
-    options?: GenAIOptions$c;
+    options?: GenAIOptions$d;
 }
-interface GenAIOptions$c {
-    safety_checks?: SafetyChecksOptions$c;
-    drive?: DriveOptions$c;
-    inputs_transformation?: InputsTransformationOptions$b;
+interface GenAIOptions$d {
+    safety_checks?: SafetyChecksOptions$d;
+    drive?: DriveOptions$d;
+    inputs_transformation?: InputsTransformationOptions$c;
 }
-interface SafetyChecksOptions$c {
+interface SafetyChecksOptions$d {
     enabled?: boolean;
 }
-interface DriveOptions$c {
+interface DriveOptions$d {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$c;
+    folder?: DriveFolderOptions$d;
 }
-interface DriveFolderOptions$c {
+interface DriveFolderOptions$d {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$b {
+interface InputsTransformationOptions$c {
     downscale_oversized_images?: boolean;
 }
 interface FaceCollageResponse {
@@ -10892,29 +10892,29 @@ interface CaptionsAiVideosCaptionsCommand {
     video: CaptionsAiVideoUrl;
     caption_template_id: string;
     background?: "black" | "video";
-    options?: GenAIOptions$b;
+    options?: GenAIOptions$c;
 }
 interface CaptionsAiVideoUrl {
     url: string;
 }
-interface GenAIOptions$b {
-    safety_checks?: SafetyChecksOptions$b;
-    drive?: DriveOptions$b;
-    inputs_transformation?: InputsTransformationOptions$a;
+interface GenAIOptions$c {
+    safety_checks?: SafetyChecksOptions$c;
+    drive?: DriveOptions$c;
+    inputs_transformation?: InputsTransformationOptions$b;
 }
-interface SafetyChecksOptions$b {
+interface SafetyChecksOptions$c {
     enabled?: boolean;
 }
-interface DriveOptions$b {
+interface DriveOptions$c {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$b;
+    folder?: DriveFolderOptions$c;
 }
-interface DriveFolderOptions$b {
+interface DriveFolderOptions$c {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$a {
+interface InputsTransformationOptions$b {
     downscale_oversized_images?: boolean;
 }
 interface CaptionsAiVideosCaptionsResponse {
@@ -10961,6 +10961,44 @@ interface FluxVideoUpscaleCommand {
     prompt?: string;
     safetyTolerance?: number;
     webhookUrl?: string;
+    options?: GenAIOptions$b;
+}
+interface GenAIOptions$b {
+    safety_checks?: SafetyChecksOptions$b;
+    drive?: DriveOptions$b;
+    inputs_transformation?: InputsTransformationOptions$a;
+}
+interface SafetyChecksOptions$b {
+    enabled?: boolean;
+}
+interface DriveOptions$b {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$b;
+}
+interface DriveFolderOptions$b {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$a {
+    downscale_oversized_images?: boolean;
+}
+interface FluxVideoUpscaleResult {
+    result: UpscaledVideoResult;
+}
+interface UpscaledVideoResult {
+    url: string;
+    mimeType?: string;
+    seed?: number;
+    driveFile?: Record<string, unknown>;
+}
+
+interface VoiceCreateCommand {
+    generated_voice_id: string;
+    voice_name: string;
+    voice_description: string;
+    labels?: Record<string, string>;
+    played_not_selected_voice_ids?: string[];
     options?: GenAIOptions$a;
 }
 interface GenAIOptions$a {
@@ -10981,44 +11019,6 @@ interface DriveFolderOptions$a {
     id?: string;
 }
 interface InputsTransformationOptions$9 {
-    downscale_oversized_images?: boolean;
-}
-interface FluxVideoUpscaleResult {
-    result: UpscaledVideoResult;
-}
-interface UpscaledVideoResult {
-    url: string;
-    mimeType?: string;
-    seed?: number;
-    driveFile?: Record<string, unknown>;
-}
-
-interface VoiceCreateCommand {
-    generated_voice_id: string;
-    voice_name: string;
-    voice_description: string;
-    labels?: Record<string, string>;
-    played_not_selected_voice_ids?: string[];
-    options?: GenAIOptions$9;
-}
-interface GenAIOptions$9 {
-    safety_checks?: SafetyChecksOptions$9;
-    drive?: DriveOptions$9;
-    inputs_transformation?: InputsTransformationOptions$8;
-}
-interface SafetyChecksOptions$9 {
-    enabled?: boolean;
-}
-interface DriveOptions$9 {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$9;
-}
-interface DriveFolderOptions$9 {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$8 {
     downscale_oversized_images?: boolean;
 }
 interface VoiceCreateResponse {
@@ -11042,26 +11042,26 @@ interface VoiceCloneCommand {
     description?: string;
     labels?: Record<string, string>;
     remove_background_noise?: boolean;
-    options?: GenAIOptions$8;
+    options?: GenAIOptions$9;
 }
-interface GenAIOptions$8 {
-    safety_checks?: SafetyChecksOptions$8;
-    drive?: DriveOptions$8;
-    inputs_transformation?: InputsTransformationOptions$7;
+interface GenAIOptions$9 {
+    safety_checks?: SafetyChecksOptions$9;
+    drive?: DriveOptions$9;
+    inputs_transformation?: InputsTransformationOptions$8;
 }
-interface SafetyChecksOptions$8 {
+interface SafetyChecksOptions$9 {
     enabled?: boolean;
 }
-interface DriveOptions$8 {
+interface DriveOptions$9 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$8;
+    folder?: DriveFolderOptions$9;
 }
-interface DriveFolderOptions$8 {
+interface DriveFolderOptions$9 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$7 {
+interface InputsTransformationOptions$8 {
     downscale_oversized_images?: boolean;
 }
 interface VoiceCloneResponse {
@@ -11183,31 +11183,31 @@ interface MetaImagesGenerationsCommand {
     reasoning_strength?: "low" | "high";
     moderation?: "auto" | "low" | "none";
     tool_enablement?: MetaImageToolEnablement$1;
-    options?: GenAIOptions$7;
+    options?: GenAIOptions$8;
 }
 interface MetaImageToolEnablement$1 {
     enable_image_search?: boolean;
     enable_web_search?: boolean;
     enable_shell?: boolean;
 }
-interface GenAIOptions$7 {
-    safety_checks?: SafetyChecksOptions$7;
-    drive?: DriveOptions$7;
-    inputs_transformation?: InputsTransformationOptions$6;
+interface GenAIOptions$8 {
+    safety_checks?: SafetyChecksOptions$8;
+    drive?: DriveOptions$8;
+    inputs_transformation?: InputsTransformationOptions$7;
 }
-interface SafetyChecksOptions$7 {
+interface SafetyChecksOptions$8 {
     enabled?: boolean;
 }
-interface DriveOptions$7 {
+interface DriveOptions$8 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$7;
+    folder?: DriveFolderOptions$8;
 }
-interface DriveFolderOptions$7 {
+interface DriveFolderOptions$8 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$6 {
+interface InputsTransformationOptions$7 {
     downscale_oversized_images?: boolean;
 }
 interface MetaImagesGenerationsResponse {
@@ -11234,31 +11234,31 @@ interface MetaImagesEditsCommand {
     reasoning_strength?: "low" | "high";
     moderation?: "auto" | "low" | "none";
     tool_enablement?: MetaImageToolEnablement;
-    options?: GenAIOptions$6;
+    options?: GenAIOptions$7;
 }
 interface MetaImageToolEnablement {
     enable_image_search?: boolean;
     enable_web_search?: boolean;
     enable_shell?: boolean;
 }
-interface GenAIOptions$6 {
-    safety_checks?: SafetyChecksOptions$6;
-    drive?: DriveOptions$6;
-    inputs_transformation?: InputsTransformationOptions$5;
+interface GenAIOptions$7 {
+    safety_checks?: SafetyChecksOptions$7;
+    drive?: DriveOptions$7;
+    inputs_transformation?: InputsTransformationOptions$6;
 }
-interface SafetyChecksOptions$6 {
+interface SafetyChecksOptions$7 {
     enabled?: boolean;
 }
-interface DriveOptions$6 {
+interface DriveOptions$7 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$6;
+    folder?: DriveFolderOptions$7;
 }
-interface DriveFolderOptions$6 {
+interface DriveFolderOptions$7 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$5 {
+interface InputsTransformationOptions$6 {
     downscale_oversized_images?: boolean;
 }
 interface MetaImagesEditsResponse {
@@ -11322,26 +11322,26 @@ interface VideoEffectsCommand {
     videoUri: string;
     promptText?: string;
     effect?: "spotlight" | "warm-light" | "blue-light" | "paparazzi" | "rainbow" | "backlight" | "police" | "lens-flare" | "blinds" | "high-noon" | "early-evening" | "twilight" | "night" | "midnight" | "early-morning" | "snow" | "sunny" | "rain" | "thunder" | "fog" | "wind" | "dark" | "smoke";
-    options?: GenAIOptions$5;
+    options?: GenAIOptions$6;
 }
-interface GenAIOptions$5 {
-    safety_checks?: SafetyChecksOptions$5;
-    drive?: DriveOptions$5;
-    inputs_transformation?: InputsTransformationOptions$4;
+interface GenAIOptions$6 {
+    safety_checks?: SafetyChecksOptions$6;
+    drive?: DriveOptions$6;
+    inputs_transformation?: InputsTransformationOptions$5;
 }
-interface SafetyChecksOptions$5 {
+interface SafetyChecksOptions$6 {
     enabled?: boolean;
 }
-interface DriveOptions$5 {
+interface DriveOptions$6 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$5;
+    folder?: DriveFolderOptions$6;
 }
-interface DriveFolderOptions$5 {
+interface DriveFolderOptions$6 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$4 {
+interface InputsTransformationOptions$5 {
     downscale_oversized_images?: boolean;
 }
 interface VideoEffectsResponse {
@@ -11527,27 +11527,27 @@ interface AifiltersCommand {
     drop_cond_tokens_prob?: number;
     seed?: number;
     output_format?: "JPEG" | "PNG" | "HEIC" | "WEBP";
-    options?: GenAIOptions$4;
+    options?: GenAIOptions$5;
     model?: "model-qwent-image-edit-lightning-aifilters";
 }
-interface GenAIOptions$4 {
-    safety_checks?: SafetyChecksOptions$4;
-    drive?: DriveOptions$4;
-    inputs_transformation?: InputsTransformationOptions$3;
+interface GenAIOptions$5 {
+    safety_checks?: SafetyChecksOptions$5;
+    drive?: DriveOptions$5;
+    inputs_transformation?: InputsTransformationOptions$4;
 }
-interface SafetyChecksOptions$4 {
+interface SafetyChecksOptions$5 {
     enabled?: boolean;
 }
-interface DriveOptions$4 {
+interface DriveOptions$5 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$4;
+    folder?: DriveFolderOptions$5;
 }
-interface DriveFolderOptions$4 {
+interface DriveFolderOptions$5 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions$3 {
+interface InputsTransformationOptions$4 {
     downscale_oversized_images?: boolean;
 }
 interface AifiltersResponse {
@@ -11574,6 +11574,44 @@ interface MinimaxH3MaxVideoGenerationCommand {
     reference_audio_urls?: string[];
     seed?: number;
     enable_safety_checker?: boolean;
+    options?: GenAIOptions$4;
+}
+interface GenAIOptions$4 {
+    safety_checks?: SafetyChecksOptions$4;
+    drive?: DriveOptions$4;
+    inputs_transformation?: InputsTransformationOptions$3;
+}
+interface SafetyChecksOptions$4 {
+    enabled?: boolean;
+}
+interface DriveOptions$4 {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions$4;
+}
+interface DriveFolderOptions$4 {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions$3 {
+    downscale_oversized_images?: boolean;
+}
+interface MinimaxH3MaxVideoGenerationResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: H3MaxVideoResult;
+}
+interface H3MaxVideoResult {
+    url: string;
+    mimeType?: string;
+    expandedPrompt?: string;
+    driveFile?: Record<string, unknown>;
+}
+
+interface FluxVideoEditCommand {
+    videoUrl: string;
+    prompt: string;
+    safetyTolerance?: number;
     options?: GenAIOptions$3;
 }
 interface GenAIOptions$3 {
@@ -11594,44 +11632,6 @@ interface DriveFolderOptions$3 {
     id?: string;
 }
 interface InputsTransformationOptions$2 {
-    downscale_oversized_images?: boolean;
-}
-interface MinimaxH3MaxVideoGenerationResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: H3MaxVideoResult;
-}
-interface H3MaxVideoResult {
-    url: string;
-    mimeType?: string;
-    expandedPrompt?: string;
-    driveFile?: Record<string, unknown>;
-}
-
-interface FluxVideoEditCommand {
-    videoUrl: string;
-    prompt: string;
-    safetyTolerance?: number;
-    options?: GenAIOptions$2;
-}
-interface GenAIOptions$2 {
-    safety_checks?: SafetyChecksOptions$2;
-    drive?: DriveOptions$2;
-    inputs_transformation?: InputsTransformationOptions$1;
-}
-interface SafetyChecksOptions$2 {
-    enabled?: boolean;
-}
-interface DriveOptions$2 {
-    name: string;
-    attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$2;
-}
-interface DriveFolderOptions$2 {
-    path?: string;
-    id?: string;
-}
-interface InputsTransformationOptions$1 {
     downscale_oversized_images?: boolean;
 }
 interface FluxVideoEditResult {
@@ -11664,7 +11664,7 @@ interface VideoEnhanceCommand {
     upscale_quality?: "standard" | "high";
     smooth_motion?: VideoEnhanceSmoothMotion;
     face_enhance?: VideoEnhanceFace;
-    options?: GenAIOptions$1;
+    options?: GenAIOptions$2;
 }
 interface VideoEnhanceTrim {
     start_s?: number;
@@ -11678,24 +11678,24 @@ interface VideoEnhanceFace {
     mode?: "enhance" | "enhance_v14" | "blemish_removal" | "eye_bag_removal" | "skin_smoothing" | "wrinkle_removal";
     strength?: number;
 }
-interface GenAIOptions$1 {
-    safety_checks?: SafetyChecksOptions$1;
-    drive?: DriveOptions$1;
-    inputs_transformation?: InputsTransformationOptions;
+interface GenAIOptions$2 {
+    safety_checks?: SafetyChecksOptions$2;
+    drive?: DriveOptions$2;
+    inputs_transformation?: InputsTransformationOptions$1;
 }
-interface SafetyChecksOptions$1 {
+interface SafetyChecksOptions$2 {
     enabled?: boolean;
 }
-interface DriveOptions$1 {
+interface DriveOptions$2 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions$1;
+    folder?: DriveFolderOptions$2;
 }
-interface DriveFolderOptions$1 {
+interface DriveFolderOptions$2 {
     path?: string;
     id?: string;
 }
-interface InputsTransformationOptions {
+interface InputsTransformationOptions$1 {
     downscale_oversized_images?: boolean;
 }
 interface VideoEnhanceResponse {
@@ -11763,25 +11763,25 @@ interface IdeogramV4RemixCommand {
     rendering_speed?: IdeogramV4RenderingSpeed;
     enable_copyright_detection?: boolean;
     storage?: StorageParam;
-    options?: GenAIOptions;
+    options?: GenAIOptions$1;
 }
 type IdeogramV4RenderingSpeed = "TURBO" | "DEFAULT" | "QUALITY";
 interface StorageParam {
     destination: string;
 }
-interface GenAIOptions {
-    safety_checks?: SafetyChecksOptions;
-    drive?: DriveOptions;
+interface GenAIOptions$1 {
+    safety_checks?: SafetyChecksOptions$1;
+    drive?: DriveOptions$1;
 }
-interface SafetyChecksOptions {
+interface SafetyChecksOptions$1 {
     enabled?: boolean;
 }
-interface DriveOptions {
+interface DriveOptions$1 {
     name: string;
     attributes?: Record<string, unknown>;
-    folder?: DriveFolderOptions;
+    folder?: DriveFolderOptions$1;
 }
-interface DriveFolderOptions {
+interface DriveFolderOptions$1 {
     path?: string;
     id?: string;
 }
@@ -11882,6 +11882,50 @@ interface LipSyncOutput {
     timings?: Record<string, number> | unknown;
     duration: number;
     seed: number;
+}
+
+interface Flux3ImageCommand {
+    prompt: string;
+    imageUrls?: string[];
+    aspectRatio?: Flux3ImageAspectRatio;
+    resolution?: Flux3ImageResolution;
+    count?: number;
+    safetyTolerance?: number;
+    version?: string;
+    options?: GenAIOptions;
+}
+type Flux3ImageAspectRatio = "auto" | "21:9" | "2:1" | "16:9" | "3:2" | "7:5" | "4:3" | "5:4" | "1:1" | "4:5" | "3:4" | "5:7" | "2:3" | "9:16" | "1:2";
+type Flux3ImageResolution = "512sq" | "768sq" | "1k" | "2k" | "4k";
+interface GenAIOptions {
+    safety_checks?: SafetyChecksOptions;
+    drive?: DriveOptions;
+    inputs_transformation?: InputsTransformationOptions;
+}
+interface SafetyChecksOptions {
+    enabled?: boolean;
+}
+interface DriveOptions {
+    name: string;
+    attributes?: Record<string, unknown>;
+    folder?: DriveFolderOptions;
+}
+interface DriveFolderOptions {
+    path?: string;
+    id?: string;
+}
+interface InputsTransformationOptions {
+    downscale_oversized_images?: boolean;
+}
+interface Flux3ImageResult {
+    result: Flux3ImageResultBody;
+}
+interface Flux3ImageResultBody {
+    items: GeneratedImageResult[];
+}
+interface GeneratedImageResult {
+    url: string;
+    mimeType?: string;
+    driveFile?: Record<string, unknown>;
 }
 
 interface WorkflowTypes {
@@ -12972,6 +13016,10 @@ interface WorkflowTypes {
     'minimax/h3-max/lip-sync/image-to-video': {
         params: LipSyncImageInput;
         result: MinimaxH3MaxLipSyncImageToVideoResponse;
+    };
+    'bfl/v1/flux-3-image': {
+        params: Flux3ImageCommand;
+        result: Flux3ImageResult;
     };
 }
 

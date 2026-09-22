@@ -68,6 +68,8 @@ export const Flux2Flex = 'flux-2-flex' as const;
 export const Flux2Max = 'flux-2-max' as const;
 /** Flux 2 Pro — flux (image) */
 export const Flux2Pro = 'flux-2-pro' as const;
+/** Flux 3 Image — flux (image) */
+export const Flux3Image = 'flux-3-image' as const;
 /** Flux 3 Video — flux (video) */
 export const Flux3Video = 'flux-3-video' as const;
 /** Flux Kontext Max — flux (image) */
@@ -539,6 +541,7 @@ export const Models = {
   Flux2Flex,
   Flux2Max,
   Flux2Pro,
+  Flux3Image,
   Flux3Video,
   FluxKontextMax,
   FluxKontextPro,

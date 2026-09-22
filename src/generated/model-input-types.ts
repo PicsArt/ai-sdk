@@ -35,6 +35,7 @@ export type ModelInputById = {
   "flux-2-flex": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; resolution?: "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-2-max": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; resolution?: "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-2-pro": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; resolution?: "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
+  "flux-3-image": { prompt: string; aspectRatio?: "auto" | "21:9" | "2:1" | "16:9" | "3:2" | "7:5" | "4:3" | "5:4" | "1:1" | "4:5" | "3:4" | "5:7" | "2:3" | "9:16" | "1:2"; resolution?: "512sq" | "768sq" | "1k" | "2k" | "4k"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; safetyTolerance?: number; };
   "flux-3-video": { prompt: string; aspectRatio?: "auto" | "21:9" | "2:1" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; resolution?: "hd" | "fhd"; duration?: "auto" | "5" | "10" | "15" | "20"; imageUrls?: string[]; videoUrl?: string; generateAudio?: boolean; safetyTolerance?: number; draft?: boolean; };
   "flux-kontext-max": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-kontext-pro": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };

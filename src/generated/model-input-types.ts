@@ -19,6 +19,7 @@ export type ModelInputById = {
   "claude-sonnet-4-6": { prompt: string; imageUrls?: string[]; };
   "claude-sonnet-5": { prompt: string; imageUrls?: string[]; };
   "creatify-aurora": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; };
+  "creatify-boreal": { prompt: string; imageUrls?: string[]; audioUrl?: string; negativePrompt?: string; resolution?: "720p" | "1080p" | "2k"; aspectRatio?: "auto" | "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; duration?: number; manifestDisclosure?: boolean; };
   "eleven-audio-isolation": { audioUrl: string; };
   "eleven-dubbing": { audioUrl: string; language: string; };
   "eleven-multilingual-sts-v2": { audioUrl: string; voiceId?: string; removeBackgroundNoise?: boolean; };

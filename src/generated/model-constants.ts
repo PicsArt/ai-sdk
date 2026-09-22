@@ -36,6 +36,8 @@ export const ClaudeSonnet46 = 'claude-sonnet-4-6' as const;
 export const ClaudeSonnet5 = 'claude-sonnet-5' as const;
 /** Creatify Aurora HD — creatify (video) */
 export const CreatifyAurora = 'creatify-aurora' as const;
+/** Creatify Boreal — creatify (video) */
+export const CreatifyBoreal = 'creatify-boreal' as const;
 /** Eleven Audio Isolation — elevenlabs (audio) */
 export const ElevenAudioIsolation = 'eleven-audio-isolation' as const;
 /** Eleven Dubbing — elevenlabs (audio) */
@@ -517,6 +519,7 @@ export const Models = {
   ClaudeSonnet46,
   ClaudeSonnet5,
   CreatifyAurora,
+  CreatifyBoreal,
   ElevenAudioIsolation,
   ElevenDubbing,
   ElevenMultilingualStsV2,

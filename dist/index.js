@@ -2421,6 +2421,27 @@ var { MODELS: MODELS3 } = defineModels("creatify", [
       ...params.imageInput(1, "Product Image", true),
       ...params.audioInput("Audio Track", true)
     }
+  },
+  {
+    id: "creatify-boreal",
+    name: "Creatify Boreal",
+    addedAt: "2026-09-22",
+    workflow: "creatify/boreal",
+    estimatedTime: 169,
+    mode: "video",
+    inputType: "t2v",
+    description: "Text-to-video with synchronized native audio for product, UGC, and presenter clips.",
+    features: [feat("Image Input", "input"), feat("Audio Input", "audio")],
+    paramConfig: {
+      ...params.prompt({ maxLength: 5e3 }),
+      ...params.imageInput(1, "Reference Image", false, "asset"),
+      ...params.audioInput("Audio Track", false),
+      ...params.negativePrompt(),
+      ...params.resolution(["720p", "1080p", "2k"], "720p"),
+      ...params.aspectRatio(["auto", "16:9", "9:16", "1:1", "4:3", "3:4"], "auto"),
+      ...params.durationRange(1, 20, 10),
+      ...p.boolean("manifestDisclosure", false, "AI-Generated Disclosure")
+    }
   }
 ]);
 
@@ -9335,6 +9356,21 @@ registerEditPayloads(MODELS37, {
   "muse-image-1.0": buildMuseImageEditPayload
 });
 
+// src/vendors/catalog/creatify.payloads.ts
+var buildCreatifyBorealPayload = (input) => ({
+  prompt: input.prompt,
+  ...input.imageUrls?.[0] ? { image_url: input.imageUrls[0] } : {},
+  ...input.audioUrl ? { audio_url: input.audioUrl } : {},
+  negative_prompt: input.negativePrompt ?? "",
+  resolution: input.resolution ?? "720p",
+  aspect_ratio: input.aspectRatio ?? "auto",
+  duration: input.duration ?? 10,
+  manifest_disclosure: input.manifestDisclosure ?? false
+});
+registerPayloads(MODELS3, {
+  "creatify-boreal": buildCreatifyBorealPayload
+});
+
 // src/vendors/catalog/index.ts
 var ALL_MODELS = [
   ...MODELS,
@@ -11897,6 +11933,7 @@ var ClaudeSonnet45 = "claude-sonnet-4-5";
 var ClaudeSonnet46 = "claude-sonnet-4-6";
 var ClaudeSonnet5 = "claude-sonnet-5";
 var CreatifyAurora = "creatify-aurora";
+var CreatifyBoreal = "creatify-boreal";
 var ElevenAudioIsolation = "eleven-audio-isolation";
 var ElevenDubbing = "eleven-dubbing";
 var ElevenMultilingualStsV2 = "eleven-multilingual-sts-v2";
@@ -12133,6 +12170,7 @@ var Models = {
   ClaudeSonnet46,
   ClaudeSonnet5,
   CreatifyAurora,
+  CreatifyBoreal,
   ElevenAudioIsolation,
   ElevenDubbing,
   ElevenMultilingualStsV2,

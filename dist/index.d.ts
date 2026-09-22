@@ -170,6 +170,16 @@ type ModelInputById = {
         imageUrls: [string, ...string[]];
         audioUrl: string;
     };
+    "creatify-boreal": {
+        prompt: string;
+        imageUrls?: string[];
+        audioUrl?: string;
+        negativePrompt?: string;
+        resolution?: "720p" | "1080p" | "2k";
+        aspectRatio?: "auto" | "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+        duration?: number;
+        manifestDisclosure?: boolean;
+    };
     "eleven-audio-isolation": {
         audioUrl: string;
     };
@@ -2890,6 +2900,7 @@ declare const Models: {
     readonly ClaudeSonnet46: "claude-sonnet-4-6";
     readonly ClaudeSonnet5: "claude-sonnet-5";
     readonly CreatifyAurora: "creatify-aurora";
+    readonly CreatifyBoreal: "creatify-boreal";
     readonly ElevenAudioIsolation: "eleven-audio-isolation";
     readonly ElevenDubbing: "eleven-dubbing";
     readonly ElevenMultilingualStsV2: "eleven-multilingual-sts-v2";

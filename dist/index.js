@@ -6851,6 +6851,41 @@ var { MODELS: MODELS25 } = defineModels("minimax", [
       ...p.range("seed", -1, 2147483647, -1),
       ...p.boolean("enableSafetyChecker", true, "Safety Checker")
     }
+  },
+  {
+    // Lip-sync sibling of minimax-h3-max: animates a portrait to a supplied
+    // soundtrack. No prompt and no duration on this wire — the audio drives
+    // both: the vendor requires at least 5s, clips anything past 14.8s, and
+    // the output matches the clipped track. The output follows the image, so
+    // there is no aspect ratio either.
+    id: "minimax-h3-max-lip-sync",
+    name: "MiniMax H3 Max Lip Sync",
+    modelId: "fal-ai-h3-max-lip-sync",
+    addedAt: "2026-09-22",
+    workflow: "minimax/h3-max/lip-sync/image-to-video",
+    estimatedTime: 120,
+    mode: "video",
+    inputType: "i2v",
+    description: "MiniMax H3 Max lip-synced video from a portrait and an audio track \u2014 mouth movements follow the soundtrack, optionally guided by a transcript. 5-14.8s of audio, up to 2K.",
+    features: [
+      feat("Lip Sync", "characteristic"),
+      feat("Image Input", "input"),
+      feat("Audio Input", "audio"),
+      feat("2K", "resolution"),
+      feat("5-15 sec", "duration")
+    ],
+    paramConfig: {
+      ...params.startFrame("Portrait Image", true),
+      ...params.audioInput("Audio Track", true),
+      // Unlike the siblings this one also offers 2K; 1080p and 2K are latent
+      // refinements of a native 768p generation.
+      ...params.resolution(["480p", "768p", "1080p", "2k"], "768p"),
+      // Transcribes the audio to guide the sync; off follows the waveform alone.
+      ...p.boolean("enableTranscription", false, "Transcription"),
+      // -1 (sentinel) means "pick a random seed"; the builder drops it.
+      ...p.range("seed", -1, 2147483647, -1),
+      ...p.boolean("enableSafetyChecker", true, "Safety Checker")
+    }
   }
 ]);
 
@@ -6924,11 +6959,22 @@ var buildMinimaxH3MaxCameraControlsPayload = (input) => ({
   ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
   enable_safety_checker: input.enableSafetyChecker ?? true
 });
+var buildMinimaxH3MaxLipSyncPayload = (input) => ({
+  image_url: input.startFrame,
+  audio_url: input.audioUrl,
+  // The vendor enum is uppercase; paramConfig keeps the lowercase form.
+  resolution: (input.resolution ?? "768p").toUpperCase(),
+  enable_transcription: input.enableTranscription ?? false,
+  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
+  ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
+  enable_safety_checker: input.enableSafetyChecker ?? true
+});
 registerPayloads(MODELS25, {
   "minimax-music-v3": buildMinimaxMusicV3Payload,
   "minimax-h3-max": buildMinimaxH3MaxPayload,
   "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload,
-  "minimax-h3-max-camera-controls": buildMinimaxH3MaxCameraControlsPayload
+  "minimax-h3-max-camera-controls": buildMinimaxH3MaxCameraControlsPayload,
+  "minimax-h3-max-lip-sync": buildMinimaxH3MaxLipSyncPayload
 });
 registerEditPayloads(MODELS25, {
   "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload
@@ -12067,6 +12113,7 @@ var Lyria35 = "lyria-3.5";
 var MinimaxH3 = "minimax-h3";
 var MinimaxH3Max = "minimax-h3-max";
 var MinimaxH3MaxCameraControls = "minimax-h3-max-camera-controls";
+var MinimaxH3MaxLipSync = "minimax-h3-max-lip-sync";
 var MinimaxH3MaxTurbo = "minimax-h3-max-turbo";
 var MinimaxMusicV2 = "minimax-music-v2";
 var MinimaxMusicV3 = "minimax-music-v3";
@@ -12305,6 +12352,7 @@ var Models = {
   MinimaxH3,
   MinimaxH3Max,
   MinimaxH3MaxCameraControls,
+  MinimaxH3MaxLipSync,
   MinimaxH3MaxTurbo,
   MinimaxMusicV2,
   MinimaxMusicV3,

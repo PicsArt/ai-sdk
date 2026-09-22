@@ -960,6 +960,14 @@ type ModelInputById = {
         seed?: number;
         enableSafetyChecker?: boolean;
     };
+    "minimax-h3-max-lip-sync": {
+        startFrame: string;
+        audioUrl: string;
+        resolution?: "480p" | "768p" | "1080p" | "2k";
+        enableTranscription?: boolean;
+        seed?: number;
+        enableSafetyChecker?: boolean;
+    };
     "minimax-h3-max-turbo": {
         prompt: string;
         startFrame?: string;
@@ -3021,6 +3029,7 @@ declare const Models: {
     readonly MinimaxH3: "minimax-h3";
     readonly MinimaxH3Max: "minimax-h3-max";
     readonly MinimaxH3MaxCameraControls: "minimax-h3-max-camera-controls";
+    readonly MinimaxH3MaxLipSync: "minimax-h3-max-lip-sync";
     readonly MinimaxH3MaxTurbo: "minimax-h3-max-turbo";
     readonly MinimaxMusicV2: "minimax-music-v2";
     readonly MinimaxMusicV3: "minimax-music-v3";

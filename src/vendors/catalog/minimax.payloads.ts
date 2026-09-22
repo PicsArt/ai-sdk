@@ -1,6 +1,6 @@
 /**
  * MiniMax payload builders (Music v3, H3 Max, H3 Max Turbo, H3 Max Camera
- * Controls).
+ * Controls, H3 Max Lip Sync).
  *
  * Music v3: renames the unified SDK fields to the wire shape
  * (`lyricsPrompt` → `lyrics`) and nests the audio knobs under
@@ -112,11 +112,27 @@ const buildMinimaxH3MaxCameraControlsPayload = (input: MinimaxH3MaxCameraControl
   enable_safety_checker: input.enableSafetyChecker ?? true,
 });
 
+type MinimaxH3MaxLipSyncInput = ModelInput<'minimax-h3-max-lip-sync'>;
+
+type MinimaxH3MaxLipSyncPayload = WorkflowTypes['minimax/h3-max/lip-sync/image-to-video']['params'];
+
+const buildMinimaxH3MaxLipSyncPayload = (input: MinimaxH3MaxLipSyncInput): MinimaxH3MaxLipSyncPayload => ({
+  image_url: input.startFrame,
+  audio_url: input.audioUrl,
+  // The vendor enum is uppercase; paramConfig keeps the lowercase form.
+  resolution: (input.resolution ?? '768p').toUpperCase() as MinimaxH3MaxLipSyncPayload['resolution'],
+  enable_transcription: input.enableTranscription ?? false,
+  // -1 is the paramConfig sentinel for "random seed" — omit it on the wire.
+  ...(input.seed != null && input.seed !== -1 ? { seed: input.seed } : {}),
+  enable_safety_checker: input.enableSafetyChecker ?? true,
+});
+
 registerPayloads(MODELS, {
   'minimax-music-v3': buildMinimaxMusicV3Payload,
   'minimax-h3-max': buildMinimaxH3MaxPayload,
   'minimax-h3-max-turbo': buildMinimaxH3MaxTurboPayload,
   'minimax-h3-max-camera-controls': buildMinimaxH3MaxCameraControlsPayload,
+  'minimax-h3-max-lip-sync': buildMinimaxH3MaxLipSyncPayload,
 });
 
 // Edit slot — turbo keeps a separate image-to-video workflow, and the frame

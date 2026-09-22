@@ -255,10 +255,22 @@ export const p = {
       category?: 'asset' | 'reference';
       /** Client-side max duration (seconds) for a video/audio slot. */
       maxDurationSec?: number;
+      /** Client-side min duration (seconds) for a video/audio slot. */
+      minDurationSec?: number;
+      /** Client-side max frame rate (fps) for a video slot. */
+      maxFrameRate?: number;
       /** Client-side min pixel count (width × height) for an image/video slot. */
       minPixels?: number;
+      /** Client-side max pixel count (width × height) for an image/video slot. */
+      maxPixels?: number;
       /** Client-side min short-side length (pixels) for an image/video slot. */
       minSidePixels?: number;
+      /** Client-side max long-side length (pixels) for an image/video slot. */
+      maxSidePixels?: number;
+      /** Client-side min aspect ratio (width / height) for an image/video slot. */
+      minAspectRatio?: number;
+      /** Client-side max aspect ratio (width / height) for an image/video slot. */
+      maxAspectRatio?: number;
       /** Client-side max short-side length (pixels) for an image/video slot. */
       maxShortSidePixels?: number;
       /** Client-side max file size (bytes) for this slot. */
@@ -275,8 +287,14 @@ export const p = {
           accept,
           ...(opts?.array ? { array: opts.array } : {}),
           ...(opts?.maxDurationSec != null ? { maxDurationSec: opts.maxDurationSec } : {}),
+          ...(opts?.minDurationSec != null ? { minDurationSec: opts.minDurationSec } : {}),
+          ...(opts?.maxFrameRate != null ? { maxFrameRate: opts.maxFrameRate } : {}),
           ...(opts?.minPixels != null ? { minPixels: opts.minPixels } : {}),
+          ...(opts?.maxPixels != null ? { maxPixels: opts.maxPixels } : {}),
           ...(opts?.minSidePixels != null ? { minSidePixels: opts.minSidePixels } : {}),
+          ...(opts?.maxSidePixels != null ? { maxSidePixels: opts.maxSidePixels } : {}),
+          ...(opts?.minAspectRatio != null ? { minAspectRatio: opts.minAspectRatio } : {}),
+          ...(opts?.maxAspectRatio != null ? { maxAspectRatio: opts.maxAspectRatio } : {}),
           ...(opts?.maxShortSidePixels != null ? { maxShortSidePixels: opts.maxShortSidePixels } : {}),
           ...(opts?.maxBytes != null ? { maxBytes: opts.maxBytes } : {}),
         },

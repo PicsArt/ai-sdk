@@ -9,6 +9,7 @@
  * cards but differ in payload construction.
  */
 import type { Constraint, GenerationContext, PayloadBuilder } from '../../core/types.ts';
+import type { AudioBounds, ImageBounds, VideoBounds } from '../define.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts'; // p for output_format enum, not exposed via params.*
 
@@ -21,22 +22,122 @@ const SEEDANCE_FRAME_REF_REASON = 'Start/End frames cannot be combined with refe
 /** Vendor floor on each side of a reference image or video: width and height
  *  must each land in [300, 6000] px. From ModelArk "Create a video generation
  *  task", content.image_url.url → "Requirements for uploading a single image";
- *  applies to every Seedance model. Images have no total-pixel rule at all.
- *  TODO: the matching 6000px ceiling and the [0.4, 2.5] aspect-ratio bound are
- *  the other half of this vendor rule; both need new descriptor fields. */
+ *  applies to every Seedance model. The matching ceiling is 6000 px per side. */
 const SEEDANCE_MIN_SIDE_PIXELS = 300;
+const SEEDANCE_MAX_SIDE_PIXELS = 6_000;
+/** Aspect-ratio window (width / height) for every image and video input: the
+ *  third half of the same vendor rule, and not implied by the side and pixel
+ *  bounds above, since a 6000x1200 frame satisfies both and is still refused.
+ *
+ *  The floor is declared at 0.39 rather than 0.40 because the vendor moved it.
+ *  Both figures appear in its rejection text: "expected the aspect ratio to be
+ *  between 0.40 and 2.50" ran daily to 2026-09-14 and then stopped, while the
+ *  0.39 wording started on 09-09 and is the whole of 09-15 and 09-16. 0.39 is
+ *  also the looser of the two, so declaring it cannot refuse a file the vendor
+ *  would have taken. */
+const SEEDANCE_MIN_ASPECT_RATIO = 0.39;
+const SEEDANCE_MAX_ASPECT_RATIO = 2.5;
+/** Vendor ceiling on an input IMAGE's total pixel count: "image exceeds the
+ *  maximum allowed total pixels ... maximum allowed: 36000000". Images have no
+ *  pixel FLOOR stated as an area, only the per-side one above. */
+const SEEDANCE_MAX_IMAGE_PIXELS = 36_000_000;
 /** Vendor floor on a reference VIDEO's total pixel count: width × height must
  *  land in [614×664 = 407,696 , 3326×2494 = 8,295,044]. Videos only. This is
  *  the rule behind "video pixel count ... must be greater than or equal to
- *  407696", and it was previously (and wrongly) applied to image slots too.
- *  TODO: the matching 8,295,044 ceiling needs a `maxPixels` field. */
+ *  407696", and it was previously (and wrongly) applied to image slots too. */
 const SEEDANCE_VIDEO_MIN_PIXELS = 407_696;
+const SEEDANCE_VIDEO_MAX_PIXELS = 8_295_044;
+/** Shortest single reference clip the vendor accepts, video or audio: "the
+ *  parameter video duration (seconds) ... must be greater than or equal to
+ *  1.8". The one bound with no remedy: a clip cannot be made longer. */
+const SEEDANCE_MIN_MEDIA_SEC = 1.8;
+/** Vendor caps a reference video at 60 fps: "the parameter video frame rate
+ *  ... must be less than or equal to 60". */
+const SEEDANCE_MAX_FRAME_RATE = 60;
 /** Vendor caps each video file at 200 MiB: "the parameter video size (bytes)
  *  specified in the request must be less than or equal to 209715200 for model
  *  dreamina-seedance-2-5 in r2v". Observed on the 2.5 reference-video path; the
  *  2.5 edit / extend modes post the same `reference_video` role to the same
  *  vendor model, so the cap is declared for all three. */
-const SEEDANCE_25_MAX_VIDEO_BYTES = 209_715_200;
+const SEEDANCE_MAX_VIDEO_BYTES = 209_715_200;
+/** Vendor floor on a START or END frame's total pixel count, and a different
+ *  rule from the reference-image floor above: "the parameter image pixel count
+ *  ... must be greater than or equal to 90000 for model dreamina-seedance-2-5"
+ *  in `i2v` and `flf2v`, the two task types a frame produces. */
+const SEEDANCE_FRAME_MIN_PIXELS = 90_000;
+/** Vendor caps each input image at 30 MiB: "the request failed because the size
+ *  of the input image (<n> MiB) exceeds the limit (30 MiB)". */
+const SEEDANCE_MAX_IMAGE_BYTES = 31_457_280;
+/** Vendor caps each reference audio at 15 MiB: "the parameter audio size
+ *  (bytes) specified in the request must be less than or equal to 15728640". */
+const SEEDANCE_MAX_AUDIO_BYTES = 15_728_640;
+/** Longest single reference video or audio clip, per family. The vendor's own
+ *  figure is 30.2 s / 15.2 s ("the parameter video duration (seconds) ... must
+ *  be less than or equal to 30.2 for model dreamina-seedance-2-5 in r2v"), but
+ *  our own seedance worker already refuses the COMBINED length of the array at
+ *  a flat 30 / 15 s. Declaring the vendor's 30.2 would wave a 30.1 s clip past
+ *  the client only for the worker to reject it, so declare the number both
+ *  gates agree on. */
+const SEEDANCE_25_MAX_MEDIA_SEC = 30;
+const SEEDANCE_20_MAX_MEDIA_SEC = 15;
+
+/** Upload-time bounds per slot kind. Every number is the vendor's own, read off
+ *  its `400` text; see the constants above for the quoted rule each comes from.
+ *  Declaring them is what turns an oversized attachment into a trim/crop prompt
+ *  in the composer instead of a vendor rejection after the user pressed
+ *  Generate (finding F7 on the generation-failure board: 712 devices in 30 days
+ *  hit a rule the client could already have enforced). */
+const SEEDANCE_IMAGE_BOUNDS: ImageBounds = {
+  minAspectRatio: SEEDANCE_MIN_ASPECT_RATIO,
+  maxAspectRatio: SEEDANCE_MAX_ASPECT_RATIO,
+  minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+  maxSidePixels: SEEDANCE_MAX_SIDE_PIXELS,
+  maxPixels: SEEDANCE_MAX_IMAGE_PIXELS,
+  maxBytes: SEEDANCE_MAX_IMAGE_BYTES,
+};
+const SEEDANCE_FRAME_BOUNDS: ImageBounds = {
+  minAspectRatio: SEEDANCE_MIN_ASPECT_RATIO,
+  maxAspectRatio: SEEDANCE_MAX_ASPECT_RATIO,
+  minPixels: SEEDANCE_FRAME_MIN_PIXELS,
+  maxPixels: SEEDANCE_MAX_IMAGE_PIXELS,
+  minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+  maxSidePixels: SEEDANCE_MAX_SIDE_PIXELS,
+  maxBytes: SEEDANCE_MAX_IMAGE_BYTES,
+};
+const SEEDANCE_25_VIDEO_BOUNDS: VideoBounds = {
+  minAspectRatio: SEEDANCE_MIN_ASPECT_RATIO,
+  maxAspectRatio: SEEDANCE_MAX_ASPECT_RATIO,
+  minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+  maxPixels: SEEDANCE_VIDEO_MAX_PIXELS,
+  minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+  maxSidePixels: SEEDANCE_MAX_SIDE_PIXELS,
+  maxBytes: SEEDANCE_MAX_VIDEO_BYTES,
+  minDurationSec: SEEDANCE_MIN_MEDIA_SEC,
+  maxDurationSec: SEEDANCE_25_MAX_MEDIA_SEC,
+  maxFrameRate: SEEDANCE_MAX_FRAME_RATE,
+};
+const SEEDANCE_20_VIDEO_BOUNDS: VideoBounds = {
+  minAspectRatio: SEEDANCE_MIN_ASPECT_RATIO,
+  maxAspectRatio: SEEDANCE_MAX_ASPECT_RATIO,
+  minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
+  maxPixels: SEEDANCE_VIDEO_MAX_PIXELS,
+  minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
+  maxSidePixels: SEEDANCE_MAX_SIDE_PIXELS,
+  maxBytes: SEEDANCE_MAX_VIDEO_BYTES,
+  minDurationSec: SEEDANCE_MIN_MEDIA_SEC,
+  maxDurationSec: SEEDANCE_20_MAX_MEDIA_SEC,
+  maxFrameRate: SEEDANCE_MAX_FRAME_RATE,
+};
+const SEEDANCE_25_AUDIO_BOUNDS: AudioBounds = {
+  minDurationSec: SEEDANCE_MIN_MEDIA_SEC,
+  maxDurationSec: SEEDANCE_25_MAX_MEDIA_SEC,
+  maxBytes: SEEDANCE_MAX_AUDIO_BYTES,
+};
+const SEEDANCE_20_AUDIO_BOUNDS: AudioBounds = {
+  minDurationSec: SEEDANCE_MIN_MEDIA_SEC,
+  maxDurationSec: SEEDANCE_20_MAX_MEDIA_SEC,
+  maxBytes: SEEDANCE_MAX_AUDIO_BYTES,
+};
 const seedance20Constraints: Constraint[] = [
   {
     when: {
@@ -427,15 +528,11 @@ export const { MODELS } = defineModels('seedance', [
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
-      ...params.imageInput(30, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
-      ...params.videoInputs(10, 'Reference Videos', false, {
-        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
-        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
-        maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES,
-      }),
-      ...params.audioInputs(10, 'Reference Audios'),
-      ...params.startFrame(),
-      ...params.endFrame(),
+      ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
+      ...params.videoInputs(10, 'Reference Videos', false, SEEDANCE_25_VIDEO_BOUNDS),
+      ...params.audioInputs(10, 'Reference Audios', false, SEEDANCE_25_AUDIO_BOUNDS),
+      ...params.startFrame('Start Frame', false, SEEDANCE_FRAME_BOUNDS),
+      ...params.endFrame('End Frame', SEEDANCE_FRAME_BOUNDS),
     },
   },
   {
@@ -463,15 +560,11 @@ export const { MODELS } = defineModels('seedance', [
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
-      ...params.imageInput(30, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
-      ...params.videoInputs(10, 'Reference Videos', false, {
-        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
-        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
-        maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES,
-      }),
-      ...params.audioInputs(10, 'Reference Audios'),
-      ...params.startFrame(),
-      ...params.endFrame(),
+      ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
+      ...params.videoInputs(10, 'Reference Videos', false, SEEDANCE_25_VIDEO_BOUNDS),
+      ...params.audioInputs(10, 'Reference Audios', false, SEEDANCE_25_AUDIO_BOUNDS),
+      ...params.startFrame('Start Frame', false, SEEDANCE_FRAME_BOUNDS),
+      ...params.endFrame('End Frame', SEEDANCE_FRAME_BOUNDS),
     },
   },
   {
@@ -495,8 +588,10 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
-      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, SEEDANCE_25_MAX_VIDEO_BYTES),
-      ...params.imageInput(30, 'Reference Images'),
+      // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
+      // / maxBytes args predate it and are skipped rather than duplicated.
+      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_25_VIDEO_BOUNDS),
+      ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
     },
   },
   {
@@ -521,8 +616,10 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
-      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, SEEDANCE_25_MAX_VIDEO_BYTES),
-      ...params.imageInput(30, 'Reference Images'),
+      // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
+      // / maxBytes args predate it and are skipped rather than duplicated.
+      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_25_VIDEO_BOUNDS),
+      ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
     },
   },
   {
@@ -546,7 +643,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.generateAudio(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
-      ...params.videoInputs(10, 'Source Videos', true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES }),
+      ...params.videoInputs(10, 'Source Videos', true, SEEDANCE_25_VIDEO_BOUNDS),
     },
   },
   {
@@ -571,7 +668,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.generateAudio(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
-      ...params.videoInputs(10, 'Source Videos', true, { maxBytes: SEEDANCE_25_MAX_VIDEO_BYTES }),
+      ...params.videoInputs(10, 'Source Videos', true, SEEDANCE_25_VIDEO_BOUNDS),
     },
   },
   {
@@ -594,14 +691,11 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
-      ...params.videoInputs(3, 'Reference Videos', false, {
-        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
-        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
-      }),
-      ...params.audioInputs(3, 'Reference Audios'),
-      ...params.startFrame(),
-      ...params.endFrame(),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
+      ...params.videoInputs(3, 'Reference Videos', false, SEEDANCE_20_VIDEO_BOUNDS),
+      ...params.audioInputs(3, 'Reference Audios', false, SEEDANCE_20_AUDIO_BOUNDS),
+      ...params.startFrame('Start Frame', false, SEEDANCE_FRAME_BOUNDS),
+      ...params.endFrame('End Frame', SEEDANCE_FRAME_BOUNDS),
     },
   },
   {
@@ -628,14 +722,11 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
-      ...params.videoInputs(3, 'Reference Videos', false, {
-        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
-        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
-      }),
-      ...params.audioInputs(3, 'Reference Audios'),
-      ...params.startFrame(),
-      ...params.endFrame(),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
+      ...params.videoInputs(3, 'Reference Videos', false, SEEDANCE_20_VIDEO_BOUNDS),
+      ...params.audioInputs(3, 'Reference Audios', false, SEEDANCE_20_AUDIO_BOUNDS),
+      ...params.startFrame('Start Frame', false, SEEDANCE_FRAME_BOUNDS),
+      ...params.endFrame('End Frame', SEEDANCE_FRAME_BOUNDS),
     },
   },
   {
@@ -658,14 +749,11 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
-      ...params.videoInputs(3, 'Reference Videos', false, {
-        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
-        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
-      }),
-      ...params.audioInputs(3, 'Reference Audios'),
-      ...params.startFrame(),
-      ...params.endFrame(),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
+      ...params.videoInputs(3, 'Reference Videos', false, SEEDANCE_20_VIDEO_BOUNDS),
+      ...params.audioInputs(3, 'Reference Audios', false, SEEDANCE_20_AUDIO_BOUNDS),
+      ...params.startFrame('Start Frame', false, SEEDANCE_FRAME_BOUNDS),
+      ...params.endFrame('End Frame', SEEDANCE_FRAME_BOUNDS),
     },
   },
   {
@@ -688,14 +776,11 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
       // start/end frame stay on their own named slots.
-      ...params.imageInput(9, 'Reference Images', false, 'reference', { minSidePixels: SEEDANCE_MIN_SIDE_PIXELS }),
-      ...params.videoInputs(3, 'Reference Videos', false, {
-        minPixels: SEEDANCE_VIDEO_MIN_PIXELS,
-        minSidePixels: SEEDANCE_MIN_SIDE_PIXELS,
-      }),
-      ...params.audioInputs(3, 'Reference Audios'),
-      ...params.startFrame(),
-      ...params.endFrame(),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
+      ...params.videoInputs(3, 'Reference Videos', false, SEEDANCE_20_VIDEO_BOUNDS),
+      ...params.audioInputs(3, 'Reference Audios', false, SEEDANCE_20_AUDIO_BOUNDS),
+      ...params.startFrame('Start Frame', false, SEEDANCE_FRAME_BOUNDS),
+      ...params.endFrame('End Frame', SEEDANCE_FRAME_BOUNDS),
     },
   },
   {
@@ -715,8 +800,10 @@ export const { MODELS } = defineModels('seedance', [
       ...params.duration(SEEDANCE_V2_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
-      ...params.videoInput('Source Video'),
-      ...params.imageInput(9, 'Reference Images'),
+      // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
+      // / maxBytes args predate it and are skipped rather than duplicated.
+      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_20_VIDEO_BOUNDS),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
     },
   },
   {
@@ -737,8 +824,10 @@ export const { MODELS } = defineModels('seedance', [
       ...params.duration(SEEDANCE_V2_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
-      ...params.videoInput('Source Video'),
-      ...params.imageInput(9, 'Reference Images'),
+      // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
+      // / maxBytes args predate it and are skipped rather than duplicated.
+      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_20_VIDEO_BOUNDS),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
     },
   },
   {
@@ -758,8 +847,10 @@ export const { MODELS } = defineModels('seedance', [
       ...params.duration(SEEDANCE_V2_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
-      ...params.videoInput('Source Video'),
-      ...params.imageInput(9, 'Reference Images'),
+      // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
+      // / maxBytes args predate it and are skipped rather than duplicated.
+      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_20_VIDEO_BOUNDS),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
     },
   },
   {
@@ -779,8 +870,10 @@ export const { MODELS } = defineModels('seedance', [
       ...params.duration(SEEDANCE_V2_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
-      ...params.videoInput('Source Video'),
-      ...params.imageInput(9, 'Reference Images'),
+      // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
+      // / maxBytes args predate it and are skipped rather than duplicated.
+      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_20_VIDEO_BOUNDS),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
     },
   },
   {
@@ -799,7 +892,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.resolution(['480p', '720p', '1080p', '4k'], '720p'),
       ...params.duration(SEEDANCE_V2_DURATIONS, 15),
       ...params.generateAudio(),
-      ...params.videoInputs(3, 'Source Videos', true),
+      ...params.videoInputs(3, 'Source Videos', true, SEEDANCE_20_VIDEO_BOUNDS),
     },
   },
   {
@@ -819,7 +912,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.resolution(['480p', '720p', '1080p', '4k'], '720p'),
       ...params.duration(SEEDANCE_V2_DURATIONS, 15),
       ...params.generateAudio(),
-      ...params.videoInputs(3, 'Source Videos', true),
+      ...params.videoInputs(3, 'Source Videos', true, SEEDANCE_20_VIDEO_BOUNDS),
     },
   },
   {
@@ -838,7 +931,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.resolution(['480p', '720p'], '720p'),
       ...params.duration(SEEDANCE_V2_DURATIONS, 15),
       ...params.generateAudio(),
-      ...params.videoInputs(3, 'Source Videos', true),
+      ...params.videoInputs(3, 'Source Videos', true, SEEDANCE_20_VIDEO_BOUNDS),
     },
   },
   {
@@ -857,7 +950,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.resolution(['480p', '720p'], '720p'),
       ...params.duration(SEEDANCE_V2_DURATIONS, 15),
       ...params.generateAudio(),
-      ...params.videoInputs(3, 'Source Videos', true),
+      ...params.videoInputs(3, 'Source Videos', true, SEEDANCE_20_VIDEO_BOUNDS),
     },
   },
   {

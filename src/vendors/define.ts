@@ -199,6 +199,32 @@ export function registerEditPayloads(
 // ── Param presets ────────────────────────────────────────────────────
 // Delegates to p.* from descriptors/presets.ts with same call signatures.
 
+/** Upload-time limits an IMAGE slot accepts. Every one is measured on the file
+ *  before it is sent; the backend worker stays the authoritative gate, so these
+ *  exist to move a rejection in front of the spend, never to replace it. */
+export type ImageBounds = {
+  minPixels?: number;
+  maxPixels?: number;
+  minSidePixels?: number;
+  maxSidePixels?: number;
+  maxShortSidePixels?: number;
+  minAspectRatio?: number;
+  maxAspectRatio?: number;
+  maxBytes?: number;
+};
+/** Upload-time limits a VIDEO slot accepts: the image ones plus timing. */
+export type VideoBounds = ImageBounds & {
+  minDurationSec?: number;
+  maxDurationSec?: number;
+  maxFrameRate?: number;
+};
+/** Upload-time limits an AUDIO slot accepts. */
+export type AudioBounds = {
+  minDurationSec?: number;
+  maxDurationSec?: number;
+  maxBytes?: number;
+};
+
 export const params = {
   prompt: p.prompt,
   aspectRatio: p.aspectRatio,
@@ -224,60 +250,71 @@ export const params = {
   // `category` defaults to the most common role for the slot (overridable per call):
   //   asset    → start/end frame, sync audio (direct inputs to the output)
   //   reference → ref images/videos/audios (guidance signals)
-  /** Array of image inputs (writes to `imageUrls`). `bounds` carries the
-   *  client-side dimension floors enforced at upload: `minPixels` for a vendor
-   *  rule stated as a total pixel count, `minSidePixels` for one stated per
-   *  side (width and height each), which is what most vendors publish. */
+  /** Array of image inputs (writes to `imageUrls`). */
   imageInput: (
     max = 1,
     label = 'Start Image',
     required = false,
     category: 'asset' | 'reference' = 'reference',
-    bounds?: { minPixels?: number; minSidePixels?: number },
+    bounds?: ImageBounds,
   ): ModelParams =>
-    p.file('imageUrls', 'image', {
-      array: { max }, label, required, category,
-      ...(bounds?.minPixels != null ? { minPixels: bounds.minPixels } : {}),
-      ...(bounds?.minSidePixels != null ? { minSidePixels: bounds.minSidePixels } : {}),
-    }),
+    p.file('imageUrls', 'image', { array: { max }, label, required, category, ...bounds }),
   /** Single source-video slot (v2v / video edit). Writes to `videoUrl`.
-   *  `maxDurationSec` caps the source clip length, `maxShortSidePixels` caps
-   *  the shorter side (upscaler sources) and `maxBytes` caps the file size,
-   *  all enforced client-side at upload. */
-  videoInput: (label = 'Source Video', category: 'asset' | 'reference' = 'reference', required = true, maxDurationSec?: number, maxShortSidePixels?: number, maxBytes?: number): ModelParams =>
+   *  The four positional limits predate `bounds` and are kept so the dozens of
+   *  existing call sites do not churn; new limits go in `bounds`. */
+  videoInput: (
+    label = 'Source Video',
+    category: 'asset' | 'reference' = 'reference',
+    required = true,
+    maxDurationSec?: number,
+    maxShortSidePixels?: number,
+    maxBytes?: number,
+    bounds?: VideoBounds,
+  ): ModelParams =>
     p.file('videoUrl', 'video', {
       label, required, category,
-      ...(maxDurationSec != null ? { maxDurationSec } : {}),
-      ...(maxShortSidePixels != null ? { maxShortSidePixels } : {}),
-      ...(maxBytes != null ? { maxBytes } : {}),
+      maxDurationSec, maxShortSidePixels, maxBytes,
+      ...bounds,
     }),
   /** Single driving / sync-audio slot. Writes to `audioUrl`. */
   audioInput: (label = 'Audio Track', required = false, category: 'asset' | 'reference' = 'asset'): ModelParams =>
     p.file('audioUrl', 'audio', { label, required, category }),
-  /** Array of reference videos (writes to `videoUrls`). Backend enforces
-   *  per-model total-duration caps (e.g. ≤ 15s for seedance). `bounds` carries
-   *  the client-side checks run at upload: `minPixels` for a total-pixel floor,
-   *  `minSidePixels` for a per-side one, `maxBytes` for each clip's file size. */
+  /** Array of reference videos (writes to `videoUrls`). `bounds` is checked per
+   *  clip. The backend also caps the COMBINED length of the array per model,
+   *  which no descriptor field expresses yet; declaring the per-clip bounds
+   *  still turns the common single-clip case into a trim prompt in the composer
+   *  instead of a vendor `400` after the user pressed Generate. */
   videoInputs: (
     max = 3,
     label = 'Reference Videos',
     required = false,
-    bounds?: { minPixels?: number; minSidePixels?: number; maxBytes?: number },
+    bounds?: VideoBounds,
   ): ModelParams =>
-    p.file('videoUrls', 'video', {
-      array: { max }, label, required, category: 'reference',
-      ...(bounds?.minPixels != null ? { minPixels: bounds.minPixels } : {}),
-      ...(bounds?.minSidePixels != null ? { minSidePixels: bounds.minSidePixels } : {}),
-      ...(bounds?.maxBytes != null ? { maxBytes: bounds.maxBytes } : {}),
-    }),
-  /** Array of reference audios (writes to `audioUrls`). Backend enforces
-   *  per-model total-duration caps. */
-  audioInputs: (max = 3, label = 'Reference Audios', required = false): ModelParams =>
-    p.file('audioUrls', 'audio', { array: { max }, label, required, category: 'reference' }),
-  startFrame: (label = 'Start Frame', required = false): ModelParams =>
-    p.file('startFrame', 'image', { label, required, category: 'asset' }),
-  endFrame: (label = 'End Frame'): ModelParams =>
-    p.file('endFrame', 'image', { label, category: 'asset' }),
+    p.file('videoUrls', 'video', { array: { max }, label, required, category: 'reference', ...bounds }),
+  /** Array of reference audios (writes to `audioUrls`). `bounds` is checked per
+   *  clip; as with `videoInputs` the backend also caps the combined length. */
+  audioInputs: (
+    max = 3,
+    label = 'Reference Audios',
+    required = false,
+    bounds?: AudioBounds,
+  ): ModelParams =>
+    p.file('audioUrls', 'audio', { array: { max }, label, required, category: 'reference', ...bounds }),
+  /** First-frame slot (writes to `startFrame`). Vendors routinely publish a
+   *  DIFFERENT pixel floor for a frame than for a reference image, because a
+   *  frame becomes the output's first rendered frame. */
+  startFrame: (
+    label = 'Start Frame',
+    required = false,
+    bounds?: ImageBounds,
+  ): ModelParams =>
+    p.file('startFrame', 'image', { label, required, category: 'asset', ...bounds }),
+  /** Last-frame slot (writes to `endFrame`). Same `bounds` as `startFrame`. */
+  endFrame: (
+    label = 'End Frame',
+    bounds?: ImageBounds,
+  ): ModelParams =>
+    p.file('endFrame', 'image', { label, category: 'asset', ...bounds }),
 };
 
 // ── Composed param presets ────────────────────────────────────────────

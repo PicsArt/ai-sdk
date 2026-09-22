@@ -68,6 +68,21 @@ export interface FileDescriptor {
    */
   maxDurationSec?: number;
   /**
+   * Min intrinsic duration (seconds) accepted for a video/audio file. Unlike
+   * every other bound here this one has no remedy: a clip that is too short
+   * cannot be lengthened, so the client's only honest move is to refuse the
+   * attachment and say why. Enforced client-side at upload by measuring the
+   * media before it is sent; the backend worker stays the authoritative gate.
+   * Omit for no client-side floor.
+   */
+  minDurationSec?: number;
+  /**
+   * Max intrinsic frame rate (fps) accepted for a video file. Enforced
+   * client-side at upload by measuring the media before it is sent; the backend
+   * worker stays the authoritative gate. Omit for no client-side cap.
+   */
+  maxFrameRate?: number;
+  /**
    * Min intrinsic pixel count (width × height) accepted for an image/video file.
    * Enforced client-side at upload by measuring the media before it is sent; the
    * backend worker stays the authoritative gate. Omit for no client-side floor.
@@ -82,6 +97,41 @@ export interface FileDescriptor {
    * authoritative gate. Omit for no client-side floor.
    */
   minSidePixels?: number;
+  /**
+   * Max intrinsic pixel count (width × height) accepted for an image/video
+   * file. The ceiling matching `minPixels`, and a separate rule from
+   * `maxSidePixels`: a 12000×2000 frame passes a 36 MP area cap and still
+   * breaks a 6000 px per-side one. Enforced client-side at upload by measuring
+   * the media before it is sent; the backend worker stays the authoritative
+   * gate. Omit for no client-side ceiling.
+   */
+  maxPixels?: number;
+  /**
+   * Max intrinsic long-side length (pixels) accepted for an image/video file:
+   * `max(width, height)` must not exceed this. The ceiling matching
+   * `minSidePixels`, so the pair expresses the shape vendors usually publish
+   * ("width and height must each be between 300 and 6000 px"). Distinct from
+   * `maxShortSidePixels`, which bounds the OTHER side and exists for upscaler
+   * sources. Enforced client-side at upload by measuring the media before it is
+   * sent; the backend worker stays the authoritative gate. Omit for no
+   * client-side ceiling.
+   */
+  maxSidePixels?: number;
+  /**
+   * Min intrinsic aspect ratio (width / height) accepted for an image/video
+   * file. Vendors publish this as the bound a panorama or a tall crop breaks,
+   * and it is not derivable from the pixel and side bounds: a 6000x1200 frame
+   * satisfies a [300, 6000] per-side rule and a 36 MP area rule and is still
+   * refused at 5.0. Enforced client-side at upload by measuring the media
+   * before it is sent; the backend worker stays the authoritative gate. Omit
+   * for no client-side floor.
+   */
+  minAspectRatio?: number;
+  /**
+   * Max intrinsic aspect ratio (width / height) accepted for an image/video
+   * file. The ceiling matching `minAspectRatio`.
+   */
+  maxAspectRatio?: number;
   /**
    * Max intrinsic short-side length (pixels) accepted for an image/video file —
    * `min(width, height)` must not exceed this. Used by upscalers whose source

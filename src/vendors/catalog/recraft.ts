@@ -5,8 +5,8 @@
  * into RecraftImagesCommand — no modelOptions wrapper.
  *
  * Model enum values (RecraftImagesCommand.model):
- *   recraftv4_1 / recraftv4_1_pro / recraftv4_1_utility / recraftv4_1_utility_pro
- *   (vector variants of v4.1 exist in the API but are not exposed in this catalog)
+ *   recraftv4_1 / recraftv4_1_pro / recraftv4_1_utility / recraftv4_1_utility_pro / recraftv4_1_flash
+ *   (recraftv4_1_flash is raster-only — the API has no flash vector variant)
  *   recraftv4 / recraftv4_vector / recraftv4_pro / recraftv4_pro_vector
  *   recraftv4_styles / recraftv4_styles_vector / recraftv4_styles_pro / recraftv4_styles_pro_vector
  *   recraftv3 / recraftv3_vector
@@ -28,6 +28,7 @@
  * Image-to-image: the V3 and V4/V4.1 families accept an optional source image
  * (image_url + strength). Providing an image routes the generations workflow to
  * the vendor's imageToImage endpoint; without one it stays text-to-image.
+ * Exception: recraftv4_1_flash is text-to-image only — no source image slot.
  *
  * Docs: https://www.recraft.ai/docs
  */
@@ -230,6 +231,22 @@ export const { MODELS } = defineModels('recraft', [
       ...params.count([1, 2, 4, 6]),
       ...params.imageInput(1, 'Source Image'),
       ...params.imageWeight(0, 100, 80, 5),
+    },
+  },
+  {
+    id: 'recraftv4_1_flash', name: 'Recraft V4.1 Flash',
+    addedAt: '2026-09-22',
+    workflow: 'recraft/v1/images/generations',
+    buildPayload: buildRecraftV4VariantPayload('recraftv4_1_flash'),
+    estimatedTime: 8,
+    mode: 'image', inputType: 't2i',
+    badge: ['fast'] as const,
+    description: 'Fastest V4.1 tier — quick raster output with 10K-character prompts.',
+    features: [feat('Fast', 'characteristic'), feat('10K Prompt', 'characteristic')],
+    paramConfig: {
+      ...params.prompt({ maxLength: 10000 }),
+      ...params.aspectRatio(recraftAspectRatios, '1:1'),
+      ...params.count([1, 2, 4, 6]),
     },
   },
   // ── V4.1 vector variants ─────

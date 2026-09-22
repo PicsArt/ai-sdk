@@ -7488,6 +7488,24 @@ var { MODELS: MODELS28 } = defineModels("recraft", [
       ...params.imageWeight(0, 100, 80, 5)
     }
   },
+  {
+    id: "recraftv4_1_flash",
+    name: "Recraft V4.1 Flash",
+    addedAt: "2026-09-22",
+    workflow: "recraft/v1/images/generations",
+    buildPayload: buildRecraftV4VariantPayload("recraftv4_1_flash"),
+    estimatedTime: 8,
+    mode: "image",
+    inputType: "t2i",
+    badge: ["fast"],
+    description: "Fastest V4.1 tier \u2014 quick raster output with 10K-character prompts.",
+    features: [feat("Fast", "characteristic"), feat("10K Prompt", "characteristic")],
+    paramConfig: {
+      ...params.prompt({ maxLength: 1e4 }),
+      ...params.aspectRatio(recraftAspectRatios, "1:1"),
+      ...params.count([1, 2, 4, 6])
+    }
+  },
   // ── V4.1 vector variants ─────
   {
     id: "recraftv4_1_vector",
@@ -12091,6 +12109,7 @@ var Recraftv3Vector = "recraftv3_vector";
 var Recraftv3ReplaceBg = "recraftv3-replace-bg";
 var Recraftv4 = "recraftv4";
 var Recraftv41 = "recraftv4_1";
+var Recraftv41Flash = "recraftv4_1_flash";
 var Recraftv41Pro = "recraftv4_1_pro";
 var Recraftv41ProVector = "recraftv4_1_pro_vector";
 var Recraftv41Utility = "recraftv4_1_utility";
@@ -12328,6 +12347,7 @@ var Models = {
   Recraftv3ReplaceBg,
   Recraftv4,
   Recraftv41,
+  Recraftv41Flash,
   Recraftv41Pro,
   Recraftv41ProVector,
   Recraftv41Utility,

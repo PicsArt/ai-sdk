@@ -365,6 +365,8 @@ export const Recraftv3ReplaceBg = 'recraftv3-replace-bg' as const;
 export const Recraftv4 = 'recraftv4' as const;
 /** Recraft V4.1 — recraft (image) */
 export const Recraftv41 = 'recraftv4_1' as const;
+/** Recraft V4.1 Flash — recraft (image) */
+export const Recraftv41Flash = 'recraftv4_1_flash' as const;
 /** Recraft V4.1 Pro — recraft (image) */
 export const Recraftv41Pro = 'recraftv4_1_pro' as const;
 /** Recraft V4.1 Pro Vector — recraft (image) */
@@ -677,6 +679,7 @@ export const Models = {
   Recraftv3ReplaceBg,
   Recraftv4,
   Recraftv41,
+  Recraftv41Flash,
   Recraftv41Pro,
   Recraftv41ProVector,
   Recraftv41Utility,

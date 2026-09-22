@@ -177,6 +177,7 @@ export type ModelInputById = {
   "recraftv3-replace-bg": { prompt?: string; imageUrls: [string, ...string[]]; };
   "recraftv4": { prompt: string; style?: "raster" | "vector_illustration"; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
   "recraftv4_1": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
+  "recraftv4_1_flash": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; };
   "recraftv4_1_pro": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
   "recraftv4_1_pro_vector": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
   "recraftv4_1_utility": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };

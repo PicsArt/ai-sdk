@@ -1220,6 +1220,11 @@ type ModelInputById = {
         imageUrls?: string[];
         imageWeight?: number;
     };
+    "recraftv4_1_flash": {
+        prompt: string;
+        aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
+        count?: 1 | 2 | 4 | 6;
+    };
     "recraftv4_1_pro": {
         prompt: string;
         aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
@@ -3058,6 +3063,7 @@ declare const Models: {
     readonly Recraftv3ReplaceBg: "recraftv3-replace-bg";
     readonly Recraftv4: "recraftv4";
     readonly Recraftv41: "recraftv4_1";
+    readonly Recraftv41Flash: "recraftv4_1_flash";
     readonly Recraftv41Pro: "recraftv4_1_pro";
     readonly Recraftv41ProVector: "recraftv4_1_pro_vector";
     readonly Recraftv41Utility: "recraftv4_1_utility";

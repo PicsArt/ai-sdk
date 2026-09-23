@@ -29,6 +29,15 @@ const LTX_23_FPS = [24, 25, 48, 50];
  *  (text-to-video, fast, audio-to-video, extend, retake). */
 const LTX_PROMPT_MAX = 5000;
 
+// ── LTX 2.3 reframe / outpaint ──
+// Separate endpoints with their own ratio and resolution ladders — neither
+// matches the Pro/Fast ones above. Outpaint is served from fal's
+// `ltx-2.3-quality` model id and has no fast counterpart.
+const LTX_23_REFRAME_RESOLUTIONS = ['720p', '1080p'];
+const LTX_23_REFRAME_AR = ['16:9', '9:16', '1:1', '4:5', '5:4'];
+const LTX_23_OUTPAINT_RESOLUTIONS = ['480p', '720p', '1080p'];
+const LTX_23_OUTPAINT_AR = ['21:9', '16:9', '4:3', '1:1', '3:4', '9:16', '9:21'];
+
 // ── LTX 2.5 ──
 // Pro caps at 1080p / 10s; Fast reaches 2160p and 20s. Durations are the same
 // ladders 2.0/2.3 use, so PRO_DURATIONS / FAST_DURATIONS are reused below.
@@ -332,6 +341,55 @@ export const { MODELS } = defineModels('ltx', [
         descriptor: { kind: 'range', min: 0, max: 20, step: 1 },
       },
       ...params.videoInput('Source Video'),
+    },
+  },
+
+  {
+    id: 'ltx-v2.3-reframe', name: 'LTX 2.3 Reframe', modelId: 'fal-ai-ltx-2.3-reframe',
+    addedAt: '2026-09-23',
+    workflow: 'ltx-2.3/reframe',
+    estimatedTime: 45,
+    mode: 'video', inputType: 'v2v',
+    description: 'Reframe a video into a new aspect ratio — the source is re-cropped and the newly exposed edges are generated to match. Takes no prompt.',
+    features: [feat('Video Input', 'input'), feat('Aspect Ratio', 'characteristic'), feat('Up to 1080p', 'resolution')],
+    paramConfig: {
+      ...params.videoInput('Source Video', 'asset', true),
+      ...params.resolution(LTX_23_REFRAME_RESOLUTIONS, '1080p'),
+      ...params.aspectRatio(LTX_23_REFRAME_AR),
+    },
+  },
+  {
+    // fal serves this one from the `ltx-2.3-quality` model id, hence the
+    // workflow path; `modelId` mirrors it so the pricing key reads the same.
+    id: 'ltx-v2.3-outpaint', name: 'LTX 2.3 Outpaint', modelId: 'fal-ai-ltx-2.3-quality-outpaint',
+    addedAt: '2026-09-23',
+    workflow: 'ltx-2.3-quality/outpaint',
+    estimatedTime: 180,
+    mode: 'video', inputType: 'v2v',
+    description: 'Expand a video past its original frame — the source stays put inside a wider canvas and the surrounding region is generated to match.',
+    features: [feat('Video Input', 'input'), feat('Outpaint', 'characteristic'), feat('Audio', 'audio'), feat('Up to 1080p', 'resolution')],
+    paramConfig: {
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
+      ...params.videoInput('Source Video', 'asset', true),
+      ...params.negativePrompt(),
+      ...params.aspectRatio(LTX_23_OUTPAINT_AR),
+      ...params.resolution(LTX_23_OUTPAINT_RESOLUTIONS, '720p'),
+      ...p.range('numFrames', 9, 481, 121, { label: 'Frames' }),
+      ...p.range('fps', 1, 60, 24, { label: 'FPS' }),
+      // 1.0 fits the source as large as the canvas allows; lower values zoom it
+      // out and leave a wider generated border, which the vendor calls less stable.
+      ...p.range('sourceScale', 0.25, 1, 1, { step: 0.05, label: 'Source Scale' }),
+      // How strongly the original content is preserved inside the new canvas.
+      ...p.range('videoStrength', 0, 1, 1, { step: 0.05, label: 'Source Strength' }),
+      ...params.cfgScale(1, 20, 1),
+      ...p.range('numInferenceSteps', 8, 30, 15, { label: 'Inference Steps' }),
+      ...p.enum('videoQuality', ['low', 'medium', 'high', 'maximum'], 'high', { label: 'Video Quality' }),
+      ...p.enum('videoWriteMode', ['fast', 'balanced', 'small'], 'balanced', { label: 'Write Mode' }),
+      ...params.enhancePrompt(),
+      ...params.generateAudio(),
+      ...p.boolean('enableSafetyChecker', true, 'Safety Checker'),
+      // Default-less on purpose: unset means the vendor picks a random seed.
+      ...params.seed(),
     },
   },
 

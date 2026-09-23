@@ -244,8 +244,12 @@ export const LtxV2Retake = 'ltx-v2-retake' as const;
 export const LtxV23Extend = 'ltx-v2.3-extend' as const;
 /** LTX 2.3 Fast — ltx (video) */
 export const LtxV23Fast = 'ltx-v2.3-fast' as const;
+/** LTX 2.3 Outpaint — ltx (video) */
+export const LtxV23Outpaint = 'ltx-v2.3-outpaint' as const;
 /** LTX 2.3 Pro — ltx (video) */
 export const LtxV23Pro = 'ltx-v2.3-pro' as const;
+/** LTX 2.3 Reframe — ltx (video) */
+export const LtxV23Reframe = 'ltx-v2.3-reframe' as const;
 /** LTX 2.3 Retake — ltx (video) */
 export const LtxV23Retake = 'ltx-v2.3-retake' as const;
 /** LTX 2.5 Fast — ltx (video) */
@@ -632,7 +636,9 @@ export const Models = {
   LtxV2Retake,
   LtxV23Extend,
   LtxV23Fast,
+  LtxV23Outpaint,
   LtxV23Pro,
+  LtxV23Reframe,
   LtxV23Retake,
   LtxV25Fast,
   LtxV25Pro,

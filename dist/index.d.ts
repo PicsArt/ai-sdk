@@ -862,6 +862,25 @@ type ModelInputById = {
         imageUrls?: string[];
         endFrame?: string;
     };
+    "ltx-v2.3-outpaint": {
+        prompt: string;
+        videoUrl: string;
+        negativePrompt?: string;
+        aspectRatio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "9:21";
+        resolution?: "480p" | "720p" | "1080p";
+        numFrames?: number;
+        fps?: number;
+        sourceScale?: number;
+        videoStrength?: number;
+        cfgScale?: number;
+        numInferenceSteps?: number;
+        videoQuality?: "low" | "medium" | "high" | "maximum";
+        videoWriteMode?: "fast" | "balanced" | "small";
+        enhancePrompt?: boolean;
+        generateAudio?: boolean;
+        enableSafetyChecker?: boolean;
+        seed?: number;
+    };
     "ltx-v2.3-pro": {
         prompt: string;
         duration?: 6 | 8 | 10;
@@ -871,6 +890,11 @@ type ModelInputById = {
         generateAudio?: boolean;
         imageUrls?: string[];
         endFrame?: string;
+    };
+    "ltx-v2.3-reframe": {
+        videoUrl: string;
+        resolution?: "720p" | "1080p";
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:5" | "5:4";
     };
     "ltx-v2.3-retake": {
         prompt: string;
@@ -3121,7 +3145,9 @@ declare const Models: {
     readonly LtxV2Retake: "ltx-v2-retake";
     readonly LtxV23Extend: "ltx-v2.3-extend";
     readonly LtxV23Fast: "ltx-v2.3-fast";
+    readonly LtxV23Outpaint: "ltx-v2.3-outpaint";
     readonly LtxV23Pro: "ltx-v2.3-pro";
+    readonly LtxV23Reframe: "ltx-v2.3-reframe";
     readonly LtxV23Retake: "ltx-v2.3-retake";
     readonly LtxV25Fast: "ltx-v2.5-fast";
     readonly LtxV25Pro: "ltx-v2.5-pro";

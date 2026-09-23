@@ -6344,22 +6344,11 @@ registerEditPayloads(MODELS22, {
 });
 
 // src/vendors/catalog/elevenlabs.ts
-var buildElevenLabsTTSPayload = (modelId) => (ctx) => ({
-  text: ctx.prompt,
-  voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
-  model_id: modelId,
-  ...ctx.language ? { language_code: ctx.language } : {}
-});
+var VOICE_CATALOG = { workflow: "elevenlabs/v1/catalog/voices" };
 var buildElevenLabsSFXPayload = (modelId) => (ctx) => ({
   text: ctx.prompt,
   duration_seconds: ctx.duration ?? 5,
   model_id: modelId
-});
-var buildElevenLabsSTSPayload = (modelId) => (ctx) => ({
-  audio_url: ctx.audioUrl,
-  voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
-  model_id: modelId,
-  remove_background_noise: ctx.removeBackgroundNoise ?? false
 });
 var buildElevenLabsAudioIsolationPayload = (ctx) => ({
   audio_url: ctx.audioUrl
@@ -6383,13 +6372,35 @@ var buildElevenLabsVoicePreviewsPayload = (ctx) => ({
   voice_description: ctx.prompt,
   auto_generate_text: true
 });
+var voiceSettingsParams = (withSpeakerBoost) => ({
+  stability: {
+    label: "Stability",
+    descriptor: { kind: "range", min: 0, max: 1, step: 0.05 }
+  },
+  similarityBoost: {
+    label: "Similarity",
+    descriptor: { kind: "range", min: 0, max: 1, step: 0.05 }
+  },
+  // `style` is taken on GenerationContext by the image models' style *name*,
+  // so the vendor's 0–1 style exaggeration gets a key of its own.
+  styleExaggeration: {
+    label: "Style Exaggeration",
+    descriptor: { kind: "range", min: 0, max: 1, step: 0.05 }
+  },
+  speed: {
+    label: "Speed",
+    descriptor: { kind: "range", min: 0.1, max: 5, step: 0.05 }
+  },
+  ...withSpeakerBoost ? { useSpeakerBoost: { label: "Speaker Boost", descriptor: { kind: "boolean", default: true } } } : {}
+});
 var ttsParamConfig = (promptMaxLength, withLanguage) => ({
   // language_code is honoured by eleven_v3 only — the vendor documents it as
   // "not supported for multilingual_v2 models" (silently ignored there).
   // No accent param anywhere: no builder ever read it.
   ...withLanguage ? params.language(false) : {},
   ...params.prompt({ maxLength: promptMaxLength }),
-  ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: "elevenlabs/v1/catalog/voices" } })
+  ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: VOICE_CATALOG }),
+  ...voiceSettingsParams(true)
 });
 var { MODELS: MODELS23 } = defineModels("elevenlabs", [
   // ── TTS ───────────────────────────────────────────────────────────
@@ -6399,7 +6410,6 @@ var { MODELS: MODELS23 } = defineModels("elevenlabs", [
     modelId: "eleven_v3",
     addedAt: "2026-02-06",
     workflow: "elevenlabs/v1/text-to-speech",
-    buildPayload: buildElevenLabsTTSPayload("eleven_v3"),
     estimatedTime: 11,
     mode: "audio",
     inputType: "tts",
@@ -6414,7 +6424,6 @@ var { MODELS: MODELS23 } = defineModels("elevenlabs", [
     modelId: "eleven_multilingual_v2",
     addedAt: "2026-02-06",
     workflow: "elevenlabs/v1/text-to-speech",
-    buildPayload: buildElevenLabsTTSPayload("eleven_multilingual_v2"),
     estimatedTime: 9,
     mode: "audio",
     inputType: "tts",
@@ -6422,6 +6431,61 @@ var { MODELS: MODELS23 } = defineModels("elevenlabs", [
     description: "Stable multilingual speech across 29+ languages with natural rhythm.",
     features: [feat("Stable", "characteristic"), feat("Professional", "characteristic")],
     paramConfig: ttsParamConfig(1e4, false)
+  },
+  // ── Dialogue ──────────────────────────────────────────────────────
+  {
+    // `modelId` is the pricing-catalog key, not the vendor id: the worker
+    // registers the operation as `eleven-text-to-dialogue` while the vendor
+    // model behind it is plain `eleven_v3`.
+    id: "eleven-text-to-dialogue",
+    name: "Eleven Dialogue v3",
+    modelId: "eleven-text-to-dialogue",
+    addedAt: "2026-09-22",
+    workflow: "elevenlabs/v1/text-to-dialogue",
+    estimatedTime: 12,
+    mode: "audio",
+    inputType: "tts",
+    description: "Generate a multi-speaker conversation \u2014 a voice per line \u2014 in one take.",
+    features: [feat("Multi-Speaker", "characteristic"), feat("Creative Control", "characteristic")],
+    paramConfig: {
+      // One entry per spoken line, in order. The vendor publishes no cap on the
+      // number of lines, so none is invented here.
+      //
+      // The 5,000-character limit is the vendor's hard cap and applies to the
+      // dialogue AS A WHOLE, which a per-field maxLength cannot express — a
+      // single line simply cannot exceed it either. Probed against the live
+      // `elevenlabs/v1/text-to-dialogue` worker: 10,000 characters are refused
+      // with "Request text length (10000) exceeds the maximum text length of
+      // 5000 characters", while 2,600 generate fine. The docs' "keep it at or
+      // below 2,000" is guidance, not a limit. Note the far end is slow: a
+      // 5,000-character dialogue outruns the worker's 120s vendor timeout.
+      dialogue: {
+        label: "Dialogue",
+        required: true,
+        descriptor: {
+          kind: "object",
+          array: { min: 1 },
+          fields: {
+            // A plain id, not a catalog-bound picker: catalog loading resolves
+            // top-level params only. Every ElevenLabs model shares one voices
+            // task, so a caller lists them from any TTS model — e.g.
+            // `ai.catalogs.voices('eleven-v3')` — and uses the ids here.
+            voiceId: { label: "Voice ID", kind: "text", placeholder: DEFAULT_VOICE_ID },
+            text: { label: "Line", kind: "text", maxLength: 5e3 }
+          }
+        }
+      },
+      // The vendor takes any 0–1 double and defaults to 0.5; eleven_v3 reads the
+      // three presets below, so the picker offers those instead of a slider
+      // whose in-between values the engine rounds anyway.
+      ...p.enum("stability", [
+        { id: 0, label: "Creative" },
+        { id: 0.5, label: "Natural" },
+        { id: 1, label: "Robust" }
+      ], 0.5, { label: "Stability" }),
+      ...params.language(false),
+      ...params.seed(4294967295)
+    }
   },
   // ── Sound Effects ─────────────────────────────────────────────────
   {
@@ -6469,7 +6533,6 @@ var { MODELS: MODELS23 } = defineModels("elevenlabs", [
     modelId: "eleven_english_sts_v2",
     addedAt: "2026-02-15",
     workflow: "elevenlabs/v1/speech-to-speech",
-    buildPayload: buildElevenLabsSTSPayload("eleven_english_sts_v2"),
     estimatedTime: 15,
     mode: "audio",
     inputType: "sts",
@@ -6477,8 +6540,9 @@ var { MODELS: MODELS23 } = defineModels("elevenlabs", [
     features: [feat("Voice Changer", "characteristic"), feat("Emotion Preserved", "characteristic")],
     paramConfig: {
       ...params.audioInput("Speech Audio", true),
-      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: "elevenlabs/v1/catalog/voices" } }),
-      ...p.boolean("removeBackgroundNoise", false, "Remove Background Noise")
+      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: VOICE_CATALOG }),
+      ...p.boolean("removeBackgroundNoise", false, "Remove Background Noise"),
+      ...voiceSettingsParams(false)
     }
   },
   {
@@ -6487,7 +6551,6 @@ var { MODELS: MODELS23 } = defineModels("elevenlabs", [
     modelId: "eleven_multilingual_sts_v2",
     addedAt: "2026-02-15",
     workflow: "elevenlabs/v1/speech-to-speech",
-    buildPayload: buildElevenLabsSTSPayload("eleven_multilingual_sts_v2"),
     estimatedTime: 15,
     mode: "audio",
     inputType: "sts",
@@ -6495,8 +6558,9 @@ var { MODELS: MODELS23 } = defineModels("elevenlabs", [
     features: [feat("Voice Changer", "characteristic"), feat("Multilingual", "characteristic"), feat("29 Languages", "characteristic")],
     paramConfig: {
       ...params.audioInput("Speech Audio", true),
-      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: "elevenlabs/v1/catalog/voices" } }),
-      ...p.boolean("removeBackgroundNoise", false, "Remove Background Noise")
+      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: VOICE_CATALOG }),
+      ...p.boolean("removeBackgroundNoise", false, "Remove Background Noise"),
+      ...voiceSettingsParams(false)
     }
   },
   // ── Audio Processing ────────────────────────────────────────────
@@ -6611,8 +6675,47 @@ var buildElevenLabsMusicPayload = (input) => ({
   model_id: "music_v2",
   force_instrumental: input.isInstrumental ?? false
 });
+var voiceSettings = (input) => {
+  const settings = {
+    ...input.stability != null ? { stability: input.stability } : {},
+    ...input.similarityBoost != null ? { similarity_boost: input.similarityBoost } : {},
+    ...input.styleExaggeration != null ? { style: input.styleExaggeration } : {},
+    ...input.speed != null ? { speed: input.speed } : {},
+    ...input.useSpeakerBoost != null ? { use_speaker_boost: input.useSpeakerBoost } : {}
+  };
+  return Object.keys(settings).length > 0 ? { voice_settings: settings } : {};
+};
+var buildElevenLabsTTSPayload = (modelId) => (input) => ({
+  text: input.prompt,
+  voice_id: input.voiceId ?? DEFAULT_VOICE_ID,
+  model_id: modelId,
+  ...input.language ? { language_code: input.language } : {},
+  ...voiceSettings(input)
+});
+var buildElevenLabsSTSPayload = (modelId) => (input) => ({
+  audio_url: input.audioUrl,
+  voice_id: input.voiceId ?? DEFAULT_VOICE_ID,
+  model_id: modelId,
+  remove_background_noise: input.removeBackgroundNoise ?? false,
+  ...voiceSettings(input)
+});
+var buildElevenLabsDialoguePayload = (input) => ({
+  conversation: input.dialogue.map((line) => ({
+    voice_id: line.voiceId,
+    text: line.text
+  })),
+  model_id: "eleven_v3",
+  ...input.stability != null ? { settings: { stability: input.stability } } : {},
+  ...input.language ? { language_code: input.language } : {},
+  ...input.seed != null ? { seed: input.seed } : {}
+});
 registerPayloads(MODELS23, {
-  "elevenlabs-music-v2": buildElevenLabsMusicPayload
+  "elevenlabs-music-v2": buildElevenLabsMusicPayload,
+  "eleven-v3": buildElevenLabsTTSPayload("eleven_v3"),
+  "eleven-multilingual-v2": buildElevenLabsTTSPayload("eleven_multilingual_v2"),
+  "eleven-sts-v2": buildElevenLabsSTSPayload("eleven_english_sts_v2"),
+  "eleven-multilingual-sts-v2": buildElevenLabsSTSPayload("eleven_multilingual_sts_v2"),
+  "eleven-text-to-dialogue": buildElevenLabsDialoguePayload
 });
 
 // src/vendors/catalog/heygen.ts
@@ -12107,6 +12210,7 @@ var ElevenDubbing = "eleven-dubbing";
 var ElevenMultilingualStsV2 = "eleven-multilingual-sts-v2";
 var ElevenMultilingualV2 = "eleven-multilingual-v2";
 var ElevenStsV2 = "eleven-sts-v2";
+var ElevenTextToDialogue = "eleven-text-to-dialogue";
 var ElevenV3 = "eleven-v3";
 var ElevenVoiceCreate = "eleven-voice-create";
 var ElevenVoiceDesignV2 = "eleven-voice-design-v2";
@@ -12347,6 +12451,7 @@ var Models = {
   ElevenMultilingualStsV2,
   ElevenMultilingualV2,
   ElevenStsV2,
+  ElevenTextToDialogue,
   ElevenV3,
   ElevenVoiceCreate,
   ElevenVoiceDesignV2,

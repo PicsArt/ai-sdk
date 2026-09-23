@@ -2,9 +2,14 @@
  * ElevenLabs — single source of truth.
  */
 import type { PayloadBuilder } from '../../core/types.ts';
+import type { CatalogSource } from '../../core/catalogs.ts';
+import type { ModelParams } from '../../core/descriptors/types.ts';
 import { DEFAULT_VOICE_ID } from '../../core/voices.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
+
+/** The catalog task serving every voice picker in this file. */
+const VOICE_CATALOG: CatalogSource = { workflow: 'elevenlabs/v1/catalog/voices' };
 
 // ── Payload builders ────────────────────────────────────────────────
 
@@ -13,16 +18,6 @@ import { p } from '../../core/descriptors/presets.ts';
 // is never populated at runtime, so reading it silently dropped the field and
 // made the worker fall back to its own default model (and default pricing).
 
-/** TTS — voice_id + text + model_id (v1 Swagger schema). */
-const buildElevenLabsTTSPayload =
-  (modelId: string): PayloadBuilder =>
-  (ctx) => ({
-    text: ctx.prompt,
-    voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
-    model_id: modelId,
-    ...(ctx.language ? { language_code: ctx.language } : {}),
-  });
-
 /** Sound Effects — text + duration_seconds + model_id. */
 const buildElevenLabsSFXPayload =
   (modelId: string): PayloadBuilder =>
@@ -30,16 +25,6 @@ const buildElevenLabsSFXPayload =
     text: ctx.prompt,
     duration_seconds: ctx.duration ?? 5,
     model_id: modelId,
-  });
-
-/** Speech-to-Speech — audio_url + voice_id (v1 Swagger schema). */
-const buildElevenLabsSTSPayload =
-  (modelId: string): PayloadBuilder =>
-  (ctx) => ({
-    audio_url: ctx.audioUrl,
-    voice_id: ctx.voiceId ?? DEFAULT_VOICE_ID,
-    model_id: modelId,
-    remove_background_noise: ctx.removeBackgroundNoise ?? false,
   });
 
 /** Audio Isolation — audio_url only. */
@@ -79,9 +64,44 @@ const buildElevenLabsVoicePreviewsPayload: PayloadBuilder = (ctx) => ({
   auto_generate_text: true,
 });
 
-// Music payload builder lives in elevenlabs.payloads.ts (typed, ModelInput-backed).
+// The TTS, STS, dialogue and music payload builders live in
+// elevenlabs.payloads.ts (typed, ModelInput-backed) — they read voice
+// settings and dialogue turns, which GenerationContext does not carry.
 
 // ── Model definitions ───────────────────────────────────────────────
+
+/**
+ * The `voice_settings` the text-to-speech and speech-to-speech commands accept.
+ * Every field is default-less on purpose: unset means "use the settings the
+ * voice was saved with", which is what the vendor does. Shipping defaults here
+ * would silently override every voice's own tuning.
+ *
+ * `use_speaker_boost` is text-to-speech only — the speech-to-speech command
+ * does not declare it.
+ */
+const voiceSettingsParams = (withSpeakerBoost: boolean): ModelParams => ({
+  stability: {
+    label: 'Stability',
+    descriptor: { kind: 'range', min: 0, max: 1, step: 0.05 },
+  },
+  similarityBoost: {
+    label: 'Similarity',
+    descriptor: { kind: 'range', min: 0, max: 1, step: 0.05 },
+  },
+  // `style` is taken on GenerationContext by the image models' style *name*,
+  // so the vendor's 0–1 style exaggeration gets a key of its own.
+  styleExaggeration: {
+    label: 'Style Exaggeration',
+    descriptor: { kind: 'range', min: 0, max: 1, step: 0.05 },
+  },
+  speed: {
+    label: 'Speed',
+    descriptor: { kind: 'range', min: 0.1, max: 5, step: 0.05 },
+  },
+  ...(withSpeakerBoost
+    ? { useSpeakerBoost: { label: 'Speaker Boost', descriptor: { kind: 'boolean' as const, default: true } } }
+    : {}),
+});
 
 /**
  * TTS param config. The prompt cap is per-model — ElevenLabs publishes a
@@ -99,7 +119,8 @@ const ttsParamConfig = (promptMaxLength: number, withLanguage: boolean) => ({
   // No accent param anywhere: no builder ever read it.
   ...(withLanguage ? params.language(false) : {}),
   ...params.prompt({ maxLength: promptMaxLength }),
-  ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: 'elevenlabs/v1/catalog/voices' } }),
+  ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: VOICE_CATALOG }),
+  ...voiceSettingsParams(true),
 });
 
 export const { MODELS } = defineModels('elevenlabs', [
@@ -108,7 +129,6 @@ export const { MODELS } = defineModels('elevenlabs', [
     id: 'eleven-v3', name: 'Eleven v3', modelId: 'eleven_v3',
     addedAt: '2026-02-06',
     workflow: 'elevenlabs/v1/text-to-speech',
-    buildPayload: buildElevenLabsTTSPayload('eleven_v3'),
     estimatedTime: 11,
     mode: 'audio', inputType: 'tts',
     badge: ['popular'] as const,
@@ -120,13 +140,64 @@ export const { MODELS } = defineModels('elevenlabs', [
     id: 'eleven-multilingual-v2', name: 'Eleven Multilingual v2', modelId: 'eleven_multilingual_v2',
     addedAt: '2026-02-06',
     workflow: 'elevenlabs/v1/text-to-speech',
-    buildPayload: buildElevenLabsTTSPayload('eleven_multilingual_v2'),
     estimatedTime: 9,
     mode: 'audio', inputType: 'tts',
     badge: ['popular', 'fast'] as const,
     description: 'Stable multilingual speech across 29+ languages with natural rhythm.',
     features: [feat('Stable', 'characteristic'), feat('Professional', 'characteristic')],
     paramConfig: ttsParamConfig(10000, false),
+  },
+  // ── Dialogue ──────────────────────────────────────────────────────
+  {
+    // `modelId` is the pricing-catalog key, not the vendor id: the worker
+    // registers the operation as `eleven-text-to-dialogue` while the vendor
+    // model behind it is plain `eleven_v3`.
+    id: 'eleven-text-to-dialogue', name: 'Eleven Dialogue v3', modelId: 'eleven-text-to-dialogue',
+    addedAt: '2026-09-22',
+    workflow: 'elevenlabs/v1/text-to-dialogue',
+    estimatedTime: 12,
+    mode: 'audio', inputType: 'tts',
+    description: 'Generate a multi-speaker conversation — a voice per line — in one take.',
+    features: [feat('Multi-Speaker', 'characteristic'), feat('Creative Control', 'characteristic')],
+    paramConfig: {
+      // One entry per spoken line, in order. The vendor publishes no cap on the
+      // number of lines, so none is invented here.
+      //
+      // The 5,000-character limit is the vendor's hard cap and applies to the
+      // dialogue AS A WHOLE, which a per-field maxLength cannot express — a
+      // single line simply cannot exceed it either. Probed against the live
+      // `elevenlabs/v1/text-to-dialogue` worker: 10,000 characters are refused
+      // with "Request text length (10000) exceeds the maximum text length of
+      // 5000 characters", while 2,600 generate fine. The docs' "keep it at or
+      // below 2,000" is guidance, not a limit. Note the far end is slow: a
+      // 5,000-character dialogue outruns the worker's 120s vendor timeout.
+      dialogue: {
+        label: 'Dialogue',
+        required: true,
+        descriptor: {
+          kind: 'object',
+          array: { min: 1 },
+          fields: {
+            // A plain id, not a catalog-bound picker: catalog loading resolves
+            // top-level params only. Every ElevenLabs model shares one voices
+            // task, so a caller lists them from any TTS model — e.g.
+            // `ai.catalogs.voices('eleven-v3')` — and uses the ids here.
+            voiceId: { label: 'Voice ID', kind: 'text', placeholder: DEFAULT_VOICE_ID },
+            text: { label: 'Line', kind: 'text', maxLength: 5000 },
+          },
+        },
+      },
+      // The vendor takes any 0–1 double and defaults to 0.5; eleven_v3 reads the
+      // three presets below, so the picker offers those instead of a slider
+      // whose in-between values the engine rounds anyway.
+      ...p.enum<number>('stability', [
+        { id: 0, label: 'Creative' },
+        { id: 0.5, label: 'Natural' },
+        { id: 1, label: 'Robust' },
+      ], 0.5, { label: 'Stability' }),
+      ...params.language(false),
+      ...params.seed(4294967295),
+    },
   },
   // ── Sound Effects ─────────────────────────────────────────────────
   {
@@ -166,30 +237,30 @@ export const { MODELS } = defineModels('elevenlabs', [
     id: 'eleven-sts-v2', name: 'Eleven STS v2', modelId: 'eleven_english_sts_v2',
     addedAt: '2026-02-15',
     workflow: 'elevenlabs/v1/speech-to-speech',
-    buildPayload: buildElevenLabsSTSPayload('eleven_english_sts_v2'),
     estimatedTime: 15,
     mode: 'audio', inputType: 'sts',
     description: 'Swap your voice to a different speaker while keeping timing and emotion.',
     features: [feat('Voice Changer', 'characteristic'), feat('Emotion Preserved', 'characteristic')],
     paramConfig: {
       ...params.audioInput('Speech Audio', true),
-      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: 'elevenlabs/v1/catalog/voices' } }),
+      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: VOICE_CATALOG }),
       ...p.boolean('removeBackgroundNoise', false, 'Remove Background Noise'),
+      ...voiceSettingsParams(false),
     },
   },
   {
     id: 'eleven-multilingual-sts-v2', name: 'Eleven Multilingual STS v2', modelId: 'eleven_multilingual_sts_v2',
     addedAt: '2026-02-15',
     workflow: 'elevenlabs/v1/speech-to-speech',
-    buildPayload: buildElevenLabsSTSPayload('eleven_multilingual_sts_v2'),
     estimatedTime: 15,
     mode: 'audio', inputType: 'sts',
     description: 'Voice swap across 29 languages — preserves emotion and cadence.',
     features: [feat('Voice Changer', 'characteristic'), feat('Multilingual', 'characteristic'), feat('29 Languages', 'characteristic')],
     paramConfig: {
       ...params.audioInput('Speech Audio', true),
-      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: { workflow: 'elevenlabs/v1/catalog/voices' } }),
+      ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: VOICE_CATALOG }),
       ...p.boolean('removeBackgroundNoise', false, 'Remove Background Noise'),
+      ...voiceSettingsParams(false),
     },
   },
   // ── Audio Processing ────────────────────────────────────────────

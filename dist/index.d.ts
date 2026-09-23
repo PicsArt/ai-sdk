@@ -191,20 +191,47 @@ type ModelInputById = {
         audioUrl: string;
         voiceId?: string;
         removeBackgroundNoise?: boolean;
+        stability?: number;
+        similarityBoost?: number;
+        styleExaggeration?: number;
+        speed?: number;
     };
     "eleven-multilingual-v2": {
         prompt: string;
         voiceId?: string;
+        stability?: number;
+        similarityBoost?: number;
+        styleExaggeration?: number;
+        speed?: number;
+        useSpeakerBoost?: boolean;
     };
     "eleven-sts-v2": {
         audioUrl: string;
         voiceId?: string;
         removeBackgroundNoise?: boolean;
+        stability?: number;
+        similarityBoost?: number;
+        styleExaggeration?: number;
+        speed?: number;
+    };
+    "eleven-text-to-dialogue": {
+        dialogue: Array<{
+            voiceId: string;
+            text: string;
+        }>;
+        stability?: 0 | 0.5 | 1;
+        language?: string;
+        seed?: number;
     };
     "eleven-v3": {
         language?: string;
         prompt: string;
         voiceId?: string;
+        stability?: number;
+        similarityBoost?: number;
+        styleExaggeration?: number;
+        speed?: number;
+        useSpeakerBoost?: boolean;
     };
     "eleven-voice-create": {
         prompt: string;
@@ -2977,6 +3004,7 @@ declare const Models: {
     readonly ElevenMultilingualStsV2: "eleven-multilingual-sts-v2";
     readonly ElevenMultilingualV2: "eleven-multilingual-v2";
     readonly ElevenStsV2: "eleven-sts-v2";
+    readonly ElevenTextToDialogue: "eleven-text-to-dialogue";
     readonly ElevenV3: "eleven-v3";
     readonly ElevenVoiceCreate: "eleven-voice-create";
     readonly ElevenVoiceDesignV2: "eleven-voice-design-v2";

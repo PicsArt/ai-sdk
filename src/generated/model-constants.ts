@@ -48,6 +48,8 @@ export const ElevenMultilingualStsV2 = 'eleven-multilingual-sts-v2' as const;
 export const ElevenMultilingualV2 = 'eleven-multilingual-v2' as const;
 /** Eleven STS v2 — elevenlabs (audio) */
 export const ElevenStsV2 = 'eleven-sts-v2' as const;
+/** Eleven Dialogue v3 — elevenlabs (audio) */
+export const ElevenTextToDialogue = 'eleven-text-to-dialogue' as const;
 /** Eleven v3 — elevenlabs (audio) */
 export const ElevenV3 = 'eleven-v3' as const;
 /** Eleven Voice Previews — elevenlabs (audio) */
@@ -531,6 +533,7 @@ export const Models = {
   ElevenMultilingualStsV2,
   ElevenMultilingualV2,
   ElevenStsV2,
+  ElevenTextToDialogue,
   ElevenV3,
   ElevenVoiceCreate,
   ElevenVoiceDesignV2,

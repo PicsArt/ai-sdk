@@ -22,10 +22,11 @@ export type ModelInputById = {
   "creatify-boreal": { prompt: string; imageUrls?: string[]; audioUrl?: string; negativePrompt?: string; resolution?: "720p" | "1080p" | "2k"; aspectRatio?: "auto" | "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; duration?: number; manifestDisclosure?: boolean; };
   "eleven-audio-isolation": { audioUrl: string; };
   "eleven-dubbing": { audioUrl: string; language: string; };
-  "eleven-multilingual-sts-v2": { audioUrl: string; voiceId?: string; removeBackgroundNoise?: boolean; };
-  "eleven-multilingual-v2": { prompt: string; voiceId?: string; };
-  "eleven-sts-v2": { audioUrl: string; voiceId?: string; removeBackgroundNoise?: boolean; };
-  "eleven-v3": { language?: string; prompt: string; voiceId?: string; };
+  "eleven-multilingual-sts-v2": { audioUrl: string; voiceId?: string; removeBackgroundNoise?: boolean; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; };
+  "eleven-multilingual-v2": { prompt: string; voiceId?: string; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; useSpeakerBoost?: boolean; };
+  "eleven-sts-v2": { audioUrl: string; voiceId?: string; removeBackgroundNoise?: boolean; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; };
+  "eleven-text-to-dialogue": { dialogue: Array<{ voiceId: string; text: string }>; stability?: 0 | 0.5 | 1; language?: string; seed?: number; };
+  "eleven-v3": { language?: string; prompt: string; voiceId?: string; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; useSpeakerBoost?: boolean; };
   "eleven-voice-create": { prompt: string; };
   "eleven-voice-design-v2": { prompt: string; };
   "eleven-voice-design-v3": { prompt: string; };

@@ -7,7 +7,7 @@
  * (`playgroundFilteredModels`) was dropped — it doesn't exist in this repo.
  */
 import { ALL_MODELS, getModelsByMode, isVisibleForReleases } from '../../../src';
-import type { ModelDefinition, GenerationMode } from '../../../src';
+import type { ModelDefinition, GenerationMode, ObjectDescriptor } from '../../../src';
 
 export interface CatalogFilter {
   vendor?: string;
@@ -130,10 +130,49 @@ function buildDefaultContext(model: ModelDefinition): Record<string, unknown> {
           ctx[key] = d.array ? [asset.url] : asset.url;
         }
         break;
+      case 'object':
+        // A required object param (a dialogue turn, a camera keyframe) has to
+        // be synthesized field by field — without it the model's builder reads
+        // `.map` off undefined and the run dies before /options is ever called.
+        // An array gets as many items as its `min` demands; optional params
+        // stay out entirely, like files.
+        if (entry.required) ctx[key] = buildObjectValue(d);
+        break;
     }
   }
 
   return ctx;
+}
+
+/** An object param's value: a single item, or as many as the array's `min` demands. */
+function buildObjectValue(d: ObjectDescriptor): unknown {
+  if (!d.array) return buildObjectItem(d.fields);
+  const count = Math.max(1, d.array.min ?? 1);
+  return Array.from({ length: count }, () => buildObjectItem(d.fields));
+}
+
+/** One synthesized value per nested field, using the same rules as the top level. */
+function buildObjectItem(fields: ObjectDescriptor['fields']): Record<string, unknown> {
+  const item: Record<string, unknown> = {};
+  for (const [key, field] of Object.entries(fields)) {
+    switch (field.kind) {
+      case 'text':
+        // A placeholder is a real sample (a voice id, say); prose placeholders
+        // never reach here, since only nested fields use this path.
+        item[key] = field.placeholder ?? 'sample text';
+        break;
+      case 'file':
+        item[key] = (TEST_ASSETS[field.accept] ?? TEST_ASSETS.image).url;
+        break;
+      case 'object':
+        item[key] = buildObjectValue(field);
+        break;
+      default:
+        // enum / catalog / range / boolean all carry their own default.
+        if (field.default !== undefined) item[key] = field.default;
+    }
+  }
+  return item;
 }
 
 /** Optional file params for a model — matrix uses these for with/without variants. */

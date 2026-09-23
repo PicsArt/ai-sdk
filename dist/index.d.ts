@@ -879,6 +879,28 @@ type ModelInputById = {
         startTime?: number;
         videoUrl: string;
     };
+    "ltx-v2.5-fast": {
+        prompt: string;
+        duration?: 6 | 8 | 10 | 12 | 14 | 16 | 18 | 20;
+        resolution?: "720p" | "1080p" | "1440p" | "2160p";
+        aspectRatio?: "16:9" | "9:16";
+        fps?: 24 | 25 | 48 | 50;
+        cameraMotion?: "none" | "static" | "dolly_in" | "dolly_out" | "dolly_left" | "dolly_right" | "jib_up" | "jib_down" | "focus_shift";
+        generateAudio?: boolean;
+        startFrame?: string;
+        endFrame?: string;
+    };
+    "ltx-v2.5-pro": {
+        prompt: string;
+        duration?: 6 | 8 | 10;
+        resolution?: "720p" | "1080p";
+        aspectRatio?: "16:9" | "9:16";
+        fps?: 24 | 25 | 50;
+        cameraMotion?: "none" | "static" | "dolly_in" | "dolly_out" | "dolly_left" | "dolly_right" | "jib_up" | "jib_down" | "focus_shift";
+        generateAudio?: boolean;
+        startFrame?: string;
+        endFrame?: string;
+    };
     "luma-ray-2": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "9:21";
@@ -3101,6 +3123,8 @@ declare const Models: {
     readonly LtxV23Fast: "ltx-v2.3-fast";
     readonly LtxV23Pro: "ltx-v2.3-pro";
     readonly LtxV23Retake: "ltx-v2.3-retake";
+    readonly LtxV25Fast: "ltx-v2.5-fast";
+    readonly LtxV25Pro: "ltx-v2.5-pro";
     readonly LumaRay2: "luma-ray-2";
     readonly LumaRay2ReframeVideo: "luma-ray-2-reframe-video";
     readonly LumaRay32: "luma-ray-3.2";

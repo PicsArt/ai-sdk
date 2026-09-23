@@ -2111,6 +2111,30 @@ var LTX_RESOLUTIONS = ["1080p", "1440p", "2160p"];
 var LTX_23_AR = ["16:9", "9:16"];
 var LTX_23_FPS = [24, 25, 48, 50];
 var LTX_PROMPT_MAX = 5e3;
+var LTX_25_AR = ["16:9", "9:16"];
+var LTX_25_PRO_RESOLUTIONS = ["720p", "1080p"];
+var LTX_25_FAST_RESOLUTIONS = ["720p", "1080p", "1440p", "2160p"];
+var LTX_25_PRO_FPS = [24, 25, 50];
+var LTX_25_FAST_FPS = [24, 25, 48, 50];
+var LTX_25_CAMERA_MOTIONS = [
+  { id: "none", label: "None" },
+  { id: "static", label: "Static" },
+  { id: "dolly_in", label: "Dolly In" },
+  { id: "dolly_out", label: "Dolly Out" },
+  { id: "dolly_left", label: "Dolly Left" },
+  { id: "dolly_right", label: "Dolly Right" },
+  { id: "jib_up", label: "Jib Up" },
+  { id: "jib_down", label: "Jib Down" },
+  { id: "focus_shift", label: "Focus Shift" }
+];
+var LTX_25_FAST_LONG = "Videos longer than 10s render at 720p/1080p and 24 or 25 fps.";
+var ltx25FastLongConstraints = [12, 14, 16, 18, 20].map((d) => ({
+  when: { duration: { is: d } },
+  then: {
+    resolution: { allowed: ["720p", "1080p"], reason: LTX_25_FAST_LONG },
+    fps: { allowed: [24, 25], reason: LTX_25_FAST_LONG }
+  }
+}));
 var FAST_LONG = "Videos longer than 10s render at 1080p / 25 fps.";
 var ltxFastLongConstraints = [12, 14, 16, 18, 20].map((d) => ({
   when: { duration: { is: d } },
@@ -2387,6 +2411,74 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
       },
       ...params.videoInput("Source Video")
     }
+  },
+  // ── LTX 2.5 ──────────────────────────────────────────────────────
+  // One entry per tier: text-to-video on `workflow`, image-to-video on
+  // `editWorkflow`. A start or end frame is what routes a call to the image
+  // side (see `resolvePayloadBuild`), and `end_image_url` — a transition from
+  // the start frame to the end one — exists only there.
+  {
+    id: "ltx-v2.5-pro",
+    name: "LTX 2.5 Pro",
+    modelId: "fal-ai-ltx-2.5-pro",
+    addedAt: "2026-09-23",
+    workflow: "lightricks/ltx-2.5/text-to-video/pro",
+    editWorkflow: "lightricks/ltx-2.5/image-to-video/pro",
+    estimatedTime: 75,
+    editEstimatedTime: 78,
+    mode: "video",
+    inputType: "t2v",
+    description: "Quality-optimized 2.5 with synchronized native audio in a single pass \u2014 720p/1080p, 6-10s, with camera motion control.",
+    features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("End Frame", "frame"), feat("Audio", "audio"), feat("Camera Motion", "characteristic"), feat("6/8/10 sec", "duration")],
+    paramConfig: {
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
+      ...params.duration(PRO_DURATIONS, 6),
+      ...params.resolution(LTX_25_PRO_RESOLUTIONS, "1080p"),
+      ...params.aspectRatio(LTX_25_AR),
+      ...p.enum("fps", LTX_25_PRO_FPS, 25, { label: "FPS" }),
+      ...p.enum("cameraMotion", LTX_25_CAMERA_MOTIONS, "none", { label: "Camera Motion" }),
+      ...params.generateAudio(),
+      ...params.startFrame("Start Frame"),
+      ...params.endFrame()
+    },
+    constraints: [
+      // end_image_url exists only on the I2V route, which a start frame triggers.
+      { when: { startFrame: { exists: false } }, then: {
+        endFrame: { disabled: true, reason: "An end frame requires a start image." }
+      } }
+    ]
+  },
+  {
+    id: "ltx-v2.5-fast",
+    name: "LTX 2.5 Fast",
+    modelId: "fal-ai-ltx-2.5-fast",
+    addedAt: "2026-09-23",
+    workflow: "lightricks/ltx-2.5/text-to-video/fast",
+    editWorkflow: "lightricks/ltx-2.5/image-to-video/fast",
+    estimatedTime: 38,
+    editEstimatedTime: 40,
+    mode: "video",
+    inputType: "t2v",
+    description: "Speed-optimized 2.5 with synchronized native audio \u2014 up to 4K, up to 20s, with camera motion control.",
+    features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("End Frame", "frame"), feat("Fast", "duration"), feat("Up to 20s", "duration"), feat("Audio", "audio"), feat("4K", "resolution"), feat("Camera Motion", "characteristic")],
+    paramConfig: {
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
+      ...params.duration(FAST_DURATIONS, 6),
+      ...params.resolution(LTX_25_FAST_RESOLUTIONS, "1080p"),
+      ...params.aspectRatio(LTX_25_AR),
+      ...p.enum("fps", LTX_25_FAST_FPS, 25, { label: "FPS" }),
+      ...p.enum("cameraMotion", LTX_25_CAMERA_MOTIONS, "none", { label: "Camera Motion" }),
+      ...params.generateAudio(),
+      ...params.startFrame("Start Frame"),
+      ...params.endFrame()
+    },
+    constraints: [
+      ...ltx25FastLongConstraints,
+      // end_image_url exists only on the I2V route, which a start frame triggers.
+      { when: { startFrame: { exists: false } }, then: {
+        endFrame: { disabled: true, reason: "An end frame requires a start image." }
+      } }
+    ]
   }
 ]);
 
@@ -9642,6 +9734,81 @@ registerPayloads(MODELS3, {
   "creatify-boreal": buildCreatifyBorealPayload
 });
 
+// src/vendors/catalog/ltx.payloads.ts
+function requireStartFrame(input) {
+  if (!input.startFrame) {
+    throw new ApiError("LTX 2.5: an end frame requires a start image.", {
+      status: 400,
+      code: "validation_error"
+    });
+  }
+  return input.startFrame;
+}
+var buildLtx25ProT2VPayload = (input) => ({
+  prompt: input.prompt,
+  ...input.duration != null ? { duration: input.duration } : {},
+  ...input.resolution ? { resolution: input.resolution } : {},
+  ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
+  ...input.fps != null ? { fps: input.fps } : {},
+  // `none` is the paramConfig sentinel for "leave the camera alone": the wire
+  // has no such value and omitting the field is the vendor's default. Spelled
+  // out per builder rather than shared, so the check narrows the literal union
+  // instead of widening it to `string`. (`static` is a real, locked-off camera.)
+  ...input.cameraMotion && input.cameraMotion !== "none" ? { camera_motion: input.cameraMotion } : {},
+  generate_audio: input.generateAudio ?? true
+});
+var buildLtx25ProI2VPayload = (input) => ({
+  prompt: input.prompt,
+  image_url: requireStartFrame(input),
+  ...input.endFrame ? { end_image_url: input.endFrame } : {},
+  ...input.duration != null ? { duration: input.duration } : {},
+  ...input.resolution ? { resolution: input.resolution } : {},
+  ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
+  ...input.fps != null ? { fps: input.fps } : {},
+  // `none` is the paramConfig sentinel for "leave the camera alone": the wire
+  // has no such value and omitting the field is the vendor's default. Spelled
+  // out per builder rather than shared, so the check narrows the literal union
+  // instead of widening it to `string`. (`static` is a real, locked-off camera.)
+  ...input.cameraMotion && input.cameraMotion !== "none" ? { camera_motion: input.cameraMotion } : {},
+  generate_audio: input.generateAudio ?? true
+});
+var buildLtx25FastT2VPayload = (input) => ({
+  prompt: input.prompt,
+  ...input.duration != null ? { duration: input.duration } : {},
+  ...input.resolution ? { resolution: input.resolution } : {},
+  ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
+  ...input.fps != null ? { fps: input.fps } : {},
+  // `none` is the paramConfig sentinel for "leave the camera alone": the wire
+  // has no such value and omitting the field is the vendor's default. Spelled
+  // out per builder rather than shared, so the check narrows the literal union
+  // instead of widening it to `string`. (`static` is a real, locked-off camera.)
+  ...input.cameraMotion && input.cameraMotion !== "none" ? { camera_motion: input.cameraMotion } : {},
+  generate_audio: input.generateAudio ?? true
+});
+var buildLtx25FastI2VPayload = (input) => ({
+  prompt: input.prompt,
+  image_url: requireStartFrame(input),
+  ...input.endFrame ? { end_image_url: input.endFrame } : {},
+  ...input.duration != null ? { duration: input.duration } : {},
+  ...input.resolution ? { resolution: input.resolution } : {},
+  ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
+  ...input.fps != null ? { fps: input.fps } : {},
+  // `none` is the paramConfig sentinel for "leave the camera alone": the wire
+  // has no such value and omitting the field is the vendor's default. Spelled
+  // out per builder rather than shared, so the check narrows the literal union
+  // instead of widening it to `string`. (`static` is a real, locked-off camera.)
+  ...input.cameraMotion && input.cameraMotion !== "none" ? { camera_motion: input.cameraMotion } : {},
+  generate_audio: input.generateAudio ?? true
+});
+registerPayloads(MODELS2, {
+  "ltx-v2.5-pro": buildLtx25ProT2VPayload,
+  "ltx-v2.5-fast": buildLtx25FastT2VPayload
+});
+registerEditPayloads(MODELS2, {
+  "ltx-v2.5-pro": buildLtx25ProI2VPayload,
+  "ltx-v2.5-fast": buildLtx25FastI2VPayload
+});
+
 // src/vendors/catalog/index.ts
 var ALL_MODELS = [
   ...MODELS,
@@ -12307,6 +12474,8 @@ var LtxV23Extend = "ltx-v2.3-extend";
 var LtxV23Fast = "ltx-v2.3-fast";
 var LtxV23Pro = "ltx-v2.3-pro";
 var LtxV23Retake = "ltx-v2.3-retake";
+var LtxV25Fast = "ltx-v2.5-fast";
+var LtxV25Pro = "ltx-v2.5-pro";
 var LumaRay2 = "luma-ray-2";
 var LumaRay2ReframeVideo = "luma-ray-2-reframe-video";
 var LumaRay32 = "luma-ray-3.2";
@@ -12548,6 +12717,8 @@ var Models = {
   LtxV23Fast,
   LtxV23Pro,
   LtxV23Retake,
+  LtxV25Fast,
+  LtxV25Pro,
   LumaRay2,
   LumaRay2ReframeVideo,
   LumaRay32,

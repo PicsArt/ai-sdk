@@ -3,11 +3,16 @@
  *
  * LTX 2.0 models (ltxv-2/*) — Pro/Fast/Retake.
  * LTX 2.3 models (ltx-2.3/*) — upgraded Pro/Fast + new A2V & Extend capabilities.
+ * LTX 2.5 models (lightricks/ltx-2.5/*) — Pro/Fast only, no A2V/Extend/Retake.
  *
  * GOTCHA: 2.0 Retake workflow is `ltx-2/retake-video` NOT `ltxv-2/retake-video`.
  * NOTE: Pro supports duration [6,8,10], Fast supports long videos up to 20s.
  * NOTE: Fast long videos (>10s) require 25 FPS and 1080p resolution.
  * NOTE: 2.3 adds aspect_ratio and fps params to Pro/Fast workflows.
+ * NOTE: 2.5 lives under the `lightricks/` namespace, adds 720p and a camera
+ *   motion picker, and narrows Pro to 720p/1080p — so it does not supersede
+ *   2.3, whose Pro still reaches 1440p/2160p and which owns A2V/Extend/Retake.
+ *   2.5 builders live in the sibling `ltx.payloads.ts`.
  */
 import type { Constraint, PayloadBuilder } from '../../core/types.ts';
 import { ApiError } from '../../core/errors.ts';
@@ -23,6 +28,42 @@ const LTX_23_FPS = [24, 25, 48, 50];
 /** fal caps `prompt` at 5,000 characters on every LTX-2 and LTX-2.3 endpoint
  *  (text-to-video, fast, audio-to-video, extend, retake). */
 const LTX_PROMPT_MAX = 5000;
+
+// ── LTX 2.5 ──
+// Pro caps at 1080p / 10s; Fast reaches 2160p and 20s. Durations are the same
+// ladders 2.0/2.3 use, so PRO_DURATIONS / FAST_DURATIONS are reused below.
+// 2.5's image route also accepts 'auto' (match the input image); as in 2.3 the
+// combined entry offers one ratio list, so the explicit pair is what ships.
+const LTX_25_AR = ['16:9', '9:16'];
+const LTX_25_PRO_RESOLUTIONS = ['720p', '1080p'];
+const LTX_25_FAST_RESOLUTIONS = ['720p', '1080p', '1440p', '2160p'];
+const LTX_25_PRO_FPS = [24, 25, 50];
+const LTX_25_FAST_FPS = [24, 25, 48, 50];
+/** `none` is a sentinel, not a wire value — the payload builder drops it.
+ *  `static` is a real mode (a deliberately locked-off camera). */
+const LTX_25_CAMERA_MOTIONS = [
+  { id: 'none', label: 'None' },
+  { id: 'static', label: 'Static' },
+  { id: 'dolly_in', label: 'Dolly In' },
+  { id: 'dolly_out', label: 'Dolly Out' },
+  { id: 'dolly_left', label: 'Dolly Left' },
+  { id: 'dolly_right', label: 'Dolly Right' },
+  { id: 'jib_up', label: 'Jib Up' },
+  { id: 'jib_down', label: 'Jib Down' },
+  { id: 'focus_shift', label: 'Focus Shift' },
+];
+
+// fal rule (2.5 Fast only, and different from the 2.3 one): past 10s the wire
+// accepts 720p/1080p at 24 or 25 fps. 1440p/2160p and the high frame rates all
+// stop at 10s.
+const LTX_25_FAST_LONG = 'Videos longer than 10s render at 720p/1080p and 24 or 25 fps.';
+const ltx25FastLongConstraints: Constraint[] = [12, 14, 16, 18, 20].map((d) => ({
+  when: { duration: { is: d } },
+  then: {
+    resolution: { allowed: ['720p', '1080p'], reason: LTX_25_FAST_LONG },
+    fps: { allowed: [24, 25], reason: LTX_25_FAST_LONG },
+  },
+}));
 
 // fal rule: Fast videos longer than 10s render only at 1080p / 25 fps.
 const FAST_LONG = 'Videos longer than 10s render at 1080p / 25 fps.';
@@ -292,5 +333,66 @@ export const { MODELS } = defineModels('ltx', [
       },
       ...params.videoInput('Source Video'),
     },
+  },
+
+  // ── LTX 2.5 ──────────────────────────────────────────────────────
+  // One entry per tier: text-to-video on `workflow`, image-to-video on
+  // `editWorkflow`. A start or end frame is what routes a call to the image
+  // side (see `resolvePayloadBuild`), and `end_image_url` — a transition from
+  // the start frame to the end one — exists only there.
+  {
+    id: 'ltx-v2.5-pro', name: 'LTX 2.5 Pro', modelId: 'fal-ai-ltx-2.5-pro',
+    addedAt: '2026-09-23',
+    workflow: 'lightricks/ltx-2.5/text-to-video/pro',
+    editWorkflow: 'lightricks/ltx-2.5/image-to-video/pro',
+    estimatedTime: 75, editEstimatedTime: 78,
+    mode: 'video', inputType: 't2v',
+    description: 'Quality-optimized 2.5 with synchronized native audio in a single pass — 720p/1080p, 6-10s, with camera motion control.',
+    features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('End Frame', 'frame'), feat('Audio', 'audio'), feat('Camera Motion', 'characteristic'), feat('6/8/10 sec', 'duration')],
+    paramConfig: {
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
+      ...params.duration(PRO_DURATIONS, 6),
+      ...params.resolution(LTX_25_PRO_RESOLUTIONS, '1080p'),
+      ...params.aspectRatio(LTX_25_AR),
+      ...p.enum('fps', LTX_25_PRO_FPS, 25, { label: 'FPS' }),
+      ...p.enum('cameraMotion', LTX_25_CAMERA_MOTIONS, 'none', { label: 'Camera Motion' }),
+      ...params.generateAudio(),
+      ...params.startFrame('Start Frame'),
+      ...params.endFrame(),
+    },
+    constraints: [
+      // end_image_url exists only on the I2V route, which a start frame triggers.
+      { when: { startFrame: { exists: false } }, then: {
+        endFrame: { disabled: true, reason: 'An end frame requires a start image.' },
+      } },
+    ],
+  },
+  {
+    id: 'ltx-v2.5-fast', name: 'LTX 2.5 Fast', modelId: 'fal-ai-ltx-2.5-fast',
+    addedAt: '2026-09-23',
+    workflow: 'lightricks/ltx-2.5/text-to-video/fast',
+    editWorkflow: 'lightricks/ltx-2.5/image-to-video/fast',
+    estimatedTime: 38, editEstimatedTime: 40,
+    mode: 'video', inputType: 't2v',
+    description: 'Speed-optimized 2.5 with synchronized native audio — up to 4K, up to 20s, with camera motion control.',
+    features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('End Frame', 'frame'), feat('Fast', 'duration'), feat('Up to 20s', 'duration'), feat('Audio', 'audio'), feat('4K', 'resolution'), feat('Camera Motion', 'characteristic')],
+    paramConfig: {
+      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
+      ...params.duration(FAST_DURATIONS, 6),
+      ...params.resolution(LTX_25_FAST_RESOLUTIONS, '1080p'),
+      ...params.aspectRatio(LTX_25_AR),
+      ...p.enum('fps', LTX_25_FAST_FPS, 25, { label: 'FPS' }),
+      ...p.enum('cameraMotion', LTX_25_CAMERA_MOTIONS, 'none', { label: 'Camera Motion' }),
+      ...params.generateAudio(),
+      ...params.startFrame('Start Frame'),
+      ...params.endFrame(),
+    },
+    constraints: [
+      ...ltx25FastLongConstraints,
+      // end_image_url exists only on the I2V route, which a start frame triggers.
+      { when: { startFrame: { exists: false } }, then: {
+        endFrame: { disabled: true, reason: 'An end frame requires a start image.' },
+      } },
+    ],
   },
 ]);

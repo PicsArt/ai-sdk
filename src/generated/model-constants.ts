@@ -248,6 +248,10 @@ export const LtxV23Fast = 'ltx-v2.3-fast' as const;
 export const LtxV23Pro = 'ltx-v2.3-pro' as const;
 /** LTX 2.3 Retake — ltx (video) */
 export const LtxV23Retake = 'ltx-v2.3-retake' as const;
+/** LTX 2.5 Fast — ltx (video) */
+export const LtxV25Fast = 'ltx-v2.5-fast' as const;
+/** LTX 2.5 Pro — ltx (video) */
+export const LtxV25Pro = 'ltx-v2.5-pro' as const;
 /** Luma Ray 2 — luma (video) */
 export const LumaRay2 = 'luma-ray-2' as const;
 /** Luma Ray 2 Reframe — luma (video) */
@@ -630,6 +634,8 @@ export const Models = {
   LtxV23Fast,
   LtxV23Pro,
   LtxV23Retake,
+  LtxV25Fast,
+  LtxV25Pro,
   LumaRay2,
   LumaRay2ReframeVideo,
   LumaRay32,

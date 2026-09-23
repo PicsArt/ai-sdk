@@ -56,6 +56,7 @@ import './captionsai.payloads.ts'; // registers the video-captions payload build
 import { MODELS as metaMODELS } from './meta.ts';
 import './meta.payloads.ts'; // registers the Muse Image payload builders after model definitions
 import './creatify.payloads.ts'; // registers the Creatify Boreal payload builder after model definitions
+import './ltx.payloads.ts'; // registers the LTX 2.5 payload builders after model definitions
 
 /**
  * All models from all vendors.

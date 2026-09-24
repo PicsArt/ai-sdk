@@ -5,6 +5,7 @@
 import type { Constraint, PayloadBuilder } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
+import { H3_AUDIO_BOUNDS, H3_IMAGE_BOUNDS, H3_VIDEO_BOUNDS } from './minimax.ts';
 
 /** T2V payload — prompt + prompt_optimizer + optional duration (standard only). */
 const buildT2V = (withDuration: boolean): PayloadBuilder => (ctx) => ({
@@ -175,11 +176,13 @@ export const { MODELS } = defineModels('minimax', [
     ],
     paramConfig: {
       ...params.prompt({ maxLength: 7000 }),
-      ...params.startFrame(),
-      ...params.endFrame(),
-      ...params.imageInput(9, 'Reference Images', false),
-      ...params.videoInputs(3, 'Reference Videos', false),
-      ...params.audioInputs(3, 'Reference Audios', false),
+      // Same per-file limits as H3 Max (minimax.ts): the vendor prints the
+      // same numbers on this endpoint.
+      ...params.startFrame('Start Frame', false, H3_IMAGE_BOUNDS),
+      ...params.endFrame('End Frame', H3_IMAGE_BOUNDS),
+      ...params.imageInput(9, 'Reference Images', false, 'reference', H3_IMAGE_BOUNDS),
+      ...params.videoInputs(3, 'Reference Videos', false, H3_VIDEO_BOUNDS),
+      ...params.audioInputs(3, 'Reference Audios', false, H3_AUDIO_BOUNDS),
       // Backend enum is case-insensitive (['768P','2K','768p','2k']); the
       // uppercase forms are canonical.
       ...params.resolution(['768P', '2K'], '2K'),

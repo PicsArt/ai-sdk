@@ -4,6 +4,7 @@
  */
 import type { Constraint, PayloadBuilder, Restriction } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
+import type { AudioBounds, ImageBounds, VideoBounds } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 
 /** Music v2 — `lyrics` is optional: instrumental mode and the lyrics
@@ -23,6 +24,23 @@ export const buildMinimaxMusicPayload: PayloadBuilder = (ctx) => ({
 /** H3 Max's schema caps the prompt at 50,000 — far above the 7,000 of
  *  MiniMax's own H3 endpoint (see hailuo.ts). */
 const H3_MAX_PROMPT_MAX = 50000;
+
+// ── H3 input-media limits (finding F74) ──────────────────────────────
+// The vendor's own numbers, read off its rejection text over 30 days
+// (e.g. "minimum dimensions are 256x256 pixels", "the aspect ratio of the
+// image should be between 0.4 and 2.5", "maximum is 15.0 seconds"). H3 on
+// MiniMax's own API (hailuo.ts) and H3 Max on fal print the same ones.
+// Neither worker checks them: both forward the files and the vendor refuses.
+// maxFrameRate is 60 against the vendor's 60.1925 on purpose. Not expressible
+// yet: the 15 s combined cap per modality, the ~23.9 fps floor on reference
+// video, and the audio format allowlist.
+export const H3_IMAGE_BOUNDS = {
+  minSidePixels: 256, maxSidePixels: 5760, minAspectRatio: 0.4, maxAspectRatio: 2.5,
+} satisfies ImageBounds;
+export const H3_VIDEO_BOUNDS = {
+  minDurationSec: 2, maxDurationSec: 15, maxFrameRate: 60, maxBytes: 52_428_800,
+} satisfies VideoBounds;
+export const H3_AUDIO_BOUNDS = { minDurationSec: 2, maxDurationSec: 15 } satisfies AudioBounds;
 
 // ── H3 Max constraint reasons (shared across the rules below) ────────
 const FRAME_REF_EXCLUSIVE = 'References and start/end frames cannot be combined.';
@@ -140,14 +158,14 @@ export const { MODELS } = defineModels('minimax', [
     ],
     paramConfig: {
       ...params.prompt({ maxLength: H3_MAX_PROMPT_MAX }),
-      ...params.startFrame(),
-      ...params.endFrame(),
-      // Reference slots — reference-to-video route. Clips are 2-15s each
-      // (≤15s combined per modality) and images + videos + audios must add up
-      // to ≤12 files — backend-enforced; only the per-array maxima live here.
-      ...params.imageInput(9, 'Reference Images'),
-      ...params.videoInputs(3, 'Reference Videos'),
-      ...params.audioInputs(3, 'Reference Audios'),
+      ...params.startFrame('Start Frame', false, H3_IMAGE_BOUNDS),
+      ...params.endFrame('End Frame', H3_IMAGE_BOUNDS),
+      // Reference slots, reference-to-video route. Per-file limits are
+      // declared; the ≤15s combined cap per modality and the ≤12 files across
+      // images + videos + audios stay backend-enforced.
+      ...params.imageInput(9, 'Reference Images', false, 'reference', H3_IMAGE_BOUNDS),
+      ...params.videoInputs(3, 'Reference Videos', false, H3_VIDEO_BOUNDS),
+      ...params.audioInputs(3, 'Reference Audios', false, H3_AUDIO_BOUNDS),
       // 1080p is a latent refinement of a native 768p generation.
       ...params.resolution(['480p', '768p', '1080p'], '768p'),
       ...params.durationRange(5, 15, 5),
@@ -176,8 +194,8 @@ export const { MODELS } = defineModels('minimax', [
     ],
     paramConfig: {
       ...params.prompt({ maxLength: H3_MAX_PROMPT_MAX }),
-      ...params.startFrame(),
-      ...params.endFrame(),
+      ...params.startFrame('Start Frame', false, H3_IMAGE_BOUNDS),
+      ...params.endFrame('End Frame', H3_IMAGE_BOUNDS),
       ...params.resolution(['480p', '768p', '1080p'], '768p'),
       ...params.durationRange(5, 15, 5),
       ...params.aspectRatio(['21:9', '16:9', '4:3', '1:1', '3:4', '9:16'], '16:9'),
@@ -220,7 +238,7 @@ export const { MODELS } = defineModels('minimax', [
         required: false,
         placeholder: 'Optional — leave blank to freeze the scene and move only the camera...',
       }),
-      ...params.startFrame('Start Frame', true),
+      ...params.startFrame('Start Frame', true, H3_IMAGE_BOUNDS),
       // Native 480p default here (the siblings default to 768p); 1080p is a
       // latent refinement of a native 768p generation.
       ...params.resolution(['480p', '768p', '1080p'], '480p'),

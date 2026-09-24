@@ -46,12 +46,16 @@ export const ElevenDubbing = 'eleven-dubbing' as const;
 export const ElevenMultilingualStsV2 = 'eleven-multilingual-sts-v2' as const;
 /** Eleven Multilingual v2 — elevenlabs (audio) */
 export const ElevenMultilingualV2 = 'eleven-multilingual-v2' as const;
+/** Eleven Scribe v2 — elevenlabs (text) */
+export const ElevenSpeechToText = 'eleven-speech-to-text' as const;
 /** Eleven STS v2 — elevenlabs (audio) */
 export const ElevenStsV2 = 'eleven-sts-v2' as const;
 /** Eleven Dialogue v3 — elevenlabs (audio) */
 export const ElevenTextToDialogue = 'eleven-text-to-dialogue' as const;
 /** Eleven v3 — elevenlabs (audio) */
 export const ElevenV3 = 'eleven-v3' as const;
+/** Eleven Video to Music — elevenlabs (audio) */
+export const ElevenVideoToMusic = 'eleven-video-to-music' as const;
 /** Eleven Voice Previews — elevenlabs (audio) */
 export const ElevenVoiceCreate = 'eleven-voice-create' as const;
 /** Eleven Voice Design Multilingual v2 — elevenlabs (audio) */
@@ -540,9 +544,11 @@ export const Models = {
   ElevenDubbing,
   ElevenMultilingualStsV2,
   ElevenMultilingualV2,
+  ElevenSpeechToText,
   ElevenStsV2,
   ElevenTextToDialogue,
   ElevenV3,
+  ElevenVideoToMusic,
   ElevenVoiceCreate,
   ElevenVoiceDesignV2,
   ElevenVoiceDesignV3,

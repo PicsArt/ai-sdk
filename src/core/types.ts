@@ -58,7 +58,8 @@ export type InputType =
   | 'music'
   | 't2t'
   | 'i2t'
-  | 'v2t';
+  | 'v2t'
+  | 'a2t';
 
 
 export interface ModelFeature {

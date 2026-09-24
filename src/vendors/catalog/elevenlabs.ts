@@ -121,6 +121,10 @@ const ttsParamConfig = (promptMaxLength: number, withLanguage: boolean) => ({
   ...params.prompt({ maxLength: promptMaxLength }),
   ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: VOICE_CATALOG }),
   ...voiceSettingsParams(true),
+  // Timings come back beside the audio, for captions and lip sync. Off by
+  // default: the vendor answers a different route that inlines the audio as
+  // base64, and callers who do not need timings should not pay the decode.
+  ...p.boolean('withTimestamps', false, 'Character Timings'),
 });
 
 export const { MODELS } = defineModels('elevenlabs', [
@@ -230,6 +234,50 @@ export const { MODELS } = defineModels('elevenlabs', [
       ...params.prompt({ maxLength: 4100 }),
       ...params.duration([10, 20, 30, 60, 120, 180, 300, 600], 30),
       ...p.boolean('isInstrumental', false, 'Instrumental Only'),
+    },
+  },
+  // ── Transcription ─────────────────────────────────────────────────
+  {
+    // `modelId` is the pricing-catalog key: the vendor id `scribe_v2` is not
+    // vendor-scoped, so pricing carries the `eleven_` prefix, as music does.
+    id: 'eleven-speech-to-text', name: 'Eleven Scribe v2', modelId: 'eleven_scribe_v2',
+    addedAt: '2026-09-24',
+    workflow: 'elevenlabs/v1/speech-to-text',
+    estimatedTime: 10,
+    mode: 'text', inputType: 'a2t',
+    description: 'Transcribe speech from audio or video, with word timings and speaker labels.',
+    features: [feat('Transcription', 'characteristic'), feat('Speaker Labels', 'characteristic')],
+    paramConfig: {
+      ...params.audioInput('Audio or Video', true),
+      // ISO 639-1 or 639-3. Left free text: the vendor detects the language on
+      // its own, and the closed list would be 99 entries of upkeep.
+      language: {
+        label: 'Language (ISO code, optional)',
+        descriptor: { kind: 'text', placeholder: 'e.g. en, rus — omit to auto-detect' },
+      },
+      ...p.boolean('diarize', false, 'Label Speakers'),
+      ...p.range('numSpeakers', 1, 32, 1, { step: 1, label: 'Speakers' }),
+      ...p.enum('timestampsGranularity', ['word', 'character'], 'word', { label: 'Timing Detail' }),
+      ...p.boolean('tagAudioEvents', false, 'Tag Audio Events'),
+      ...params.seed(2147483647),
+    },
+  },
+  // ── Video to Music ────────────────────────────────────────────────
+  {
+    // Same pricing model as music-generation — the same engine writes the
+    // track; what separates the two is the use case, `video-to-audio`.
+    id: 'eleven-video-to-music', name: 'Eleven Video to Music', modelId: 'eleven_music_v2',
+    addedAt: '2026-09-24',
+    workflow: 'elevenlabs/v1/video-to-music',
+    estimatedTime: 25,
+    mode: 'audio', inputType: 'v2a',
+    description: 'Score a video with a soundtrack written to follow what happens on screen.',
+    features: [feat('Video Scoring', 'characteristic'), feat('Soundtrack', 'characteristic')],
+    paramConfig: {
+      // The vendor takes up to ten clips, 200MB and 600 seconds in total, and
+      // scores them as one timeline.
+      ...params.videoInputs(10, 'Videos', true),
+      ...params.prompt({ maxLength: 1000, required: false, placeholder: 'How the soundtrack should sound' }),
     },
   },
   // ── Speech-to-Speech ──────────────────────────────────────────────

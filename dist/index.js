@@ -6937,7 +6937,11 @@ var ttsParamConfig = (promptMaxLength, withLanguage) => ({
   ...withLanguage ? params.language(false) : {},
   ...params.prompt({ maxLength: promptMaxLength }),
   ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: VOICE_CATALOG }),
-  ...voiceSettingsParams(true)
+  ...voiceSettingsParams(true),
+  // Timings come back beside the audio, for captions and lip sync. Off by
+  // default: the vendor answers a different route that inlines the audio as
+  // base64, and callers who do not need timings should not pay the decode.
+  ...p.boolean("withTimestamps", false, "Character Timings")
 });
 var { MODELS: MODELS24 } = defineModels("elevenlabs", [
   // ── TTS ───────────────────────────────────────────────────────────
@@ -7061,6 +7065,56 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
       ...params.prompt({ maxLength: 4100 }),
       ...params.duration([10, 20, 30, 60, 120, 180, 300, 600], 30),
       ...p.boolean("isInstrumental", false, "Instrumental Only")
+    }
+  },
+  // ── Transcription ─────────────────────────────────────────────────
+  {
+    // `modelId` is the pricing-catalog key: the vendor id `scribe_v2` is not
+    // vendor-scoped, so pricing carries the `eleven_` prefix, as music does.
+    id: "eleven-speech-to-text",
+    name: "Eleven Scribe v2",
+    modelId: "eleven_scribe_v2",
+    addedAt: "2026-09-24",
+    workflow: "elevenlabs/v1/speech-to-text",
+    estimatedTime: 10,
+    mode: "text",
+    inputType: "a2t",
+    description: "Transcribe speech from audio or video, with word timings and speaker labels.",
+    features: [feat("Transcription", "characteristic"), feat("Speaker Labels", "characteristic")],
+    paramConfig: {
+      ...params.audioInput("Audio or Video", true),
+      // ISO 639-1 or 639-3. Left free text: the vendor detects the language on
+      // its own, and the closed list would be 99 entries of upkeep.
+      language: {
+        label: "Language (ISO code, optional)",
+        descriptor: { kind: "text", placeholder: "e.g. en, rus \u2014 omit to auto-detect" }
+      },
+      ...p.boolean("diarize", false, "Label Speakers"),
+      ...p.range("numSpeakers", 1, 32, 1, { step: 1, label: "Speakers" }),
+      ...p.enum("timestampsGranularity", ["word", "character"], "word", { label: "Timing Detail" }),
+      ...p.boolean("tagAudioEvents", false, "Tag Audio Events"),
+      ...params.seed(2147483647)
+    }
+  },
+  // ── Video to Music ────────────────────────────────────────────────
+  {
+    // Same pricing model as music-generation — the same engine writes the
+    // track; what separates the two is the use case, `video-to-audio`.
+    id: "eleven-video-to-music",
+    name: "Eleven Video to Music",
+    modelId: "eleven_music_v2",
+    addedAt: "2026-09-24",
+    workflow: "elevenlabs/v1/video-to-music",
+    estimatedTime: 25,
+    mode: "audio",
+    inputType: "v2a",
+    description: "Score a video with a soundtrack written to follow what happens on screen.",
+    features: [feat("Video Scoring", "characteristic"), feat("Soundtrack", "characteristic")],
+    paramConfig: {
+      // The vendor takes up to ten clips, 200MB and 600 seconds in total, and
+      // scores them as one timeline.
+      ...params.videoInputs(10, "Videos", true),
+      ...params.prompt({ maxLength: 1e3, required: false, placeholder: "How the soundtrack should sound" })
     }
   },
   // ── Speech-to-Speech ──────────────────────────────────────────────
@@ -7227,6 +7281,7 @@ var buildElevenLabsTTSPayload = (modelId) => (input) => ({
   voice_id: input.voiceId ?? DEFAULT_VOICE_ID,
   model_id: modelId,
   ...input.language ? { language_code: input.language } : {},
+  ...input.withTimestamps ? { with_timestamps: true } : {},
   ...voiceSettings(input)
 });
 var buildElevenLabsSTSPayload = (modelId) => (input) => ({
@@ -7246,13 +7301,30 @@ var buildElevenLabsDialoguePayload = (input) => ({
   ...input.language ? { language_code: input.language } : {},
   ...input.seed != null ? { seed: input.seed } : {}
 });
+var buildElevenLabsTranscribePayload = (input) => ({
+  audio_url: input.audioUrl,
+  ...input.language ? { language_code: input.language } : {},
+  ...input.diarize ? { diarize: true } : {},
+  // Only meaningful alongside diarization, and only when the caller moved it
+  // off the default of one.
+  ...input.diarize && input.numSpeakers && input.numSpeakers > 1 ? { num_speakers: input.numSpeakers } : {},
+  ...input.timestampsGranularity ? { timestamps_granularity: input.timestampsGranularity } : {},
+  ...input.tagAudioEvents ? { tag_audio_events: true } : {},
+  ...input.seed != null ? { seed: input.seed } : {}
+});
+var buildElevenLabsVideoToMusicPayload = (input) => ({
+  video_urls: input.videoUrls,
+  ...input.prompt ? { description: input.prompt } : {}
+});
 registerPayloads(MODELS24, {
   "elevenlabs-music-v2": buildElevenLabsMusicPayload,
   "eleven-v3": buildElevenLabsTTSPayload("eleven_v3"),
   "eleven-multilingual-v2": buildElevenLabsTTSPayload("eleven_multilingual_v2"),
   "eleven-sts-v2": buildElevenLabsSTSPayload("eleven_english_sts_v2"),
   "eleven-multilingual-sts-v2": buildElevenLabsSTSPayload("eleven_multilingual_sts_v2"),
-  "eleven-text-to-dialogue": buildElevenLabsDialoguePayload
+  "eleven-text-to-dialogue": buildElevenLabsDialoguePayload,
+  "eleven-speech-to-text": buildElevenLabsTranscribePayload,
+  "eleven-video-to-music": buildElevenLabsVideoToMusicPayload
 });
 
 // src/vendors/catalog/heygen.ts
@@ -12587,9 +12659,11 @@ var ElevenAudioIsolation = "eleven-audio-isolation";
 var ElevenDubbing = "eleven-dubbing";
 var ElevenMultilingualStsV2 = "eleven-multilingual-sts-v2";
 var ElevenMultilingualV2 = "eleven-multilingual-v2";
+var ElevenSpeechToText = "eleven-speech-to-text";
 var ElevenStsV2 = "eleven-sts-v2";
 var ElevenTextToDialogue = "eleven-text-to-dialogue";
 var ElevenV3 = "eleven-v3";
+var ElevenVideoToMusic = "eleven-video-to-music";
 var ElevenVoiceCreate = "eleven-voice-create";
 var ElevenVoiceDesignV2 = "eleven-voice-design-v2";
 var ElevenVoiceDesignV3 = "eleven-voice-design-v3";
@@ -12832,9 +12906,11 @@ var Models = {
   ElevenDubbing,
   ElevenMultilingualStsV2,
   ElevenMultilingualV2,
+  ElevenSpeechToText,
   ElevenStsV2,
   ElevenTextToDialogue,
   ElevenV3,
+  ElevenVideoToMusic,
   ElevenVoiceCreate,
   ElevenVoiceDesignV2,
   ElevenVoiceDesignV3,

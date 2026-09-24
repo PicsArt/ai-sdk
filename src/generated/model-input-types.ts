@@ -23,10 +23,12 @@ export type ModelInputById = {
   "eleven-audio-isolation": { audioUrl: string; };
   "eleven-dubbing": { audioUrl: string; language: string; };
   "eleven-multilingual-sts-v2": { audioUrl: string; voiceId?: string; removeBackgroundNoise?: boolean; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; };
-  "eleven-multilingual-v2": { prompt: string; voiceId?: string; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; useSpeakerBoost?: boolean; };
+  "eleven-multilingual-v2": { prompt: string; voiceId?: string; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; useSpeakerBoost?: boolean; withTimestamps?: boolean; };
+  "eleven-speech-to-text": { audioUrl: string; language?: string; diarize?: boolean; numSpeakers?: number; timestampsGranularity?: "word" | "character"; tagAudioEvents?: boolean; seed?: number; };
   "eleven-sts-v2": { audioUrl: string; voiceId?: string; removeBackgroundNoise?: boolean; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; };
   "eleven-text-to-dialogue": { dialogue: Array<{ voiceId: string; text: string }>; stability?: 0 | 0.5 | 1; language?: string; seed?: number; };
-  "eleven-v3": { language?: string; prompt: string; voiceId?: string; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; useSpeakerBoost?: boolean; };
+  "eleven-v3": { language?: string; prompt: string; voiceId?: string; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; useSpeakerBoost?: boolean; withTimestamps?: boolean; };
+  "eleven-video-to-music": { videoUrls: [string, ...string[]]; prompt?: string; };
   "eleven-voice-create": { prompt: string; };
   "eleven-voice-design-v2": { prompt: string; };
   "eleven-voice-design-v3": { prompt: string; };
@@ -255,7 +257,7 @@ export type TypedModelId = keyof ModelInputById;
 export type ModelInput<M extends TypedModelId> = ModelInputById[M];
 
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
+export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
 export type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /** Ensure caller does not pass keys unsupported by the target model input shape. */

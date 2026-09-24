@@ -204,6 +204,16 @@ type ModelInputById = {
         styleExaggeration?: number;
         speed?: number;
         useSpeakerBoost?: boolean;
+        withTimestamps?: boolean;
+    };
+    "eleven-speech-to-text": {
+        audioUrl: string;
+        language?: string;
+        diarize?: boolean;
+        numSpeakers?: number;
+        timestampsGranularity?: "word" | "character";
+        tagAudioEvents?: boolean;
+        seed?: number;
     };
     "eleven-sts-v2": {
         audioUrl: string;
@@ -232,6 +242,11 @@ type ModelInputById = {
         styleExaggeration?: number;
         speed?: number;
         useSpeakerBoost?: boolean;
+        withTimestamps?: boolean;
+    };
+    "eleven-video-to-music": {
+        videoUrls: [string, ...string[]];
+        prompt?: string;
     };
     "eleven-voice-create": {
         prompt: string;
@@ -1885,7 +1900,7 @@ type ModelInputById = {
 type TypedModelId = keyof ModelInputById;
 type ModelInput<M extends TypedModelId> = ModelInputById[M];
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
+type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
 type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /**
@@ -2423,7 +2438,7 @@ type Provider = AppProvider;
 /** App generation modes. */
 type GenerationMode = 'video' | 'image' | 'audio' | 'text';
 /** App input types. */
-type InputType = 't2v' | 'i2v' | 'v2v' | 'a2v' | 't2i' | 'i2i' | 't2a' | 'v2a' | 'tts' | 'sts' | 'sfx' | 'music' | 't2t' | 'i2t' | 'v2t';
+type InputType = 't2v' | 'i2v' | 'v2v' | 'a2v' | 't2i' | 'i2i' | 't2a' | 'v2a' | 'tts' | 'sts' | 'sfx' | 'music' | 't2t' | 'i2t' | 'v2t' | 'a2t';
 interface ModelFeature {
     label: string;
     variant: 'frame' | 'resolution' | 'audio' | 'duration' | 'input' | 'quality' | 'style' | 'characteristic';
@@ -3083,9 +3098,11 @@ declare const Models: {
     readonly ElevenDubbing: "eleven-dubbing";
     readonly ElevenMultilingualStsV2: "eleven-multilingual-sts-v2";
     readonly ElevenMultilingualV2: "eleven-multilingual-v2";
+    readonly ElevenSpeechToText: "eleven-speech-to-text";
     readonly ElevenStsV2: "eleven-sts-v2";
     readonly ElevenTextToDialogue: "eleven-text-to-dialogue";
     readonly ElevenV3: "eleven-v3";
+    readonly ElevenVideoToMusic: "eleven-video-to-music";
     readonly ElevenVoiceCreate: "eleven-voice-create";
     readonly ElevenVoiceDesignV2: "eleven-voice-design-v2";
     readonly ElevenVoiceDesignV3: "eleven-voice-design-v3";

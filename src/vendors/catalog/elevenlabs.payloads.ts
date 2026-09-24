@@ -18,6 +18,8 @@ type MusicInput = ModelInput<'elevenlabs-music-v2'>;
 type TTSInput = ModelInput<'eleven-v3'>;
 type STSInput = ModelInput<'eleven-sts-v2'>;
 type DialogueInput = ModelInput<'eleven-text-to-dialogue'>;
+type TranscribeInput = ModelInput<'eleven-speech-to-text'>;
+type VideoToMusicInput = ModelInput<'eleven-video-to-music'>;
 
 // TODO: annotate the return as WorkflowTypes['elevenlabs/v1/music-generation']['params']
 // once the music-generation workflow ships in @picsart/workflows-types — it is not
@@ -61,6 +63,7 @@ const buildElevenLabsTTSPayload =
     voice_id: input.voiceId ?? DEFAULT_VOICE_ID,
     model_id: modelId as 'eleven_multilingual_v2' | 'eleven_v3',
     ...(input.language ? { language_code: input.language } : {}),
+    ...(input.withTimestamps ? { with_timestamps: true } : {}),
     ...voiceSettings(input),
   });
 
@@ -80,19 +83,14 @@ const buildElevenLabsSTSPayload =
  * `settings` (stability only; the TTS `voice_settings` shape is rejected by
  * the vendor's dialogue endpoint).
  *
- * Every builder here returns the WORKER COMMAND, not the vendor body: the
- * turns travel as `conversation`, which is what `TextToDialogueCommand`
- * declares, and the worker renames the field to the vendor's `inputs` before
- * calling ElevenLabs. Sending `inputs` from here fails the worker's own
- * validation — `conversation` is a required field.
- *
- * TODO: annotate the return as WorkflowTypes['elevenlabs/v1/text-to-dialogue']['params']
- * once the worker's `settings` / `model_id` fields ship in @picsart/workflows-types —
- * its TextToDialogueCommand carries neither as of 1.1.144. The annotation would
- * have made the field name compile-checked, the way the TTS and STS builders
- * above already are.
+ * Like every builder here this returns the WORKER COMMAND, not the vendor body:
+ * the turns travel as `conversation`, and the worker renames the field to the
+ * vendor's `inputs` on its way out. The annotation below is what keeps that
+ * honest — sending `inputs` from here would not compile.
  */
-const buildElevenLabsDialoguePayload = (input: DialogueInput) => ({
+const buildElevenLabsDialoguePayload = (
+    input: DialogueInput,
+): WorkflowTypes['elevenlabs/v1/text-to-dialogue']['params'] => ({
   conversation: input.dialogue.map((line) => ({
     voice_id: line.voiceId,
     text: line.text,
@@ -103,6 +101,31 @@ const buildElevenLabsDialoguePayload = (input: DialogueInput) => ({
   ...(input.seed != null ? { seed: input.seed } : {}),
 });
 
+/** Transcription — the result is text, so there is no output format to pick. */
+const buildElevenLabsTranscribePayload = (
+    input: TranscribeInput,
+): WorkflowTypes['elevenlabs/v1/speech-to-text']['params'] => ({
+  audio_url: input.audioUrl,
+  ...(input.language ? { language_code: input.language } : {}),
+  ...(input.diarize ? { diarize: true } : {}),
+  // Only meaningful alongside diarization, and only when the caller moved it
+  // off the default of one.
+  ...(input.diarize && input.numSpeakers && input.numSpeakers > 1
+    ? { num_speakers: input.numSpeakers }
+    : {}),
+  ...(input.timestampsGranularity ? { timestamps_granularity: input.timestampsGranularity } : {}),
+  ...(input.tagAudioEvents ? { tag_audio_events: true } : {}),
+  ...(input.seed != null ? { seed: input.seed } : {}),
+});
+
+/** Video to Music — the clips are scored as one timeline, in the order given. */
+const buildElevenLabsVideoToMusicPayload = (
+    input: VideoToMusicInput,
+): WorkflowTypes['elevenlabs/v1/video-to-music']['params'] => ({
+  video_urls: input.videoUrls,
+  ...(input.prompt ? { description: input.prompt } : {}),
+});
+
 registerPayloads(MODELS, {
   'elevenlabs-music-v2': buildElevenLabsMusicPayload,
   'eleven-v3': buildElevenLabsTTSPayload('eleven_v3'),
@@ -110,4 +133,6 @@ registerPayloads(MODELS, {
   'eleven-sts-v2': buildElevenLabsSTSPayload('eleven_english_sts_v2'),
   'eleven-multilingual-sts-v2': buildElevenLabsSTSPayload('eleven_multilingual_sts_v2'),
   'eleven-text-to-dialogue': buildElevenLabsDialoguePayload,
+  'eleven-speech-to-text': buildElevenLabsTranscribePayload,
+  'eleven-video-to-music': buildElevenLabsVideoToMusicPayload,
 });

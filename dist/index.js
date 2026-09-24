@@ -5902,7 +5902,15 @@ var { MODELS: MODELS20 } = defineModels("flux", [
     // Early-access at the vendor — stage only until it is cleared for prod.
     release: "preview",
     addedAt: "2026-09-22",
-    estimatedTime: 75,
+    // Deliberately generous. Measured end-to-end against stage at 1k/16:9:
+    // 44s for count 1, 68s for count 4 — of which only 3-6s is our pipeline,
+    // the rest is vendor generation. But the tail is long and the reason these
+    // are not set to the median: `count` fans out into that many independent
+    // vendor jobs and the request finishes with the SLOWEST one, so raising
+    // count (up to 10) samples further into the tail. Stage has seen 4+ minutes,
+    // and one 512sq run took 287s. Over-estimating only makes the bar finish
+    // early; under-estimating parks it at 99%.
+    estimatedTime: { "512sq": 90, "768sq": 110, "1k": 150, "2k": 240, "4k": 360 },
     description: "Generate and edit images with up to 10 references \u2014 multi-reference composition, precise local edits and text rendering, natively up to 4K.",
     features: [
       feat("Multi-Image Input", "input"),

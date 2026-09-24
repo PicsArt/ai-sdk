@@ -1607,7 +1607,7 @@ type ModelInputById = {
         videoUrls: [string, ...string[]];
     };
     "seedance-2.5": {
-        prompt: string;
+        prompt?: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p";
         duration?: number;
@@ -1615,6 +1615,12 @@ type ModelInputById = {
         returnLastFrame?: boolean;
         outputFormat?: "mp4" | "mov";
         colorDepth?: "10bit" | "8bit";
+        draft?: boolean;
+        draftTask?: {
+            id: string;
+            video_input: boolean;
+            signature: string;
+        };
         imageUrls?: string[];
         videoUrls?: string[];
         audioUrls?: string[];
@@ -1629,6 +1635,7 @@ type ModelInputById = {
         returnLastFrame?: boolean;
         outputFormat?: "mp4" | "mov";
         colorDepth?: "10bit" | "8bit";
+        draft?: boolean;
         videoUrl: string;
         imageUrls?: string[];
     };
@@ -1640,10 +1647,11 @@ type ModelInputById = {
         generateAudio?: boolean;
         outputFormat?: "mp4" | "mov";
         colorDepth?: "10bit" | "8bit";
+        draft?: boolean;
         videoUrls: [string, ...string[]];
     };
     "seedance-2.5-without-moderation": {
-        prompt: string;
+        prompt?: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p";
         duration?: number;
@@ -1651,6 +1659,12 @@ type ModelInputById = {
         returnLastFrame?: boolean;
         outputFormat?: "mp4" | "mov";
         colorDepth?: "10bit" | "8bit";
+        draft?: boolean;
+        draftTask?: {
+            id: string;
+            video_input: boolean;
+            signature: string;
+        };
         imageUrls?: string[];
         videoUrls?: string[];
         audioUrls?: string[];
@@ -1665,6 +1679,7 @@ type ModelInputById = {
         returnLastFrame?: boolean;
         outputFormat?: "mp4" | "mov";
         colorDepth?: "10bit" | "8bit";
+        draft?: boolean;
         videoUrl: string;
         imageUrls?: string[];
     };
@@ -1676,6 +1691,7 @@ type ModelInputById = {
         generateAudio?: boolean;
         outputFormat?: "mp4" | "mov";
         colorDepth?: "10bit" | "8bit";
+        draft?: boolean;
         videoUrls: [string, ...string[]];
     };
     "seedance-i2v": {
@@ -2707,6 +2723,17 @@ interface GenerateResultItemMetadata {
     /** URL of the generated video's last frame, when the model was asked for it
      *  (`returnLastFrame`, seedance) — the seed for frame-chaining flows. */
     lastFrameUrl?: string;
+    /** The draft a Seedance 2.5 Draft generation produced — pass it back
+     *  unchanged as `draftTask` to the matching `-draft-final` model to render
+     *  the final 1080p video (valid 7 days). Wire field names on purpose: the
+     *  worker signs it, so any change is rejected. */
+    draftTask?: SeedanceDraftTask;
+}
+/** A Seedance 2.5 draft reference, as the worker issues it. */
+interface SeedanceDraftTask {
+    id: string;
+    video_input: boolean;
+    signature: string;
 }
 
 /**
@@ -3416,4 +3443,4 @@ declare const getModel: (id: string) => ModelDefinition | undefined;
  */
 declare const findModel: (ref: string) => ModelDefinition | undefined;
 
-export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };

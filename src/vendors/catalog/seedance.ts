@@ -9,6 +9,7 @@
  * cards but differ in payload construction.
  */
 import type { Constraint, GenerationContext, PayloadBuilder } from '../../core/types.ts';
+import type { SeedanceDraftTask } from '../../core/response.ts';
 import type { AudioBounds, ImageBounds, VideoBounds } from '../define.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts'; // p for output_format enum, not exposed via params.*
@@ -394,12 +395,98 @@ const seedance25OutputFormat = (ctx: GenerationContext): string => {
   return ctx.colorDepth === '8bit' ? 'mp4_8bit' : 'mp4';
 };
 
+/** Seedance 2.5 Draft mode:
+ *  - `draft: true` (every 2.5 entry) renders a cheap 480p preview of the same
+ *    request (scene structure, shots, motion); its result carries
+ *    `metadata.draftTask`.
+ *  - `draftTask` (the base `seedance-2.5` / `-without-moderation` entries) —
+ *    that object, passed back unchanged within 7 days — renders the final
+ *    1080p video from the draft instead of a new generation.
+ *  The final reuses the draft's prompt, inputs, ratio, duration and audio.
+ *  Whatever of those the caller still sends is passed through as-is, not
+ *  dropped: the worker hands it to the vendor, which refuses it (400), so the
+ *  caller never believes it took effect. Nothing is defaulted in, so a clean
+ *  final passes. The worker signs the reference to the user and model alias
+ *  that made it — a draft made on any
+ *  2.5 entry finalizes on the base entry of the same alias — and bills both
+ *  steps under its own `seedance-2.5-draft` pricing key. */
+type Seedance25DraftModeContext = GenerationContext & {
+  draft?: boolean;
+  draftTask?: SeedanceDraftTask;
+};
+
+/** The vendor renders a draft at 480p only, and its final at 1080p only — an
+ *  omitted resolution is rejected too (its own default is 720p). */
+const SEEDANCE_25_DRAFT_RESOLUTION = '480p';
+const SEEDANCE_25_DRAFT_FINAL_RESOLUTION = '1080p';
+
+const withSeedance25DraftMode =
+  (modelAlias: Seedance25Alias, build: PayloadBuilder): PayloadBuilder =>
+  (ctx) => {
+    const { draft, draftTask } = ctx as Seedance25DraftModeContext;
+    if (draftTask) {
+      // The content the regular builder would assemble from what the caller
+      // sent (prompt, media) — empty for a clean final. It carries no
+      // defaults; the top-level fields below are only the caller's own.
+      const sentContent = (build(ctx) as { content?: unknown[] }).content ?? [];
+      return {
+        model: modelAlias,
+        content: [{ type: 'draft_task', draft_task: draftTask }, ...sentContent],
+        resolution: ctx.resolution ?? SEEDANCE_25_DRAFT_FINAL_RESOLUTION,
+        output_format: seedance25OutputFormat(ctx),
+        ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
+        ...(ctx.aspectRatio !== undefined ? { ratio: ctx.aspectRatio } : {}),
+        ...(ctx.duration !== undefined ? { duration: ctx.duration } : {}),
+        ...(ctx.generateAudio !== undefined ? { generate_audio: ctx.generateAudio } : {}),
+        ...(draft !== undefined ? { draft } : {}),
+      };
+    }
+    const payload = build(ctx);
+    // A draft renders at 480p only. The caller's own resolution, if any, is
+    // sent as-is (the vendor refuses a wrong one); only the regular
+    // builder's default is replaced.
+    return draft
+      ? { ...payload, draft: true, resolution: ctx.resolution ?? SEEDANCE_25_DRAFT_RESOLUTION }
+      : payload;
+  };
+
+const SEEDANCE_25_DRAFT_RESOLUTION_REASON = 'Draft previews render at 480p only.';
+const SEEDANCE_25_DRAFT_FINAL_RESOLUTION_REASON = 'The final video from a draft renders at 1080p only.';
+
+const SEEDANCE_25_DRAFT_REUSED_REASON = 'A final from a draft reuses the draft\'s settings.';
+
+/** UI side of the draft step: it renders at 480p only. */
+const seedance25DraftConstraints: Constraint[] = [
+  {
+    when: { draft: { is: true } },
+    then: { resolution: { allowed: [SEEDANCE_25_DRAFT_RESOLUTION], reason: SEEDANCE_25_DRAFT_RESOLUTION_REASON } },
+  },
+];
+
+/** UI side of the final step (base entries): 1080p only, and every param the
+ *  final reuses from its draft is disabled — the vendor refuses a final that
+ *  sends one. */
+const seedance25DraftFinalConstraints: Constraint[] = [
+  ...seedance25DraftConstraints,
+  {
+    when: { draftTask: { exists: true } },
+    then: {
+      resolution: { allowed: [SEEDANCE_25_DRAFT_FINAL_RESOLUTION], reason: SEEDANCE_25_DRAFT_FINAL_RESOLUTION_REASON },
+      draft: { disabled: true, reason: 'A final video is rendered from a draft, not as one.' },
+      ...Object.fromEntries(['prompt', 'imageUrls', 'videoUrls', 'audioUrls', 'startFrame', 'endFrame',
+        'aspectRatio', 'duration', 'generateAudio'].map((key) => [
+        key, { disabled: true as const, reason: SEEDANCE_25_DRAFT_REUSED_REASON },
+      ])),
+    },
+  },
+];
+
 /** Seedance 2.5 — text-to-video / image-to-video / multimodal refs.
  *  Mirrors buildSeedance20PayloadFor but lifts the reference caps to 30/10/10
  *  and always sends `output_format`. */
 export const buildSeedance25PayloadFor =
   (modelAlias: Seedance25Alias): PayloadBuilder =>
-  (ctx) => {
+  withSeedance25DraftMode(modelAlias, (ctx) => {
     const refImages = ctx.imageUrls ?? [];
     const refVideos = ctx.videoUrls ?? [];
     const refAudios = ctx.audioUrls ?? [];
@@ -432,7 +519,9 @@ export const buildSeedance25PayloadFor =
         ...(ctx.endFrame
           ? [{ type: 'image_url', image_url: { url: ctx.endFrame }, role: 'last_frame' }]
           : []),
-        { type: 'text', text: ctx.prompt },
+        // The prompt is optional on 2.5 (media-only input is valid); an empty
+        // text item is not sent.
+        ...(ctx.prompt?.trim() ? [{ type: 'text', text: ctx.prompt }] : []),
       ],
       ratio: usesFrame ? 'adaptive' : (ctx.aspectRatio ?? '16:9'),
       duration: ctx.duration ?? 5,
@@ -441,7 +530,7 @@ export const buildSeedance25PayloadFor =
       output_format: seedance25OutputFormat(ctx),
       ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
     };
-  };
+  });
 
 /** Seedance 2.5 — video edit (Editing mode). Required reference_video + up to
  *  30 reference images. Worker routes to `video-to-video.*` toolId.
@@ -451,7 +540,7 @@ export const buildSeedance25PayloadFor =
  *  error, so both are hardcoded here rather than read from ctx. */
 export const buildSeedance25VideoEditPayloadFor =
   (modelAlias: Seedance25Alias): PayloadBuilder =>
-  (ctx) => ({
+  withSeedance25DraftMode(modelAlias, (ctx) => ({
     model: modelAlias,
     content: [
       { type: 'text', text: ctx.prompt },
@@ -468,7 +557,7 @@ export const buildSeedance25VideoEditPayloadFor =
     generate_audio: ctx.generateAudio ?? true,
     output_format: seedance25OutputFormat(ctx),
     ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
-  });
+  }));
 
 /** Seedance 2.5 — video extend / multi-clip stitching (up to 10 reference videos).
  *  Worker routes to `video-to-video.*` toolId (content includes video_url roles).
@@ -477,7 +566,7 @@ export const buildSeedance25VideoEditPayloadFor =
  *  hardcoded here. */
 export const buildSeedance25VideoExtendPayloadFor =
   (modelAlias: Seedance25Alias): PayloadBuilder =>
-  (ctx) => ({
+  withSeedance25DraftMode(modelAlias, (ctx) => ({
     model: modelAlias,
     content: [
       { type: 'text', text: ctx.prompt },
@@ -492,7 +581,7 @@ export const buildSeedance25VideoExtendPayloadFor =
     resolution: ctx.resolution ?? '1080p',
     generate_audio: ctx.generateAudio ?? true,
     output_format: seedance25OutputFormat(ctx),
-  });
+  }));
 
 const SEEDANCE_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', 'adaptive'];
 const SEEDANCE_25_FORMATS = ['mp4', 'mov'];
@@ -506,20 +595,43 @@ const SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
  *  list — an enum would hide the values in between. */
 const SEEDANCE_25_DURATION = { min: 4, max: 30 } as const;
 
+/** Draft mode step 1, on every 2.5 entry (see withSeedance25DraftMode). */
+const seedance25DraftParam = p.boolean('draft', false, 'Draft');
+
+/** Draft mode step 2, on the base 2.5 entries. Wire field names on purpose:
+ *  it is the object the draft's result returned (`metadata.draftTask`),
+ *  signed by the worker, and must travel back unchanged. */
+const seedance25DraftTaskParam = {
+  draftTask: {
+    label: 'Draft',
+    required: false,
+    descriptor: {
+      kind: 'object' as const,
+      fields: {
+        id: { kind: 'text' as const },
+        video_input: { kind: 'boolean' as const, default: false },
+        signature: { kind: 'text' as const },
+      },
+    },
+  },
+};
+
 export const { MODELS } = defineModels('seedance', [
   {
     id: 'seedance-2.5', name: 'Seedance 2.5', modelId: 'seedance-2.5',
     addedAt: '2026-08-06',
     workflow: 'seedance',
     buildPayload: buildSeedance25PayloadFor('seedance_2_5'),
-    constraints: seedance25Constraints,
+    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints],
     estimatedTime: 20,
     mode: 'video', inputType: 't2v',
     badge: ['new', 'premium', 'hot'],
     description: 'Latest cinematic video with audio, multi-reference input, and mp4/mov output in 10- or 8-bit. Up to 30s.',
     features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      // Optional on 2.5 (media-only input is valid) — and a final from a
+      // draft must not carry one (the vendor refuses it).
+      ...params.prompt({ required: false }),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
@@ -527,6 +639,8 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
+      ...seedance25DraftParam,
+      ...seedance25DraftTaskParam,
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
       ...params.videoInputs(10, 'Reference Videos', false, SEEDANCE_25_VIDEO_BOUNDS),
@@ -544,14 +658,16 @@ export const { MODELS } = defineModels('seedance', [
     release: 'preview',
     workflow: 'seedance',
     buildPayload: buildSeedance25PayloadFor('seedance_2_5_without_moderation'),
-    constraints: seedance25Constraints,
+    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints],
     estimatedTime: 20,
     mode: 'video', inputType: 't2v',
     badge: ['new', 'premium', 'hot'],
     description: 'Seedance 2.5 with vendor moderation disabled — cinematic video with audio, multi-reference input, and mp4/mov output in 10- or 8-bit. Up to 30s.',
     features: [feat('Reference Image', 'frame'), feat('Start/End Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('4-30 sec', 'duration')],
     paramConfig: {
-      ...params.prompt(),
+      // Optional on 2.5 (media-only input is valid) — and a final from a
+      // draft must not carry one (the vendor refuses it).
+      ...params.prompt({ required: false }),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
@@ -559,6 +675,8 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
+      ...seedance25DraftParam,
+      ...seedance25DraftTaskParam,
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
       ...params.videoInputs(10, 'Reference Videos', false, SEEDANCE_25_VIDEO_BOUNDS),
@@ -572,7 +690,7 @@ export const { MODELS } = defineModels('seedance', [
     addedAt: '2026-08-06',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoEditPayloadFor('seedance_2_5'),
-    constraints: seedance25ColorDepthConstraints,
+    constraints: [...seedance25ColorDepthConstraints, ...seedance25DraftConstraints],
     estimatedTime: 60,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -588,6 +706,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
+      ...seedance25DraftParam,
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
       // / maxBytes args predate it and are skipped rather than duplicated.
       ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_25_VIDEO_BOUNDS),
@@ -600,7 +719,7 @@ export const { MODELS } = defineModels('seedance', [
     release: 'preview',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoEditPayloadFor('seedance_2_5_without_moderation'),
-    constraints: seedance25ColorDepthConstraints,
+    constraints: [...seedance25ColorDepthConstraints, ...seedance25DraftConstraints],
     estimatedTime: 60,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -616,6 +735,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
+      ...seedance25DraftParam,
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
       // / maxBytes args predate it and are skipped rather than duplicated.
       ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_25_VIDEO_BOUNDS),
@@ -627,7 +747,7 @@ export const { MODELS } = defineModels('seedance', [
     addedAt: '2026-08-06',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoExtendPayloadFor('seedance_2_5'),
-    constraints: seedance25ColorDepthConstraints,
+    constraints: [...seedance25ColorDepthConstraints, ...seedance25DraftConstraints],
     estimatedTime: 200,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -643,6 +763,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.generateAudio(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
+      ...seedance25DraftParam,
       ...params.videoInputs(10, 'Source Videos', true, SEEDANCE_25_VIDEO_BOUNDS),
     },
   },
@@ -652,7 +773,7 @@ export const { MODELS } = defineModels('seedance', [
     release: 'preview',
     workflow: 'seedance',
     buildPayload: buildSeedance25VideoExtendPayloadFor('seedance_2_5_without_moderation'),
-    constraints: seedance25ColorDepthConstraints,
+    constraints: [...seedance25ColorDepthConstraints, ...seedance25DraftConstraints],
     estimatedTime: 200,
     mode: 'video', inputType: 'v2v',
     badge: ['new', 'premium', 'hot'],
@@ -668,6 +789,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.generateAudio(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
+      ...seedance25DraftParam,
       ...params.videoInputs(10, 'Source Videos', true, SEEDANCE_25_VIDEO_BOUNDS),
     },
   },

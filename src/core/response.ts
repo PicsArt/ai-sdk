@@ -245,7 +245,27 @@ export interface GenerateResultItemMetadata {
   /** URL of the generated video's last frame, when the model was asked for it
    *  (`returnLastFrame`, seedance) — the seed for frame-chaining flows. */
   lastFrameUrl?: string;
+  /** The draft a Seedance 2.5 Draft generation produced — pass it back
+   *  unchanged as `draftTask` to the matching `-draft-final` model to render
+   *  the final 1080p video (valid 7 days). Wire field names on purpose: the
+   *  worker signs it, so any change is rejected. */
+  draftTask?: SeedanceDraftTask;
 }
+
+/** A Seedance 2.5 draft reference, as the worker issues it. */
+export interface SeedanceDraftTask {
+  id: string;
+  video_input: boolean;
+  signature: string;
+}
+
+const isSeedanceDraftTask = (value: unknown): value is SeedanceDraftTask => {
+  const v = value as Partial<SeedanceDraftTask> | null;
+  return !!v && typeof v === 'object'
+    && typeof v.id === 'string'
+    && typeof v.video_input === 'boolean'
+    && typeof v.signature === 'string';
+};
 
 /**
  * Build the promoted metadata for one result item — only fields a consumer
@@ -254,8 +274,8 @@ export interface GenerateResultItemMetadata {
  * `parsed` is the full contract-parsed result (carries response-level keys
  * like `last_frame_url`). `provider` gates vendor-specific promotions:
  * `image_id` means "explore image" only on recraft, `generated_voice_id` only
- * on elevenlabs — an unrelated vendor echoing those key names must not leak
- * into the typed metadata.
+ * on elevenlabs, `draft_task` only on seedance — an unrelated vendor echoing
+ * those key names must not leak into the typed metadata.
  */
 export function buildItemMetadata(
   parsed: unknown,
@@ -273,6 +293,11 @@ export function buildItemMetadata(
   // `returnLastFrame`); item-level wins if a vendor ever nests it per item.
   const lastFrame = it?.last_frame_url ?? top?.last_frame_url;
   if (typeof lastFrame === 'string') meta.lastFrameUrl = lastFrame;
+  // Seedance 2.5 Draft: the reference rides the response next to the video url.
+  const draftTask = top?.draft_task;
+  if (provider === 'seedance' && isSeedanceDraftTask(draftTask)) {
+    meta.draftTask = { id: draftTask.id, video_input: draftTask.video_input, signature: draftTask.signature };
+  }
 
   return Object.keys(meta).length > 0 ? meta : undefined;
 }

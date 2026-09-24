@@ -111,7 +111,7 @@ interface SpeakerVoiceConfig$2 {
     speaker: string;
     voiceConfig: VoiceConfig$2;
 }
-type GeminiModel$1 = "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-embedding-exp" | "gemini-3-pro" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.1-flash-lite" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gemini-3.1-flash-lite-preview";
+type GeminiModel$1 = "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-embedding-exp" | "gemini-2.5-flash-image" | "gemini-3-pro-image" | "gemini-3-pro-image-preview" | "gemini-3.1-flash-image" | "gemini-3.1-flash-image-preview" | "gemini-3-pro" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.1-flash-lite" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gemini-3.1-flash-lite-preview";
 interface GeminiResult$1 {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -476,7 +476,7 @@ interface SpeakerVoiceConfig$1 {
     speaker: string;
     voiceConfig: VoiceConfig$1;
 }
-type GeminiModel = "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-embedding-exp" | "gemini-3-pro" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.1-flash-lite" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gemini-3.1-flash-lite-preview";
+type GeminiModel = "gemini-2.5-pro" | "gemini-2.5-flash" | "gemini-embedding-exp" | "gemini-2.5-flash-image" | "gemini-3-pro-image" | "gemini-3-pro-image-preview" | "gemini-3.1-flash-image" | "gemini-3.1-flash-image-preview" | "gemini-3-pro" | "gemini-3-pro-preview" | "gemini-3.1-pro-preview" | "gemini-3.1-flash-lite" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gemini-3.1-flash-lite-preview";
 interface GeminiResult {
     id: string;
     status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -776,7 +776,7 @@ interface ClaudeV1MessagesCommand {
     context_management?: ClaudeContextManagement;
     options?: GenAIOptions$2A;
 }
-type ClaudeV1Models = "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "claude-3-7-sonnet" | "claude-3-5-sonnet" | "claude-3-5-haiku-latest" | "claude-haiku-4-5" | "claude-sonnet-4-0" | "claude-opus-4-0" | "claude-opus-4-5" | "claude-fable-5" | "claude-fable-5-1";
+type ClaudeV1Models = "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "claude-haiku-4-5" | "claude-fable-5" | "claude-fable-5-1";
 interface ClaudeMessageParam {
     role: string;
     content: ClaudeContentBlock[];
@@ -5568,6 +5568,7 @@ interface GeneratedImageResult$4 {
 interface SeedanceCommand {
     model?: SeedanceModelAlias;
     content?: ContentItem[];
+    draft?: boolean;
     resolution?: Resolution;
     ratio?: Ratio;
     output_format?: OutputFormat;
@@ -5585,9 +5586,10 @@ interface ContentItem {
     image_url?: ImageUrl;
     video_url?: VideoUrl;
     audio_url?: AudioUrl;
+    draft_task?: DraftTask;
     role?: FrameRole;
 }
-type ContentType = "text" | "image_url" | "video_url" | "audio_url";
+type ContentType = "text" | "image_url" | "video_url" | "audio_url" | "draft_task";
 interface ImageUrl {
     url: string;
 }
@@ -5596,6 +5598,11 @@ interface VideoUrl {
 }
 interface AudioUrl {
     url: string;
+}
+interface DraftTask {
+    id: string;
+    video_input: boolean;
+    signature: string;
 }
 type FrameRole = "first_frame" | "last_frame" | "reference_image" | "reference_video" | "reference_audio";
 type Resolution = "480p" | "720p" | "1080p" | "4k";
@@ -5628,6 +5635,7 @@ interface GeneratedVideoResult$3 {
     video_url: string;
     last_frame_url?: string;
     output_format?: string;
+    draft_task?: Record<string, unknown>;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
 }
@@ -8904,7 +8912,6 @@ interface SegmentAnythingSam3Command {
     prompt: string;
     score_threshold?: number;
     mask_threshold?: number;
-    model?: string;
 }
 interface SegmentAnythingSam3Response {
     id: string;
@@ -12118,6 +12125,96 @@ interface LTXV23ImageToVideoFastResponse {
     };
 }
 
+interface LTXV23ReframeVideoRequest {
+    resolution?: "720p" | "1080p";
+    aspect_ratio?: "1:1" | "4:5" | "5:4" | "9:16" | "16:9";
+    video_url: string;
+    options?: {
+        safety_checks?: {
+            enabled?: boolean;
+        };
+        drive?: {
+            name: string;
+            attributes?: Record<string, string>;
+            folder?: {
+                path?: string;
+                id?: string;
+            };
+        };
+    };
+}
+interface Ltx23ReframeResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: LTXV23ReframeVideoResponse;
+}
+interface LTXV23ReframeVideoResponse {
+    video: {
+        content_type?: string | unknown;
+        fps?: number | unknown;
+        width?: number | unknown;
+        num_frames?: number | unknown;
+        file_size?: number | unknown;
+        file_name?: string | unknown;
+        duration?: number | unknown;
+        height?: number | unknown;
+        url: string;
+    };
+}
+
+interface LTX23QualityOutpaintInput {
+    guidance_scale?: number;
+    enable_prompt_expansion?: boolean;
+    num_inference_steps?: number;
+    prompt: string;
+    generate_audio?: boolean;
+    enable_safety_checker?: boolean;
+    frames_per_second?: number;
+    seed?: number | unknown;
+    video_url: string;
+    num_frames?: number;
+    resolution?: {
+        height?: number;
+        width?: number;
+    } | "auto" | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9";
+    output_resolution?: "480p" | "720p" | "1080p";
+    negative_prompt?: string;
+    video_strength?: number;
+    aspect_ratio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "9:21";
+    sync_mode?: boolean;
+    video_write_mode?: "fast" | "balanced" | "small";
+    video_quality?: "low" | "medium" | "high" | "maximum";
+    source_scale?: number;
+    options?: {
+        safety_checks?: {
+            enabled?: boolean;
+        };
+        drive?: {
+            name: string;
+            attributes?: Record<string, string>;
+            folder?: {
+                path?: string;
+                id?: string;
+            };
+        };
+    };
+}
+interface Ltx23QualityOutpaintResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: LTX23QualityOutput;
+}
+interface LTX23QualityOutput {
+    prompt: string;
+    seed: number;
+    video: {
+        url: string;
+        content_type?: string | unknown;
+        file_size?: number | unknown;
+        file_name?: string | unknown;
+    };
+}
+
 interface WorkflowTypes {
     'check-text': {
         params: CheckTextCommand;
@@ -13226,6 +13323,14 @@ interface WorkflowTypes {
     'lightricks/ltx-2.5/image-to-video/fast': {
         params: LTXV25ImageToVideoFastRequest;
         result: LightricksLtx25ImageToVideoFastResponse;
+    };
+    'ltx-2.3/reframe': {
+        params: LTXV23ReframeVideoRequest;
+        result: Ltx23ReframeResponse;
+    };
+    'ltx-2.3-quality/outpaint': {
+        params: LTX23QualityOutpaintInput;
+        result: Ltx23QualityOutpaintResponse;
     };
 }
 

@@ -12,6 +12,7 @@ export { getVoiceById } from './core/voices.ts';
 // workflows client's error type nor a custom transport's reaches a caller.
 export { ApiError } from './core/errors.ts';
 export type { ApiErrorCode, ApiErrorInit } from './core/errors.ts';
+export type { SeedanceDraftTask } from './core/response.ts';
 
 export type {
   GenerateResult,

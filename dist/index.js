@@ -4051,7 +4051,61 @@ var seedance25OutputFormat = (ctx) => {
   if (ctx.outputFormat === "mov") return "mov";
   return ctx.colorDepth === "8bit" ? "mp4_8bit" : "mp4";
 };
-var buildSeedance25PayloadFor = (modelAlias) => (ctx) => {
+var SEEDANCE_25_DRAFT_RESOLUTION = "480p";
+var SEEDANCE_25_DRAFT_FINAL_RESOLUTION = "1080p";
+var withSeedance25DraftMode = (modelAlias, build) => (ctx) => {
+  const { draft, draftTask } = ctx;
+  if (draftTask) {
+    const sentContent = build(ctx).content ?? [];
+    return {
+      model: modelAlias,
+      content: [{ type: "draft_task", draft_task: draftTask }, ...sentContent],
+      resolution: ctx.resolution ?? SEEDANCE_25_DRAFT_FINAL_RESOLUTION,
+      output_format: seedance25OutputFormat(ctx),
+      ...ctx.returnLastFrame ? { return_last_frame: true } : {},
+      ...ctx.aspectRatio !== void 0 ? { ratio: ctx.aspectRatio } : {},
+      ...ctx.duration !== void 0 ? { duration: ctx.duration } : {},
+      ...ctx.generateAudio !== void 0 ? { generate_audio: ctx.generateAudio } : {},
+      ...draft !== void 0 ? { draft } : {}
+    };
+  }
+  const payload = build(ctx);
+  return draft ? { ...payload, draft: true, resolution: ctx.resolution ?? SEEDANCE_25_DRAFT_RESOLUTION } : payload;
+};
+var SEEDANCE_25_DRAFT_RESOLUTION_REASON = "Draft previews render at 480p only.";
+var SEEDANCE_25_DRAFT_FINAL_RESOLUTION_REASON = "The final video from a draft renders at 1080p only.";
+var SEEDANCE_25_DRAFT_REUSED_REASON = "A final from a draft reuses the draft's settings.";
+var seedance25DraftConstraints = [
+  {
+    when: { draft: { is: true } },
+    then: { resolution: { allowed: [SEEDANCE_25_DRAFT_RESOLUTION], reason: SEEDANCE_25_DRAFT_RESOLUTION_REASON } }
+  }
+];
+var seedance25DraftFinalConstraints = [
+  ...seedance25DraftConstraints,
+  {
+    when: { draftTask: { exists: true } },
+    then: {
+      resolution: { allowed: [SEEDANCE_25_DRAFT_FINAL_RESOLUTION], reason: SEEDANCE_25_DRAFT_FINAL_RESOLUTION_REASON },
+      draft: { disabled: true, reason: "A final video is rendered from a draft, not as one." },
+      ...Object.fromEntries([
+        "prompt",
+        "imageUrls",
+        "videoUrls",
+        "audioUrls",
+        "startFrame",
+        "endFrame",
+        "aspectRatio",
+        "duration",
+        "generateAudio"
+      ].map((key) => [
+        key,
+        { disabled: true, reason: SEEDANCE_25_DRAFT_REUSED_REASON }
+      ]))
+    }
+  }
+];
+var buildSeedance25PayloadFor = (modelAlias) => withSeedance25DraftMode(modelAlias, (ctx) => {
   const refImages = ctx.imageUrls ?? [];
   const refVideos = ctx.videoUrls ?? [];
   const refAudios = ctx.audioUrls ?? [];
@@ -4076,7 +4130,9 @@ var buildSeedance25PayloadFor = (modelAlias) => (ctx) => {
         role: "reference_audio"
       })),
       ...ctx.endFrame ? [{ type: "image_url", image_url: { url: ctx.endFrame }, role: "last_frame" }] : [],
-      { type: "text", text: ctx.prompt }
+      // The prompt is optional on 2.5 (media-only input is valid); an empty
+      // text item is not sent.
+      ...ctx.prompt?.trim() ? [{ type: "text", text: ctx.prompt }] : []
     ],
     ratio: usesFrame ? "adaptive" : ctx.aspectRatio ?? "16:9",
     duration: ctx.duration ?? 5,
@@ -4085,8 +4141,8 @@ var buildSeedance25PayloadFor = (modelAlias) => (ctx) => {
     output_format: seedance25OutputFormat(ctx),
     ...ctx.returnLastFrame ? { return_last_frame: true } : {}
   };
-};
-var buildSeedance25VideoEditPayloadFor = (modelAlias) => (ctx) => ({
+});
+var buildSeedance25VideoEditPayloadFor = (modelAlias) => withSeedance25DraftMode(modelAlias, (ctx) => ({
   model: modelAlias,
   content: [
     { type: "text", text: ctx.prompt },
@@ -4103,8 +4159,8 @@ var buildSeedance25VideoEditPayloadFor = (modelAlias) => (ctx) => ({
   generate_audio: ctx.generateAudio ?? true,
   output_format: seedance25OutputFormat(ctx),
   ...ctx.returnLastFrame ? { return_last_frame: true } : {}
-});
-var buildSeedance25VideoExtendPayloadFor = (modelAlias) => (ctx) => ({
+}));
+var buildSeedance25VideoExtendPayloadFor = (modelAlias) => withSeedance25DraftMode(modelAlias, (ctx) => ({
   model: modelAlias,
   content: [
     { type: "text", text: ctx.prompt },
@@ -4119,12 +4175,27 @@ var buildSeedance25VideoExtendPayloadFor = (modelAlias) => (ctx) => ({
   resolution: ctx.resolution ?? "1080p",
   generate_audio: ctx.generateAudio ?? true,
   output_format: seedance25OutputFormat(ctx)
-});
+}));
 var SEEDANCE_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"];
 var SEEDANCE_25_FORMATS = ["mp4", "mov"];
 var SEEDANCE_25_COLOR_DEPTHS = ["10bit", "8bit"];
 var SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 var SEEDANCE_25_DURATION = { min: 4, max: 30 };
+var seedance25DraftParam = p.boolean("draft", false, "Draft");
+var seedance25DraftTaskParam = {
+  draftTask: {
+    label: "Draft",
+    required: false,
+    descriptor: {
+      kind: "object",
+      fields: {
+        id: { kind: "text" },
+        video_input: { kind: "boolean", default: false },
+        signature: { kind: "text" }
+      }
+    }
+  }
+};
 var { MODELS: MODELS12 } = defineModels("seedance", [
   {
     id: "seedance-2.5",
@@ -4133,7 +4204,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     addedAt: "2026-08-06",
     workflow: "seedance",
     buildPayload: buildSeedance25PayloadFor("seedance_2_5"),
-    constraints: seedance25Constraints,
+    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints],
     estimatedTime: 20,
     mode: "video",
     inputType: "t2v",
@@ -4141,7 +4212,9 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     description: "Latest cinematic video with audio, multi-reference input, and mp4/mov output in 10- or 8-bit. Up to 30s.",
     features: [feat("Reference Image", "frame"), feat("Start/End Frame", "frame"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("4-30 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      // Optional on 2.5 (media-only input is valid) — and a final from a
+      // draft must not carry one (the vendor refuses it).
+      ...params.prompt({ required: false }),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p", "1080p"], "1080p"),
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
@@ -4149,6 +4222,8 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
       ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
+      ...seedance25DraftParam,
+      ...seedance25DraftTaskParam,
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, "Reference Images", false, "reference", SEEDANCE_IMAGE_BOUNDS),
       ...params.videoInputs(10, "Reference Videos", false, SEEDANCE_25_VIDEO_BOUNDS),
@@ -4168,7 +4243,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     release: "preview",
     workflow: "seedance",
     buildPayload: buildSeedance25PayloadFor("seedance_2_5_without_moderation"),
-    constraints: seedance25Constraints,
+    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints],
     estimatedTime: 20,
     mode: "video",
     inputType: "t2v",
@@ -4176,7 +4251,9 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     description: "Seedance 2.5 with vendor moderation disabled \u2014 cinematic video with audio, multi-reference input, and mp4/mov output in 10- or 8-bit. Up to 30s.",
     features: [feat("Reference Image", "frame"), feat("Start/End Frame", "frame"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("4-30 sec", "duration")],
     paramConfig: {
-      ...params.prompt(),
+      // Optional on 2.5 (media-only input is valid) — and a final from a
+      // draft must not carry one (the vendor refuses it).
+      ...params.prompt({ required: false }),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p", "1080p"], "1080p"),
       ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
@@ -4184,6 +4261,8 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
       ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
+      ...seedance25DraftParam,
+      ...seedance25DraftTaskParam,
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, "Reference Images", false, "reference", SEEDANCE_IMAGE_BOUNDS),
       ...params.videoInputs(10, "Reference Videos", false, SEEDANCE_25_VIDEO_BOUNDS),
@@ -4199,7 +4278,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     addedAt: "2026-08-06",
     workflow: "seedance",
     buildPayload: buildSeedance25VideoEditPayloadFor("seedance_2_5"),
-    constraints: seedance25ColorDepthConstraints,
+    constraints: [...seedance25ColorDepthConstraints, ...seedance25DraftConstraints],
     estimatedTime: 60,
     mode: "video",
     inputType: "v2v",
@@ -4216,6 +4295,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
       ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
+      ...seedance25DraftParam,
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
       // / maxBytes args predate it and are skipped rather than duplicated.
       ...params.videoInput("Source Video", "reference", true, void 0, void 0, void 0, SEEDANCE_25_VIDEO_BOUNDS),
@@ -4230,7 +4310,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     release: "preview",
     workflow: "seedance",
     buildPayload: buildSeedance25VideoEditPayloadFor("seedance_2_5_without_moderation"),
-    constraints: seedance25ColorDepthConstraints,
+    constraints: [...seedance25ColorDepthConstraints, ...seedance25DraftConstraints],
     estimatedTime: 60,
     mode: "video",
     inputType: "v2v",
@@ -4247,6 +4327,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.returnLastFrame(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
       ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
+      ...seedance25DraftParam,
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
       // / maxBytes args predate it and are skipped rather than duplicated.
       ...params.videoInput("Source Video", "reference", true, void 0, void 0, void 0, SEEDANCE_25_VIDEO_BOUNDS),
@@ -4260,7 +4341,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     addedAt: "2026-08-06",
     workflow: "seedance",
     buildPayload: buildSeedance25VideoExtendPayloadFor("seedance_2_5"),
-    constraints: seedance25ColorDepthConstraints,
+    constraints: [...seedance25ColorDepthConstraints, ...seedance25DraftConstraints],
     estimatedTime: 200,
     mode: "video",
     inputType: "v2v",
@@ -4277,6 +4358,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.generateAudio(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
       ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
+      ...seedance25DraftParam,
       ...params.videoInputs(10, "Source Videos", true, SEEDANCE_25_VIDEO_BOUNDS)
     }
   },
@@ -4288,7 +4370,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
     release: "preview",
     workflow: "seedance",
     buildPayload: buildSeedance25VideoExtendPayloadFor("seedance_2_5_without_moderation"),
-    constraints: seedance25ColorDepthConstraints,
+    constraints: [...seedance25ColorDepthConstraints, ...seedance25DraftConstraints],
     estimatedTime: 200,
     mode: "video",
     inputType: "v2v",
@@ -4305,6 +4387,7 @@ var { MODELS: MODELS12 } = defineModels("seedance", [
       ...params.generateAudio(),
       ...p.enum("outputFormat", SEEDANCE_25_FORMATS, "mp4", { label: "Format" }),
       ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
+      ...seedance25DraftParam,
       ...params.videoInputs(10, "Source Videos", true, SEEDANCE_25_VIDEO_BOUNDS)
     }
   },
@@ -10168,6 +10251,10 @@ var extractAllResults = (result) => {
   }
   return items.length > 0 ? items : void 0;
 };
+var isSeedanceDraftTask = (value) => {
+  const v = value;
+  return !!v && typeof v === "object" && typeof v.id === "string" && typeof v.video_input === "boolean" && typeof v.signature === "string";
+};
 function buildItemMetadata(parsed, item, _index, provider) {
   const meta = {};
   const top = parsed && typeof parsed === "object" ? parsed : void 0;
@@ -10176,6 +10263,10 @@ function buildItemMetadata(parsed, item, _index, provider) {
   if (provider === "elevenlabs" && typeof it?.generated_voice_id === "string") meta.generatedVoiceId = it.generated_voice_id;
   const lastFrame = it?.last_frame_url ?? top?.last_frame_url;
   if (typeof lastFrame === "string") meta.lastFrameUrl = lastFrame;
+  const draftTask = top?.draft_task;
+  if (provider === "seedance" && isSeedanceDraftTask(draftTask)) {
+    meta.draftTask = { id: draftTask.id, video_input: draftTask.video_input, signature: draftTask.signature };
+  }
   return Object.keys(meta).length > 0 ? meta : void 0;
 }
 function toCompletedStatus(handle, result, raw, usage) {

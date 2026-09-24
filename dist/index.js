@@ -11725,8 +11725,8 @@ var MAX_DRIVE_PROMPT_LENGTH = 18e3;
 
 // src/client/drive.ts
 var USER_REACTION_ATTR = "userReaction";
-var DRAFT_TASK_ATTR = "draft_task";
-var DRAFT_EXPIRES_AT_ATTR = "draft_expires_at";
+var DRAFT_TASK_ATTR = "seedance~draftTask";
+var DRAFT_EXPIRES_AT_ATTR = "seedance~draftExpiresAt";
 function inferResourceType(mode) {
   if (mode === "video") return "VIDEO";
   if (mode === "audio") return "AUDIO";

@@ -190,8 +190,8 @@ const BASE_ENTRIES = SEEDANCE_25_ENTRIES.slice(0, 2);
 }
 
 // ── A draft saved to Drive keeps its reference on the file ─────────
-// The seedance worker stamps `draft_task` (JSON — Drive attribute values are
-// strings) and `draft_expires_at` on a saved draft, so the final can be
+// The seedance worker stamps `seedance~draftTask` (JSON — Drive attribute values
+// are strings) and `seedance~draftExpiresAt` on a saved draft, so the final can be
 // rendered from the Drive file after the API response is gone.
 {
   const EXPIRES = '2026-10-01T11:17:52.000Z';
@@ -204,21 +204,21 @@ const BASE_ENTRIES = SEEDANCE_25_ENTRIES.slice(0, 2);
   const draft = parseGeneration(driveFile({
     model: 'seedance-2.5',
     aiSDKPayload: JSON.stringify({ prompt: 'a red fox', draft: true }),
-    draft_task: JSON.stringify(DRAFT_TASK),
-    draft_expires_at: EXPIRES,
+    'seedance~draftTask': JSON.stringify(DRAFT_TASK),
+    'seedance~draftExpiresAt': EXPIRES,
   }));
   assert.deepStrictEqual(draft.draftTask, DRAFT_TASK, 'reference parsed back, ready to pass as draftTask');
   assert.strictEqual(draft.draftExpiresAt, EXPIRES);
   assert.strictEqual(draft.aiSDKPayload?.prompt, 'a red fox');
 
   // A file saved without the SDK's payload (legacy shape) still exposes it.
-  const legacy = parseGeneration(driveFile({ model: 'seedance-2.5', draft_task: JSON.stringify(DRAFT_TASK) }));
+  const legacy = parseGeneration(driveFile({ model: 'seedance-2.5', 'seedance~draftTask': JSON.stringify(DRAFT_TASK) }));
   assert.deepStrictEqual(legacy.draftTask, DRAFT_TASK);
 
   // Not a draft, or a broken reference: nothing to finalize from.
   assert.strictEqual(parseGeneration(driveFile({ model: 'seedance-2.5' })).draftTask, undefined);
   for (const broken of ['not json', JSON.stringify({ id: 'cgt-1' }), '[object Object]']) {
-    const file = parseGeneration(driveFile({ model: 'seedance-2.5', draft_task: broken, draft_expires_at: EXPIRES }));
+    const file = parseGeneration(driveFile({ model: 'seedance-2.5', 'seedance~draftTask': broken, 'seedance~draftExpiresAt': EXPIRES }));
     assert.strictEqual(file.draftTask, undefined, `broken reference ${broken}`);
     assert.strictEqual(file.draftExpiresAt, undefined);
   }

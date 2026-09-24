@@ -17,9 +17,10 @@ export type UserReaction = 'like' | 'dislike';
 const USER_REACTION_ATTR = 'userReaction';
 
 /** Attributes the seedance worker stamps on a saved Seedance 2.5 draft: its
- *  signed reference (JSON-encoded) and when the vendor drops it (ISO time). */
-const DRAFT_TASK_ATTR = 'draft_task';
-const DRAFT_EXPIRES_AT_ATTR = 'draft_expires_at';
+ *  signed reference (JSON-encoded) and when the vendor drops it (ISO time).
+ *  Namespaced like every custom Drive attribute (`namespace~name`). */
+const DRAFT_TASK_ATTR = 'seedance~draftTask';
+const DRAFT_EXPIRES_AT_ATTR = 'seedance~draftExpiresAt';
 
 /** A folder reference in Picsart Drive. */
 export interface DriveFolder {

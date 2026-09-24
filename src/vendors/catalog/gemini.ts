@@ -100,10 +100,15 @@ export const buildGemini31FlashLiteImagePayload: PayloadBuilder = (ctx) => ({
 /**
  * Gemini TTS. Uses Gemini's native audio output (responseModalities: ["AUDIO"]).
  * Requires backend Vertex AI worker support with speechConfig.
+ *
+ * The wire `model` must be hardcoded per catalog entry: the catalog `modelId`
+ * field is a pricing-service lookup key and is NOT threaded into the payload
+ * builder's context (`ctx` is built solely from user params in prepareRequest),
+ * so a `ctx.modelId` fallback would collapse every variant onto one model.
  */
-export const buildGeminiTTSPayload: PayloadBuilder = (ctx) => ({
+export const buildGeminiTTSPayload = (model: string): PayloadBuilder => (ctx) => ({
   text: ctx.prompt,
-  model: ctx.modelId ?? 'gemini-2.5-flash-tts',
+  model,
   voiceName: ctx.voiceId ?? 'Kore',
 });
 
@@ -250,7 +255,7 @@ export const { MODELS } = defineModels('google', [
     id: 'gemini-2.5-flash-tts', name: 'Gemini 2.5 Flash TTS',
     addedAt: '2026-02-15',
     workflow: 'gemini/v1/audios',
-    buildPayload: buildGeminiTTSPayload,
+    buildPayload: buildGeminiTTSPayload('gemini-2.5-flash-tts'),
     estimatedTime: 15,
     mode: 'audio', inputType: 'tts', modelId: 'gemini-2.5-flash-tts',
     description: 'Google Gemini native text-to-speech with expressive multilingual voices.',
@@ -267,12 +272,47 @@ export const { MODELS } = defineModels('google', [
     id: 'gemini-2.5-pro-tts', name: 'Gemini 2.5 Pro TTS',
     addedAt: '2026-03-18',
     workflow: 'gemini/v1/audios',
-    buildPayload: buildGeminiTTSPayload,
+    buildPayload: buildGeminiTTSPayload('gemini-2.5-pro-tts'),
     estimatedTime: 20,
     mode: 'audio', inputType: 'tts', modelId: 'gemini-2.5-pro-tts',
     badge: ['premium'] as const,
     description: 'Premium Gemini TTS with richer expressiveness and multi-speaker support.',
     features: [feat('Multilingual', 'characteristic'), feat('30 Voices', 'characteristic'), feat('Multi-Speaker', 'characteristic')],
+    paramConfig: {
+      ...params.language(true),
+      // 6,000 boundary-verified against the live gemini/v1/audios worker
+      // (accepts >5,000; see scripts/api-tests/audio-charlimit-boundary-probe.mjs).
+      ...params.prompt({ maxLength: 6000 }),
+      ...params.voiceId([], GEMINI_DEFAULT_VOICE_ID, { catalog: { workflow: 'gemini/v1/catalog/voices' } }),
+    },
+  },
+  {
+    id: 'gemini-3.8-flash-tts', name: 'Gemini 3.8 Flash TTS',
+    addedAt: '2026-09-24',
+    workflow: 'gemini/v1/audios',
+    buildPayload: buildGeminiTTSPayload('gemini-3.8-flash-tts'),
+    estimatedTime: 15,
+    mode: 'audio', inputType: 'tts', modelId: 'gemini-3.8-flash-tts',
+    description: 'Latest Gemini native text-to-speech with expressive multilingual voices.',
+    features: [feat('Multilingual', 'characteristic'), feat('30 Voices', 'characteristic')],
+    paramConfig: {
+      ...params.language(true),
+      // 6,000 boundary-verified against the live gemini/v1/audios worker
+      // (accepts >5,000; see scripts/api-tests/audio-charlimit-boundary-probe.mjs).
+      ...params.prompt({ maxLength: 6000 }),
+      ...params.voiceId([], GEMINI_DEFAULT_VOICE_ID, { catalog: { workflow: 'gemini/v1/catalog/voices' } }),
+    },
+  },
+  {
+    id: 'gemini-3.8-flash-lite-tts', name: 'Gemini 3.8 Flash Lite TTS',
+    addedAt: '2026-09-24',
+    workflow: 'gemini/v1/audios',
+    buildPayload: buildGeminiTTSPayload('gemini-3.8-flash-lite-tts'),
+    estimatedTime: 12,
+    mode: 'audio', inputType: 'tts', modelId: 'gemini-3.8-flash-lite-tts',
+    badge: ['fast'] as const,
+    description: 'Lightweight Gemini 3.8 TTS variant for faster, high-volume speech synthesis.',
+    features: [feat('Multilingual', 'characteristic'), feat('30 Voices', 'characteristic')],
     paramConfig: {
       ...params.language(true),
       // 6,000 boundary-verified against the live gemini/v1/audios worker

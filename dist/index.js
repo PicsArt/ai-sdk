@@ -5070,6 +5070,7 @@ var buildSeedream45Payload = buildSeedreamV2("seedream_4_5");
 var buildSeedream47Payload = buildSeedreamV2("seedream_4_7");
 var buildSeedream50LitePayload = buildSeedreamV2("seedream_5_0_lite");
 var buildSeedream50ProPayload = buildSeedreamV2("seedream_5_0_pro");
+var buildSeedream50FlashPayload = buildSeedreamV2("seedream_5_0_flash");
 var seedreamV2Params = {
   ...params.prompt(),
   ...params.aspectRatio(["1:1", "4:3", "3:4", "16:9", "9:16", "3:2", "2:3", "21:9"], "16:9"),
@@ -5078,6 +5079,29 @@ var seedreamV2Params = {
   ...params.negativePrompt()
 };
 var { MODELS: MODELS14 } = defineModels("seedream", [
+  {
+    id: "seedream-5.0-flash",
+    name: "Seedream 5.0 Flash",
+    modelId: "seedream_5_0_flash",
+    addedAt: "2026-09-24",
+    workflow: "seedream",
+    buildPayload: buildSeedream50FlashPayload,
+    estimatedTime: { "1K": 10, "2K": 18 },
+    mode: "image",
+    inputType: "t2i",
+    // Fastest 5.0 tier. Backend gates Flash to 1K/2K (same as 5.0-pro). Single-image
+    // only (no group/sequential) with up to 10 reference images. Supports both T2I
+    // and I2I modes.
+    description: "Fastest 5.0 tier \u2014 quick 2K generation with up to 10 reference images.",
+    features: [feat("Multi-Image Input", "input"), feat("2K", "resolution")],
+    paramConfig: {
+      ...params.resolution(["1K", "2K"]),
+      ...params.prompt(),
+      ...params.aspectRatio(["1:1", "4:3", "3:4", "16:9", "9:16", "3:2", "2:3", "21:9"], "16:9"),
+      ...params.imageInput(10, "Source Images"),
+      ...params.negativePrompt()
+    }
+  },
   {
     id: "seedream-5.0-pro",
     name: "Seedream 5.0 Pro",
@@ -6383,9 +6407,9 @@ var buildGemini31FlashLiteImagePayload = (ctx) => ({
   imageSize: ctx.resolution ?? "1K",
   ...buildThinkingConfig(ctx)
 });
-var buildGeminiTTSPayload = (ctx) => ({
+var buildGeminiTTSPayload = (model) => (ctx) => ({
   text: ctx.prompt,
-  model: ctx.modelId ?? "gemini-2.5-flash-tts",
+  model,
   voiceName: ctx.voiceId ?? "Kore"
 });
 function inferMimeType2(url) {
@@ -6517,7 +6541,7 @@ var { MODELS: MODELS22 } = defineModels("google", [
     name: "Gemini 2.5 Flash TTS",
     addedAt: "2026-02-15",
     workflow: "gemini/v1/audios",
-    buildPayload: buildGeminiTTSPayload,
+    buildPayload: buildGeminiTTSPayload("gemini-2.5-flash-tts"),
     estimatedTime: 15,
     mode: "audio",
     inputType: "tts",
@@ -6537,7 +6561,7 @@ var { MODELS: MODELS22 } = defineModels("google", [
     name: "Gemini 2.5 Pro TTS",
     addedAt: "2026-03-18",
     workflow: "gemini/v1/audios",
-    buildPayload: buildGeminiTTSPayload,
+    buildPayload: buildGeminiTTSPayload("gemini-2.5-pro-tts"),
     estimatedTime: 20,
     mode: "audio",
     inputType: "tts",
@@ -6545,6 +6569,47 @@ var { MODELS: MODELS22 } = defineModels("google", [
     badge: ["premium"],
     description: "Premium Gemini TTS with richer expressiveness and multi-speaker support.",
     features: [feat("Multilingual", "characteristic"), feat("30 Voices", "characteristic"), feat("Multi-Speaker", "characteristic")],
+    paramConfig: {
+      ...params.language(true),
+      // 6,000 boundary-verified against the live gemini/v1/audios worker
+      // (accepts >5,000; see scripts/api-tests/audio-charlimit-boundary-probe.mjs).
+      ...params.prompt({ maxLength: 6e3 }),
+      ...params.voiceId([], GEMINI_DEFAULT_VOICE_ID, { catalog: { workflow: "gemini/v1/catalog/voices" } })
+    }
+  },
+  {
+    id: "gemini-3.8-flash-tts",
+    name: "Gemini 3.8 Flash TTS",
+    addedAt: "2026-09-24",
+    workflow: "gemini/v1/audios",
+    buildPayload: buildGeminiTTSPayload("gemini-3.8-flash-tts"),
+    estimatedTime: 15,
+    mode: "audio",
+    inputType: "tts",
+    modelId: "gemini-3.8-flash-tts",
+    description: "Latest Gemini native text-to-speech with expressive multilingual voices.",
+    features: [feat("Multilingual", "characteristic"), feat("30 Voices", "characteristic")],
+    paramConfig: {
+      ...params.language(true),
+      // 6,000 boundary-verified against the live gemini/v1/audios worker
+      // (accepts >5,000; see scripts/api-tests/audio-charlimit-boundary-probe.mjs).
+      ...params.prompt({ maxLength: 6e3 }),
+      ...params.voiceId([], GEMINI_DEFAULT_VOICE_ID, { catalog: { workflow: "gemini/v1/catalog/voices" } })
+    }
+  },
+  {
+    id: "gemini-3.8-flash-lite-tts",
+    name: "Gemini 3.8 Flash Lite TTS",
+    addedAt: "2026-09-24",
+    workflow: "gemini/v1/audios",
+    buildPayload: buildGeminiTTSPayload("gemini-3.8-flash-lite-tts"),
+    estimatedTime: 12,
+    mode: "audio",
+    inputType: "tts",
+    modelId: "gemini-3.8-flash-lite-tts",
+    badge: ["fast"],
+    description: "Lightweight Gemini 3.8 TTS variant for faster, high-volume speech synthesis.",
+    features: [feat("Multilingual", "characteristic"), feat("30 Voices", "characteristic")],
     paramConfig: {
       ...params.language(true),
       // 6,000 boundary-verified against the live gemini/v1/audios worker
@@ -12691,6 +12756,8 @@ var Gemini35FlashLite = "gemini-3.5-flash-lite";
 var Gemini36Flash = "gemini-3.6-flash";
 var Gemini37Flash = "gemini-3.7-flash";
 var Gemini38Flash = "gemini-3.8-flash";
+var Gemini38FlashLiteTts = "gemini-3.8-flash-lite-tts";
+var Gemini38FlashTts = "gemini-3.8-flash-tts";
 var GeminiOmni11FlashPreview = "gemini-omni-1.1-flash-preview";
 var GeminiOmniFlashPreview = "gemini-omni-flash-preview";
 var Gpt41Mini = "gpt-4.1-mini";
@@ -12868,6 +12935,7 @@ var SeedanceI2v = "seedance-i2v";
 var Seedream40 = "seedream-4.0";
 var Seedream45 = "seedream-4.5";
 var Seedream47 = "seedream-4.7";
+var Seedream50Flash = "seedream-5.0-flash";
 var Seedream50Lite = "seedream-5.0-lite";
 var Seedream50Pro = "seedream-5.0-pro";
 var TopazUpscaleImage = "topaz-upscale-image";
@@ -12938,6 +13006,8 @@ var Models = {
   Gemini36Flash,
   Gemini37Flash,
   Gemini38Flash,
+  Gemini38FlashLiteTts,
+  Gemini38FlashTts,
   GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,
   Gpt41Mini,
@@ -13115,6 +13185,7 @@ var Models = {
   Seedream40,
   Seedream45,
   Seedream47,
+  Seedream50Flash,
   Seedream50Lite,
   Seedream50Pro,
   TopazUpscaleImage,

@@ -56,6 +56,8 @@ export type ModelInputById = {
   "gemini-3.6-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-3.7-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-3.8-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
+  "gemini-3.8-flash-lite-tts": { language?: string; accent?: string; prompt: string; voiceId?: string; };
+  "gemini-3.8-flash-tts": { language?: string; accent?: string; prompt: string; voiceId?: string; };
   "gemini-omni-1.1-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; resolution?: "360p" | "720p" | "1080p" | "4k"; duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrl?: string; videoUrls?: string[]; };
   "gemini-omni-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; duration?: 3 | 5 | 6 | 8 | 10; imageUrls?: string[]; videoUrl?: string; };
   "gpt-4.1-mini": { prompt: string; imageUrls?: string[]; };
@@ -233,6 +235,7 @@ export type ModelInputById = {
   "seedream-4.0": { resolution?: "1K" | "2K" | "4K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; negativePrompt?: string; };
   "seedream-4.5": { resolution?: "2K" | "4K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; negativePrompt?: string; };
   "seedream-4.7": { resolution?: "1K" | "2K" | "4K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; negativePrompt?: string; };
+  "seedream-5.0-flash": { resolution?: "1K" | "2K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; imageUrls?: string[]; negativePrompt?: string; };
   "seedream-5.0-lite": { resolution?: "2K" | "3K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; negativePrompt?: string; };
   "seedream-5.0-pro": { resolution?: "1K" | "2K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; imageUrls?: string[]; negativePrompt?: string; };
   "topaz-upscale-image": { imageUrls: [string, ...string[]]; model?: "Standard V2" | "Standard MAX" | "Low Resolution V2" | "High Fidelity V2" | "CGI" | "Text Refine" | "Redefine" | "Recovery" | "Recovery V2" | "Wonder" | "Wonder 3"; };

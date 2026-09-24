@@ -405,6 +405,18 @@ type ModelInputById = {
         imageUrls?: string[];
         thinking?: "off" | "low" | "medium" | "high";
     };
+    "gemini-3.8-flash-lite-tts": {
+        language?: string;
+        accent?: string;
+        prompt: string;
+        voiceId?: string;
+    };
+    "gemini-3.8-flash-tts": {
+        language?: string;
+        accent?: string;
+        prompt: string;
+        voiceId?: string;
+    };
     "gemini-omni-1.1-flash-preview": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16";
@@ -1737,6 +1749,13 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9";
         count?: 1 | 2 | 4 | 6 | 8 | 10;
+        imageUrls?: string[];
+        negativePrompt?: string;
+    };
+    "seedream-5.0-flash": {
+        resolution?: "1K" | "2K";
+        prompt: string;
+        aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9";
         imageUrls?: string[];
         negativePrompt?: string;
     };
@@ -3130,6 +3149,8 @@ declare const Models: {
     readonly Gemini36Flash: "gemini-3.6-flash";
     readonly Gemini37Flash: "gemini-3.7-flash";
     readonly Gemini38Flash: "gemini-3.8-flash";
+    readonly Gemini38FlashLiteTts: "gemini-3.8-flash-lite-tts";
+    readonly Gemini38FlashTts: "gemini-3.8-flash-tts";
     readonly GeminiOmni11FlashPreview: "gemini-omni-1.1-flash-preview";
     readonly GeminiOmniFlashPreview: "gemini-omni-flash-preview";
     readonly Gpt41Mini: "gpt-4.1-mini";
@@ -3307,6 +3328,7 @@ declare const Models: {
     readonly Seedream40: "seedream-4.0";
     readonly Seedream45: "seedream-4.5";
     readonly Seedream47: "seedream-4.7";
+    readonly Seedream50Flash: "seedream-5.0-flash";
     readonly Seedream50Lite: "seedream-5.0-lite";
     readonly Seedream50Pro: "seedream-5.0-pro";
     readonly TopazUpscaleImage: "topaz-upscale-image";

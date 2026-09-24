@@ -110,6 +110,10 @@ export const Gemini36Flash = 'gemini-3.6-flash' as const;
 export const Gemini37Flash = 'gemini-3.7-flash' as const;
 /** Gemini 3.8 Flash — google (text) */
 export const Gemini38Flash = 'gemini-3.8-flash' as const;
+/** Gemini 3.8 Flash Lite TTS — google (audio) */
+export const Gemini38FlashLiteTts = 'gemini-3.8-flash-lite-tts' as const;
+/** Gemini 3.8 Flash TTS — google (audio) */
+export const Gemini38FlashTts = 'gemini-3.8-flash-tts' as const;
 /** Gemini Omni 1.1 Flash — google (video) */
 export const GeminiOmni11FlashPreview = 'gemini-omni-1.1-flash-preview' as const;
 /** Gemini Omni — google (video) */
@@ -482,6 +486,8 @@ export const Seedream40 = 'seedream-4.0' as const;
 export const Seedream45 = 'seedream-4.5' as const;
 /** Seedream 4.7 — seedream (image) */
 export const Seedream47 = 'seedream-4.7' as const;
+/** Seedream 5.0 Flash — seedream (image) */
+export const Seedream50Flash = 'seedream-5.0-flash' as const;
 /** Seedream 5.0 Lite — seedream (image) */
 export const Seedream50Lite = 'seedream-5.0-lite' as const;
 /** Seedream 5.0 Pro — seedream (image) */
@@ -576,6 +582,8 @@ export const Models = {
   Gemini36Flash,
   Gemini37Flash,
   Gemini38Flash,
+  Gemini38FlashLiteTts,
+  Gemini38FlashTts,
   GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,
   Gpt41Mini,
@@ -753,6 +761,7 @@ export const Models = {
   Seedream40,
   Seedream45,
   Seedream47,
+  Seedream50Flash,
   Seedream50Lite,
   Seedream50Pro,
   TopazUpscaleImage,

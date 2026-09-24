@@ -22,6 +22,7 @@ export const buildSeedream45Payload: PayloadBuilder = buildSeedreamV2('seedream_
 export const buildSeedream47Payload: PayloadBuilder = buildSeedreamV2('seedream_4_7');
 export const buildSeedream50LitePayload: PayloadBuilder = buildSeedreamV2('seedream_5_0_lite');
 export const buildSeedream50ProPayload: PayloadBuilder = buildSeedreamV2('seedream_5_0_pro');
+export const buildSeedream50FlashPayload: PayloadBuilder = buildSeedreamV2('seedream_5_0_flash');
 
 const seedreamV2Params = {
   ...params.prompt(),
@@ -32,6 +33,25 @@ const seedreamV2Params = {
 };
 
 export const { MODELS } = defineModels('seedream', [
+  {
+    id: 'seedream-5.0-flash', name: 'Seedream 5.0 Flash', modelId: 'seedream_5_0_flash',
+    addedAt: '2026-09-24',
+    workflow: 'seedream', buildPayload: buildSeedream50FlashPayload,
+    estimatedTime: { '1K': 10, '2K': 18 },
+    mode: 'image', inputType: 't2i',
+    // Fastest 5.0 tier. Backend gates Flash to 1K/2K (same as 5.0-pro). Single-image
+    // only (no group/sequential) with up to 10 reference images. Supports both T2I
+    // and I2I modes.
+    description: 'Fastest 5.0 tier — quick 2K generation with up to 10 reference images.',
+    features: [feat('Multi-Image Input', 'input'), feat('2K', 'resolution')],
+    paramConfig: {
+      ...params.resolution(['1K', '2K']),
+      ...params.prompt(),
+      ...params.aspectRatio(['1:1', '4:3', '3:4', '16:9', '9:16', '3:2', '2:3', '21:9'], '16:9'),
+      ...params.imageInput(10, 'Source Images'),
+      ...params.negativePrompt(),
+    },
+  },
   {
     id: 'seedream-5.0-pro', name: 'Seedream 5.0 Pro', modelId: 'seedream_5_0_pro',
     addedAt: '2026-07-08',

@@ -9,6 +9,7 @@
  */
 import assert from 'node:assert';
 import { parseResult, prepareRequest } from '../../src/client/prepare.ts';
+import { parseGeneration } from '../../src/client/drive.ts';
 import { resolveModel } from '../../src/core/resolve.ts';
 import { Model } from '../../src/core/descriptors/model-accessor.ts';
 import type { WorkflowStatusResult } from '../../src/core/workflow.ts';
@@ -186,4 +187,39 @@ const BASE_ENTRIES = SEEDANCE_25_ENTRIES.slice(0, 2);
     draft_task: DRAFT_TASK,
   }), resolveModel('flux-3-video'), undefined);
   assert.strictEqual(other.items[0].metadata?.draftTask, undefined);
+}
+
+// ── A draft saved to Drive keeps its reference on the file ─────────
+// The seedance worker stamps `draft_task` (JSON — Drive attribute values are
+// strings) and `draft_expires_at` on a saved draft, so the final can be
+// rendered from the Drive file after the API response is gone.
+{
+  const EXPIRES = '2026-10-01T11:17:52.000Z';
+  // Drive returns attributes as { property, value } pairs.
+  const driveFile = (attrs: Record<string, string>) => ({
+    uid: 'file-1',
+    attributes: Object.entries(attrs).map(([property, value]) => ({ property, value })),
+  });
+
+  const draft = parseGeneration(driveFile({
+    model: 'seedance-2.5',
+    aiSDKPayload: JSON.stringify({ prompt: 'a red fox', draft: true }),
+    draft_task: JSON.stringify(DRAFT_TASK),
+    draft_expires_at: EXPIRES,
+  }));
+  assert.deepStrictEqual(draft.draftTask, DRAFT_TASK, 'reference parsed back, ready to pass as draftTask');
+  assert.strictEqual(draft.draftExpiresAt, EXPIRES);
+  assert.strictEqual(draft.aiSDKPayload?.prompt, 'a red fox');
+
+  // A file saved without the SDK's payload (legacy shape) still exposes it.
+  const legacy = parseGeneration(driveFile({ model: 'seedance-2.5', draft_task: JSON.stringify(DRAFT_TASK) }));
+  assert.deepStrictEqual(legacy.draftTask, DRAFT_TASK);
+
+  // Not a draft, or a broken reference: nothing to finalize from.
+  assert.strictEqual(parseGeneration(driveFile({ model: 'seedance-2.5' })).draftTask, undefined);
+  for (const broken of ['not json', JSON.stringify({ id: 'cgt-1' }), '[object Object]']) {
+    const file = parseGeneration(driveFile({ model: 'seedance-2.5', draft_task: broken, draft_expires_at: EXPIRES }));
+    assert.strictEqual(file.draftTask, undefined, `broken reference ${broken}`);
+    assert.strictEqual(file.draftExpiresAt, undefined);
+  }
 }

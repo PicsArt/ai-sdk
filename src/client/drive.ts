@@ -6,6 +6,7 @@
  */
 import type { AuthenticatedFetch, AppType, AppIdentity } from './types.ts';
 import { MAX_DRIVE_PROMPT_LENGTH } from '../core/limits.ts';
+import { isSeedanceDraftTask, type SeedanceDraftTask } from '../core/response.ts';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -14,6 +15,11 @@ export type MediaTypeFilter = 'image' | 'video' | 'audio';
 export type UserReaction = 'like' | 'dislike';
 
 const USER_REACTION_ATTR = 'userReaction';
+
+/** Attributes the seedance worker stamps on a saved Seedance 2.5 draft: its
+ *  signed reference (JSON-encoded) and when the vendor drops it (ISO time). */
+const DRAFT_TASK_ATTR = 'draft_task';
+const DRAFT_EXPIRES_AT_ATTR = 'draft_expires_at';
 
 /** A folder reference in Picsart Drive. */
 export interface DriveFolder {
@@ -60,7 +66,15 @@ export interface DriveAttributes {
   appType?: AppType;
 }
 
-export interface GenerationFile {
+/** A saved Seedance 2.5 draft — pass `draftTask` unchanged as the final's
+ *  `draftTask` param until `draftExpiresAt`. */
+export interface DriveDraftInfo {
+  draftTask?: SeedanceDraftTask;
+  /** ISO timestamp after which the vendor no longer renders a final from it. */
+  draftExpiresAt?: string;
+}
+
+export interface GenerationFile extends DriveDraftInfo {
   appId?: string;
   appType?: AppType;
   model?: string;
@@ -77,7 +91,7 @@ export interface DriveMediaItem {
   timestamp: number;
 }
 
-export interface DriveFileDetails extends DriveMediaItem {
+export interface DriveFileDetails extends DriveMediaItem, DriveDraftInfo {
   createdAt?: string;
   model?: string;
   prompt?: string;
@@ -216,6 +230,17 @@ function parseAttributes(raw: unknown): Record<string, string> {
   return map;
 }
 
+/** The draft fields of a saved Seedance 2.5 draft; empty for any other file,
+ *  or when the stored reference is not a complete one. */
+function parseDraftInfo(attrs: Record<string, string>): DriveDraftInfo {
+  const draftTask = parseJsonAttr(attrs[DRAFT_TASK_ATTR]);
+  if (!isSeedanceDraftTask(draftTask)) return {};
+  return {
+    draftTask: { id: draftTask.id, video_input: draftTask.video_input, signature: draftTask.signature },
+    ...(attrs[DRAFT_EXPIRES_AT_ATTR] ? { draftExpiresAt: attrs[DRAFT_EXPIRES_AT_ATTR] } : {}),
+  };
+}
+
 function parseReaction(value: string | undefined): UserReaction | undefined {
   return value === 'like' || value === 'dislike' ? value : undefined;
 }
@@ -312,6 +337,7 @@ function toDetailedItem(file: Record<string, unknown>): DriveFileDetails | null 
     aspectRatio: extras.aspectRatio as string | undefined,
     resolution: extras.resolution as string | undefined,
     quality: extras.quality as string | undefined,
+    ...parseDraftInfo(attrs),
   };
 }
 
@@ -360,6 +386,7 @@ function adaptLegacyGeneration(attrs: Record<string, string>): GenerationFile {
     model: attrs.model || undefined,
     aiSDKPayload,
     userReaction: parseReaction(attrs[USER_REACTION_ATTR]),
+    ...parseDraftInfo(attrs),
   };
 }
 
@@ -375,6 +402,7 @@ export function parseGeneration(file: DriveFile | Record<string, unknown>): Gene
     model: attrs.model || undefined,
     aiSDKPayload: parseJsonAttr(attrs.aiSDKPayload) as SdkPayload | undefined,
     userReaction: parseReaction(attrs[USER_REACTION_ATTR]),
+    ...parseDraftInfo(attrs),
   };
 }
 

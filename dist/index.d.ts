@@ -1889,6 +1889,33 @@ type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | 
 type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /**
+ * Per-item vendor metadata promoted from the response. Every key is
+ * best-effort: present when the vendor reports it, absent otherwise.
+ */
+interface GenerateResultItemMetadata {
+    /** Explore image id (recraft explore models) — pass back as `sourceImageId`
+     *  to iterate on this image. */
+    exploreImageId?: string;
+    /** Voice preview id (ElevenLabs voice design/remix) — pass to the vendor's
+     *  create-voice-from-preview step to persist the voice. */
+    generatedVoiceId?: string;
+    /** URL of the generated video's last frame, when the model was asked for it
+     *  (`returnLastFrame`, seedance) — the seed for frame-chaining flows. */
+    lastFrameUrl?: string;
+    /** The draft a Seedance 2.5 Draft generation produced — pass it back
+     *  unchanged as `draftTask` to the matching `-draft-final` model to render
+     *  the final 1080p video (valid 7 days). Wire field names on purpose: the
+     *  worker signs it, so any change is rejected. */
+    draftTask?: SeedanceDraftTask;
+}
+/** A Seedance 2.5 draft reference, as the worker issues it. */
+interface SeedanceDraftTask {
+    id: string;
+    video_input: boolean;
+    signature: string;
+}
+
+/**
  * Drive client — manages folders and file saving in Picsart Drive.
  *
  * Uses the same authenticated fetch as the generation client.
@@ -1937,7 +1964,14 @@ interface DriveAttributes {
     appId?: string;
     appType?: AppType;
 }
-interface GenerationFile {
+/** A saved Seedance 2.5 draft — pass `draftTask` unchanged as the final's
+ *  `draftTask` param until `draftExpiresAt`. */
+interface DriveDraftInfo {
+    draftTask?: SeedanceDraftTask;
+    /** ISO timestamp after which the vendor no longer renders a final from it. */
+    draftExpiresAt?: string;
+}
+interface GenerationFile extends DriveDraftInfo {
     appId?: string;
     appType?: AppType;
     model?: string;
@@ -1952,7 +1986,7 @@ interface DriveMediaItem {
     previewUrl?: string;
     timestamp: number;
 }
-interface DriveFileDetails extends DriveMediaItem {
+interface DriveFileDetails extends DriveMediaItem, DriveDraftInfo {
     createdAt?: string;
     model?: string;
     prompt?: string;
@@ -2710,33 +2744,6 @@ interface CatalogsOptions {
 }
 
 /**
- * Per-item vendor metadata promoted from the response. Every key is
- * best-effort: present when the vendor reports it, absent otherwise.
- */
-interface GenerateResultItemMetadata {
-    /** Explore image id (recraft explore models) — pass back as `sourceImageId`
-     *  to iterate on this image. */
-    exploreImageId?: string;
-    /** Voice preview id (ElevenLabs voice design/remix) — pass to the vendor's
-     *  create-voice-from-preview step to persist the voice. */
-    generatedVoiceId?: string;
-    /** URL of the generated video's last frame, when the model was asked for it
-     *  (`returnLastFrame`, seedance) — the seed for frame-chaining flows. */
-    lastFrameUrl?: string;
-    /** The draft a Seedance 2.5 Draft generation produced — pass it back
-     *  unchanged as `draftTask` to the matching `-draft-final` model to render
-     *  the final 1080p video (valid 7 days). Wire field names on purpose: the
-     *  worker signs it, so any change is rejected. */
-    draftTask?: SeedanceDraftTask;
-}
-/** A Seedance 2.5 draft reference, as the worker issues it. */
-interface SeedanceDraftTask {
-    id: string;
-    video_input: boolean;
-    signature: string;
-}
-
-/**
  * Failure codes the SDK synthesizes when the platform supplies no `reason`.
  * An API-supplied `reason` passes through unchanged, so the open `string`
  * member keeps arbitrary platform reasons assignable while preserving
@@ -3443,4 +3450,4 @@ declare const getModel: (id: string) => ModelDefinition | undefined;
  */
 declare const findModel: (ref: string) => ModelDefinition | undefined;
 
-export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };

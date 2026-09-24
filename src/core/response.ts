@@ -259,7 +259,7 @@ export interface SeedanceDraftTask {
   signature: string;
 }
 
-const isSeedanceDraftTask = (value: unknown): value is SeedanceDraftTask => {
+export const isSeedanceDraftTask = (value: unknown): value is SeedanceDraftTask => {
   const v = value as Partial<SeedanceDraftTask> | null;
   return !!v && typeof v === 'object'
     && typeof v.id === 'string'

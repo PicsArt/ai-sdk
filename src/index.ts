@@ -43,6 +43,7 @@ export type {
   PayloadInputsTransformationOptions,
   DriveMediaItem,
   DriveFileDetails,
+  DriveDraftInfo,
   ListOptions,
   MediaTypeFilter,
   SaveParams,

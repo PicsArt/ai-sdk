@@ -27,7 +27,7 @@ export type { CatalogsClient, CatalogPage, CatalogPageOptions, CatalogsOptions }
 export { GenerationEventType } from './types.ts';
 export { ExecutionMode as ApiRunMode } from '@picsart/workflows-client';
 export type { DriveConfig, AppType, AppIdentity } from './types.ts';
-export type { DriveMediaItem, DriveFileDetails, ListOptions, MediaTypeFilter, SaveParams, UserReaction, GenerationFile, DriveFile, SdkPayload, DriveAttributes, DriveFolder, DriveSaveResult, PayloadDriveOptions, PayloadDriveFolderOptions, DriveClient } from './drive.ts';
+export type { DriveMediaItem, DriveFileDetails, DriveDraftInfo, ListOptions, MediaTypeFilter, SaveParams, UserReaction, GenerationFile, DriveFile, SdkPayload, DriveAttributes, DriveFolder, DriveSaveResult, PayloadDriveOptions, PayloadDriveFolderOptions, DriveClient } from './drive.ts';
 export { inferResourceType, buildFilename, parseGeneration, buildGenerationAttributes } from './drive.ts';
 
 // ── Polling defaults ──────────────────────────────────────────────────

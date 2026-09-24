@@ -11588,6 +11588,8 @@ var MAX_DRIVE_PROMPT_LENGTH = 18e3;
 
 // src/client/drive.ts
 var USER_REACTION_ATTR = "userReaction";
+var DRAFT_TASK_ATTR = "draft_task";
+var DRAFT_EXPIRES_AT_ATTR = "draft_expires_at";
 function inferResourceType(mode) {
   if (mode === "video") return "VIDEO";
   if (mode === "audio") return "AUDIO";
@@ -11633,6 +11635,14 @@ function parseAttributes(raw) {
     }
   }
   return map;
+}
+function parseDraftInfo(attrs) {
+  const draftTask = parseJsonAttr(attrs[DRAFT_TASK_ATTR]);
+  if (!isSeedanceDraftTask(draftTask)) return {};
+  return {
+    draftTask: { id: draftTask.id, video_input: draftTask.video_input, signature: draftTask.signature },
+    ...attrs[DRAFT_EXPIRES_AT_ATTR] ? { draftExpiresAt: attrs[DRAFT_EXPIRES_AT_ATTR] } : {}
+  };
 }
 function parseReaction(value) {
   return value === "like" || value === "dislike" ? value : void 0;
@@ -11706,7 +11716,8 @@ function toDetailedItem(file) {
     referenceAudioUrl: extras.referenceAudioUrl,
     aspectRatio: extras.aspectRatio,
     resolution: extras.resolution,
-    quality: extras.quality
+    quality: extras.quality,
+    ...parseDraftInfo(attrs)
   };
 }
 var LEGACY_TOOL_APP = {
@@ -11751,7 +11762,8 @@ function adaptLegacyGeneration(attrs) {
     appType: app?.appType,
     model: attrs.model || void 0,
     aiSDKPayload,
-    userReaction: parseReaction(attrs[USER_REACTION_ATTR])
+    userReaction: parseReaction(attrs[USER_REACTION_ATTR]),
+    ...parseDraftInfo(attrs)
   };
 }
 function parseGeneration(file) {
@@ -11764,7 +11776,8 @@ function parseGeneration(file) {
     appType: attrs.appType === "native" || attrs.appType === "miniapp" ? attrs.appType : void 0,
     model: attrs.model || void 0,
     aiSDKPayload: parseJsonAttr(attrs.aiSDKPayload),
-    userReaction: parseReaction(attrs[USER_REACTION_ATTR])
+    userReaction: parseReaction(attrs[USER_REACTION_ATTR]),
+    ...parseDraftInfo(attrs)
   };
 }
 function createDriveClient(f, apiUrl, rootFolderName) {

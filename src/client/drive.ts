@@ -5,6 +5,7 @@
  * Root folder is auto-created on first use and cached.
  */
 import type { AuthenticatedFetch, AppType, AppIdentity } from './types.ts';
+import type { ModelDefinition } from '../core/types.ts';
 import { MAX_DRIVE_PROMPT_LENGTH } from '../core/limits.ts';
 import { isSeedanceDraftTask, type SeedanceDraftTask } from '../core/response.ts';
 
@@ -179,9 +180,130 @@ export function inferResourceType(mode: string): 'PHOTO' | 'VIDEO' | 'AUDIO' {
   return 'PHOTO';
 }
 
-export function buildFilename(prompt: string | undefined, mode: string): string {
+/** What is known about the file being named. Every field is optional; the
+ *  most reliable one present wins (see `resolveExtension`). */
+export interface FilenameHints {
+  /** MIME type of the produced file (e.g. `image/jpeg`). */
+  mimeType?: string;
+  /** URL of the produced file; its path extension is used when present. */
+  url?: string;
+  /** Output format requested of (or declared by) the model, e.g. `jpeg`, `mov`, `ogg_opus`. */
+  format?: string;
+}
+
+const MIME_EXTENSIONS: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/pjpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/avif': 'avif',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
+  'image/bmp': 'bmp',
+  'image/tiff': 'tiff',
+  'image/svg+xml': 'svg',
+  'video/mp4': 'mp4',
+  'video/quicktime': 'mov',
+  'video/webm': 'webm',
+  'video/x-matroska': 'mkv',
+  'video/x-msvideo': 'avi',
+  'video/x-m4v': 'm4v',
+  'audio/mpeg': 'mp3',
+  'audio/mp3': 'mp3',
+  'audio/wav': 'wav',
+  'audio/x-wav': 'wav',
+  'audio/wave': 'wav',
+  'audio/vnd.wave': 'wav',
+  'audio/ogg': 'ogg',
+  'audio/opus': 'ogg',
+  'audio/aac': 'aac',
+  'audio/flac': 'flac',
+  'audio/x-flac': 'flac',
+  'audio/mp4': 'm4a',
+  'audio/x-m4a': 'm4a',
+  'audio/webm': 'webm',
+};
+
+/** Aliases for format / URL extensions that don't match the canonical file extension. */
+const EXTENSION_ALIASES: Record<string, string> = {
+  jpeg: 'jpg',
+  jpe: 'jpg',
+  tif: 'tiff',
+  mpeg4: 'mp4',
+  quicktime: 'mov',
+};
+
+function normalizeExtension(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  // Vendor formats carry qualifiers after an underscore (mp4_8bit, ogg_opus).
+  const ext = raw.trim().toLowerCase().replace(/^\./, '').split('_')[0];
+  if (!/^[a-z0-9]{2,5}$/.test(ext)) return undefined;
+  return EXTENSION_ALIASES[ext] ?? ext;
+}
+
+function extensionFromMime(mimeType: string | undefined): string | undefined {
+  if (!mimeType) return undefined;
+  const base = mimeType.split(';')[0].trim().toLowerCase();
+  return MIME_EXTENSIONS[base];
+}
+
+function extensionFromUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  let path: string;
+  try {
+    path = new URL(url).pathname;
+  } catch {
+    path = url.split(/[?#]/)[0];
+  }
+  const match = /\.([A-Za-z0-9]{2,5})$/.exec(path.split('/').pop() ?? '');
+  return normalizeExtension(match?.[1]);
+}
+
+function defaultExtension(mode: string): string {
+  return mode === 'video' ? 'mp4' : mode === 'audio' ? 'mp3' : 'png';
+}
+
+/**
+ * Pick a file extension for a generation. Most to least reliable: the result's
+ * MIME type, the result URL's path extension, the requested output format, then
+ * the mode default (png / mp4 / mp3).
+ */
+export function resolveExtension(mode: string, hints: FilenameHints = {}): string {
+  return extensionFromMime(hints.mimeType)
+    ?? extensionFromUrl(hints.url)
+    ?? normalizeExtension(hints.format)
+    ?? defaultExtension(mode);
+}
+
+/** Param keys that carry a file format across the catalog (camelCase SDK params,
+ *  plus the snake_case wire name callers sometimes pass through). */
+const FORMAT_PARAM_KEYS = ['outputFormat', 'output_format', 'format'] as const;
+
+/**
+ * The output format a generation will produce, known before the job runs:
+ * an explicit format param, else that param's catalog default, else the
+ * model's declared `outputExtension`. Undefined when nothing is known.
+ */
+export function expectedOutputFormat(
+  model: Pick<ModelDefinition, 'paramConfig' | 'outputExtension'>,
+  params: Record<string, unknown>,
+): string | undefined {
+  for (const key of FORMAT_PARAM_KEYS) {
+    const value = params[key];
+    if (typeof value === 'string' && value) return value;
+  }
+  for (const key of FORMAT_PARAM_KEYS) {
+    const fallback = (model.paramConfig?.[key]?.descriptor as { default?: unknown } | undefined)?.default;
+    if (typeof fallback === 'string' && fallback) return fallback;
+  }
+  return model.outputExtension;
+}
+
+export function buildFilename(prompt: string | undefined, mode: string, hints?: FilenameHints): string {
   const shortId = String(Date.now()).slice(-6);
-  const ext = mode === 'video' ? 'mp4' : mode === 'audio' ? 'mp3' : 'png';
+  const ext = resolveExtension(mode, hints);
   if (!prompt) return `ai-generation-${shortId}.${ext}`;
   const slug = prompt
     .toLowerCase()
@@ -715,7 +837,7 @@ export function createDriveClient(f: AuthenticatedFetch, apiUrl: string, rootFol
     buildSaveParams(url: string, modelId: string, modelName: string, mode: string, prompt?: string): SaveParams {
       return {
         url,
-        name: buildFilename(prompt, mode),
+        name: buildFilename(prompt, mode, { url }),
         resourceType: inferResourceType(mode),
         attributes: {
           tool: 'ai-sdk',

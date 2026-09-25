@@ -1,5 +1,5 @@
 export { createClient, GenerationEventType } from './client/index.ts';
-export { inferResourceType, buildFilename, parseGeneration, buildGenerationAttributes } from './client/index.ts';
+export { inferResourceType, buildFilename, resolveExtension, expectedOutputFormat, parseGeneration, buildGenerationAttributes } from './client/index.ts';
 export { ApiRunMode } from './client/index.ts';
 /** Typed model-id constants (`Models.Flux2Pro`, …) plus per-id meta. */
 export { Models } from './generated/model-constants.ts';

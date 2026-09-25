@@ -1119,6 +1119,7 @@ function defineModels(provider, configs) {
     if (c.editEstimatedTime !== void 0) model.editEstimatedTime = c.editEstimatedTime;
     if (c.testTimeout !== void 0) model.testTimeout = c.testTimeout;
     if (c.pollOptions !== void 0) model.pollOptions = c.pollOptions;
+    if (c.outputExtension !== void 0) model.outputExtension = c.outputExtension;
     if (c.badge !== void 0) model.badge = c.badge;
     if (c.addedAt !== void 0) model.addedAt = c.addedAt;
     if (c.deprecated !== void 0) model.deprecated = c.deprecated;
@@ -8851,6 +8852,8 @@ var { MODELS: MODELS30 } = defineModels("picsart", [
     workflow: "pcp/v1/sana-sprint",
     syncExecute: true,
     buildPayload: buildPcpSanaSprintPayload,
+    // The worker returns JPEG and exposes no format param.
+    outputExtension: "jpg",
     estimatedTime: 3,
     mode: "image",
     inputType: "t2i",
@@ -11732,9 +11735,90 @@ function inferResourceType(mode) {
   if (mode === "audio") return "AUDIO";
   return "PHOTO";
 }
-function buildFilename(prompt, mode) {
+var MIME_EXTENSIONS = {
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/pjpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "image/avif": "avif",
+  "image/heic": "heic",
+  "image/heif": "heif",
+  "image/bmp": "bmp",
+  "image/tiff": "tiff",
+  "image/svg+xml": "svg",
+  "video/mp4": "mp4",
+  "video/quicktime": "mov",
+  "video/webm": "webm",
+  "video/x-matroska": "mkv",
+  "video/x-msvideo": "avi",
+  "video/x-m4v": "m4v",
+  "audio/mpeg": "mp3",
+  "audio/mp3": "mp3",
+  "audio/wav": "wav",
+  "audio/x-wav": "wav",
+  "audio/wave": "wav",
+  "audio/vnd.wave": "wav",
+  "audio/ogg": "ogg",
+  "audio/opus": "ogg",
+  "audio/aac": "aac",
+  "audio/flac": "flac",
+  "audio/x-flac": "flac",
+  "audio/mp4": "m4a",
+  "audio/x-m4a": "m4a",
+  "audio/webm": "webm"
+};
+var EXTENSION_ALIASES = {
+  jpeg: "jpg",
+  jpe: "jpg",
+  tif: "tiff",
+  mpeg4: "mp4",
+  quicktime: "mov"
+};
+function normalizeExtension(raw) {
+  if (!raw) return void 0;
+  const ext = raw.trim().toLowerCase().replace(/^\./, "").split("_")[0];
+  if (!/^[a-z0-9]{2,5}$/.test(ext)) return void 0;
+  return EXTENSION_ALIASES[ext] ?? ext;
+}
+function extensionFromMime(mimeType) {
+  if (!mimeType) return void 0;
+  const base2 = mimeType.split(";")[0].trim().toLowerCase();
+  return MIME_EXTENSIONS[base2];
+}
+function extensionFromUrl(url) {
+  if (!url) return void 0;
+  let path;
+  try {
+    path = new URL(url).pathname;
+  } catch {
+    path = url.split(/[?#]/)[0];
+  }
+  const match = /\.([A-Za-z0-9]{2,5})$/.exec(path.split("/").pop() ?? "");
+  return normalizeExtension(match?.[1]);
+}
+function defaultExtension(mode) {
+  return mode === "video" ? "mp4" : mode === "audio" ? "mp3" : "png";
+}
+function resolveExtension(mode, hints = {}) {
+  return extensionFromMime(hints.mimeType) ?? extensionFromUrl(hints.url) ?? normalizeExtension(hints.format) ?? defaultExtension(mode);
+}
+var FORMAT_PARAM_KEYS = ["outputFormat", "output_format", "format"];
+function expectedOutputFormat(model, params2) {
+  for (const key of FORMAT_PARAM_KEYS) {
+    const value = params2[key];
+    if (typeof value === "string" && value) return value;
+  }
+  for (const key of FORMAT_PARAM_KEYS) {
+    const fallback = model.paramConfig?.[key]?.descriptor?.default;
+    if (typeof fallback === "string" && fallback) return fallback;
+  }
+  return model.outputExtension;
+}
+function buildFilename(prompt, mode, hints) {
   const shortId = String(Date.now()).slice(-6);
-  const ext = mode === "video" ? "mp4" : mode === "audio" ? "mp3" : "png";
+  const ext = resolveExtension(mode, hints);
   if (!prompt) return `ai-generation-${shortId}.${ext}`;
   const slug = prompt.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50);
   return `${slug}-${shortId}.${ext}`;
@@ -12181,7 +12265,7 @@ function createDriveClient(f, apiUrl, rootFolderName) {
     buildSaveParams(url, modelId, modelName, mode, prompt) {
       return {
         url,
-        name: buildFilename(prompt, mode),
+        name: buildFilename(prompt, mode, { url }),
         resourceType: inferResourceType(mode),
         attributes: {
           tool: "ai-sdk",
@@ -12492,7 +12576,8 @@ function createClient(config) {
     });
     const folderPath = options?.folder?.name ?? driveConfig?.folder;
     return {
-      name: explicit?.name ?? buildFilename(params2.prompt, model.mode),
+      // Named before the job runs, so the requested/declared format is the best hint.
+      name: explicit?.name ?? buildFilename(params2.prompt, model.mode, { format: expectedOutputFormat(model, params2) }),
       // SDK-assembled attributes are the baseline; explicit attributes win per-key.
       attributes: { ...attributes, ...explicit?.attributes ?? {} },
       folder: explicit?.folder ?? (folderPath ? { path: folderPath } : void 0)
@@ -13817,4 +13902,4 @@ function decodeDeepLinkPayload(encoded) {
   return deserializePayload(encoded);
 }
 
-export { ALL_MODELS, ApiError, ExecutionMode as ApiRunMode, DEFAULT_VISIBLE_RELEASES, GenerationEventType, Model, Models, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, ApiError, ExecutionMode as ApiRunMode, DEFAULT_VISIBLE_RELEASES, GenerationEventType, Model, Models, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };

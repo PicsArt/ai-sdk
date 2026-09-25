@@ -16,7 +16,7 @@ import type { ClientConfig, GenerateResult, GenerateTextResult, GenerateOptions,
 import type { PayloadDriveOptions } from './drive.ts';
 import { buildTransport, createWorkflowsClient, maybeFetch } from './transport.ts';
 import { prepareRequest, parseResult, parseTextResult } from './prepare.ts';
-import { createDriveClient, buildFilename, buildGenerationAttributes } from './drive.ts';
+import { createDriveClient, buildFilename, buildGenerationAttributes, expectedOutputFormat } from './drive.ts';
 import { createApis } from './apis.ts';
 import { createCatalogs } from './catalogs.ts';
 
@@ -27,8 +27,8 @@ export type { CatalogsClient, CatalogPage, CatalogPageOptions, CatalogsOptions }
 export { GenerationEventType } from './types.ts';
 export { ExecutionMode as ApiRunMode } from '@picsart/workflows-client';
 export type { DriveConfig, AppType, AppIdentity } from './types.ts';
-export type { DriveMediaItem, DriveFileDetails, DriveDraftInfo, ListOptions, MediaTypeFilter, SaveParams, UserReaction, GenerationFile, DriveFile, SdkPayload, DriveAttributes, DriveFolder, DriveSaveResult, PayloadDriveOptions, PayloadDriveFolderOptions, DriveClient } from './drive.ts';
-export { inferResourceType, buildFilename, parseGeneration, buildGenerationAttributes } from './drive.ts';
+export type { DriveMediaItem, DriveFileDetails, DriveDraftInfo, ListOptions, MediaTypeFilter, SaveParams, UserReaction, GenerationFile, DriveFile, SdkPayload, DriveAttributes, DriveFolder, DriveSaveResult, PayloadDriveOptions, PayloadDriveFolderOptions, DriveClient, FilenameHints } from './drive.ts';
+export { inferResourceType, buildFilename, resolveExtension, expectedOutputFormat, parseGeneration, buildGenerationAttributes } from './drive.ts';
 
 // ── Polling defaults ──────────────────────────────────────────────────
 
@@ -265,7 +265,8 @@ export function createClient(config: ClientConfig) {
     });
     const folderPath = options?.folder?.name ?? driveConfig?.folder;
     return {
-      name: explicit?.name ?? buildFilename(params.prompt, model.mode),
+      // Named before the job runs, so the requested/declared format is the best hint.
+      name: explicit?.name ?? buildFilename(params.prompt, model.mode, { format: expectedOutputFormat(model, params) }),
       // SDK-assembled attributes are the baseline; explicit attributes win per-key.
       attributes: { ...attributes, ...(explicit?.attributes ?? {}) },
       folder: explicit?.folder ?? (folderPath ? { path: folderPath } : undefined),

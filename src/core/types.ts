@@ -278,6 +278,12 @@ export interface ModelDefinition {
   /** I2V/edit payload builder when different from buildPayload. */
   buildEditPayload?: PayloadBuilder;
   outputSchema?: RuntimeSchema<unknown>;
+  /**
+   * File extension the model produces when it has no output-format param
+   * (e.g. 'jpg'). Used to name a Drive save made before the job runs; without
+   * it the mode default applies (png / mp4 / mp3).
+   */
+  outputExtension?: string;
   estimatedTime?: number | Record<string, number>;
   editEstimatedTime?: number | Record<string, number>;
   testTimeout?: number;

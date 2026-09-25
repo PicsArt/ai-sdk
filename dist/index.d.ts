@@ -1922,207 +1922,6 @@ type ModelInput<M extends TypedModelId> = ModelInputById[M];
 type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra";
 type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
-/**
- * Per-item vendor metadata promoted from the response. Every key is
- * best-effort: present when the vendor reports it, absent otherwise.
- */
-interface GenerateResultItemMetadata {
-    /** Explore image id (recraft explore models) — pass back as `sourceImageId`
-     *  to iterate on this image. */
-    exploreImageId?: string;
-    /** Voice preview id (ElevenLabs voice design/remix) — pass to the vendor's
-     *  create-voice-from-preview step to persist the voice. */
-    generatedVoiceId?: string;
-    /** URL of the generated video's last frame, when the model was asked for it
-     *  (`returnLastFrame`, seedance) — the seed for frame-chaining flows. */
-    lastFrameUrl?: string;
-    /** The draft a Seedance 2.5 Draft generation produced — pass it back
-     *  unchanged as `draftTask` to the matching `-draft-final` model to render
-     *  the final 1080p video (valid 7 days). Wire field names on purpose: the
-     *  worker signs it, so any change is rejected. */
-    draftTask?: SeedanceDraftTask;
-}
-/** A Seedance 2.5 draft reference, as the worker issues it. */
-interface SeedanceDraftTask {
-    id: string;
-    video_input: boolean;
-    signature: string;
-}
-
-/**
- * Drive client — manages folders and file saving in Picsart Drive.
- *
- * Uses the same authenticated fetch as the generation client.
- * Root folder is auto-created on first use and cached.
- */
-
-type MediaTypeFilter = 'image' | 'video' | 'audio';
-type UserReaction = 'like' | 'dislike';
-/** A folder reference in Picsart Drive. */
-interface DriveFolder {
-    name: string;
-    uid: string;
-}
-/** Drive save result, attached to GenerateResult when drive is enabled. */
-interface DriveSaveResult {
-    uid: string;
-    folder: DriveFolder;
-}
-/**
- * The generation input parameters, serialized into the `aiSDKPayload` attribute.
- * Captures every value from the generation context — the named fields below are
- * common ones for convenience; the index signature carries any other input param.
- */
-interface SdkPayload {
-    prompt: string;
-    aspectRatio?: string;
-    duration?: number;
-    resolution?: string;
-    generateAudio?: boolean;
-    imageUrls?: string[];
-    videoUrls?: string[];
-    audioUrls?: string[];
-    startFrame?: string;
-    endFrame?: string;
-    videoUrl?: string;
-    audioUrl?: string;
-    [key: string]: unknown;
-}
-type DriveFile = {
-    uid: string;
-} & Record<string, unknown>;
-interface DriveAttributes {
-    model: string;
-    /** JSON-encoded SdkPayload (all generation input params). */
-    aiSDKPayload: string;
-    appId?: string;
-    appType?: AppType;
-}
-/** A saved Seedance 2.5 draft — pass `draftTask` unchanged as the final's
- *  `draftTask` param until `draftExpiresAt`. */
-interface DriveDraftInfo {
-    draftTask?: SeedanceDraftTask;
-    /** ISO timestamp after which the vendor no longer renders a final from it. */
-    draftExpiresAt?: string;
-}
-interface GenerationFile extends DriveDraftInfo {
-    appId?: string;
-    appType?: AppType;
-    model?: string;
-    aiSDKPayload?: SdkPayload;
-    userReaction?: UserReaction;
-}
-interface DriveMediaItem {
-    uid: string;
-    url: string;
-    name: string;
-    type: MediaTypeFilter;
-    previewUrl?: string;
-    timestamp: number;
-}
-interface DriveFileDetails extends DriveMediaItem, DriveDraftInfo {
-    createdAt?: string;
-    model?: string;
-    prompt?: string;
-    service?: string;
-    subType?: string;
-    duration?: string;
-    aspectRatio?: string;
-    resolution?: string;
-    quality?: string;
-    userReaction?: UserReaction;
-    referenceImageUrls?: string[];
-    referenceVideoUrl?: string;
-    referenceAudioUrl?: string;
-}
-interface ListOptions {
-    folder?: DriveFolder;
-    type?: MediaTypeFilter;
-}
-interface SaveParams {
-    url: string;
-    name: string;
-    resourceType: 'PHOTO' | 'VIDEO' | 'AUDIO';
-    attributes?: Record<string, string>;
-    previewUrl?: string;
-}
-/** Target folder for backend Drive save. */
-interface PayloadDriveFolderOptions {
-    /** Folder path — backend resolves it (e.g. 'AI Playground' or 'AI Playground/My Board'). */
-    path?: string;
-    /** Folder UID — overrides path when provided. */
-    id?: string;
-}
-/** Drive save options injected into the workflow payload as `options.drive`. */
-interface PayloadDriveOptions {
-    /** Filename for the saved asset. */
-    name: string;
-    /** Generation attributes attached to the file (SDK-assembled, fixed shape). */
-    attributes?: DriveAttributes;
-    /** Target folder in Picsart Drive. */
-    folder?: PayloadDriveFolderOptions;
-}
-/**
- * Drive operations surface — returned by {@link createDriveClient} and exposed
- * as `ai.drive` when Drive is configured. Manages folders, listing, saving, and
- * reactions in Picsart Drive.
- */
-interface DriveClient {
-    /** Ensure a folder exists (creating it if needed) and return it. */
-    ensureFolder(subfolder?: string): Promise<DriveFolder | null>;
-    /** List the immediate subfolders of the root folder. */
-    folders(): Promise<DriveFolder[]>;
-    /** List all folders recursively. */
-    allFolders(): Promise<DriveFolder[]>;
-    /** Find a folder by name. */
-    findFolder(name: string): Promise<DriveFolder | null>;
-    /** List media items in a folder. */
-    list(options?: ListOptions): Promise<DriveMediaItem[]>;
-    /** List media items in a folder with full generation metadata. */
-    listDetailed(options?: ListOptions): Promise<DriveFileDetails[]>;
-    /** Read a single generation's stored attributes. */
-    getGeneration(fileUid: string): Promise<GenerationFile | null>;
-    /** Save an asset to Drive. */
-    save(params: SaveParams, folder?: DriveFolder): Promise<DriveSaveResult | null>;
-    /** Build the save params for a generation result. */
-    buildSaveParams(url: string, modelId: string, modelName: string, mode: string, prompt?: string): SaveParams;
-    /** Set a like/dislike reaction on a file. */
-    addReaction(fileUid: string, reaction: UserReaction): Promise<boolean>;
-    /** Clear the reaction on a file. */
-    removeReaction(fileUid: string): Promise<boolean>;
-}
-declare function inferResourceType(mode: string): 'PHOTO' | 'VIDEO' | 'AUDIO';
-declare function buildFilename(prompt: string | undefined, mode: string): string;
-declare function buildGenerationAttributes(input: {
-    modelId: string;
-    params: Record<string, unknown>;
-    /** TODO(backend-autosave): temporary — remove once the backend stamps appId/appType. */
-    app?: AppIdentity;
-}): DriveAttributes;
-declare function parseGeneration(file: DriveFile | Record<string, unknown>): GenerationFile;
-
-/** Result of `ai.apis.run()` — the API result plus optional credit usage. */
-type ApiResponse<R = unknown> = WorkflowResponse<R>;
-/**
- * Options for `ai.apis.run()` — execution mode, polling, abort signal, progress callbacks.
- * Intentionally omits the lib's `remoteSettingName` (a no-op without remote settings),
- * `onPartialResult`, and `notificationConfig` — these aren't part of the SDK surface.
- */
-type ApiRunOptions = Omit<ExecutionOptions, 'remoteSettingName' | 'onPartialResult' | 'notificationConfig'>;
-/** Registry of known API names → their params/result types (from @picsart/workflows-types). */
-type ApiSchemas = WorkflowTypes;
-/**
- * The `ai.apis` surface — direct, low-level access to the Picsart model APIs.
- * Known API names (keys of {@link ApiSchemas}) get typed params + result;
- * unknown names take an open payload and return an unknown result.
- *
- * Failures arrive as {@link ApiError}, the same as the generation surface.
- */
-interface ApisClient {
-    /** Run an API by name (mirrors WorkflowsClient.run()). */
-    run<W extends string = string>(api: W, payload: W extends keyof ApiSchemas ? ApiSchemas[W]['params'] : Record<string, unknown>, options?: ApiRunOptions): Promise<ApiResponse<W extends keyof ApiSchemas ? ApiSchemas[W]['result'] : unknown>>;
-}
-
 interface ParamSchema {
     type: 'string' | 'number' | 'boolean' | 'file';
     enum?: (string | number)[];
@@ -2135,6 +1934,59 @@ interface ParamSchema {
     accept?: string;
 }
 type ModelParamSchema = Record<string, ParamSchema>;
+
+/**
+ * Runtime catalogs — the standard format served by the platform
+ * `<vendor>/v1/catalog/<voices|avatars|…>` tasks (voices, avatars, effect
+ * templates), plus the in-memory hydration registry that lets runtime-fetched
+ * catalogs back the descriptor system.
+ *
+ * The wire types mirror the shared backend contract (`@picsart/pa-genai-common`);
+ * the SDK owns its own copy so it carries no backend dependency.
+ */
+
+interface CatalogPreview {
+    imageUrl?: string;
+    videoUrl?: string;
+    audioUrl?: string;
+}
+interface CatalogItem {
+    /** Vendor-native id, sent back verbatim on generate as the bound param's value. */
+    id: string;
+    name: string;
+    description?: string;
+    /** Facets for filtering: gender, language, age, accent, tone, … */
+    tags: string[];
+    preview?: CatalogPreview;
+    /** Vendor extras, e.g. `defaultVoiceId` on HeyGen avatars. */
+    meta?: Record<string, unknown>;
+}
+interface CatalogQuery {
+    /** Worker-side filter (e.g. the seed-audio model variant on bytedance). */
+    modelId?: string;
+    /** Opaque cursor from a previous page. */
+    cursor?: string;
+    /** Page size. Every catalog task accepts up to 100. */
+    limit?: number;
+}
+interface CatalogResult {
+    items: CatalogItem[];
+    /** Crawl date or curation stamp identifying the snapshot. */
+    version: string;
+    /** How long the caller may cache this response. */
+    ttlSeconds: number;
+    /** `null` when the list is complete. */
+    nextCursor: string | null;
+}
+/** Binds a param's options to a platform catalog task. */
+interface CatalogSource {
+    /** Catalog workflow name, e.g. `heygen/v1/catalog/voices`. */
+    workflow: string;
+    /** Worker-side filter passed on fetch. */
+    modelId?: string;
+}
+declare function toVoiceOption(item: CatalogItem, provider: Provider): VoiceOption;
+declare function toAvatarOption(item: CatalogItem, provider: Provider): AvatarOption;
 
 /**
  * Param Descriptor types — the new, open-ended parameter definition system.
@@ -2653,6 +2505,12 @@ interface ModelDefinition {
     /** I2V/edit payload builder when different from buildPayload. */
     buildEditPayload?: PayloadBuilder;
     outputSchema?: RuntimeSchema<unknown>;
+    /**
+     * File extension the model produces when it has no output-format param
+     * (e.g. 'jpg'). Used to name a Drive save made before the job runs; without
+     * it the mode default applies (png / mp4 / mp3).
+     */
+    outputExtension?: string;
     estimatedTime?: number | Record<string, number>;
     editEstimatedTime?: number | Record<string, number>;
     testTimeout?: number;
@@ -2669,57 +2527,227 @@ interface ModelDefinition {
 }
 
 /**
- * Runtime catalogs — the standard format served by the platform
- * `<vendor>/v1/catalog/<voices|avatars|…>` tasks (voices, avatars, effect
- * templates), plus the in-memory hydration registry that lets runtime-fetched
- * catalogs back the descriptor system.
+ * Per-item vendor metadata promoted from the response. Every key is
+ * best-effort: present when the vendor reports it, absent otherwise.
+ */
+interface GenerateResultItemMetadata {
+    /** Explore image id (recraft explore models) — pass back as `sourceImageId`
+     *  to iterate on this image. */
+    exploreImageId?: string;
+    /** Voice preview id (ElevenLabs voice design/remix) — pass to the vendor's
+     *  create-voice-from-preview step to persist the voice. */
+    generatedVoiceId?: string;
+    /** URL of the generated video's last frame, when the model was asked for it
+     *  (`returnLastFrame`, seedance) — the seed for frame-chaining flows. */
+    lastFrameUrl?: string;
+    /** The draft a Seedance 2.5 Draft generation produced — pass it back
+     *  unchanged as `draftTask` to the matching `-draft-final` model to render
+     *  the final 1080p video (valid 7 days). Wire field names on purpose: the
+     *  worker signs it, so any change is rejected. */
+    draftTask?: SeedanceDraftTask;
+}
+/** A Seedance 2.5 draft reference, as the worker issues it. */
+interface SeedanceDraftTask {
+    id: string;
+    video_input: boolean;
+    signature: string;
+}
+
+/**
+ * Drive client — manages folders and file saving in Picsart Drive.
  *
- * The wire types mirror the shared backend contract (`@picsart/pa-genai-common`);
- * the SDK owns its own copy so it carries no backend dependency.
+ * Uses the same authenticated fetch as the generation client.
+ * Root folder is auto-created on first use and cached.
  */
 
-interface CatalogPreview {
-    imageUrl?: string;
+type MediaTypeFilter = 'image' | 'video' | 'audio';
+type UserReaction = 'like' | 'dislike';
+/** A folder reference in Picsart Drive. */
+interface DriveFolder {
+    name: string;
+    uid: string;
+}
+/** Drive save result, attached to GenerateResult when drive is enabled. */
+interface DriveSaveResult {
+    uid: string;
+    folder: DriveFolder;
+}
+/**
+ * The generation input parameters, serialized into the `aiSDKPayload` attribute.
+ * Captures every value from the generation context — the named fields below are
+ * common ones for convenience; the index signature carries any other input param.
+ */
+interface SdkPayload {
+    prompt: string;
+    aspectRatio?: string;
+    duration?: number;
+    resolution?: string;
+    generateAudio?: boolean;
+    imageUrls?: string[];
+    videoUrls?: string[];
+    audioUrls?: string[];
+    startFrame?: string;
+    endFrame?: string;
     videoUrl?: string;
     audioUrl?: string;
+    [key: string]: unknown;
 }
-interface CatalogItem {
-    /** Vendor-native id, sent back verbatim on generate as the bound param's value. */
-    id: string;
+type DriveFile = {
+    uid: string;
+} & Record<string, unknown>;
+interface DriveAttributes {
+    model: string;
+    /** JSON-encoded SdkPayload (all generation input params). */
+    aiSDKPayload: string;
+    appId?: string;
+    appType?: AppType;
+}
+/** A saved Seedance 2.5 draft — pass `draftTask` unchanged as the final's
+ *  `draftTask` param until `draftExpiresAt`. */
+interface DriveDraftInfo {
+    draftTask?: SeedanceDraftTask;
+    /** ISO timestamp after which the vendor no longer renders a final from it. */
+    draftExpiresAt?: string;
+}
+interface GenerationFile extends DriveDraftInfo {
+    appId?: string;
+    appType?: AppType;
+    model?: string;
+    aiSDKPayload?: SdkPayload;
+    userReaction?: UserReaction;
+}
+interface DriveMediaItem {
+    uid: string;
+    url: string;
     name: string;
-    description?: string;
-    /** Facets for filtering: gender, language, age, accent, tone, … */
-    tags: string[];
-    preview?: CatalogPreview;
-    /** Vendor extras, e.g. `defaultVoiceId` on HeyGen avatars. */
-    meta?: Record<string, unknown>;
+    type: MediaTypeFilter;
+    previewUrl?: string;
+    timestamp: number;
 }
-interface CatalogQuery {
-    /** Worker-side filter (e.g. the seed-audio model variant on bytedance). */
-    modelId?: string;
-    /** Opaque cursor from a previous page. */
-    cursor?: string;
-    /** Page size. Every catalog task accepts up to 100. */
-    limit?: number;
+interface DriveFileDetails extends DriveMediaItem, DriveDraftInfo {
+    createdAt?: string;
+    model?: string;
+    prompt?: string;
+    service?: string;
+    subType?: string;
+    duration?: string;
+    aspectRatio?: string;
+    resolution?: string;
+    quality?: string;
+    userReaction?: UserReaction;
+    referenceImageUrls?: string[];
+    referenceVideoUrl?: string;
+    referenceAudioUrl?: string;
 }
-interface CatalogResult {
-    items: CatalogItem[];
-    /** Crawl date or curation stamp identifying the snapshot. */
-    version: string;
-    /** How long the caller may cache this response. */
-    ttlSeconds: number;
-    /** `null` when the list is complete. */
-    nextCursor: string | null;
+interface ListOptions {
+    folder?: DriveFolder;
+    type?: MediaTypeFilter;
 }
-/** Binds a param's options to a platform catalog task. */
-interface CatalogSource {
-    /** Catalog workflow name, e.g. `heygen/v1/catalog/voices`. */
-    workflow: string;
-    /** Worker-side filter passed on fetch. */
-    modelId?: string;
+interface SaveParams {
+    url: string;
+    name: string;
+    resourceType: 'PHOTO' | 'VIDEO' | 'AUDIO';
+    attributes?: Record<string, string>;
+    previewUrl?: string;
 }
-declare function toVoiceOption(item: CatalogItem, provider: Provider): VoiceOption;
-declare function toAvatarOption(item: CatalogItem, provider: Provider): AvatarOption;
+/** Target folder for backend Drive save. */
+interface PayloadDriveFolderOptions {
+    /** Folder path — backend resolves it (e.g. 'AI Playground' or 'AI Playground/My Board'). */
+    path?: string;
+    /** Folder UID — overrides path when provided. */
+    id?: string;
+}
+/** Drive save options injected into the workflow payload as `options.drive`. */
+interface PayloadDriveOptions {
+    /** Filename for the saved asset. */
+    name: string;
+    /** Generation attributes attached to the file (SDK-assembled, fixed shape). */
+    attributes?: DriveAttributes;
+    /** Target folder in Picsart Drive. */
+    folder?: PayloadDriveFolderOptions;
+}
+/**
+ * Drive operations surface — returned by {@link createDriveClient} and exposed
+ * as `ai.drive` when Drive is configured. Manages folders, listing, saving, and
+ * reactions in Picsart Drive.
+ */
+interface DriveClient {
+    /** Ensure a folder exists (creating it if needed) and return it. */
+    ensureFolder(subfolder?: string): Promise<DriveFolder | null>;
+    /** List the immediate subfolders of the root folder. */
+    folders(): Promise<DriveFolder[]>;
+    /** List all folders recursively. */
+    allFolders(): Promise<DriveFolder[]>;
+    /** Find a folder by name. */
+    findFolder(name: string): Promise<DriveFolder | null>;
+    /** List media items in a folder. */
+    list(options?: ListOptions): Promise<DriveMediaItem[]>;
+    /** List media items in a folder with full generation metadata. */
+    listDetailed(options?: ListOptions): Promise<DriveFileDetails[]>;
+    /** Read a single generation's stored attributes. */
+    getGeneration(fileUid: string): Promise<GenerationFile | null>;
+    /** Save an asset to Drive. */
+    save(params: SaveParams, folder?: DriveFolder): Promise<DriveSaveResult | null>;
+    /** Build the save params for a generation result. */
+    buildSaveParams(url: string, modelId: string, modelName: string, mode: string, prompt?: string): SaveParams;
+    /** Set a like/dislike reaction on a file. */
+    addReaction(fileUid: string, reaction: UserReaction): Promise<boolean>;
+    /** Clear the reaction on a file. */
+    removeReaction(fileUid: string): Promise<boolean>;
+}
+declare function inferResourceType(mode: string): 'PHOTO' | 'VIDEO' | 'AUDIO';
+/** What is known about the file being named. Every field is optional; the
+ *  most reliable one present wins (see `resolveExtension`). */
+interface FilenameHints {
+    /** MIME type of the produced file (e.g. `image/jpeg`). */
+    mimeType?: string;
+    /** URL of the produced file; its path extension is used when present. */
+    url?: string;
+    /** Output format requested of (or declared by) the model, e.g. `jpeg`, `mov`, `ogg_opus`. */
+    format?: string;
+}
+/**
+ * Pick a file extension for a generation. Most to least reliable: the result's
+ * MIME type, the result URL's path extension, the requested output format, then
+ * the mode default (png / mp4 / mp3).
+ */
+declare function resolveExtension(mode: string, hints?: FilenameHints): string;
+/**
+ * The output format a generation will produce, known before the job runs:
+ * an explicit format param, else that param's catalog default, else the
+ * model's declared `outputExtension`. Undefined when nothing is known.
+ */
+declare function expectedOutputFormat(model: Pick<ModelDefinition, 'paramConfig' | 'outputExtension'>, params: Record<string, unknown>): string | undefined;
+declare function buildFilename(prompt: string | undefined, mode: string, hints?: FilenameHints): string;
+declare function buildGenerationAttributes(input: {
+    modelId: string;
+    params: Record<string, unknown>;
+    /** TODO(backend-autosave): temporary — remove once the backend stamps appId/appType. */
+    app?: AppIdentity;
+}): DriveAttributes;
+declare function parseGeneration(file: DriveFile | Record<string, unknown>): GenerationFile;
+
+/** Result of `ai.apis.run()` — the API result plus optional credit usage. */
+type ApiResponse<R = unknown> = WorkflowResponse<R>;
+/**
+ * Options for `ai.apis.run()` — execution mode, polling, abort signal, progress callbacks.
+ * Intentionally omits the lib's `remoteSettingName` (a no-op without remote settings),
+ * `onPartialResult`, and `notificationConfig` — these aren't part of the SDK surface.
+ */
+type ApiRunOptions = Omit<ExecutionOptions, 'remoteSettingName' | 'onPartialResult' | 'notificationConfig'>;
+/** Registry of known API names → their params/result types (from @picsart/workflows-types). */
+type ApiSchemas = WorkflowTypes;
+/**
+ * The `ai.apis` surface — direct, low-level access to the Picsart model APIs.
+ * Known API names (keys of {@link ApiSchemas}) get typed params + result;
+ * unknown names take an open payload and return an unknown result.
+ *
+ * Failures arrive as {@link ApiError}, the same as the generation surface.
+ */
+interface ApisClient {
+    /** Run an API by name (mirrors WorkflowsClient.run()). */
+    run<W extends string = string>(api: W, payload: W extends keyof ApiSchemas ? ApiSchemas[W]['params'] : Record<string, unknown>, options?: ApiRunOptions): Promise<ApiResponse<W extends keyof ApiSchemas ? ApiSchemas[W]['result'] : unknown>>;
+}
 
 /**
  * ai.catalogs — runtime access to the platform catalog tasks
@@ -3489,4 +3517,4 @@ declare const getModel: (id: string) => ModelDefinition | undefined;
  */
 declare const findModel: (ref: string) => ModelDefinition | undefined;
 
-export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };

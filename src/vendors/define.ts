@@ -33,6 +33,8 @@ interface BaseModelConfig {
   estimatedTime?: number | Record<string, number>;
   editEstimatedTime?: number | Record<string, number>;
   testTimeout?: number;
+  /** File extension produced when the model has no format param — see ModelDefinition.outputExtension. */
+  outputExtension?: string;
   /** Per-model polling overrides for async jobs — see ModelDefinition.pollOptions. */
   pollOptions?: { intervalMs?: number; maxAttempts?: number };
 }
@@ -126,6 +128,7 @@ export function defineModels(
     if (c.editEstimatedTime !== undefined) model.editEstimatedTime = c.editEstimatedTime;
     if (c.testTimeout !== undefined) model.testTimeout = c.testTimeout;
     if (c.pollOptions !== undefined) model.pollOptions = c.pollOptions;
+    if (c.outputExtension !== undefined) model.outputExtension = c.outputExtension;
     if (c.badge !== undefined) model.badge = c.badge;
     if (c.addedAt !== undefined) model.addedAt = c.addedAt;
     if (c.deprecated !== undefined) model.deprecated = c.deprecated;

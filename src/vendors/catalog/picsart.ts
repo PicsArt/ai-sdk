@@ -193,6 +193,8 @@ export const { MODELS } = defineModels('picsart', [
     addedAt: '2026-05-19',
     workflow: 'pcp/v1/sana-sprint', syncExecute: true,
     buildPayload: buildPcpSanaSprintPayload,
+    // The worker returns JPEG and exposes no format param.
+    outputExtension: 'jpg',
     estimatedTime: 3,
     mode: 'image', inputType: 't2i',
     badge: ['new', 'fast'] as const,

@@ -127,12 +127,30 @@ const buildMinimaxH3MaxLipSyncPayload = (input: MinimaxH3MaxLipSyncInput): Minim
   enable_safety_checker: input.enableSafetyChecker ?? true,
 });
 
+type MinimaxH3MaxExtendInput = ModelInput<'minimax-h3-max-extend'>;
+
+type MinimaxH3MaxExtendPayload = WorkflowTypes['minimax/h3-max/extend-video']['params'];
+
+const buildMinimaxH3MaxExtendPayload = (input: MinimaxH3MaxExtendInput): MinimaxH3MaxExtendPayload => ({
+  prompt: input.prompt,
+  video_url: input.videoUrl,
+  ...(input.duration != null ? { duration: input.duration } : {}),
+  ...(input.output ? { output: input.output } : {}),
+  ...(input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {}),
+  // The vendor enum is uppercase; paramConfig keeps the lowercase form.
+  resolution: (input.resolution ?? '768p').toUpperCase() as MinimaxH3MaxExtendPayload['resolution'],
+  ...(input.seed != null ? { seed: input.seed } : {}),
+  enable_prompt_expansion: input.enhancePrompt ?? true,
+  enable_safety_checker: input.enableSafetyChecker ?? true,
+});
+
 registerPayloads(MODELS, {
   'minimax-music-v3': buildMinimaxMusicV3Payload,
   'minimax-h3-max': buildMinimaxH3MaxPayload,
   'minimax-h3-max-turbo': buildMinimaxH3MaxTurboPayload,
   'minimax-h3-max-camera-controls': buildMinimaxH3MaxCameraControlsPayload,
   'minimax-h3-max-lip-sync': buildMinimaxH3MaxLipSyncPayload,
+  'minimax-h3-max-extend': buildMinimaxH3MaxExtendPayload,
 });
 
 // Edit slot — turbo keeps a separate image-to-video workflow, and the frame

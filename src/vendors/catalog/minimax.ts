@@ -297,4 +297,41 @@ export const { MODELS } = defineModels('minimax', [
       ...p.boolean('enableSafetyChecker', true, 'Safety Checker'),
     },
   },
+  {
+    // Continues an existing clip. `duration` is the length of the NEW footage,
+    // not of the result: with the default 'extended' output the response
+    // replays the whole source before the continuation, so a 5s extension of a
+    // 60s clip comes back 65s long. 'continuation' returns the new part alone.
+    id: 'minimax-h3-max-extend', name: 'MiniMax H3 Max Extend',
+    modelId: 'fal-ai-h3-max-extend',
+    addedAt: '2026-09-25',
+    workflow: 'minimax/h3-max/extend-video',
+    estimatedTime: 120,
+    mode: 'video', inputType: 'v2v',
+    description: 'Continue an existing video with newly generated footage — describe what happens next and get 5-15 more seconds, either appended to the source or on its own. Up to 2K.',
+    features: [
+      feat('Video Input', 'input'), feat('Extend', 'characteristic'),
+      feat('2K', 'resolution'), feat('5-15 sec', 'duration'),
+    ],
+    paramConfig: {
+      // The vendor wants the continuation described, not the source.
+      ...params.prompt({ placeholder: 'What happens next' }),
+      // 1.625-60s, up to 50MB, aspect ratio between 0.4 and 2.5.
+      ...params.videoInput('Source Video', 'asset', true, 60),
+      ...params.durationRange(5, 15, 5, 1),
+      ...p.enum('output', [
+        { id: 'extended', label: 'Source + continuation' },
+        { id: 'continuation', label: 'Continuation only' },
+      ], 'extended', { label: 'Output' }),
+      // 'auto' keeps the source ratio; anything else crops to fit.
+      ...params.aspectRatio(['auto', '21:9', '16:9', '4:3', '1:1', '3:4', '9:16']),
+      // Same ladder as lip-sync, and the same per-second rates.
+      ...params.resolution(['480p', '768p', '1080p', '2k'], '768p'),
+      // Rewrites the prompt using the source so the continuation stays consistent.
+      ...params.enhancePrompt(),
+      ...p.boolean('enableSafetyChecker', true, 'Safety Checker'),
+      // Default-less on purpose: unset means the vendor picks a random seed.
+      ...params.seed(),
+    },
+  },
 ]);

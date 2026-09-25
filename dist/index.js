@@ -3158,6 +3158,47 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
       ...p.range("seed", -1, 2147483647, -1),
       ...p.boolean("enableSafetyChecker", true, "Safety Checker")
     }
+  },
+  {
+    // Continues an existing clip. `duration` is the length of the NEW footage,
+    // not of the result: with the default 'extended' output the response
+    // replays the whole source before the continuation, so a 5s extension of a
+    // 60s clip comes back 65s long. 'continuation' returns the new part alone.
+    id: "minimax-h3-max-extend",
+    name: "MiniMax H3 Max Extend",
+    modelId: "fal-ai-h3-max-extend",
+    addedAt: "2026-09-25",
+    workflow: "minimax/h3-max/extend-video",
+    estimatedTime: 120,
+    mode: "video",
+    inputType: "v2v",
+    description: "Continue an existing video with newly generated footage \u2014 describe what happens next and get 5-15 more seconds, either appended to the source or on its own. Up to 2K.",
+    features: [
+      feat("Video Input", "input"),
+      feat("Extend", "characteristic"),
+      feat("2K", "resolution"),
+      feat("5-15 sec", "duration")
+    ],
+    paramConfig: {
+      // The vendor wants the continuation described, not the source.
+      ...params.prompt({ placeholder: "What happens next" }),
+      // 1.625-60s, up to 50MB, aspect ratio between 0.4 and 2.5.
+      ...params.videoInput("Source Video", "asset", true, 60),
+      ...params.durationRange(5, 15, 5, 1),
+      ...p.enum("output", [
+        { id: "extended", label: "Source + continuation" },
+        { id: "continuation", label: "Continuation only" }
+      ], "extended", { label: "Output" }),
+      // 'auto' keeps the source ratio; anything else crops to fit.
+      ...params.aspectRatio(["auto", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"]),
+      // Same ladder as lip-sync, and the same per-second rates.
+      ...params.resolution(["480p", "768p", "1080p", "2k"], "768p"),
+      // Rewrites the prompt using the source so the continuation stays consistent.
+      ...params.enhancePrompt(),
+      ...p.boolean("enableSafetyChecker", true, "Safety Checker"),
+      // Default-less on purpose: unset means the vendor picks a random seed.
+      ...params.seed()
+    }
   }
 ]);
 
@@ -7578,12 +7619,25 @@ var buildMinimaxH3MaxLipSyncPayload = (input) => ({
   ...input.seed != null && input.seed !== -1 ? { seed: input.seed } : {},
   enable_safety_checker: input.enableSafetyChecker ?? true
 });
+var buildMinimaxH3MaxExtendPayload = (input) => ({
+  prompt: input.prompt,
+  video_url: input.videoUrl,
+  ...input.duration != null ? { duration: input.duration } : {},
+  ...input.output ? { output: input.output } : {},
+  ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
+  // The vendor enum is uppercase; paramConfig keeps the lowercase form.
+  resolution: (input.resolution ?? "768p").toUpperCase(),
+  ...input.seed != null ? { seed: input.seed } : {},
+  enable_prompt_expansion: input.enhancePrompt ?? true,
+  enable_safety_checker: input.enableSafetyChecker ?? true
+});
 registerPayloads(MODELS9, {
   "minimax-music-v3": buildMinimaxMusicV3Payload,
   "minimax-h3-max": buildMinimaxH3MaxPayload,
   "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload,
   "minimax-h3-max-camera-controls": buildMinimaxH3MaxCameraControlsPayload,
-  "minimax-h3-max-lip-sync": buildMinimaxH3MaxLipSyncPayload
+  "minimax-h3-max-lip-sync": buildMinimaxH3MaxLipSyncPayload,
+  "minimax-h3-max-extend": buildMinimaxH3MaxExtendPayload
 });
 registerEditPayloads(MODELS9, {
   "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload
@@ -12938,6 +12992,7 @@ var Lyria35 = "lyria-3.5";
 var MinimaxH3 = "minimax-h3";
 var MinimaxH3Max = "minimax-h3-max";
 var MinimaxH3MaxCameraControls = "minimax-h3-max-camera-controls";
+var MinimaxH3MaxExtend = "minimax-h3-max-extend";
 var MinimaxH3MaxLipSync = "minimax-h3-max-lip-sync";
 var MinimaxH3MaxTurbo = "minimax-h3-max-turbo";
 var MinimaxMusicV2 = "minimax-music-v2";
@@ -13188,6 +13243,7 @@ var Models = {
   MinimaxH3,
   MinimaxH3Max,
   MinimaxH3MaxCameraControls,
+  MinimaxH3MaxExtend,
   MinimaxH3MaxLipSync,
   MinimaxH3MaxTurbo,
   MinimaxMusicV2,

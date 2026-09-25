@@ -9595,6 +9595,40 @@ var { MODELS: OPENAI_LLM } = defineModels("openai", [
     }
   },
   {
+    id: "gpt-6-sol",
+    name: "GPT-6 Sol",
+    workflow: "chat-completions",
+    addedAt: "2026-09-25",
+    estimatedTime: 10,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["premium"],
+    description: "OpenAI\u2019s most capable GPT-6 model for deep reasoning and complex tasks.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  {
+    id: "gpt-6-luna",
+    name: "GPT-6 Luna",
+    workflow: "chat-completions",
+    addedAt: "2026-09-25",
+    estimatedTime: 5,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["fast"],
+    description: "Fast, lightweight GPT-6 model for low-latency, high-volume text tasks.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...thinkingParam(["low", "medium", "high"])
+    }
+  },
+  {
     id: "gpt-5.6-sol",
     name: "GPT-5.6 Sol",
     workflow: "chat-completions",
@@ -9947,6 +9981,8 @@ registerPayloads(MODELS35, {
   "claude-sonnet-4-5": buildClaudePayload("claude-sonnet-4-5"),
   "claude-haiku-4-5": buildClaudePayload("claude-haiku-4-5"),
   "gpt-6-astra": buildOpenAiPayload("gpt-6-astra"),
+  "gpt-6-sol": buildOpenAiPayload("gpt-6-sol"),
+  "gpt-6-luna": buildOpenAiPayload("gpt-6-luna"),
   "gpt-5.6-sol": buildOpenAiPayload("gpt-5.6-sol"),
   "gpt-5.6-terra": buildOpenAiPayload("gpt-5.6-terra"),
   "gpt-5.6-luna": buildOpenAiPayload("gpt-5.6-luna"),
@@ -12920,6 +12956,8 @@ var Gpt56Luna = "gpt-5.6-luna";
 var Gpt56Sol = "gpt-5.6-sol";
 var Gpt56Terra = "gpt-5.6-terra";
 var Gpt6Astra = "gpt-6-astra";
+var Gpt6Luna = "gpt-6-luna";
+var Gpt6Sol = "gpt-6-sol";
 var GptImage1 = "gpt-image-1";
 var GptImage15 = "gpt-image-1.5";
 var GptImage2 = "gpt-image-2";
@@ -13171,6 +13209,8 @@ var Models = {
   Gpt56Sol,
   Gpt56Terra,
   Gpt6Astra,
+  Gpt6Luna,
+  Gpt6Sol,
   GptImage1,
   GptImage15,
   GptImage2,

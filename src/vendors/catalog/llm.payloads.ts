@@ -34,7 +34,13 @@ function geminiThinkingLevel(thinking?: string): 'LOW' | 'HIGH' | undefined {
 // ── OpenAI (chat-completions) — shared by all OpenAI text models ─────
 type OpenAiInput = ModelInput<'gpt-5.5'>;
 
-const buildOpenAiPayload = (modelId: ChatParams['model']) => (input: OpenAiInput): ChatParams => {
+// Upstream gap: @picsart/workflows-types@1.1.150 `ChatCompletionModels` ships
+// gpt-6-astra but not the gpt-6 sol/luna tiers yet. Widen the wire `model`
+// locally until the published union catches up, then drop this.
+type ChatModel = ChatParams['model'] | 'gpt-6-sol' | 'gpt-6-luna';
+type ChatParamsWide = Omit<ChatParams, 'model'> & { model: ChatModel };
+
+const buildOpenAiPayload = (modelId: ChatModel) => (input: OpenAiInput): ChatParamsWide => {
   const content: ChatParams['messages'][number]['content'] = [{ type: 'text', text: input.prompt }];
   for (const url of input.imageUrls ?? []) {
     content.push({ type: 'image_url', image_url: { url } });
@@ -93,6 +99,8 @@ registerPayloads(MODELS, {
   'claude-sonnet-4-5': buildClaudePayload('claude-sonnet-4-5'),
   'claude-haiku-4-5': buildClaudePayload('claude-haiku-4-5'),
   'gpt-6-astra': buildOpenAiPayload('gpt-6-astra'),
+  'gpt-6-sol': buildOpenAiPayload('gpt-6-sol'),
+  'gpt-6-luna': buildOpenAiPayload('gpt-6-luna'),
   'gpt-5.6-sol': buildOpenAiPayload('gpt-5.6-sol'),
   'gpt-5.6-terra': buildOpenAiPayload('gpt-5.6-terra'),
   'gpt-5.6-luna': buildOpenAiPayload('gpt-5.6-luna'),

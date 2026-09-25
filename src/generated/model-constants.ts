@@ -144,6 +144,10 @@ export const Gpt56Sol = 'gpt-5.6-sol' as const;
 export const Gpt56Terra = 'gpt-5.6-terra' as const;
 /** GPT-6 Astra — openai (text) */
 export const Gpt6Astra = 'gpt-6-astra' as const;
+/** GPT-6 Luna — openai (text) */
+export const Gpt6Luna = 'gpt-6-luna' as const;
+/** GPT-6 Sol — openai (text) */
+export const Gpt6Sol = 'gpt-6-sol' as const;
 /** GPT Image 1 — openai (image) */
 /** @deprecated This model is retired (deprecated). */
 export const GptImage1 = 'gpt-image-1' as const;
@@ -601,6 +605,8 @@ export const Models = {
   Gpt56Sol,
   Gpt56Terra,
   Gpt6Astra,
+  Gpt6Luna,
+  Gpt6Sol,
   GptImage1,
   GptImage15,
   GptImage2,

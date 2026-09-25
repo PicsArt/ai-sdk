@@ -112,6 +112,30 @@ const { MODELS: OPENAI_LLM } = defineModels('openai', [
     },
   },
   {
+    id: 'gpt-6-sol', name: 'GPT-6 Sol',
+    workflow: 'chat-completions', addedAt: '2026-09-25', estimatedTime: 10,
+    mode: 'text', inputType: 'i2t', badge: ['premium'],
+    description: 'OpenAI’s most capable GPT-6 model for deep reasoning and complex tasks.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high'])
+    },
+  },
+  {
+    id: 'gpt-6-luna', name: 'GPT-6 Luna',
+    workflow: 'chat-completions', addedAt: '2026-09-25', estimatedTime: 5,
+    mode: 'text', inputType: 'i2t', badge: ['fast'],
+    description: 'Fast, lightweight GPT-6 model for low-latency, high-volume text tasks.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...thinkingParam(['low', 'medium', 'high'])
+    },
+  },
+  {
     id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol',
     workflow: 'chat-completions', addedAt: '2026-09-04', estimatedTime: 10,
     mode: 'text', inputType: 'i2t', badge: ['premium'],

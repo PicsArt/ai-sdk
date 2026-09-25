@@ -6378,6 +6378,7 @@ var buildGemini3ProImagePayload = (ctx) => ({
   prompt: ctx.prompt,
   model: "gemini-3-pro-image-preview",
   count: ctx.count ?? 1,
+  ...ctx.seed != null ? { seed: ctx.seed } : {},
   ...ctx.imageUrls?.length ? { imageUrls: ctx.imageUrls } : {},
   aspectRatio: ctx.aspectRatio ?? "1:1",
   imageSize: ctx.resolution ?? "2K",
@@ -6387,6 +6388,7 @@ var buildGeminiFlashImagePayload = (ctx) => ({
   prompt: ctx.prompt,
   model: "gemini-2.5-flash-image",
   count: ctx.count ?? 1,
+  ...ctx.seed != null ? { seed: ctx.seed } : {},
   ...ctx.imageUrls?.length ? { imageUrls: ctx.imageUrls } : {},
   aspectRatio: ctx.aspectRatio ?? "16:9"
 });
@@ -6394,6 +6396,7 @@ var buildGemini31FlashImagePayload = (ctx) => ({
   prompt: ctx.prompt,
   model: "gemini-3.1-flash-image-preview",
   count: ctx.count ?? 1,
+  ...ctx.seed != null ? { seed: ctx.seed } : {},
   ...ctx.imageUrls?.length ? { imageUrls: ctx.imageUrls } : {},
   aspectRatio: ctx.aspectRatio ?? "1:1",
   imageSize: ctx.resolution ?? "1K",
@@ -6403,6 +6406,7 @@ var buildGemini31FlashLiteImagePayload = (ctx) => ({
   prompt: ctx.prompt,
   model: "gemini-3.1-flash-lite-image",
   count: ctx.count ?? 1,
+  ...ctx.seed != null ? { seed: ctx.seed } : {},
   ...ctx.imageUrls?.length ? { imageUrls: ctx.imageUrls } : {},
   aspectRatio: ctx.aspectRatio ?? "1:1",
   imageSize: ctx.resolution ?? "1K",
@@ -6466,6 +6470,7 @@ var { MODELS: MODELS22 } = defineModels("google", [
       ...params.aspectRatio(["1:1", "16:9", "9:16", "3:4", "4:3", "3:2", "2:3", "4:5", "5:4", "4:1", "1:4", "8:1", "1:8", "21:9", "auto"], "1:1"),
       ...params.resolution(["0.5K", "1K", "2K", "4K"], "1K"),
       ...params.count(),
+      ...params.seed(),
       ...thinkingLevelParam,
       ...params.imageInput(14, "Source Images")
     }
@@ -6488,6 +6493,7 @@ var { MODELS: MODELS22 } = defineModels("google", [
       ...params.prompt(),
       ...params.aspectRatio(["1:1", "16:9", "9:16", "3:4", "4:3", "3:2", "2:3", "4:5", "5:4", "4:1", "1:4", "8:1", "1:8", "21:9", "auto"], "1:1"),
       ...params.count(),
+      ...params.seed(),
       ...thinkingLevelParam,
       ...params.imageInput(14, "Source Images")
     }
@@ -6511,6 +6517,7 @@ var { MODELS: MODELS22 } = defineModels("google", [
       ...params.aspectRatio([...GEMINI_AR_WIDE], "1:1"),
       ...params.resolution(["1K", "2K", "4K"], "2K"),
       ...params.count(),
+      ...params.seed(),
       ...thinkingBudgetParam,
       ...params.imageInput(14, "Source Images")
     }
@@ -6533,6 +6540,7 @@ var { MODELS: MODELS22 } = defineModels("google", [
       ...params.prompt(),
       ...params.aspectRatio([...GEMINI_AR_WIDE], "16:9"),
       ...params.count(),
+      ...params.seed(),
       ...params.imageInput(14, "Source Images")
     }
   },

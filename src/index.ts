@@ -47,6 +47,7 @@ export type {
   ListOptions,
   MediaTypeFilter,
   SaveParams,
+  GenerationProvenance,
   UserReaction,
   GenerationFile,
   DriveFile,

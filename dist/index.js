@@ -11997,6 +11997,23 @@ function buildGenerationAttributes(input) {
   }
   return attrs;
 }
+function attributesForSave(params2) {
+  const attributes = { ...params2.attributes };
+  if (params2.generation) {
+    return { ...attributes, ...buildGenerationAttributes(params2.generation) };
+  }
+  if (asString(attributes.model)) {
+    const legacy = adaptLegacyGeneration(attributes);
+    const canonical = parseJsonAttr(attributes.aiSDKPayload);
+    const payload = canonical && typeof canonical.prompt === "string" ? canonical : legacy.aiSDKPayload ?? {};
+    return {
+      ...legacy.appId ? { appId: legacy.appId, appType: legacy.appType } : {},
+      ...attributes,
+      ...buildGenerationAttributes({ modelId: attributes.model, params: payload })
+    };
+  }
+  return attributes;
+}
 function toMediaItem(file) {
   const url = normalizeUrl(file.sourceUrl);
   if (!url || String(file.name || "").startsWith("__")) return null;
@@ -12332,7 +12349,7 @@ function createDriveClient(f, apiUrl, rootFolderName) {
           width: 1024,
           height: 1024
         },
-        attributes: Object.entries(params2.attributes ?? {}).map(([property, value]) => ({
+        attributes: Object.entries(attributesForSave(params2)).map(([property, value]) => ({
           property,
           value
         }))
@@ -12360,15 +12377,17 @@ function createDriveClient(f, apiUrl, rootFolderName) {
       }
     },
     /** Build standard save params from a generation result. */
-    buildSaveParams(url, modelId, modelName, mode, prompt) {
+    buildSaveParams(url, modelId, modelName, mode, promptOrParams) {
+      const params2 = typeof promptOrParams === "string" ? { prompt: promptOrParams } : promptOrParams ?? {};
+      const prompt = String(params2.prompt ?? "");
       return {
         url,
         name: buildFilename(prompt, mode, { url }),
         resourceType: inferResourceType(mode),
         attributes: {
           tool: "ai-sdk",
-          model: modelId,
-          prompt: prompt || "",
+          ...buildGenerationAttributes({ modelId, params: params2 }),
+          prompt,
           service: modelName
         }
       };
@@ -12676,8 +12695,8 @@ function createClient(config) {
     return {
       // Named before the job runs, so the requested/declared format is the best hint.
       name: explicit?.name ?? buildFilename(params2.prompt, model.mode, { format: expectedOutputFormat(model, params2) }),
-      // SDK-assembled attributes are the baseline; explicit attributes win per-key.
-      attributes: { ...attributes, ...explicit?.attributes ?? {} },
+      // Generation provenance is authoritative; custom attributes cannot replace it.
+      attributes: { ...explicit?.attributes ?? {}, ...attributes },
       folder: explicit?.folder ?? (folderPath ? { path: folderPath } : void 0)
     };
   }

@@ -114,11 +114,20 @@ export interface ListOptions {
   type?: MediaTypeFilter;
 }
 
+/** Original generation inputs, portable across clients and delayed Drive saves. */
+export interface GenerationProvenance {
+  modelId: string;
+  params: Record<string, unknown>;
+  app?: AppIdentity;
+}
+
 export interface SaveParams {
   url: string;
   name: string;
   resourceType: 'PHOTO' | 'VIDEO' | 'AUDIO';
   attributes?: Record<string, string>;
+  /** Required to retain full provenance when saving a generated URL separately. */
+  generation?: GenerationProvenance;
   previewUrl?: string;
 }
 
@@ -165,7 +174,7 @@ export interface DriveClient {
   /** Save an asset to Drive. */
   save(params: SaveParams, folder?: DriveFolder): Promise<DriveSaveResult | null>;
   /** Build the save params for a generation result. */
-  buildSaveParams(url: string, modelId: string, modelName: string, mode: string, prompt?: string): SaveParams;
+  buildSaveParams(url: string, modelId: string, modelName: string, mode: string, promptOrParams?: string | Record<string, unknown>): SaveParams;
   /** Set a like/dislike reaction on a file. */
   addReaction(fileUid: string, reaction: UserReaction): Promise<boolean>;
   /** Clear the reaction on a file. */
@@ -405,12 +414,7 @@ export function toSdkPayload(params: Record<string, unknown>): SdkPayload {
   return p;
 }
 
-export function buildGenerationAttributes(input: {
-  modelId: string;
-  params: Record<string, unknown>;
-  /** TODO(backend-autosave): temporary — remove once the backend stamps appId/appType. */
-  app?: AppIdentity;
-}): DriveAttributes {
+export function buildGenerationAttributes(input: GenerationProvenance): DriveAttributes {
   const attrs: DriveAttributes = {
     model: input.modelId,
     aiSDKPayload: JSON.stringify(toSdkPayload(input.params)),
@@ -421,6 +425,27 @@ export function buildGenerationAttributes(input: {
     attrs.appType = input.app.type;
   }
   return attrs;
+}
+
+/** Normalize generation saves at the write boundary, not just on reads. */
+function attributesForSave(params: SaveParams): Record<string, string> {
+  const attributes = { ...params.attributes };
+  if (params.generation) {
+    return { ...attributes, ...buildGenerationAttributes(params.generation) };
+  }
+  // Legacy clients already supply model/prompt/textScript. Persist the canonical
+  // representation too; generic URL uploads must not invent generation inputs.
+  if (asString(attributes.model)) {
+    const legacy = adaptLegacyGeneration(attributes);
+    const canonical = parseJsonAttr(attributes.aiSDKPayload);
+    const payload = canonical && typeof canonical.prompt === 'string' ? canonical : legacy.aiSDKPayload ?? {};
+    return {
+      ...(legacy.appId ? { appId: legacy.appId, appType: legacy.appType! } : {}),
+      ...attributes,
+      ...buildGenerationAttributes({ modelId: attributes.model, params: payload }),
+    };
+  }
+  return attributes;
 }
 
 function toMediaItem(file: Record<string, unknown>): DriveMediaItem | null {
@@ -802,7 +827,7 @@ export function createDriveClient(f: AuthenticatedFetch, apiUrl: string, rootFol
           width: 1024,
           height: 1024,
         },
-        attributes: Object.entries(params.attributes ?? {}).map(([property, value]) => ({
+        attributes: Object.entries(attributesForSave(params)).map(([property, value]) => ({
           property,
           value,
         })),
@@ -834,15 +859,17 @@ export function createDriveClient(f: AuthenticatedFetch, apiUrl: string, rootFol
     },
 
     /** Build standard save params from a generation result. */
-    buildSaveParams(url: string, modelId: string, modelName: string, mode: string, prompt?: string): SaveParams {
+    buildSaveParams(url: string, modelId: string, modelName: string, mode: string, promptOrParams?: string | Record<string, unknown>): SaveParams {
+      const params = typeof promptOrParams === 'string' ? { prompt: promptOrParams } : (promptOrParams ?? {});
+      const prompt = String(params.prompt ?? '');
       return {
         url,
         name: buildFilename(prompt, mode, { url }),
         resourceType: inferResourceType(mode),
         attributes: {
           tool: 'ai-sdk',
-          model: modelId,
-          prompt: prompt || '',
+          ...buildGenerationAttributes({ modelId, params }),
+          prompt,
           service: modelName,
         },
       };

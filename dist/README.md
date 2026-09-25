@@ -153,6 +153,35 @@ const folders = await ai.drive.folders()
 const items = await ai.drive.list()
 ```
 
+Generated Drive assets carry `model` and JSON `aiSDKPayload` automatically. Both
+`generate()` and `submit()` record the original SDK inputs; custom Drive attributes
+cannot replace that provenance. These are requested inputs, not a claim that every
+provider default or rewritten prompt has been recovered. The stored prompt is capped
+at 18,000 characters without changing the prompt sent to generation.
+
+`apis.run()` remains a direct vendor API pass-through. It does not apply the client’s
+Drive configuration or derive SDK metadata, even when a vendor payload explicitly
+requests Drive saving. Vendor-shaped inputs must never be stored as `aiSDKPayload`;
+that attribute is reserved for original SDK-shaped inputs.
+
+For a separate or delayed save, pass the original generation context:
+
+```typescript
+await ai.drive.save({
+  url: generatedUrl,
+  name: 'clip.mp4',
+  resourceType: 'VIDEO',
+  generation: { modelId, params: originalGenerationParams },
+})
+// The existing helper also accepts a full params object instead of just a prompt:
+const saveParams = ai.drive.buildSaveParams(generatedUrl, modelId, modelName, 'video', originalGenerationParams)
+```
+
+Legacy `model`/`prompt`/`textScript` saves are normalized at write time. URL-only
+uploads remain ordinary uploads: without generation context the SDK cannot infer
+model, prompt or settings. Existing Drive files are not backfilled. The backend preserves SDK-supplied metadata; it cannot reconstruct SDK input
+names or catalog model IDs from an arbitrary vendor request.
+
 ## Text Generation (LLMs)
 
 Claude, GPT, and Gemini text models are called with `generateText()`. Single-shot:

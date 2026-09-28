@@ -349,14 +349,30 @@ type ModelInputById = {
     "gemini-2.5-flash-tts": {
         language?: string;
         accent?: string;
-        prompt: string;
+        prompt?: string;
         voiceId?: string;
+        parts?: Array<{
+            text: string;
+            speaker?: string;
+        }>;
+        multiSpeakerVoiceConfigs?: Array<{
+            speaker: string;
+            voiceName: string;
+        }>;
     };
     "gemini-2.5-pro-tts": {
         language?: string;
         accent?: string;
-        prompt: string;
+        prompt?: string;
         voiceId?: string;
+        parts?: Array<{
+            text: string;
+            speaker?: string;
+        }>;
+        multiSpeakerVoiceConfigs?: Array<{
+            speaker: string;
+            voiceName: string;
+        }>;
     };
     "gemini-3-pro": {
         prompt: string;
@@ -412,14 +428,34 @@ type ModelInputById = {
     "gemini-3.8-flash-lite-tts": {
         language?: string;
         accent?: string;
-        prompt: string;
+        prompt?: string;
         voiceId?: string;
+        style?: string;
+        parts?: Array<{
+            text: string;
+            speaker?: string;
+            style?: string;
+        }>;
+        multiSpeakerVoiceConfigs?: Array<{
+            speaker: string;
+            voiceName: string;
+        }>;
     };
     "gemini-3.8-flash-tts": {
         language?: string;
         accent?: string;
-        prompt: string;
+        prompt?: string;
         voiceId?: string;
+        style?: string;
+        parts?: Array<{
+            text: string;
+            speaker?: string;
+            style?: string;
+        }>;
+        multiSpeakerVoiceConfigs?: Array<{
+            speaker: string;
+            voiceName: string;
+        }>;
     };
     "gemini-omni-1.1-flash-preview": {
         prompt: string;

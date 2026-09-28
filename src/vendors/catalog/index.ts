@@ -29,7 +29,7 @@ import { MODELS as runwayMODELS } from './runway.ts';
 import { MODELS as fluxMODELS } from './flux.ts';
 import './flux.payloads.ts'; // registers flux-3-video payload builder after model definitions
 import { MODELS as geminiMODELS } from './gemini.ts';
-import './gemini.payloads.ts'; // registers the Gemini Omni 1.1 payload builder after model definitions
+import './gemini.payloads.ts'; // registers the Gemini Omni 1.1 and TTS payload builders after model definitions
 import { MODELS as openaiMODELS } from './openai.ts';
 import './openai.payloads.ts'; // registers the GPT Image 2.5 payload builders after model definitions
 import { MODELS as elevenlabsMODELS } from './elevenlabs.ts';

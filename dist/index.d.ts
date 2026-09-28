@@ -725,6 +725,25 @@ type ModelInputById = {
         negativePrompt?: string;
         cfgScale?: number;
     };
+    "ideogram-4-5": {
+        prompt: string;
+        imageUrls?: string[];
+        mask?: string;
+        size?: "auto" | "source" | "2048x2048" | "1440x2880" | "2880x1440" | "1664x2496" | "2496x1664" | "1792x2240" | "2240x1792" | "1440x2560" | "2560x1440" | "1600x2560" | "2560x1600" | "1728x2304" | "2304x1728" | "1296x3168" | "3168x1296" | "1152x2944" | "2944x1152" | "1248x3328" | "3328x1248" | "1280x3072" | "3072x1280" | "1024x3072" | "3072x1024" | "1024x1024" | "896x1120" | "1120x896" | "864x1152" | "1152x864" | "832x1248" | "1248x832" | "800x1280" | "1280x800" | "720x1280" | "1280x720" | "720x1440" | "1440x720" | "512x1536" | "1536x512";
+        magicPrompt?: "auto" | "on" | "off";
+        quality?: "low" | "medium" | "high";
+        count?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+        seed?: number;
+    };
+    "ideogram-4-5-precise-edit": {
+        prompt: string;
+        startFrame: string;
+        mask?: string;
+        imageUrls?: string[];
+        quality?: "low" | "medium" | "high" | "very_high";
+        count?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+        seed?: number;
+    };
     "ideogram-character": {
         prompt: string;
         resolution?: "1024x1024" | "1344x768" | "768x1344" | "1152x864" | "864x1152" | "832x1248" | "1280x800";
@@ -3285,6 +3304,8 @@ declare const Models: {
     readonly HeygenTalkingPhoto: "heygen-talking-photo";
     readonly HeygenVideoAvatar: "heygen-video-avatar";
     readonly HunyuanV3: "hunyuan-v3";
+    readonly Ideogram45: "ideogram-4-5";
+    readonly Ideogram45PreciseEdit: "ideogram-4-5-precise-edit";
     readonly IdeogramCharacter: "ideogram-character";
     readonly IdeogramPImage: "ideogram-p-image";
     readonly IdeogramV3: "ideogram-v3";

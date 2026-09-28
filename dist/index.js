@@ -7802,7 +7802,138 @@ var buildIdeogramPImagePayload = (ctx) => ({
   resolution: ctx.resolution ?? "1024x1024",
   rendering_speed: ctx.renderingSpeed ?? "medium"
 });
+var IDEOGRAM_45_IMAGE_BOUNDS = {
+  maxBytes: 25 * 1024 * 1024,
+  minAspectRatio: 1 / 6,
+  maxAspectRatio: 6
+};
+var IDEOGRAM_45_T2I_SIZES = [
+  "2048x2048",
+  "1440x2880",
+  "2880x1440",
+  "1664x2496",
+  "2496x1664",
+  "1792x2240",
+  "2240x1792",
+  "1440x2560",
+  "2560x1440",
+  "1600x2560",
+  "2560x1600",
+  "1728x2304",
+  "2304x1728",
+  "1296x3168",
+  "3168x1296",
+  "1152x2944",
+  "2944x1152",
+  "1248x3328",
+  "3328x1248",
+  "1280x3072",
+  "3072x1280",
+  "1024x3072",
+  "3072x1024",
+  "1024x1024",
+  "896x1120",
+  "1120x896",
+  "864x1152",
+  "1152x864",
+  "832x1248",
+  "1248x832",
+  "800x1280",
+  "1280x800",
+  "720x1280",
+  "1280x720",
+  "720x1440",
+  "1440x720",
+  "512x1536",
+  "1536x512"
+];
+var ideogram45MaskParam = p.file("mask", "image", {
+  label: "Mask",
+  category: "asset",
+  ...IDEOGRAM_45_IMAGE_BOUNDS
+});
+var ideogram45MagicPromptParam = {
+  magicPrompt: {
+    label: "Magic Prompt",
+    descriptor: {
+      kind: "enum",
+      valueType: "string",
+      options: [
+        { id: "auto", label: "Auto" },
+        { id: "on", label: "On" },
+        { id: "off", label: "Off (verbatim)" }
+      ],
+      default: "auto"
+    }
+  }
+};
+var IDEOGRAM_45_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8];
+var ideogram45Constraints = [
+  { when: { imageUrls: { exists: false } }, then: {
+    size: { allowed: ["auto", ...IDEOGRAM_45_T2I_SIZES] },
+    mask: { disabled: true, reason: "A mask needs a source image." }
+  } },
+  { when: { imageUrls: { exists: true } }, then: {
+    size: { allowed: ["auto", "source"], reason: 'With input images the size is "auto" or the source image size.' }
+  } },
+  { when: { mask: { exists: true } }, then: {
+    size: { disabled: true, reason: "A masked edit keeps the source image size." }
+  } }
+];
+var ideogram45PreciseEditConstraints = [
+  { when: { quality: { is: "very_high" } }, then: {
+    count: { allowed: [1, 2, 3, 4], reason: "Very high quality returns at most 4 images." }
+  } }
+];
 var { MODELS: MODELS26 } = defineModels("ideogram", [
+  {
+    id: "ideogram-4-5",
+    name: "Ideogram 4.5",
+    addedAt: "2026-09-28",
+    release: "preview",
+    workflow: "ideogram/v4.5/generate",
+    estimatedTime: 30,
+    mode: "image",
+    inputType: "t2i",
+    description: "Ideogram 4.5 \u2014 text-to-image and drift-free iterative editing with up to 4 reference images and an optional mask.",
+    features: [feat("Reference Images", "input"), feat("Masked Edit", "input"), feat("2K", "resolution")],
+    constraints: ideogram45Constraints,
+    paramConfig: {
+      ...params.prompt({ maxLength: 1e4 }),
+      // imageUrls[0] is the source image to edit; the rest are references ("image 2", "image 3"…).
+      // With a mask the vendor allows at most 4 images.
+      ...params.imageInput(5, "Images", false, "reference", IDEOGRAM_45_IMAGE_BOUNDS),
+      ...ideogram45MaskParam,
+      ...p.size(["auto", "source", ...IDEOGRAM_45_T2I_SIZES], "auto"),
+      ...ideogram45MagicPromptParam,
+      ...p.quality(["low", "medium", "high"], "high"),
+      ...params.count(IDEOGRAM_45_COUNTS, 1),
+      ...params.seed()
+    }
+  },
+  {
+    id: "ideogram-4-5-precise-edit",
+    name: "Ideogram 4.5 Precise Edit",
+    addedAt: "2026-09-28",
+    release: "preview",
+    workflow: "ideogram/v4.5/precise-edit",
+    estimatedTime: 40,
+    mode: "image",
+    inputType: "i2i",
+    description: "Ideogram 4.5 precise edit \u2014 change one area and keep the rest of the image pixel-intact, optionally with a mask and reference images.",
+    features: [feat("Precise Edit", "input"), feat("Masked Edit", "input"), feat("Reference Images", "input")],
+    constraints: ideogram45PreciseEditConstraints,
+    paramConfig: {
+      ...params.prompt({ maxLength: 1e4 }),
+      ...params.startFrame("Source Image", true, IDEOGRAM_45_IMAGE_BOUNDS),
+      ...ideogram45MaskParam,
+      // With a mask the vendor allows at most 3 references.
+      ...params.imageInput(4, "Reference Images", false, "reference", IDEOGRAM_45_IMAGE_BOUNDS),
+      ...p.quality(["low", "medium", "high", "very_high"], "high"),
+      ...params.count(IDEOGRAM_45_COUNTS, 1),
+      ...params.seed()
+    }
+  },
   {
     id: "ideogram-v4",
     name: "Ideogram 4.0",
@@ -7998,6 +8129,69 @@ var { MODELS: MODELS26 } = defineModels("ideogram", [
     }
   }
 ]);
+
+// src/vendors/catalog/ideogram.payloads.ts
+var GENERATE_MAX_IMAGES_WITH_MASK = 4;
+var PRECISE_EDIT_MAX_REFERENCES_WITH_MASK = 3;
+var VERY_HIGH_MAX_COUNT = 4;
+function assertMaskedImageLimit(model, count, max, what) {
+  if (count > max) {
+    throw new ApiError(`${model}: with a mask, use at most ${max} ${what} (got ${count}).`, {
+      status: 400,
+      code: "validation_error"
+    });
+  }
+}
+function ideogram45Size(size, hasImages, hasMask) {
+  if (!size || hasMask) return void 0;
+  if (hasImages) return size === "auto" || size === "source" ? size : void 0;
+  return size === "source" ? void 0 : size;
+}
+var buildIdeogram45Payload = (input) => {
+  const images = input.imageUrls?.length ? input.imageUrls : void 0;
+  const mask = images && input.mask ? input.mask : void 0;
+  if (mask) assertMaskedImageLimit("Ideogram 4.5", images.length, GENERATE_MAX_IMAGES_WITH_MASK, "images");
+  const size = ideogram45Size(input.size, !!images, !!mask);
+  return {
+    prompt: input.prompt,
+    ...images ? { images } : {},
+    ...mask ? { mask } : {},
+    ...size ? { size } : {},
+    ...input.magicPrompt ? { magic_prompt: input.magicPrompt } : {},
+    quality: input.quality ?? "high",
+    num_images: input.count ?? 1,
+    ...input.seed != null ? { seed: input.seed } : {}
+  };
+};
+var buildIdeogram45PreciseEditPayload = (input) => {
+  if (input.mask) {
+    assertMaskedImageLimit(
+      "Ideogram 4.5 Precise Edit",
+      input.imageUrls?.length ?? 0,
+      PRECISE_EDIT_MAX_REFERENCES_WITH_MASK,
+      "reference images"
+    );
+  }
+  if (input.quality === "very_high" && (input.count ?? 1) > VERY_HIGH_MAX_COUNT) {
+    throw new ApiError(
+      `Ideogram 4.5 Precise Edit: very_high quality returns at most ${VERY_HIGH_MAX_COUNT} images (got ${input.count}).`,
+      { status: 400, code: "validation_error" }
+    );
+  }
+  return {
+    image: input.startFrame,
+    prompt: input.prompt,
+    ...input.mask ? { mask: input.mask } : {},
+    ...input.imageUrls?.length ? { reference_images: input.imageUrls } : {},
+    quality: input.quality ?? "high",
+    num_images: input.count ?? 1,
+    ...input.seed != null ? { seed: input.seed } : {}
+  };
+};
+registerPayloads(MODELS26, {
+  "ideogram-4-5": buildIdeogram45Payload,
+  "ideogram-4-5-precise-edit": buildIdeogram45PreciseEditPayload
+});
 
 // src/vendors/catalog/qwen.ts
 var QWEN_V1_SIZES = [
@@ -13113,6 +13307,8 @@ var Happyhorse11T2v = "happyhorse-1.1-t2v";
 var HeygenTalkingPhoto = "heygen-talking-photo";
 var HeygenVideoAvatar = "heygen-video-avatar";
 var HunyuanV3 = "hunyuan-v3";
+var Ideogram45 = "ideogram-4-5";
+var Ideogram45PreciseEdit = "ideogram-4-5-precise-edit";
 var IdeogramCharacter = "ideogram-character";
 var IdeogramPImage = "ideogram-p-image";
 var IdeogramV3 = "ideogram-v3";
@@ -13366,6 +13562,8 @@ var Models = {
   HeygenTalkingPhoto,
   HeygenVideoAvatar,
   HunyuanV3,
+  Ideogram45,
+  Ideogram45PreciseEdit,
   IdeogramCharacter,
   IdeogramPImage,
   IdeogramV3,

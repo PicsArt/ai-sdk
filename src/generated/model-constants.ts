@@ -199,6 +199,10 @@ export const HeygenTalkingPhoto = 'heygen-talking-photo' as const;
 export const HeygenVideoAvatar = 'heygen-video-avatar' as const;
 /** Hunyuan V3 — hunyuan (image) */
 export const HunyuanV3 = 'hunyuan-v3' as const;
+/** Ideogram 4.5 — ideogram (image) */
+export const Ideogram45 = 'ideogram-4-5' as const;
+/** Ideogram 4.5 Precise Edit — ideogram (image) */
+export const Ideogram45PreciseEdit = 'ideogram-4-5-precise-edit' as const;
 /** Ideogram Character — ideogram (image) */
 export const IdeogramCharacter = 'ideogram-character' as const;
 /** Ideogram P-Image — ideogram (image) */
@@ -632,6 +636,8 @@ export const Models = {
   HeygenTalkingPhoto,
   HeygenVideoAvatar,
   HunyuanV3,
+  Ideogram45,
+  Ideogram45PreciseEdit,
   IdeogramCharacter,
   IdeogramPImage,
   IdeogramV3,

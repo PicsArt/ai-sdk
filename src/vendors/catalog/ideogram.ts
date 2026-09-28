@@ -1,7 +1,8 @@
 /**
  * Ideogram — single source of truth.
  */
-import type { PayloadBuilder } from '../../core/types.ts';
+import type { Constraint, PayloadBuilder } from '../../core/types.ts';
+import type { ModelParams } from '../../core/descriptors/types.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 
@@ -80,7 +81,115 @@ export const buildIdeogramPImagePayload: PayloadBuilder = (ctx) => ({
   rendering_speed: ctx.renderingSpeed ?? 'medium',
 });
 
+// ── Ideogram 4.5 ─────────────────────────────────────────────────────
+// Payload builders live in ideogram.payloads.ts.
+
+/** Vendor upload limits shared by every 4.5 image slot: 25 MB, aspect ratio 1:6–6:1. */
+const IDEOGRAM_45_IMAGE_BOUNDS = {
+  maxBytes: 25 * 1024 * 1024,
+  minAspectRatio: 1 / 6,
+  maxAspectRatio: 6,
+};
+
+/** Text-to-image output sizes (the V4 preset list); with input images only auto/source apply. */
+const IDEOGRAM_45_T2I_SIZES = [
+  '2048x2048', '1440x2880', '2880x1440', '1664x2496', '2496x1664',
+  '1792x2240', '2240x1792', '1440x2560', '2560x1440', '1600x2560',
+  '2560x1600', '1728x2304', '2304x1728', '1296x3168', '3168x1296',
+  '1152x2944', '2944x1152', '1248x3328', '3328x1248', '1280x3072',
+  '3072x1280', '1024x3072', '3072x1024',
+  '1024x1024', '896x1120', '1120x896', '864x1152', '1152x864',
+  '832x1248', '1248x832', '800x1280', '1280x800', '720x1280',
+  '1280x720', '720x1440', '1440x720', '512x1536', '1536x512',
+];
+
+/** Mask slot: same dimensions as the source image; black is edited, white is preserved. */
+const ideogram45MaskParam = p.file('mask', 'image', {
+  label: 'Mask', category: 'asset', ...IDEOGRAM_45_IMAGE_BOUNDS,
+});
+
+const ideogram45MagicPromptParam: ModelParams = {
+  magicPrompt: {
+    label: 'Magic Prompt',
+    descriptor: {
+      kind: 'enum',
+      valueType: 'string',
+      options: [
+        { id: 'auto', label: 'Auto' },
+        { id: 'on', label: 'On' },
+        { id: 'off', label: 'Off (verbatim)' },
+      ],
+      default: 'auto',
+    },
+  },
+};
+
+const IDEOGRAM_45_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8];
+
+const ideogram45Constraints: Constraint[] = [
+  { when: { imageUrls: { exists: false } }, then: {
+    size: { allowed: ['auto', ...IDEOGRAM_45_T2I_SIZES] },
+    mask: { disabled: true, reason: 'A mask needs a source image.' },
+  } },
+  { when: { imageUrls: { exists: true } }, then: {
+    size: { allowed: ['auto', 'source'], reason: 'With input images the size is "auto" or the source image size.' },
+  } },
+  { when: { mask: { exists: true } }, then: {
+    size: { disabled: true, reason: 'A masked edit keeps the source image size.' },
+  } },
+];
+
+const ideogram45PreciseEditConstraints: Constraint[] = [
+  { when: { quality: { is: 'very_high' } }, then: {
+    count: { allowed: [1, 2, 3, 4], reason: 'Very high quality returns at most 4 images.' },
+  } },
+];
+
 export const { MODELS } = defineModels('ideogram', [
+  {
+    id: 'ideogram-4-5', name: 'Ideogram 4.5',
+    addedAt: '2026-09-28',
+    release: 'preview',
+    workflow: 'ideogram/v4.5/generate',
+    estimatedTime: 30,
+    mode: 'image', inputType: 't2i',
+    description: 'Ideogram 4.5 — text-to-image and drift-free iterative editing with up to 4 reference images and an optional mask.',
+    features: [feat('Reference Images', 'input'), feat('Masked Edit', 'input'), feat('2K', 'resolution')],
+    constraints: ideogram45Constraints,
+    paramConfig: {
+      ...params.prompt({ maxLength: 10_000 }),
+      // imageUrls[0] is the source image to edit; the rest are references ("image 2", "image 3"…).
+      // With a mask the vendor allows at most 4 images.
+      ...params.imageInput(5, 'Images', false, 'reference', IDEOGRAM_45_IMAGE_BOUNDS),
+      ...ideogram45MaskParam,
+      ...p.size(['auto', 'source', ...IDEOGRAM_45_T2I_SIZES], 'auto'),
+      ...ideogram45MagicPromptParam,
+      ...p.quality(['low', 'medium', 'high'], 'high'),
+      ...params.count(IDEOGRAM_45_COUNTS, 1),
+      ...params.seed(),
+    },
+  },
+  {
+    id: 'ideogram-4-5-precise-edit', name: 'Ideogram 4.5 Precise Edit',
+    addedAt: '2026-09-28',
+    release: 'preview',
+    workflow: 'ideogram/v4.5/precise-edit',
+    estimatedTime: 40,
+    mode: 'image', inputType: 'i2i',
+    description: 'Ideogram 4.5 precise edit — change one area and keep the rest of the image pixel-intact, optionally with a mask and reference images.',
+    features: [feat('Precise Edit', 'input'), feat('Masked Edit', 'input'), feat('Reference Images', 'input')],
+    constraints: ideogram45PreciseEditConstraints,
+    paramConfig: {
+      ...params.prompt({ maxLength: 10_000 }),
+      ...params.startFrame('Source Image', true, IDEOGRAM_45_IMAGE_BOUNDS),
+      ...ideogram45MaskParam,
+      // With a mask the vendor allows at most 3 references.
+      ...params.imageInput(4, 'Reference Images', false, 'reference', IDEOGRAM_45_IMAGE_BOUNDS),
+      ...p.quality(['low', 'medium', 'high', 'very_high'], 'high'),
+      ...params.count(IDEOGRAM_45_COUNTS, 1),
+      ...params.seed(),
+    },
+  },
   {
     id: 'ideogram-v4', name: 'Ideogram 4.0',
     addedAt: '2026-06-03',

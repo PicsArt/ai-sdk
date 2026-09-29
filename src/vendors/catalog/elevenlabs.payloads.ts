@@ -8,16 +8,22 @@
 import type { WorkflowTypes } from '@picsart/workflows-types';
 
 import type { ModelInput } from '../../generated/model-input-types.ts';
+import { ApiError } from '../../core/errors.ts';
 import { DEFAULT_VOICE_ID } from '../../core/voices.ts';
 import { registerPayloads } from '../define.ts';
 import { MODELS } from './elevenlabs.ts';
 
 type MusicInput = ModelInput<'elevenlabs-music-v2'>;
-// eleven-v3 carries `language`, multilingual_v2 does not — the v3 shape is a
-// superset, so both builders read it and the field is simply absent there.
+// eleven-v3 is the superset of every TTS shape: multilingual_v2 lacks
+// `language`, the v4 engines lack the style/speed/speaker-boost knobs. One
+// builder reads them all; a field a model does not declare is simply absent.
 type TTSInput = ModelInput<'eleven-v3'>;
 type STSInput = ModelInput<'eleven-sts-v2'>;
-type DialogueInput = ModelInput<'eleven-text-to-dialogue'>;
+// Likewise the v4 dialogue shape is the superset: v3's stability is the three
+// presets (a subtype of number) and it has no `similarity`.
+type DialogueInput = ModelInput<'eleven-dialogue-v4'>;
+type TTSModelId = NonNullable<WorkflowTypes['elevenlabs/v1/text-to-speech']['params']['model_id']>;
+type DialogueModelId = NonNullable<WorkflowTypes['elevenlabs/v1/text-to-dialogue']['params']['model_id']>;
 type TranscribeInput = ModelInput<'eleven-speech-to-text'>;
 type VideoToMusicInput = ModelInput<'eleven-video-to-music'>;
 
@@ -57,11 +63,11 @@ const voiceSettings = (input: {
 
 /** TTS — voice_id + text + model_id (v1 Swagger schema). */
 const buildElevenLabsTTSPayload =
-  (modelId: string) =>
+  (modelId: TTSModelId) =>
   (input: TTSInput): WorkflowTypes['elevenlabs/v1/text-to-speech']['params'] => ({
     text: input.prompt,
     voice_id: input.voiceId ?? DEFAULT_VOICE_ID,
-    model_id: modelId as 'eleven_multilingual_v2' | 'eleven_v3',
+    model_id: modelId,
     ...(input.language ? { language_code: input.language } : {}),
     ...(input.withTimestamps ? { with_timestamps: true } : {}),
     ...voiceSettings(input),
@@ -80,26 +86,61 @@ const buildElevenLabsSTSPayload =
 
 /**
  * Text-to-Dialogue — one entry per spoken line, plus the dialogue-level
- * `settings` (stability only; the TTS `voice_settings` shape is rejected by
- * the vendor's dialogue endpoint).
+ * `settings` (`stability` and `similarity`; the TTS `voice_settings` shape is
+ * rejected by the vendor's dialogue endpoint). Only the knobs the caller set
+ * travel, and a zero is a real value, so presence is tested, never truthiness.
+ *
+ * The engine's character cap applies to the dialogue AS A WHOLE, which the
+ * catalog's per-line `maxLength` cannot express: several lines that each pass
+ * it can still add up past the cap and be refused by the vendor after the
+ * request was submitted and billed. So the total is checked here, against the
+ * same figure the catalog declares per line, before anything is sent.
  *
  * Like every builder here this returns the WORKER COMMAND, not the vendor body:
  * the turns travel as `conversation`, and the worker renames the field to the
  * vendor's `inputs` on its way out. The annotation below is what keeps that
  * honest — sending `inputs` from here would not compile.
  */
-const buildElevenLabsDialoguePayload = (
-    input: DialogueInput,
-): WorkflowTypes['elevenlabs/v1/text-to-dialogue']['params'] => ({
-  conversation: input.dialogue.map((line) => ({
-    voice_id: line.voiceId,
-    text: line.text,
-  })),
-  model_id: 'eleven_v3',
-  ...(input.stability != null ? { settings: { stability: input.stability } } : {}),
-  ...(input.language ? { language_code: input.language } : {}),
-  ...(input.seed != null ? { seed: input.seed } : {}),
-});
+const buildElevenLabsDialoguePayload =
+  (catalogId: string, modelId: DialogueModelId) =>
+  (input: DialogueInput): WorkflowTypes['elevenlabs/v1/text-to-dialogue']['params'] => {
+    const cap = dialogueCharacterCap(catalogId);
+    const total = input.dialogue.reduce((sum, line) => sum + line.text.length, 0);
+    if (total > cap) {
+      throw new ApiError(
+        `${catalogId}: the dialogue as a whole exceeds ${cap} characters (got ${total}).`,
+        { status: 400, code: 'validation_error' },
+      );
+    }
+    const settings = {
+      ...(input.stability != null ? { stability: input.stability } : {}),
+      ...(input.similarity != null ? { similarity: input.similarity } : {}),
+    };
+    return {
+      conversation: input.dialogue.map((line) => ({
+        voice_id: line.voiceId,
+        text: line.text,
+      })),
+      model_id: modelId,
+      ...(Object.keys(settings).length > 0 ? { settings } : {}),
+      ...(input.language ? { language_code: input.language } : {}),
+      ...(input.seed != null ? { seed: input.seed } : {}),
+    };
+  };
+
+/**
+ * The per-line cap the catalog entry declares, reused as the whole-dialogue
+ * cap so the two cannot drift apart.
+ */
+function dialogueCharacterCap(catalogId: string): number {
+  const descriptor = MODELS.find((m) => m.id === catalogId)?.paramConfig.dialogue?.descriptor;
+  const text = descriptor?.kind === 'object' ? descriptor.fields.text : undefined;
+  const cap = text && 'maxLength' in text ? text.maxLength : undefined;
+  if (typeof cap !== 'number') {
+    throw new Error(`${catalogId}: dialogue entry declares no per-line maxLength to derive the cap from`);
+  }
+  return cap;
+}
 
 /** Transcription — the result is text, so there is no output format to pick. */
 const buildElevenLabsTranscribePayload = (
@@ -128,11 +169,14 @@ const buildElevenLabsVideoToMusicPayload = (
 
 registerPayloads(MODELS, {
   'elevenlabs-music-v2': buildElevenLabsMusicPayload,
+  'eleven-v4': buildElevenLabsTTSPayload('eleven_v4'),
+  'eleven-v4-turbo': buildElevenLabsTTSPayload('eleven_v4_turbo'),
   'eleven-v3': buildElevenLabsTTSPayload('eleven_v3'),
   'eleven-multilingual-v2': buildElevenLabsTTSPayload('eleven_multilingual_v2'),
   'eleven-sts-v2': buildElevenLabsSTSPayload('eleven_english_sts_v2'),
   'eleven-multilingual-sts-v2': buildElevenLabsSTSPayload('eleven_multilingual_sts_v2'),
-  'eleven-text-to-dialogue': buildElevenLabsDialoguePayload,
+  'eleven-text-to-dialogue': buildElevenLabsDialoguePayload('eleven-text-to-dialogue', 'eleven_v3'),
+  'eleven-dialogue-v4': buildElevenLabsDialoguePayload('eleven-dialogue-v4', 'eleven_v4'),
   'eleven-speech-to-text': buildElevenLabsTranscribePayload,
   'eleven-video-to-music': buildElevenLabsVideoToMusicPayload,
 });

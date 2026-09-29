@@ -40,6 +40,8 @@ export const CreatifyAurora = 'creatify-aurora' as const;
 export const CreatifyBoreal = 'creatify-boreal' as const;
 /** Eleven Audio Isolation — elevenlabs (audio) */
 export const ElevenAudioIsolation = 'eleven-audio-isolation' as const;
+/** Eleven Dialogue v4 — elevenlabs (audio) */
+export const ElevenDialogueV4 = 'eleven-dialogue-v4' as const;
 /** Eleven Dubbing — elevenlabs (audio) */
 export const ElevenDubbing = 'eleven-dubbing' as const;
 /** Eleven Multilingual STS v2 — elevenlabs (audio) */
@@ -54,6 +56,10 @@ export const ElevenStsV2 = 'eleven-sts-v2' as const;
 export const ElevenTextToDialogue = 'eleven-text-to-dialogue' as const;
 /** Eleven v3 — elevenlabs (audio) */
 export const ElevenV3 = 'eleven-v3' as const;
+/** Eleven v4 — elevenlabs (audio) */
+export const ElevenV4 = 'eleven-v4' as const;
+/** Eleven v4 Turbo — elevenlabs (audio) */
+export const ElevenV4Turbo = 'eleven-v4-turbo' as const;
 /** Eleven Video to Music — elevenlabs (audio) */
 export const ElevenVideoToMusic = 'eleven-video-to-music' as const;
 /** Eleven Voice Previews — elevenlabs (audio) */
@@ -557,6 +563,7 @@ export const Models = {
   CreatifyAurora,
   CreatifyBoreal,
   ElevenAudioIsolation,
+  ElevenDialogueV4,
   ElevenDubbing,
   ElevenMultilingualStsV2,
   ElevenMultilingualV2,
@@ -564,6 +571,8 @@ export const Models = {
   ElevenStsV2,
   ElevenTextToDialogue,
   ElevenV3,
+  ElevenV4,
+  ElevenV4Turbo,
   ElevenVideoToMusic,
   ElevenVoiceCreate,
   ElevenVoiceDesignV2,

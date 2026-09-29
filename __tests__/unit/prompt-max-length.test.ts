@@ -50,6 +50,11 @@ const EXPECTED: Record<string, number> = {
   'grok-imagine-image': 8000,
   'grok-imagine-image-2.0': 8000,
   'grok-imagine-image-quality': 8000,
+  // ElevenLabs GET /v1/models per-request character caps; see elevenlabs.ts.
+  'eleven-v4': 10000,
+  'eleven-v4-turbo': 10000,
+  'eleven-v3': 5000,
+  'eleven-multilingual-v2': 10000,
   // ElevenLabs sound-generation reference / fal `elevenlabs/music` schema.
   'elevenlabs-sfx': 450,
   'elevenlabs-music-v2': 4100,

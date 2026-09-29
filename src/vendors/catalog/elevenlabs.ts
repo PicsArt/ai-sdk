@@ -79,7 +79,7 @@ const buildElevenLabsVoicePreviewsPayload: PayloadBuilder = (ctx) => ({
  * `use_speaker_boost` is text-to-speech only — the speech-to-speech command
  * does not declare it.
  */
-const voiceSettingsParams = (withSpeakerBoost: boolean): ModelParams => ({
+const stabilityAndSimilarityParams: ModelParams = {
   stability: {
     label: 'Stability',
     descriptor: { kind: 'range', min: 0, max: 1, step: 0.05 },
@@ -88,6 +88,10 @@ const voiceSettingsParams = (withSpeakerBoost: boolean): ModelParams => ({
     label: 'Similarity',
     descriptor: { kind: 'range', min: 0, max: 1, step: 0.05 },
   },
+};
+
+const voiceSettingsParams = (withSpeakerBoost: boolean): ModelParams => ({
+  ...stabilityAndSimilarityParams,
   // `style` is taken on GenerationContext by the image models' style *name*,
   // so the vendor's 0–1 style exaggeration gets a key of its own.
   styleExaggeration: {
@@ -109,26 +113,91 @@ const voiceSettingsParams = (withSpeakerBoost: boolean): ModelParams => ({
  * (https://elevenlabs.io/docs/overview/models):
  *   eleven_v3              → 5,000  (official docs; 3k confirmed generating live)
  *   eleven_multilingual_v2 → 10,000 (official docs + 10k generated live, 105s)
+ *   eleven_v4 / v4_turbo   → 10,000 (GET /v1/models; 10k generated live on v4, 186s)
  * Verified against the live `elevenlabs/v1/text-to-speech` worker via
  * scripts/api-tests/audio-charlimit-boundary-probe.mjs.
  * ~1 char ≈ 70ms of speech, so the higher cap is what unlocks long-form narration.
+ *
+ * `styleControls: false` is the v4 shape: those engines take only stability and
+ * similarity (the vendor reports `can_use_style: false` for them and ignores
+ * `style`, `speed`, `use_speaker_boost`); delivery is directed with audio tags
+ * in the text instead — `[whispering]`, `[laughing]`, `[annoyed]`, ...
  */
-const ttsParamConfig = (promptMaxLength: number, withLanguage: boolean) => ({
-  // language_code is honoured by eleven_v3 only — the vendor documents it as
+const ttsParamConfig = (
+  promptMaxLength: number,
+  opts: { language: boolean; styleControls: boolean },
+) => ({
+  // language_code is honoured by eleven_v3 and v4 — the vendor documents it as
   // "not supported for multilingual_v2 models" (silently ignored there).
   // No accent param anywhere: no builder ever read it.
-  ...(withLanguage ? params.language(false) : {}),
+  ...(opts.language ? params.language(false) : {}),
   ...params.prompt({ maxLength: promptMaxLength }),
   ...params.voiceId([], DEFAULT_VOICE_ID, { catalog: VOICE_CATALOG }),
-  ...voiceSettingsParams(true),
+  ...(opts.styleControls ? voiceSettingsParams(true) : stabilityAndSimilarityParams),
   // Timings come back beside the audio, for captions and lip sync. Off by
   // default: the vendor answers a different route that inlines the audio as
   // base64, and callers who do not need timings should not pay the decode.
   ...p.boolean('withTimestamps', false, 'Character Timings'),
 });
 
+/**
+ * Dialogue lines — one entry per spoken line, in order. The vendor publishes
+ * no cap on the number of lines, so none is invented here.
+ *
+ * `maxLength` is the engine's per-request cap, which applies to the dialogue
+ * AS A WHOLE — something a per-field maxLength cannot express, but a single
+ * line cannot exceed it either. Probed against the live
+ * `elevenlabs/v1/text-to-dialogue` worker on v3: 10,000 characters are refused
+ * with "Request text length (10000) exceeds the maximum text length of 5000
+ * characters", while 2,600 generate fine. The docs' "keep it at or below
+ * 2,000" is guidance, not a limit. The far end is slow — a full request on
+ * v4 took 186 s live — and the worker allows 300 s for it.
+ */
+const dialogueLinesParam = (maxLength: number): ModelParams => ({
+  dialogue: {
+    label: 'Dialogue',
+    required: true,
+    descriptor: {
+      kind: 'object',
+      array: { min: 1 },
+      fields: {
+        // A plain id, not a catalog-bound picker: catalog loading resolves
+        // top-level params only. Every ElevenLabs model shares one voices
+        // task, so a caller lists them from any TTS model — e.g.
+        // `ai.catalogs.voices('eleven-v4')` — and uses the ids here.
+        voiceId: { label: 'Voice ID', kind: 'text', placeholder: DEFAULT_VOICE_ID },
+        text: { label: 'Line', kind: 'text', maxLength },
+      },
+    },
+  },
+});
+
 export const { MODELS } = defineModels('elevenlabs', [
   // ── TTS ───────────────────────────────────────────────────────────
+  {
+    id: 'eleven-v4', name: 'Eleven v4', modelId: 'eleven_v4',
+    addedAt: '2026-09-29',
+    workflow: 'elevenlabs/v1/text-to-speech',
+    estimatedTime: 10,
+    mode: 'audio', inputType: 'tts',
+    badge: ['new', 'popular'] as const,
+    description: 'Most expressive voice engine — audio tags direct the delivery, 90+ languages.',
+    features: [feat('Audio Tags', 'characteristic'), feat('90+ Languages', 'characteristic'), feat('Creative Control', 'characteristic')],
+    paramConfig: ttsParamConfig(10000, { language: true, styleControls: false }),
+  },
+  {
+    // Same engine family tuned for latency; the vendor bills it at half the
+    // per-character rate of eleven_v4.
+    id: 'eleven-v4-turbo', name: 'Eleven v4 Turbo', modelId: 'eleven_v4_turbo',
+    addedAt: '2026-09-29',
+    workflow: 'elevenlabs/v1/text-to-speech',
+    estimatedTime: 6,
+    mode: 'audio', inputType: 'tts',
+    badge: ['new', 'fast'] as const,
+    description: 'Eleven v4 tuned for speed — the same audio tags and languages, lower latency.',
+    features: [feat('Audio Tags', 'characteristic'), feat('90+ Languages', 'characteristic'), feat('Low Latency', 'characteristic')],
+    paramConfig: ttsParamConfig(10000, { language: true, styleControls: false }),
+  },
   {
     id: 'eleven-v3', name: 'Eleven v3', modelId: 'eleven_v3',
     addedAt: '2026-02-06',
@@ -136,9 +205,9 @@ export const { MODELS } = defineModels('elevenlabs', [
     estimatedTime: 11,
     mode: 'audio', inputType: 'tts',
     badge: ['popular'] as const,
-    description: 'Latest voice engine with expanded tone and pacing control.',
+    description: 'Previous-generation expressive engine with expanded tone and pacing control.',
     features: [feat('Experimental', 'characteristic'), feat('Creative Control', 'characteristic')],
-    paramConfig: ttsParamConfig(5000, true),
+    paramConfig: ttsParamConfig(5000, { language: true, styleControls: true }),
   },
   {
     id: 'eleven-multilingual-v2', name: 'Eleven Multilingual v2', modelId: 'eleven_multilingual_v2',
@@ -149,9 +218,37 @@ export const { MODELS } = defineModels('elevenlabs', [
     badge: ['popular', 'fast'] as const,
     description: 'Stable multilingual speech across 29+ languages with natural rhythm.',
     features: [feat('Stable', 'characteristic'), feat('Professional', 'characteristic')],
-    paramConfig: ttsParamConfig(10000, false),
+    paramConfig: ttsParamConfig(10000, { language: false, styleControls: true }),
   },
   // ── Dialogue ──────────────────────────────────────────────────────
+  {
+    // Same pricing key as the v3 dialogue below: the worker bills every
+    // dialogue engine per minute under `eleven-text-to-dialogue`.
+    id: 'eleven-dialogue-v4', name: 'Eleven Dialogue v4', modelId: 'eleven-text-to-dialogue',
+    addedAt: '2026-09-29',
+    workflow: 'elevenlabs/v1/text-to-dialogue',
+    estimatedTime: 12,
+    mode: 'audio', inputType: 'tts',
+    badge: ['new'] as const,
+    description: 'Multi-speaker conversation on the v4 engine — a voice per line, audio tags per line.',
+    features: [feat('Multi-Speaker', 'characteristic'), feat('Audio Tags', 'characteristic'), feat('90+ Languages', 'characteristic')],
+    paramConfig: {
+      ...dialogueLinesParam(10000),
+      // v4 reads the whole 0–1 range (no presets), and the dialogue endpoint
+      // names its similarity knob `similarity`, not `similarity_boost`.
+      // Both default-less: unset keeps the vendor's 0.5 / 0.75.
+      stability: {
+        label: 'Stability',
+        descriptor: { kind: 'range', min: 0, max: 1, step: 0.05 },
+      },
+      similarity: {
+        label: 'Similarity',
+        descriptor: { kind: 'range', min: 0, max: 1, step: 0.05 },
+      },
+      ...params.language(false),
+      ...params.seed(4294967295),
+    },
+  },
   {
     // `modelId` is the pricing-catalog key, not the vendor id: the worker
     // registers the operation as `eleven-text-to-dialogue` while the vendor
@@ -164,33 +261,7 @@ export const { MODELS } = defineModels('elevenlabs', [
     description: 'Generate a multi-speaker conversation — a voice per line — in one take.',
     features: [feat('Multi-Speaker', 'characteristic'), feat('Creative Control', 'characteristic')],
     paramConfig: {
-      // One entry per spoken line, in order. The vendor publishes no cap on the
-      // number of lines, so none is invented here.
-      //
-      // The 5,000-character limit is the vendor's hard cap and applies to the
-      // dialogue AS A WHOLE, which a per-field maxLength cannot express — a
-      // single line simply cannot exceed it either. Probed against the live
-      // `elevenlabs/v1/text-to-dialogue` worker: 10,000 characters are refused
-      // with "Request text length (10000) exceeds the maximum text length of
-      // 5000 characters", while 2,600 generate fine. The docs' "keep it at or
-      // below 2,000" is guidance, not a limit. Note the far end is slow: a
-      // 5,000-character dialogue outruns the worker's 120s vendor timeout.
-      dialogue: {
-        label: 'Dialogue',
-        required: true,
-        descriptor: {
-          kind: 'object',
-          array: { min: 1 },
-          fields: {
-            // A plain id, not a catalog-bound picker: catalog loading resolves
-            // top-level params only. Every ElevenLabs model shares one voices
-            // task, so a caller lists them from any TTS model — e.g.
-            // `ai.catalogs.voices('eleven-v3')` — and uses the ids here.
-            voiceId: { label: 'Voice ID', kind: 'text', placeholder: DEFAULT_VOICE_ID },
-            text: { label: 'Line', kind: 'text', maxLength: 5000 },
-          },
-        },
-      },
+      ...dialogueLinesParam(5000),
       // The vendor takes any 0–1 double and defaults to 0.5; eleven_v3 reads the
       // three presets below, so the picker offers those instead of a slider
       // whose in-between values the engine rounds anyway.

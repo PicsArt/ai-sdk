@@ -33,7 +33,7 @@ import './gemini.payloads.ts'; // registers the Gemini Omni 1.1 and TTS payload 
 import { MODELS as openaiMODELS } from './openai.ts';
 import './openai.payloads.ts'; // registers the GPT Image 2.5 payload builders after model definitions
 import { MODELS as elevenlabsMODELS } from './elevenlabs.ts';
-import './elevenlabs.payloads.ts'; // registers Music payload builder after model definitions
+import './elevenlabs.payloads.ts'; // registers the TTS, STS, dialogue, music and transcription payload builders after model definitions
 import { MODELS as heygenMODELS } from './heygen.ts';
 import { MODELS as minimaxMODELS } from './minimax.ts';
 import './minimax.payloads.ts'; // registers the Music v3 payload builder after model definitions

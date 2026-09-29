@@ -21,6 +21,7 @@ export type ModelInputById = {
   "creatify-aurora": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; };
   "creatify-boreal": { prompt: string; imageUrls?: string[]; audioUrl?: string; negativePrompt?: string; resolution?: "720p" | "1080p" | "2k"; aspectRatio?: "auto" | "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; duration?: number; manifestDisclosure?: boolean; };
   "eleven-audio-isolation": { audioUrl: string; };
+  "eleven-dialogue-v4": { dialogue: Array<{ voiceId: string; text: string }>; stability?: number; similarity?: number; language?: string; seed?: number; };
   "eleven-dubbing": { audioUrl: string; language: string; };
   "eleven-multilingual-sts-v2": { audioUrl: string; voiceId?: string; removeBackgroundNoise?: boolean; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; };
   "eleven-multilingual-v2": { prompt: string; voiceId?: string; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; useSpeakerBoost?: boolean; withTimestamps?: boolean; };
@@ -28,6 +29,8 @@ export type ModelInputById = {
   "eleven-sts-v2": { audioUrl: string; voiceId?: string; removeBackgroundNoise?: boolean; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; };
   "eleven-text-to-dialogue": { dialogue: Array<{ voiceId: string; text: string }>; stability?: 0 | 0.5 | 1; language?: string; seed?: number; };
   "eleven-v3": { language?: string; prompt: string; voiceId?: string; stability?: number; similarityBoost?: number; styleExaggeration?: number; speed?: number; useSpeakerBoost?: boolean; withTimestamps?: boolean; };
+  "eleven-v4": { language?: string; prompt: string; voiceId?: string; stability?: number; similarityBoost?: number; withTimestamps?: boolean; };
+  "eleven-v4-turbo": { language?: string; prompt: string; voiceId?: string; stability?: number; similarityBoost?: number; withTimestamps?: boolean; };
   "eleven-video-to-music": { videoUrls: [string, ...string[]]; prompt?: string; };
   "eleven-voice-create": { prompt: string; };
   "eleven-voice-design-v2": { prompt: string; };

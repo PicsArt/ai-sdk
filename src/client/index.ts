@@ -249,7 +249,8 @@ export function createClient(config: ClientConfig) {
    * Build the drive options injected into the workflow payload. The SDK
    * assembles the generation attributes (model + aiSDKPayload, which captures all
    * input params); the backend persists them and stamps appId/appType on the
-   * saved file. Callers may still override the filename or folder via `options.drive`.
+   * saved file. Callers may still override the filename or folder via `options.drive`,
+   * and the recorded inputs via `options.drive.generation`.
    */
   function buildDrivePayloadOptions(
     model: ModelDefinition,
@@ -258,11 +259,10 @@ export function createClient(config: ClientConfig) {
   ): PayloadDriveOptions | undefined {
     const explicit = options?.drive;
     if (!driveConfig && !explicit) return undefined;
-    const attributes = buildGenerationAttributes({
-      modelId: model.id,
-      params,
-      app: options?.app,
-    });
+    const generation = explicit?.generation;
+    const attributes = buildGenerationAttributes(generation
+      ? { ...generation, app: generation.app ?? options?.app }
+      : { modelId: model.id, params, app: options?.app });
     const folderPath = options?.folder?.name ?? driveConfig?.folder;
     return {
       // Named before the job runs, so the requested/declared format is the best hint.

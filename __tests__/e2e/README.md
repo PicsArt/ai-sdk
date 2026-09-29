@@ -80,6 +80,12 @@ TEST_MODEL_ID=flux-2-pro npm run test:e2e
 PICSART_TOKEN=... npm run test:e2e
 ```
 
+The OPTIONS matrix runs its calls concurrently — every model and combo is
+scheduled at once and a limiter keeps `E2E_CONCURRENCY` requests in flight
+(default `16`). Each combo records its own `/options` answer, so retries and
+failure messages are per combo. Lower it if the gateway starts answering 429;
+`E2E_CONCURRENCY=1` gives the old one-at-a-time run.
+
 `TEST_MODEL_ID` runs the matrix for just that model id (unset → the whole
 catalog). If the id matches no enabled model, the run fails rather than passing
 with zero tests.

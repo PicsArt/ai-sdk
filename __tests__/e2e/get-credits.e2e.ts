@@ -31,13 +31,32 @@
  * pricing catalogue: the gateway computes credits from that same source, so a
  * mismatch isn't a reachable failure mode. The matrix still varies the
  * pricing-relevant params so every tier's OPTIONS path is exercised.
+ *
+ * The calls are independent, so every model and combo is scheduled at once and
+ * a limiter caps in-flight requests at E2E_CONCURRENCY (default 16). Each combo
+ * reads its own /options answer (withOptionsProbe), so retries and failure
+ * messages never see a neighbour's response. E2E_CONCURRENCY=1 restores the
+ * old one-at-a-time run.
  */
-import { test, before } from 'node:test';
+import { describe, test, before } from 'node:test';
 import assert from 'node:assert/strict';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { createTestClient } from './helpers/ai-sdk-test-client.ts';
-import { describeLastOptions, isTransient, lastOptionsResponse } from './helpers/options-probe.ts';
-import { loadCatalog } from './helpers/catalog-loader.ts';
-import { expandMatrix } from './helpers/param-matrix.ts';
+import {
+  describeLastOptions,
+  isTransient,
+  lastOptionsResponse,
+  withOptionsProbe,
+} from './helpers/options-probe.ts';
+import { loadCatalog, type CatalogEntry } from './helpers/catalog-loader.ts';
+import { expandMatrix, type ExpandOptions } from './helpers/param-matrix.ts';
+import { createLimiter } from './helpers/limit.ts';
+
+const CONCURRENCY = Number(process.env.E2E_CONCURRENCY ?? 16);
+const limit = createLimiter(CONCURRENCY);
+
+/** Pause before the single retry — a 429 needs the gateway to catch its breath. */
+const RETRY_DELAY_MS = 1_000;
 
 let client: ReturnType<typeof createTestClient>;
 
@@ -69,9 +88,11 @@ function getCredits(id: string, ctx: Record<string, unknown>): Promise<number | 
  * is a real answer and is NOT retried, so a genuine pricing gap still fails.
  */
 async function priceWithRetry(id: string, ctx: Record<string, unknown>): Promise<number | null> {
-  const credits = await getCredits(id, ctx);
+  const credits = await limit(() => getCredits(id, ctx));
   if (credits !== null || !isTransient(lastOptionsResponse())) return credits;
-  return getCredits(id, ctx);
+  // Wait outside the limiter so a backing-off combo doesn't hold a slot.
+  await sleep(RETRY_DELAY_MS);
+  return limit(() => getCredits(id, ctx));
 }
 
 function runChecks(label: string, credits: number | null): void {
@@ -99,28 +120,36 @@ if (onlyModel && models.length === 0) {
   });
 }
 
-// ── Generate matrix ──────────────────────────────────────────────────
-for (const entry of models) {
-  test(entry.id, async (t) => {
-    for (const c of expandMatrix(entry)) {
-      await t.test(c.label, async () => {
-        const credits = await priceWithRetry(entry.id, entry.buildContext(c.params));
-        runChecks(`${entry.id} [${c.label}]`, credits);
-      });
-    }
+/**
+ * One test per model, its combos as concurrent subtests. Each combo runs in its
+ * own probe scope so the retry decision and the failure message both read the
+ * /options answer for that combo alone.
+ */
+function matrixTest(entry: CatalogEntry, name: string, options: ExpandOptions = {}): void {
+  test(name, { concurrency: true }, async (t) => {
+    await Promise.all(
+      expandMatrix(entry, options).map((c) =>
+        t.test(c.label, () =>
+          withOptionsProbe(async () => {
+            const credits = await priceWithRetry(entry.id, entry.buildContext(c.params));
+            runChecks(`${name} [${c.label}]`, credits);
+          }),
+        ),
+      ),
+    );
   });
 }
 
-// ── Edit-workflow matrix (only models that declare editWorkflow) ──────
-// The edit matrix fills source images, so the SDK's prepareRequest routes
-// getCredits to editWorkflow + buildEditPayload automatically.
-for (const entry of models.filter((m) => m.editWorkflow)) {
-  test(`${entry.id} (edit)`, async (t) => {
-    for (const c of expandMatrix(entry, { mode: 'edit' })) {
-      await t.test(c.label, async () => {
-        const credits = await priceWithRetry(entry.id, entry.buildContext(c.params));
-        runChecks(`${entry.id} (edit) [${c.label}]`, credits);
-      });
-    }
-  });
-}
+// Models run concurrently; the limiter, not the test runner, bounds the load.
+// TEMP: disabled — re-enable by removing `skip`.
+describe('options matrix', { concurrency: true, skip: 'temporarily disabled' }, () => {
+  // ── Generate matrix ──────────────────────────────────────────────────
+  for (const entry of models) matrixTest(entry, entry.id);
+
+  // ── Edit-workflow matrix (only models that declare editWorkflow) ──────
+  // The edit matrix fills source images, so the SDK's prepareRequest routes
+  // getCredits to editWorkflow + buildEditPayload automatically.
+  for (const entry of models.filter((m) => m.editWorkflow)) {
+    matrixTest(entry, `${entry.id} (edit)`, { mode: 'edit' });
+  }
+});

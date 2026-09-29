@@ -2779,6 +2779,13 @@ interface PayloadDriveOptions {
     attributes?: DriveAttributes;
     /** Target folder in Picsart Drive. */
     folder?: PayloadDriveFolderOptions;
+    /**
+     * Inputs to record as the file's provenance when they differ from the
+     * submitted request, e.g. a render that sends only a reference to an earlier
+     * job. Defaults to the model and params being generated. Never sent to the
+     * workflow; it only shapes `attributes`.
+     */
+    generation?: GenerationProvenance;
 }
 /**
  * Drive operations surface — returned by {@link createDriveClient} and exposed

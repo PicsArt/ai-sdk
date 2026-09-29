@@ -67,6 +67,29 @@ test('generate and submit cannot lose provenance through custom Drive attributes
   assert.equal(options.drive.attributes!.model, 'wrong', 'caller options are not mutated');
 });
 
+test('explicit Drive generation records the given inputs instead of the submitted request', async () => {
+  const payloads: any[] = [];
+  const transport: SdkTransport = {
+    async execute(request) { payloads.push(request.payload); return { result: { url: save.url } }; },
+    async submit(request) { payloads.push(request.payload); return 'job-1'; },
+    async poll() { return { result: { url: save.url } }; },
+  };
+  const client = createClient({ transport });
+  const original = { prompt: 'a cat at dusk', resolution: '1080p', duration: 5 };
+  const options = {
+    app: { id: 'com.test.app', type: 'miniapp' as const },
+    drive: { name: 'final.mp4', attributes: { model: 'wrong', aiSDKPayload: '{}', custom: 'kept' },
+      generation: { modelId: 'flux-2-pro', params: original } } as PayloadDriveOptions,
+  };
+  await client.submit('flux-2-pro', { prompt: 'render job-1' }, options);
+  const drive = payloads[0].options.drive;
+  assert.deepEqual(JSON.parse(drive.attributes.aiSDKPayload), original);
+  assert.equal(drive.attributes.model, 'flux-2-pro');
+  assert.equal(drive.attributes.custom, 'kept');
+  assert.equal(drive.attributes.appId, 'com.test.app', 'call-level app identity still applies');
+  assert.equal('generation' in drive, false, 'the override is not sent to the workflow');
+});
+
 test('raw APIs pass vendor payloads through unchanged, including explicit Drive options', async () => {
   const calls: unknown[] = [];
   const apis = createApis({ async run(_api: string, payload: unknown) { calls.push(payload); return { result: {} }; } } as unknown as WorkflowsClient);

@@ -13084,11 +13084,8 @@ function createClient(config) {
   function buildDrivePayloadOptions(model, params2, options) {
     const explicit = options?.drive;
     if (!driveConfig && !explicit) return void 0;
-    const attributes = buildGenerationAttributes({
-      modelId: model.id,
-      params: params2,
-      app: options?.app
-    });
+    const generation = explicit?.generation;
+    const attributes = buildGenerationAttributes(generation ? { ...generation, app: generation.app ?? options?.app } : { modelId: model.id, params: params2, app: options?.app });
     const folderPath = options?.folder?.name ?? driveConfig?.folder;
     return {
       // Named before the job runs, so the requested/declared format is the best hint.

@@ -177,6 +177,16 @@ await ai.drive.save({
 const saveParams = ai.drive.buildSaveParams(generatedUrl, modelId, modelName, 'video', originalGenerationParams)
 ```
 
+When the request you submit is not the record you want kept (a render that sends
+only a reference to an earlier job, say), pass the inputs to record as
+`drive.generation`. Custom `attributes` still cannot replace them:
+
+```typescript
+await ai.submit(modelId, finalRequest, {
+  drive: { name: 'final.mp4', generation: { modelId, params: originalGenerationParams } },
+})
+```
+
 Legacy `model`/`prompt`/`textScript` saves are normalized at write time. URL-only
 uploads remain ordinary uploads: without generation context the SDK cannot infer
 model, prompt or settings. Existing Drive files are not backfilled. The backend preserves SDK-supplied metadata; it cannot reconstruct SDK input

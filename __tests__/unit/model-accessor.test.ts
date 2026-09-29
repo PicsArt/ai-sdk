@@ -215,13 +215,24 @@ for (const modelId of ['seedance-2.5', 'seedance-2.0', 'seedance-2.0-fast', 'see
 // where it takes every value in a span. The shorthand must surface both, or
 // consumers silently lose the duration control on the range models.
 
-const enumDuration = Model('seedance-2.0').params().duration();
-assert(enumDuration, 'seedance-2.0 duration should resolve via the shorthand');
-assert.strictEqual(enumDuration!.kind, 'enum', 'seedance-2.0 duration is an option list');
+// Every Seedance family exposes duration as an option list. -1 ("auto":
+// output matches the source clip) leads the list for all but 1.0.
+for (const [modelId, wantsAuto] of [
+  ['seedance-2.5', true],
+  ['seedance-2.5-video-extend', true],
+  ['seedance-2.0', true],
+  ['seedance-1.5-pro', true],
+  ['seedance-i2v', false],
+] as const) {
+  const enumDuration = Model(modelId).params().duration();
+  assert(enumDuration, `${modelId} duration should resolve via the shorthand`);
+  assert.strictEqual(enumDuration!.kind, 'enum', `${modelId} duration is an option list`);
+  if (enumDuration!.kind !== 'enum') throw new Error('unreachable');
+  const ids = enumDuration.options.map((o) => o.id);
+  assert.strictEqual(ids.includes(-1), wantsAuto, `${modelId} duration -1 support`);
+}
 
 for (const [modelId, expected] of [
-  ['seedance-2.5', { min: 4, max: 30, step: 1 }],
-  ['seedance-2.5-video-extend', { min: 4, max: 30, step: 1 }],
   ['kling-t2a', { min: 3, max: 10, step: 0.5 }],
 ] as const) {
   const rangeDuration = Model(modelId).params().duration();
@@ -236,7 +247,7 @@ for (const [modelId, expected] of [
 // The constrained accessor (constraint effects pre-applied) must not drop it
 // either \u2014 seedance-2.5 carries constraints, so this is the live path.
 const constrainedDuration = Model('seedance-2.5').paramsFor({ startFrame: 'https://x/a.png' }).duration();
-assert(constrainedDuration, 'constrained accessor should still surface the range duration');
-assert.strictEqual(constrainedDuration!.kind, 'range', 'constrained duration stays a range');
+assert(constrainedDuration, 'constrained accessor should still surface the enum duration');
+assert.strictEqual(constrainedDuration!.kind, 'enum', 'constrained duration stays an enum');
 
 console.log('\u2713 model-accessor.test.ts \u2014 all passed');

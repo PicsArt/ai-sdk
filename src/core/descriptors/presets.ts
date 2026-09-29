@@ -25,14 +25,19 @@ export const p = {
     };
   },
 
-  duration(opts: number[], def?: number): ModelParams {
+  /** Options are bare seconds (`[5, 10]`) or `{ id, label }` pairs when a value
+   *  needs a friendly label — e.g. `{ id: -1, label: 'Auto' }`. */
+  duration(opts: Array<number | { id: number; label?: string }>, def?: number): ModelParams {
+    const normalized: Array<EnumOption<number>> = opts.map((opt) =>
+      typeof opt === 'object' ? opt : { id: opt },
+    );
     return {
       duration: {
         descriptor: {
           kind: 'enum',
           valueType: 'number',
-          options: opts.map((id) => ({ id })),
-          default: def ?? opts[0],
+          options: normalized,
+          default: def ?? normalized[0].id,
         },
       },
     };

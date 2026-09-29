@@ -1584,7 +1584,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p";
-        duration?: 4 | 5 | 8 | 10 | 12;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
         generateAudio?: boolean;
         startFrame?: string;
         endFrame?: string;
@@ -1593,7 +1593,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p" | "4k";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         imageUrls?: string[];
@@ -1606,7 +1606,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         imageUrls?: string[];
@@ -1619,7 +1619,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         videoUrl: string;
@@ -1629,7 +1629,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         videoUrls: [string, ...string[]];
     };
@@ -1637,7 +1637,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         imageUrls?: string[];
@@ -1650,7 +1650,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         videoUrl: string;
@@ -1660,7 +1660,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         videoUrls: [string, ...string[]];
     };
@@ -1668,7 +1668,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p" | "4k";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         videoUrl: string;
@@ -1678,7 +1678,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p" | "4k";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         videoUrls: [string, ...string[]];
     };
@@ -1686,7 +1686,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p" | "4k";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         imageUrls?: string[];
@@ -1699,7 +1699,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p" | "4k";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         videoUrl: string;
@@ -1709,7 +1709,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p" | "4k";
-        duration?: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
         generateAudio?: boolean;
         videoUrls: [string, ...string[]];
     };
@@ -1717,7 +1717,7 @@ type ModelInputById = {
         prompt?: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p";
-        duration?: number;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         outputFormat?: "mp4" | "mov";
@@ -1750,7 +1750,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "adaptive";
         resolution?: "480p" | "720p" | "1080p";
-        duration?: number;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30;
         generateAudio?: boolean;
         outputFormat?: "mp4" | "mov";
         colorDepth?: "10bit" | "8bit";
@@ -1761,7 +1761,7 @@ type ModelInputById = {
         prompt?: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p";
-        duration?: number;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30;
         generateAudio?: boolean;
         returnLastFrame?: boolean;
         outputFormat?: "mp4" | "mov";
@@ -1794,7 +1794,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "adaptive";
         resolution?: "480p" | "720p" | "1080p";
-        duration?: number;
+        duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30;
         generateAudio?: boolean;
         outputFormat?: "mp4" | "mov";
         colorDepth?: "10bit" | "8bit";
@@ -1805,7 +1805,7 @@ type ModelInputById = {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive";
         resolution?: "480p" | "720p" | "1080p";
-        duration?: 5 | 10;
+        duration?: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
         startFrame: string;
     };
     "seedream-4.0": {

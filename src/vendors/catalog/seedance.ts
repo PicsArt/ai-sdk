@@ -590,10 +590,22 @@ const SEEDANCE_25_FORMATS = ['mp4', 'mov'];
  *  actually decode. Selectable only where it means something — see
  *  seedance25ColorDepthConstraints. */
 const SEEDANCE_25_COLOR_DEPTHS = ['10bit', '8bit'];
-const SEEDANCE_V2_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-/** 2.5 accepts any whole second in 4-30s, so it is a range, not an option
- *  list — an enum would hide the values in between. */
-const SEEDANCE_25_DURATION = { min: 4, max: 30 } as const;
+/** Whole-second duration options per family. The -1 option (labelled "Auto")
+ *  matches the output length to the source clip — the value the edit/extend
+ *  modes require. Every family accepts it EXCEPT 1.0, so the base 2.x / 1.5
+ *  durations lead with it. */
+const seedanceDurations = (
+  min: number,
+  max: number,
+  withAuto = true,
+): Array<number | { id: number; label: string }> => [
+  ...(withAuto ? [{ id: -1, label: 'Auto' }] : []),
+  ...Array.from({ length: max - min + 1 }, (_, i) => min + i),
+];
+const SEEDANCE_25_DURATIONS = seedanceDurations(4, 30);
+const SEEDANCE_20_DURATIONS = seedanceDurations(4, 15);
+const SEEDANCE_15_DURATIONS = seedanceDurations(4, 12);
+const SEEDANCE_10_DURATIONS = seedanceDurations(2, 12, false);
 
 /** Draft mode step 1, on every 2.5 entry (see withSeedance25DraftMode). */
 const seedance25DraftParam = p.boolean('draft', false, 'Draft');
@@ -634,7 +646,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt({ required: false }),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
-      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
+      ...params.duration(SEEDANCE_25_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
@@ -670,7 +682,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt({ required: false }),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
-      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 5),
+      ...params.duration(SEEDANCE_25_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
@@ -759,7 +771,7 @@ export const { MODELS } = defineModels('seedance', [
       // duration stays user-selectable.
       ...params.aspectRatio(['adaptive']),
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
-      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
+      ...params.duration(SEEDANCE_25_DURATIONS, 15),
       ...params.generateAudio(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
@@ -785,7 +797,7 @@ export const { MODELS } = defineModels('seedance', [
       // duration stays user-selectable.
       ...params.aspectRatio(['adaptive']),
       ...params.resolution(['480p', '720p', '1080p'], '1080p'),
-      ...params.durationRange(SEEDANCE_25_DURATION.min, SEEDANCE_25_DURATION.max, 15),
+      ...params.duration(SEEDANCE_25_DURATIONS, 15),
       ...params.generateAudio(),
       ...p.enum('outputFormat', SEEDANCE_25_FORMATS, 'mp4', { label: 'Format' }),
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
@@ -808,7 +820,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p', '4k'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 10),
+      ...params.duration(SEEDANCE_20_DURATIONS, 10),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
@@ -839,7 +851,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p', '4k'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 10),
+      ...params.duration(SEEDANCE_20_DURATIONS, 10),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
@@ -866,7 +878,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 10),
+      ...params.duration(SEEDANCE_20_DURATIONS, 10),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
@@ -893,7 +905,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 10),
+      ...params.duration(SEEDANCE_20_DURATIONS, 10),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       // Reference roles map directly to backend `reference_*` content entries.
@@ -919,7 +931,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p', '4k'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 5),
+      ...params.duration(SEEDANCE_20_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
@@ -943,7 +955,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p', '4k'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 5),
+      ...params.duration(SEEDANCE_20_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
@@ -966,7 +978,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 5),
+      ...params.duration(SEEDANCE_20_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
@@ -989,7 +1001,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 5),
+      ...params.duration(SEEDANCE_20_DURATIONS, 5),
       ...params.generateAudio(),
       ...params.returnLastFrame(),
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
@@ -1012,7 +1024,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p', '4k'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 15),
+      ...params.duration(SEEDANCE_20_DURATIONS, 15),
       ...params.generateAudio(),
       ...params.videoInputs(3, 'Source Videos', true, SEEDANCE_20_VIDEO_BOUNDS),
     },
@@ -1032,7 +1044,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p', '4k'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 15),
+      ...params.duration(SEEDANCE_20_DURATIONS, 15),
       ...params.generateAudio(),
       ...params.videoInputs(3, 'Source Videos', true, SEEDANCE_20_VIDEO_BOUNDS),
     },
@@ -1051,7 +1063,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 15),
+      ...params.duration(SEEDANCE_20_DURATIONS, 15),
       ...params.generateAudio(),
       ...params.videoInputs(3, 'Source Videos', true, SEEDANCE_20_VIDEO_BOUNDS),
     },
@@ -1070,7 +1082,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p'], '720p'),
-      ...params.duration(SEEDANCE_V2_DURATIONS, 15),
+      ...params.duration(SEEDANCE_20_DURATIONS, 15),
       ...params.generateAudio(),
       ...params.videoInputs(3, 'Source Videos', true, SEEDANCE_20_VIDEO_BOUNDS),
     },
@@ -1088,7 +1100,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p'], '720p'),
-      ...params.duration([4, 5, 8, 10, 12], 5),
+      ...params.duration(SEEDANCE_15_DURATIONS, 5),
       ...params.generateAudio(false),
       ...params.startFrame(),
       ...params.endFrame(),
@@ -1107,7 +1119,7 @@ export const { MODELS } = defineModels('seedance', [
       ...params.prompt(),
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p', '1080p'], '720p'),
-      ...params.duration([5, 10], 5),
+      ...params.duration(SEEDANCE_10_DURATIONS, 5),
       ...params.startFrame('First Frame', true),
     },
   },

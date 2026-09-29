@@ -1754,6 +1754,7 @@ type ModelInputById = {
             video_input: boolean;
             signature: string;
         };
+        omniReferenceTaskType?: "auto" | "reference" | "edit" | "extend";
         imageUrls?: string[];
         videoUrls?: string[];
         audioUrls?: string[];
@@ -1798,6 +1799,7 @@ type ModelInputById = {
             video_input: boolean;
             signature: string;
         };
+        omniReferenceTaskType?: "auto" | "reference" | "edit" | "extend";
         imageUrls?: string[];
         videoUrls?: string[];
         audioUrls?: string[];

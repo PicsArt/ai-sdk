@@ -481,6 +481,13 @@ const seedance25DraftFinalConstraints: Constraint[] = [
   },
 ];
 
+/** Omni-reference subtask hint (`auto` / `reference` / `edit` / `extend`).
+ *  An explicit value makes the vendor validate that subtask's constraints at
+ *  submit instead of failing after the task was created. The edit / extend
+ *  entries hardcode theirs; the base entries send it only when the caller
+ *  picks one. */
+type Seedance25TaskTypeContext = GenerationContext & { omniReferenceTaskType?: string };
+
 /** Seedance 2.5 — text-to-video / image-to-video / multimodal refs.
  *  Mirrors buildSeedance20PayloadFor but lifts the reference caps to 30/10/10
  *  and always sends `output_format`. */
@@ -494,6 +501,7 @@ export const buildSeedance25PayloadFor =
     // 'adaptive' whenever a start/end frame is present (T2V and reference modes
     // keep the user-selected ratio). Mirrors the seedance25Constraints lock.
     const usesFrame = Boolean(ctx.startFrame || ctx.endFrame);
+    const { omniReferenceTaskType } = ctx as Seedance25TaskTypeContext;
 
     return {
       model: modelAlias,
@@ -529,6 +537,7 @@ export const buildSeedance25PayloadFor =
       generate_audio: ctx.generateAudio ?? true,
       output_format: seedance25OutputFormat(ctx),
       ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
+      ...(omniReferenceTaskType !== undefined ? { omni_reference_task_type: omniReferenceTaskType } : {}),
     };
   });
 
@@ -537,7 +546,8 @@ export const buildSeedance25PayloadFor =
  *  Vendor rule: the user may specify NEITHER duration NOR aspect ratio — the
  *  internal Editing mode requires `duration: -1` (output matches the source
  *  clip) and `ratio: 'adaptive'`. Any other value triggers a mode-mismatch
- *  error, so both are hardcoded here rather than read from ctx. */
+ *  error, so both are hardcoded here rather than read from ctx. The task type
+ *  is hardcoded to 'edit' so the vendor checks those rules at submit. */
 export const buildSeedance25VideoEditPayloadFor =
   (modelAlias: Seedance25Alias): PayloadBuilder =>
   withSeedance25DraftMode(modelAlias, (ctx) => ({
@@ -556,6 +566,7 @@ export const buildSeedance25VideoEditPayloadFor =
     resolution: ctx.resolution ?? '1080p',
     generate_audio: ctx.generateAudio ?? true,
     output_format: seedance25OutputFormat(ctx),
+    omni_reference_task_type: 'edit',
     ...(ctx.returnLastFrame ? { return_last_frame: true } : {}),
   }));
 
@@ -563,7 +574,7 @@ export const buildSeedance25VideoEditPayloadFor =
  *  Worker routes to `video-to-video.*` toolId (content includes video_url roles).
  *  Vendor rule (Extension mode): duration is user-selectable, but aspect ratio
  *  MUST be 'adaptive' — a fixed ratio triggers a mode-mismatch error, so it is
- *  hardcoded here. */
+ *  hardcoded here, as is the 'extend' task type. */
 export const buildSeedance25VideoExtendPayloadFor =
   (modelAlias: Seedance25Alias): PayloadBuilder =>
   withSeedance25DraftMode(modelAlias, (ctx) => ({
@@ -581,6 +592,7 @@ export const buildSeedance25VideoExtendPayloadFor =
     resolution: ctx.resolution ?? '1080p',
     generate_audio: ctx.generateAudio ?? true,
     output_format: seedance25OutputFormat(ctx),
+    omni_reference_task_type: 'extend',
   }));
 
 const SEEDANCE_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', 'adaptive'];
@@ -628,6 +640,26 @@ const seedance25DraftTaskParam = {
   },
 };
 
+/** Omni-reference task type, on the base 2.5 entries. `auto` is only the
+ *  picker default (it is the vendor's own); an unset value stays off the wire. */
+const seedance25TaskTypeParam = {
+  omniReferenceTaskType: {
+    label: 'Task Type',
+    required: false,
+    descriptor: {
+      kind: 'enum' as const,
+      valueType: 'string' as const,
+      options: [
+        { id: 'auto', label: 'Auto' },
+        { id: 'reference', label: 'Reference' },
+        { id: 'edit', label: 'Edit' },
+        { id: 'extend', label: 'Extend' },
+      ],
+      default: 'auto',
+    },
+  },
+};
+
 export const { MODELS } = defineModels('seedance', [
   {
     id: 'seedance-2.5', name: 'Seedance 2.5', modelId: 'seedance-2.5',
@@ -653,6 +685,7 @@ export const { MODELS } = defineModels('seedance', [
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
       ...seedance25DraftParam,
       ...seedance25DraftTaskParam,
+      ...seedance25TaskTypeParam,
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
       ...params.videoInputs(10, 'Reference Videos', false, SEEDANCE_25_VIDEO_BOUNDS),
@@ -689,6 +722,7 @@ export const { MODELS } = defineModels('seedance', [
       ...p.enum('colorDepth', SEEDANCE_25_COLOR_DEPTHS, '10bit', { label: 'Color Depth' }),
       ...seedance25DraftParam,
       ...seedance25DraftTaskParam,
+      ...seedance25TaskTypeParam,
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
       ...params.videoInputs(10, 'Reference Videos', false, SEEDANCE_25_VIDEO_BOUNDS),

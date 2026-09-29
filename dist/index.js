@@ -4453,6 +4453,7 @@ var buildSeedance25PayloadFor = (modelAlias) => withSeedance25DraftMode(modelAli
   const refVideos = ctx.videoUrls ?? [];
   const refAudios = ctx.audioUrls ?? [];
   const usesFrame = Boolean(ctx.startFrame || ctx.endFrame);
+  const { omniReferenceTaskType } = ctx;
   return {
     model: modelAlias,
     content: [
@@ -4482,7 +4483,8 @@ var buildSeedance25PayloadFor = (modelAlias) => withSeedance25DraftMode(modelAli
     resolution: ctx.resolution ?? "1080p",
     generate_audio: ctx.generateAudio ?? true,
     output_format: seedance25OutputFormat(ctx),
-    ...ctx.returnLastFrame ? { return_last_frame: true } : {}
+    ...ctx.returnLastFrame ? { return_last_frame: true } : {},
+    ...omniReferenceTaskType !== void 0 ? { omni_reference_task_type: omniReferenceTaskType } : {}
   };
 });
 var buildSeedance25VideoEditPayloadFor = (modelAlias) => withSeedance25DraftMode(modelAlias, (ctx) => ({
@@ -4501,6 +4503,7 @@ var buildSeedance25VideoEditPayloadFor = (modelAlias) => withSeedance25DraftMode
   resolution: ctx.resolution ?? "1080p",
   generate_audio: ctx.generateAudio ?? true,
   output_format: seedance25OutputFormat(ctx),
+  omni_reference_task_type: "edit",
   ...ctx.returnLastFrame ? { return_last_frame: true } : {}
 }));
 var buildSeedance25VideoExtendPayloadFor = (modelAlias) => withSeedance25DraftMode(modelAlias, (ctx) => ({
@@ -4517,7 +4520,8 @@ var buildSeedance25VideoExtendPayloadFor = (modelAlias) => withSeedance25DraftMo
   duration: ctx.duration ?? 15,
   resolution: ctx.resolution ?? "1080p",
   generate_audio: ctx.generateAudio ?? true,
-  output_format: seedance25OutputFormat(ctx)
+  output_format: seedance25OutputFormat(ctx),
+  omni_reference_task_type: "extend"
 }));
 var SEEDANCE_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"];
 var SEEDANCE_25_FORMATS = ["mp4", "mov"];
@@ -4542,6 +4546,23 @@ var seedance25DraftTaskParam = {
         video_input: { kind: "boolean", default: false },
         signature: { kind: "text" }
       }
+    }
+  }
+};
+var seedance25TaskTypeParam = {
+  omniReferenceTaskType: {
+    label: "Task Type",
+    required: false,
+    descriptor: {
+      kind: "enum",
+      valueType: "string",
+      options: [
+        { id: "auto", label: "Auto" },
+        { id: "reference", label: "Reference" },
+        { id: "edit", label: "Edit" },
+        { id: "extend", label: "Extend" }
+      ],
+      default: "auto"
     }
   }
 };
@@ -4573,6 +4594,7 @@ var { MODELS: MODELS13 } = defineModels("seedance", [
       ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
       ...seedance25DraftParam,
       ...seedance25DraftTaskParam,
+      ...seedance25TaskTypeParam,
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, "Reference Images", false, "reference", SEEDANCE_IMAGE_BOUNDS),
       ...params.videoInputs(10, "Reference Videos", false, SEEDANCE_25_VIDEO_BOUNDS),
@@ -4612,6 +4634,7 @@ var { MODELS: MODELS13 } = defineModels("seedance", [
       ...p.enum("colorDepth", SEEDANCE_25_COLOR_DEPTHS, "10bit", { label: "Color Depth" }),
       ...seedance25DraftParam,
       ...seedance25DraftTaskParam,
+      ...seedance25TaskTypeParam,
       // 2.5 lifts the reference caps to 30 images / 10 videos / 10 audios.
       ...params.imageInput(30, "Reference Images", false, "reference", SEEDANCE_IMAGE_BOUNDS),
       ...params.videoInputs(10, "Reference Videos", false, SEEDANCE_25_VIDEO_BOUNDS),

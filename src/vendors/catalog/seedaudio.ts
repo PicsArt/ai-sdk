@@ -62,7 +62,7 @@ const refMutexConstraints: Constraint[] = [
   } },
 ];
 
-export const { MODELS } = defineModels('seedaudio', [
+export const { MODELS } = defineModels('bytedance', [
   {
     id: 'seed-audio-1.0-multilingual', name: 'Seed Audio Multilingual',
     addedAt: '2026-07-28',

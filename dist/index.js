@@ -4665,7 +4665,7 @@ var seedance25TaskTypeParam = {
     }
   }
 };
-var { MODELS: MODELS13 } = defineModels("seedance", [
+var { MODELS: MODELS13 } = defineModels("bytedance", [
   {
     id: "seedance-2.5",
     name: "Seedance 2.5",
@@ -5253,7 +5253,7 @@ var seedreamV2Params = {
   ...params.imageInput(2, "Source Images"),
   ...params.negativePrompt()
 };
-var { MODELS: MODELS14 } = defineModels("seedream", [
+var { MODELS: MODELS14 } = defineModels("bytedance", [
   {
     id: "seedream-5.0-flash",
     name: "Seedream 5.0 Flash",
@@ -5420,7 +5420,7 @@ var refMutexConstraints = [
     imageUrls: { disabled: true, reason: REF_MUTEX_REASON }
   } }
 ];
-var { MODELS: MODELS15 } = defineModels("seedaudio", [
+var { MODELS: MODELS15 } = defineModels("bytedance", [
   {
     id: "seed-audio-1.0-multilingual",
     name: "Seed Audio Multilingual",
@@ -11045,7 +11045,7 @@ function buildItemMetadata(parsed, item, _index, provider) {
   const lastFrame = it?.last_frame_url ?? top?.last_frame_url;
   if (typeof lastFrame === "string") meta.lastFrameUrl = lastFrame;
   const draftTask = top?.draft_task;
-  if (provider === "seedance" && isSeedanceDraftTask(draftTask)) {
+  if (provider === "bytedance" && isSeedanceDraftTask(draftTask)) {
     meta.draftTask = { id: draftTask.id, video_input: draftTask.video_input, signature: draftTask.signature };
   }
   return Object.keys(meta).length > 0 ? meta : void 0;

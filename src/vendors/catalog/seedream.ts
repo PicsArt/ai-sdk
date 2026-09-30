@@ -32,7 +32,7 @@ const seedreamV2Params = {
   ...params.negativePrompt(),
 };
 
-export const { MODELS } = defineModels('seedream', [
+export const { MODELS } = defineModels('bytedance', [
   {
     id: 'seedream-5.0-flash', name: 'Seedream 5.0 Flash', modelId: 'seedream_5_0_flash',
     addedAt: '2026-09-24',

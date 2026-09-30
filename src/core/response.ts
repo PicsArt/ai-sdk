@@ -295,7 +295,7 @@ export function buildItemMetadata(
   if (typeof lastFrame === 'string') meta.lastFrameUrl = lastFrame;
   // Seedance 2.5 Draft: the reference rides the response next to the video url.
   const draftTask = top?.draft_task;
-  if (provider === 'seedance' && isSeedanceDraftTask(draftTask)) {
+  if (provider === 'bytedance' && isSeedanceDraftTask(draftTask)) {
     meta.draftTask = { id: draftTask.id, video_input: draftTask.video_input, signature: draftTask.signature };
   }
 

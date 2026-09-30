@@ -449,64 +449,64 @@ export const RunwayGen4Aleph = 'runway-gen4-aleph' as const;
 export const RunwayGen4Ref = 'runway-gen4-ref' as const;
 /** Runway Gen 4.5 — runway (video) */
 export const RunwayGen45 = 'runway-gen4.5' as const;
-/** Seed Audio — seedaudio (audio) */
+/** Seed Audio — bytedance (audio) */
 export const SeedAudio10 = 'seed-audio-1.0' as const;
-/** Seed Audio Multilingual — seedaudio (audio) */
+/** Seed Audio Multilingual — bytedance (audio) */
 export const SeedAudio10Multilingual = 'seed-audio-1.0-multilingual' as const;
-/** Seedance 1.5 Pro — seedance (video) */
+/** Seedance 1.5 Pro — bytedance (video) */
 /** @deprecated This model is retired (deprecated). */
 export const Seedance15Pro = 'seedance-1.5-pro' as const;
-/** Seedance 2.0 — seedance (video) */
+/** Seedance 2.0 — bytedance (video) */
 export const Seedance20 = 'seedance-2.0' as const;
-/** Seedance 2.0 Fast — seedance (video) */
+/** Seedance 2.0 Fast — bytedance (video) */
 export const Seedance20Fast = 'seedance-2.0-fast' as const;
-/** Seedance 2.0 Fast Video Edit — seedance (video) */
+/** Seedance 2.0 Fast Video Edit — bytedance (video) */
 export const Seedance20FastVideoEdit = 'seedance-2.0-fast-video-edit' as const;
-/** Seedance 2.0 Fast Video Extend — seedance (video) */
+/** Seedance 2.0 Fast Video Extend — bytedance (video) */
 export const Seedance20FastVideoExtend = 'seedance-2.0-fast-video-extend' as const;
-/** Seedance 2.0 Mini — seedance (video) */
+/** Seedance 2.0 Mini — bytedance (video) */
 export const Seedance20Mini = 'seedance-2.0-mini' as const;
-/** Seedance 2.0 Mini Video Edit — seedance (video) */
+/** Seedance 2.0 Mini Video Edit — bytedance (video) */
 export const Seedance20MiniVideoEdit = 'seedance-2.0-mini-video-edit' as const;
-/** Seedance 2.0 Mini Video Extend — seedance (video) */
+/** Seedance 2.0 Mini Video Extend — bytedance (video) */
 export const Seedance20MiniVideoExtend = 'seedance-2.0-mini-video-extend' as const;
-/** Seedance 2.0 Video Edit — seedance (video) */
+/** Seedance 2.0 Video Edit — bytedance (video) */
 export const Seedance20VideoEdit = 'seedance-2.0-video-edit' as const;
-/** Seedance 2.0 Video Extend — seedance (video) */
+/** Seedance 2.0 Video Extend — bytedance (video) */
 export const Seedance20VideoExtend = 'seedance-2.0-video-extend' as const;
-/** Seedance 2.0 Without Moderation — seedance (video) */
+/** Seedance 2.0 Without Moderation — bytedance (video) */
 export const Seedance20WithoutModeration = 'seedance-2.0-without-moderation' as const;
-/** Seedance 2.0 Without Moderation Video Edit — seedance (video) */
+/** Seedance 2.0 Without Moderation Video Edit — bytedance (video) */
 export const Seedance20WithoutModerationVideoEdit = 'seedance-2.0-without-moderation-video-edit' as const;
-/** Seedance 2.0 Without Moderation Video Extend — seedance (video) */
+/** Seedance 2.0 Without Moderation Video Extend — bytedance (video) */
 export const Seedance20WithoutModerationVideoExtend = 'seedance-2.0-without-moderation-video-extend' as const;
-/** Seedance 2.5 — seedance (video) */
+/** Seedance 2.5 — bytedance (video) */
 export const Seedance25 = 'seedance-2.5' as const;
-/** Seedance 2.5 Video Edit — seedance (video) */
+/** Seedance 2.5 Video Edit — bytedance (video) */
 export const Seedance25VideoEdit = 'seedance-2.5-video-edit' as const;
-/** Seedance 2.5 Video Extend — seedance (video) */
+/** Seedance 2.5 Video Extend — bytedance (video) */
 export const Seedance25VideoExtend = 'seedance-2.5-video-extend' as const;
-/** Seedance 2.5 Without Moderation — seedance (video) */
+/** Seedance 2.5 Without Moderation — bytedance (video) */
 export const Seedance25WithoutModeration = 'seedance-2.5-without-moderation' as const;
-/** Seedance 2.5 Without Moderation Video Edit — seedance (video) */
+/** Seedance 2.5 Without Moderation Video Edit — bytedance (video) */
 export const Seedance25WithoutModerationVideoEdit = 'seedance-2.5-without-moderation-video-edit' as const;
-/** Seedance 2.5 Without Moderation Video Extend — seedance (video) */
+/** Seedance 2.5 Without Moderation Video Extend — bytedance (video) */
 export const Seedance25WithoutModerationVideoExtend = 'seedance-2.5-without-moderation-video-extend' as const;
-/** Seedance I2V — seedance (video) */
+/** Seedance I2V — bytedance (video) */
 /** @deprecated This model is retired (deprecated). */
 export const SeedanceI2v = 'seedance-i2v' as const;
-/** Seedream 4.0 — seedream (image) */
+/** Seedream 4.0 — bytedance (image) */
 /** @deprecated This model is retired (deprecated). */
 export const Seedream40 = 'seedream-4.0' as const;
-/** Seedream 4.5 — seedream (image) */
+/** Seedream 4.5 — bytedance (image) */
 export const Seedream45 = 'seedream-4.5' as const;
-/** Seedream 4.7 — seedream (image) */
+/** Seedream 4.7 — bytedance (image) */
 export const Seedream47 = 'seedream-4.7' as const;
-/** Seedream 5.0 Flash — seedream (image) */
+/** Seedream 5.0 Flash — bytedance (image) */
 export const Seedream50Flash = 'seedream-5.0-flash' as const;
-/** Seedream 5.0 Lite — seedream (image) */
+/** Seedream 5.0 Lite — bytedance (image) */
 export const Seedream50Lite = 'seedream-5.0-lite' as const;
-/** Seedream 5.0 Pro — seedream (image) */
+/** Seedream 5.0 Pro — bytedance (image) */
 export const Seedream50Pro = 'seedream-5.0-pro' as const;
 /** Topaz Image Upscale — topaz (image) */
 export const TopazUpscaleImage = 'topaz-upscale-image' as const;

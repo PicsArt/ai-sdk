@@ -675,7 +675,7 @@ const seedance25TaskTypeParam = {
   },
 };
 
-export const { MODELS } = defineModels('seedance', [
+export const { MODELS } = defineModels('bytedance', [
   {
     id: 'seedance-2.5', name: 'Seedance 2.5', modelId: 'seedance-2.5',
     addedAt: '2026-08-06',

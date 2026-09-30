@@ -13,9 +13,9 @@
  */
 
 import type { ModelDefinition, GenerationContext, ReleaseTag } from '../types.ts';
-import { evaluateConstraints } from '../constraints.ts';
+import { evaluateConstraints, evaluateRequirements } from '../constraints.ts';
 import { isVisibleForReleases, DEFAULT_VISIBLE_RELEASES } from '../visibility.ts';
-import type { NormalizedRestriction } from '../constraints.ts';
+import type { ConditionalRequirement, NormalizedRestriction } from '../constraints.ts';
 import type { TypedModelId } from '../../generated/model-input-types.ts';
 import type {
   ParamDescriptor,
@@ -147,47 +147,54 @@ class ModelParamsAccessorImpl implements ModelParamsAccessor {
 class ConstrainedParamsAccessor implements ModelParamsAccessor {
   private readonly inner: ModelParamsAccessor;
   private readonly effects: Map<string, NormalizedRestriction>;
+  private readonly requirements: Map<string, ConditionalRequirement>;
 
-  constructor(inner: ModelParamsAccessor, effects: Map<string, NormalizedRestriction>) {
+  constructor(
+    inner: ModelParamsAccessor,
+    effects: Map<string, NormalizedRestriction>,
+    requirements: Map<string, ConditionalRequirement> = new Map(),
+  ) {
     this.inner = inner;
     this.effects = effects;
+    this.requirements = requirements;
   }
 
   // ── Decorated accessors ──────────────────────────────────────────
 
-  enum(key: string): EnumEntry | undefined { return this.applyEnum(key, this.inner.enum(key)); }
-  catalog(key: string): CatalogEntry | undefined { return this.applyEntry(key, this.inner.catalog(key)); }
-  range(key: string): RangeEntry | undefined { return this.applyEntry(key, this.inner.range(key)); }
-  boolean(key: string): BooleanEntry | undefined { return this.applyEntry(key, this.inner.boolean(key)); }
-  text(key: string): TextEntry | undefined { return this.applyEntry(key, this.inner.text(key)); }
-  file(key: string): FileEntry | undefined { return this.applyEntry(key, this.inner.file(key)); }
+  enum(key: string): EnumEntry | undefined { return this.require(key, this.applyEnum(key, this.inner.enum(key))); }
+  catalog(key: string): CatalogEntry | undefined { return this.require(key, this.applyEntry(key, this.inner.catalog(key))); }
+  range(key: string): RangeEntry | undefined { return this.require(key, this.applyEntry(key, this.inner.range(key))); }
+  boolean(key: string): BooleanEntry | undefined { return this.require(key, this.applyEntry(key, this.inner.boolean(key))); }
+  text(key: string): TextEntry | undefined { return this.require(key, this.applyEntry(key, this.inner.text(key))); }
+  file(key: string): FileEntry | undefined { return this.require(key, this.applyEntry(key, this.inner.file(key))); }
 
-  prompt(): TextEntry | undefined { return this.applyEntry('prompt', this.inner.prompt()); }
-  aspectRatio(): EnumEntry | undefined { return this.applyEnum('aspectRatio', this.inner.aspectRatio()); }
+  prompt(): TextEntry | undefined { return this.require('prompt', this.applyEntry('prompt', this.inner.prompt())); }
+  aspectRatio(): EnumEntry | undefined { return this.require('aspectRatio', this.applyEnum('aspectRatio', this.inner.aspectRatio())); }
   duration(): EnumEntry | RangeEntry | undefined {
     const entry = this.inner.duration();
-    return entry?.kind === 'enum'
+    return this.require('duration', entry?.kind === 'enum'
       ? this.applyEnum('duration', entry)
-      : this.applyEntry('duration', entry);
+      : this.applyEntry('duration', entry));
   }
-  resolution(): EnumEntry | undefined { return this.applyEnum('resolution', this.inner.resolution()); }
-  generateAudio(): BooleanEntry | undefined { return this.applyEntry('generateAudio', this.inner.generateAudio()); }
-  startFrame(): FileEntry | undefined { return this.applyEntry('startFrame', this.inner.startFrame()); }
-  endFrame(): FileEntry | undefined { return this.applyEntry('endFrame', this.inner.endFrame()); }
+  resolution(): EnumEntry | undefined { return this.require('resolution', this.applyEnum('resolution', this.inner.resolution())); }
+  generateAudio(): BooleanEntry | undefined { return this.require('generateAudio', this.applyEntry('generateAudio', this.inner.generateAudio())); }
+  startFrame(): FileEntry | undefined { return this.require('startFrame', this.applyEntry('startFrame', this.inner.startFrame())); }
+  endFrame(): FileEntry | undefined { return this.require('endFrame', this.applyEntry('endFrame', this.inner.endFrame())); }
 
   all(): FlatParamEntry[] {
-    return this.inner.all().map(e => {
-      const r = this.effects.get(e.key);
-      if (!r) return e;
-      if (e.kind === 'enum') return this.decorateEnumFlat(e, r);
-      if (r.kind === 'disabled') return { ...e, disabled: true, disabledReason: r.reason };
-      return e;
-    });
+    return this.inner.all().map(e => this.decorateFlat(e.key, e));
+  }
+
+  /** Generic lookup, decorated exactly as `all()` decorates the same key, so a
+   *  caller that reads params by key sees the same restrictions and
+   *  requirements as one that iterates them. */
+  param(key: string): (EntryMeta & ParamDescriptor) | undefined {
+    const entry = this.inner.param(key);
+    return entry && this.decorateFlat(key, entry as FlatParamEntry);
   }
 
   // ── Pass-through delegates ───────────────────────────────────────
 
-  param(key: string) { return this.inner.param(key); }
   hasParam(key: string) { return this.inner.hasParam(key); }
   hasFileInput() { return this.inner.hasFileInput(); }
   getDefault(key: string) { return this.inner.getDefault(key); }
@@ -196,6 +203,24 @@ class ConstrainedParamsAccessor implements ModelParamsAccessor {
   transferValues(prev: Record<string, unknown>) { return this.inner.transferValues(prev); }
 
   // ── Private helpers ──────────────────────────────────────────────
+
+  private decorateFlat<T extends FlatParamEntry>(key: string, entry: T): T {
+    const r = this.effects.get(key);
+    let decorated: FlatParamEntry = entry;
+    if (r && entry.kind === 'enum') decorated = this.decorateEnumFlat(entry, r);
+    else if (r?.kind === 'disabled') decorated = { ...entry, disabled: true, disabledReason: r.reason };
+    return this.require(key, decorated) as T;
+  }
+
+  /** Mark the entry required when a matching `required` restriction names it. */
+  private require<T extends { required?: boolean; requiredReason?: string }>(
+    key: string, entry: T | undefined,
+  ): T | undefined {
+    if (!entry) return undefined;
+    const requirement = this.requirements.get(key);
+    if (!requirement) return entry;
+    return { ...entry, required: true, requiredReason: requirement.reason };
+  }
 
   private applyEntry<T extends { disabled?: boolean; disabledReason?: string }>(
     key: string, entry: T | undefined,
@@ -298,8 +323,9 @@ class ModelDescriptorImpl implements ModelDescriptor {
   paramsFor(values: Partial<GenerationContext>): ModelParamsAccessor {
     const inner = this.params();
     const effects = evaluateConstraints(this.def.constraints, values);
-    if (!effects.size) return inner;
-    return new ConstrainedParamsAccessor(inner, effects);
+    const requirements = evaluateRequirements(this.def.constraints, values);
+    if (!effects.size && !requirements.size) return inner;
+    return new ConstrainedParamsAccessor(inner, effects, requirements);
   }
 
   validate(input: unknown): ValidationResult {
@@ -307,7 +333,7 @@ class ModelDescriptorImpl implements ModelDescriptor {
       return { valid: false, errors: [`Invalid input for model "${this.def.id}"`] };
     }
     try {
-      validateAll(this.def.paramConfig, input as Record<string, unknown>);
+      validateAll(this.def.paramConfig, input as Record<string, unknown>, this.def.constraints);
       return { valid: true };
     } catch (err: unknown) {
       return { valid: false, errors: [err instanceof Error ? err.message : String(err)] };

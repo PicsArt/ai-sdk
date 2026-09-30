@@ -295,6 +295,14 @@ export const { MODELS } = defineModels('ltx', [
     mode: 'video', inputType: 'a2v',
     description: 'Generate video driven by an audio track — 2-20s, optional image for first frame.',
     features: [feat('Audio Input', 'audio'), feat('Image Input', 'input'), feat('2–20 sec', 'duration')],
+    // Vendor: a prompt is required unless a first-frame image drives the scene.
+    // Declared here so `validate()` and a UI gate see it; the builder's own
+    // throw stays for callers that build a payload without validating.
+    constraints: [
+      { when: { prompt: { exists: false }, imageUrls: { exists: false } }, then: {
+        prompt: { required: true, reason: 'Add a prompt or a first-frame image.' },
+      } },
+    ],
     paramConfig: {
       ...params.prompt({ required: false, maxLength: LTX_PROMPT_MAX }),
       ...params.audioInput('Audio Track', true),

@@ -463,6 +463,21 @@ const seedance25DraftConstraints: Constraint[] = [
   },
 ];
 
+/** Base entries declare the prompt optional (media-only input is valid), but a
+ *  request needs something to render: a prompt, any media, or a draft to
+ *  finalize. With none of them the builder emits an empty `content` array and
+ *  the vendor refuses it after the round trip. */
+const seedance25ContentRequiredConstraints: Constraint[] = [
+  {
+    when: {
+      prompt: { exists: false }, imageUrls: { exists: false }, videoUrls: { exists: false },
+      audioUrls: { exists: false }, startFrame: { exists: false }, endFrame: { exists: false },
+      draftTask: { exists: false },
+    },
+    then: { prompt: { required: true, reason: 'Add a prompt or at least one image, video, or audio.' } },
+  },
+];
+
 /** UI side of the final step (base entries): 1080p only, and every param the
  *  final reuses from its draft is disabled — the vendor refuses a final that
  *  sends one. */
@@ -666,7 +681,7 @@ export const { MODELS } = defineModels('seedance', [
     addedAt: '2026-08-06',
     workflow: 'seedance',
     buildPayload: buildSeedance25PayloadFor('seedance_2_5'),
-    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints],
+    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints, ...seedance25ContentRequiredConstraints],
     estimatedTime: 20,
     mode: 'video', inputType: 't2v',
     badge: ['new', 'premium', 'hot'],
@@ -703,7 +718,7 @@ export const { MODELS } = defineModels('seedance', [
     release: 'preview',
     workflow: 'seedance',
     buildPayload: buildSeedance25PayloadFor('seedance_2_5_without_moderation'),
-    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints],
+    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints, ...seedance25ContentRequiredConstraints],
     estimatedTime: 20,
     mode: 'video', inputType: 't2v',
     badge: ['new', 'premium', 'hot'],

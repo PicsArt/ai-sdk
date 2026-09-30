@@ -11,6 +11,8 @@ import type {
   EnumDescriptor,
 } from './types.ts';
 import type { ModelParamSchema } from '../schema.ts';
+import type { Constraint } from '../types.ts';
+import { evaluateRequirements } from '../constraints.ts';
 
 // ── Default extraction ──────────────────────────────────────────────
 
@@ -137,12 +139,31 @@ export function validateDescriptor(
 }
 
 /** Validate all input values against a ModelParams record. Throws on first error. */
+/** A required value counts as absent when null, blank, or an empty array. */
+function isAbsent(val: unknown): boolean {
+  return val == null
+    || (typeof val === 'string' && val.trim().length === 0)
+    || (Array.isArray(val) && val.length === 0);
+}
+
+/**
+ * Validate every param, then the requirements `constraints` impose on these
+ * values (a `required` restriction whose `when` matches). The conditional
+ * check reuses the static message shape, `"<key>" is required`, with the
+ * rule's reason appended so the error names the alternative.
+ */
 export function validateAll(
   params: ModelParams,
   input: Record<string, unknown>,
+  constraints?: Constraint[],
 ): void {
   for (const [key, entry] of Object.entries(params)) {
     validateDescriptor(key, entry.descriptor, input[key], entry.required);
+  }
+  for (const [key, requirement] of evaluateRequirements(constraints, input)) {
+    if (isAbsent(input[key])) {
+      throw new Error(requirement.reason ? `"${key}" is required: ${requirement.reason}` : `"${key}" is required`);
+    }
   }
 }
 

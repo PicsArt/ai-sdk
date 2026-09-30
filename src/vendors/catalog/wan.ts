@@ -150,12 +150,20 @@ const wanV3Constraints: Constraint[] = [
     videoUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
     audioUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
   } },
+  // Vendor: either a prompt or media. With no media at all, the prompt is
+  // required (the payload builder enforces the same rule for direct callers).
+  { when: {
+    prompt: { exists: false }, startFrame: { exists: false }, endFrame: { exists: false },
+    imageUrls: { exists: false }, videoUrls: { exists: false }, audioUrls: { exists: false },
+  }, then: {
+    prompt: { required: true, reason: 'Add a prompt or at least one frame or reference.' },
+  } },
 ];
 
 // Shared by wan-3.0-video and wan-3.0-video-prime — identical models, prime is faster.
 const wanV3Features = [feat('Image Input', 'input'), feat('Video Input', 'input'), feat('Audio', 'audio'), feat('Start/End Frame', 'frame'), feat('1080P', 'resolution'), feat('Adaptive Ratio', 'resolution')];
 const wanV3ParamConfig = {
-  // Vendor: 'either prompt or media' — the builder enforces the cross-field rule.
+  // Vendor: 'either prompt or media' — declared in wanV3Constraints.
   ...params.prompt({ required: false, maxLength: 5000 }),
   // Vendor: integer 2-30, or -1 = Smart duration mode (model picks the length).
   duration: {

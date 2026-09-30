@@ -416,6 +416,63 @@ var require_build = __commonJS({
   }
 });
 
+// src/core/constraints.ts
+function normalize(r) {
+  if ("required" in r) return null;
+  if ("disabled" in r) return { kind: "disabled", reason: r.reason };
+  return { kind: "allowed", allowed: r.allowed, reason: r.reason };
+}
+function matchOperator(op, actual) {
+  if ("exists" in op) {
+    const has = actual != null && (!Array.isArray(actual) || actual.length > 0) && (typeof actual !== "string" || actual.trim().length > 0);
+    return op.exists ? has : !has;
+  }
+  if ("is" in op) return actual === op.is;
+  return false;
+}
+function matchCondition(when, values) {
+  return Object.entries(when).every(
+    ([key, op]) => matchOperator(op, values[key])
+  );
+}
+function merge(prev, next) {
+  if (!prev) return next;
+  if (prev.kind === "disabled" || next.kind === "disabled") {
+    return { kind: "disabled", reason: next.kind === "disabled" ? next.reason : prev.kind === "disabled" ? prev.reason : void 0 };
+  }
+  const allowed = new Set(next.allowed.map(String));
+  return {
+    kind: "allowed",
+    allowed: prev.allowed.filter((o) => allowed.has(String(o))),
+    reason: next.reason ?? prev.reason
+  };
+}
+function evaluateConstraints(constraints, values) {
+  const effects = /* @__PURE__ */ new Map();
+  if (!constraints?.length) return effects;
+  for (const rule of constraints) {
+    if (!matchCondition(rule.when, values)) continue;
+    for (const [key, restriction] of Object.entries(rule.then)) {
+      const normalized = normalize(restriction);
+      if (normalized) effects.set(key, merge(effects.get(key), normalized));
+    }
+  }
+  return effects;
+}
+function evaluateRequirements(constraints, values) {
+  const requirements = /* @__PURE__ */ new Map();
+  if (!constraints?.length) return requirements;
+  for (const rule of constraints) {
+    if (!matchCondition(rule.when, values)) continue;
+    for (const [key, restriction] of Object.entries(rule.then)) {
+      if ("required" in restriction && !requirements.has(key)) {
+        requirements.set(key, { reason: restriction.reason });
+      }
+    }
+  }
+  return requirements;
+}
+
 // src/core/descriptors/utils.ts
 function extractDefaults(params2) {
   const defaults = {};
@@ -521,9 +578,17 @@ function validateDescriptor(key, d, val, required) {
     }
   }
 }
-function validateAll(params2, input) {
+function isAbsent(val) {
+  return val == null || typeof val === "string" && val.trim().length === 0 || Array.isArray(val) && val.length === 0;
+}
+function validateAll(params2, input, constraints) {
   for (const [key, entry] of Object.entries(params2)) {
     validateDescriptor(key, entry.descriptor, input[key], entry.required);
+  }
+  for (const [key, requirement] of evaluateRequirements(constraints, input)) {
+    if (isAbsent(input[key])) {
+      throw new Error(requirement.reason ? `"${key}" is required: ${requirement.reason}` : `"${key}" is required`);
+    }
   }
 }
 function descriptorsToSchema(params2) {
@@ -2368,6 +2433,14 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
     inputType: "a2v",
     description: "Generate video driven by an audio track \u2014 2-20s, optional image for first frame.",
     features: [feat("Audio Input", "audio"), feat("Image Input", "input"), feat("2\u201320 sec", "duration")],
+    // Vendor: a prompt is required unless a first-frame image drives the scene.
+    // Declared here so `validate()` and a UI gate see it; the builder's own
+    // throw stays for callers that build a payload without validating.
+    constraints: [
+      { when: { prompt: { exists: false }, imageUrls: { exists: false } }, then: {
+        prompt: { required: true, reason: "Add a prompt or a first-frame image." }
+      } }
+    ],
     paramConfig: {
       ...params.prompt({ required: false, maxLength: LTX_PROMPT_MAX }),
       ...params.audioInput("Audio Track", true),
@@ -3510,11 +3583,23 @@ var wanV3Constraints = [
     imageUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
     videoUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON },
     audioUrls: { disabled: true, reason: WAN_V3_FRAME_REF_REASON }
+  } },
+  // Vendor: either a prompt or media. With no media at all, the prompt is
+  // required (the payload builder enforces the same rule for direct callers).
+  { when: {
+    prompt: { exists: false },
+    startFrame: { exists: false },
+    endFrame: { exists: false },
+    imageUrls: { exists: false },
+    videoUrls: { exists: false },
+    audioUrls: { exists: false }
+  }, then: {
+    prompt: { required: true, reason: "Add a prompt or at least one frame or reference." }
   } }
 ];
 var wanV3Features = [feat("Image Input", "input"), feat("Video Input", "input"), feat("Audio", "audio"), feat("Start/End Frame", "frame"), feat("1080P", "resolution"), feat("Adaptive Ratio", "resolution")];
 var wanV3ParamConfig = {
-  // Vendor: 'either prompt or media' — the builder enforces the cross-field rule.
+  // Vendor: 'either prompt or media' — declared in wanV3Constraints.
   ...params.prompt({ required: false, maxLength: 5e3 }),
   // Vendor: integer 2-30, or -1 = Smart duration mode (model picks the length).
   duration: {
@@ -4424,6 +4509,20 @@ var seedance25DraftConstraints = [
     then: { resolution: { allowed: [SEEDANCE_25_DRAFT_RESOLUTION], reason: SEEDANCE_25_DRAFT_RESOLUTION_REASON } }
   }
 ];
+var seedance25ContentRequiredConstraints = [
+  {
+    when: {
+      prompt: { exists: false },
+      imageUrls: { exists: false },
+      videoUrls: { exists: false },
+      audioUrls: { exists: false },
+      startFrame: { exists: false },
+      endFrame: { exists: false },
+      draftTask: { exists: false }
+    },
+    then: { prompt: { required: true, reason: "Add a prompt or at least one image, video, or audio." } }
+  }
+];
 var seedance25DraftFinalConstraints = [
   ...seedance25DraftConstraints,
   {
@@ -4574,7 +4673,7 @@ var { MODELS: MODELS13 } = defineModels("seedance", [
     addedAt: "2026-08-06",
     workflow: "seedance",
     buildPayload: buildSeedance25PayloadFor("seedance_2_5"),
-    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints],
+    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints, ...seedance25ContentRequiredConstraints],
     estimatedTime: 20,
     mode: "video",
     inputType: "t2v",
@@ -4614,7 +4713,7 @@ var { MODELS: MODELS13 } = defineModels("seedance", [
     release: "preview",
     workflow: "seedance",
     buildPayload: buildSeedance25PayloadFor("seedance_2_5_without_moderation"),
-    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints],
+    constraints: [...seedance25Constraints, ...seedance25DraftFinalConstraints, ...seedance25ContentRequiredConstraints],
     estimatedTime: 20,
     mode: "video",
     inputType: "t2v",
@@ -10711,7 +10810,7 @@ function buildInputSchema(model) {
     parse(input) {
       requireObject(input, `Invalid input for model "${model.id}"`);
       try {
-        validateAll(model.paramConfig, input);
+        validateAll(model.paramConfig, input, model.constraints);
       } catch (err) {
         if (err instanceof ApiError) throw err;
         throw new ApiError(err instanceof Error ? err.message : String(err), {
@@ -13842,48 +13941,6 @@ var Models = {
   Wan30VideoPrime
 };
 
-// src/core/constraints.ts
-function normalize(r) {
-  if ("disabled" in r) return { kind: "disabled", reason: r.reason };
-  return { kind: "allowed", allowed: r.allowed, reason: r.reason };
-}
-function matchOperator(op, actual) {
-  if ("exists" in op) {
-    const has = actual != null && (!Array.isArray(actual) || actual.length > 0) && (typeof actual !== "string" || actual.length > 0);
-    return op.exists ? has : !has;
-  }
-  if ("is" in op) return actual === op.is;
-  return false;
-}
-function matchCondition(when, values) {
-  return Object.entries(when).every(
-    ([key, op]) => matchOperator(op, values[key])
-  );
-}
-function merge(prev, next) {
-  if (!prev) return next;
-  if (prev.kind === "disabled" || next.kind === "disabled") {
-    return { kind: "disabled", reason: next.kind === "disabled" ? next.reason : prev.kind === "disabled" ? prev.reason : void 0 };
-  }
-  const allowed = new Set(next.allowed.map(String));
-  return {
-    kind: "allowed",
-    allowed: prev.allowed.filter((o) => allowed.has(String(o))),
-    reason: next.reason ?? prev.reason
-  };
-}
-function evaluateConstraints(constraints, values) {
-  const effects = /* @__PURE__ */ new Map();
-  if (!constraints?.length) return effects;
-  for (const rule of constraints) {
-    if (!matchCondition(rule.when, values)) continue;
-    for (const [key, restriction] of Object.entries(rule.then)) {
-      effects.set(key, merge(effects.get(key), normalize(restriction)));
-    }
-  }
-  return effects;
-}
-
 // src/core/descriptors/pricing.ts
 var import_pa_model_pricing_sdk = __toESM(require_build(), 1);
 var _client = null;
@@ -14054,64 +14111,64 @@ var ModelParamsAccessorImpl = class {
 var ConstrainedParamsAccessor = class {
   inner;
   effects;
-  constructor(inner, effects) {
+  requirements;
+  constructor(inner, effects, requirements = /* @__PURE__ */ new Map()) {
     this.inner = inner;
     this.effects = effects;
+    this.requirements = requirements;
   }
   // ── Decorated accessors ──────────────────────────────────────────
   enum(key) {
-    return this.applyEnum(key, this.inner.enum(key));
+    return this.require(key, this.applyEnum(key, this.inner.enum(key)));
   }
   catalog(key) {
-    return this.applyEntry(key, this.inner.catalog(key));
+    return this.require(key, this.applyEntry(key, this.inner.catalog(key)));
   }
   range(key) {
-    return this.applyEntry(key, this.inner.range(key));
+    return this.require(key, this.applyEntry(key, this.inner.range(key)));
   }
   boolean(key) {
-    return this.applyEntry(key, this.inner.boolean(key));
+    return this.require(key, this.applyEntry(key, this.inner.boolean(key)));
   }
   text(key) {
-    return this.applyEntry(key, this.inner.text(key));
+    return this.require(key, this.applyEntry(key, this.inner.text(key)));
   }
   file(key) {
-    return this.applyEntry(key, this.inner.file(key));
+    return this.require(key, this.applyEntry(key, this.inner.file(key)));
   }
   prompt() {
-    return this.applyEntry("prompt", this.inner.prompt());
+    return this.require("prompt", this.applyEntry("prompt", this.inner.prompt()));
   }
   aspectRatio() {
-    return this.applyEnum("aspectRatio", this.inner.aspectRatio());
+    return this.require("aspectRatio", this.applyEnum("aspectRatio", this.inner.aspectRatio()));
   }
   duration() {
     const entry = this.inner.duration();
-    return entry?.kind === "enum" ? this.applyEnum("duration", entry) : this.applyEntry("duration", entry);
+    return this.require("duration", entry?.kind === "enum" ? this.applyEnum("duration", entry) : this.applyEntry("duration", entry));
   }
   resolution() {
-    return this.applyEnum("resolution", this.inner.resolution());
+    return this.require("resolution", this.applyEnum("resolution", this.inner.resolution()));
   }
   generateAudio() {
-    return this.applyEntry("generateAudio", this.inner.generateAudio());
+    return this.require("generateAudio", this.applyEntry("generateAudio", this.inner.generateAudio()));
   }
   startFrame() {
-    return this.applyEntry("startFrame", this.inner.startFrame());
+    return this.require("startFrame", this.applyEntry("startFrame", this.inner.startFrame()));
   }
   endFrame() {
-    return this.applyEntry("endFrame", this.inner.endFrame());
+    return this.require("endFrame", this.applyEntry("endFrame", this.inner.endFrame()));
   }
   all() {
-    return this.inner.all().map((e) => {
-      const r = this.effects.get(e.key);
-      if (!r) return e;
-      if (e.kind === "enum") return this.decorateEnumFlat(e, r);
-      if (r.kind === "disabled") return { ...e, disabled: true, disabledReason: r.reason };
-      return e;
-    });
+    return this.inner.all().map((e) => this.decorateFlat(e.key, e));
+  }
+  /** Generic lookup, decorated exactly as `all()` decorates the same key, so a
+   *  caller that reads params by key sees the same restrictions and
+   *  requirements as one that iterates them. */
+  param(key) {
+    const entry = this.inner.param(key);
+    return entry && this.decorateFlat(key, entry);
   }
   // ── Pass-through delegates ───────────────────────────────────────
-  param(key) {
-    return this.inner.param(key);
-  }
   hasParam(key) {
     return this.inner.hasParam(key);
   }
@@ -14131,6 +14188,20 @@ var ConstrainedParamsAccessor = class {
     return this.inner.transferValues(prev);
   }
   // ── Private helpers ──────────────────────────────────────────────
+  decorateFlat(key, entry) {
+    const r = this.effects.get(key);
+    let decorated = entry;
+    if (r && entry.kind === "enum") decorated = this.decorateEnumFlat(entry, r);
+    else if (r?.kind === "disabled") decorated = { ...entry, disabled: true, disabledReason: r.reason };
+    return this.require(key, decorated);
+  }
+  /** Mark the entry required when a matching `required` restriction names it. */
+  require(key, entry) {
+    if (!entry) return void 0;
+    const requirement = this.requirements.get(key);
+    if (!requirement) return entry;
+    return { ...entry, required: true, requiredReason: requirement.reason };
+  }
   applyEntry(key, entry) {
     if (!entry) return void 0;
     const r = this.effects.get(key);
@@ -14213,15 +14284,16 @@ var ModelDescriptorImpl = class {
   paramsFor(values) {
     const inner = this.params();
     const effects = evaluateConstraints(this.def.constraints, values);
-    if (!effects.size) return inner;
-    return new ConstrainedParamsAccessor(inner, effects);
+    const requirements = evaluateRequirements(this.def.constraints, values);
+    if (!effects.size && !requirements.size) return inner;
+    return new ConstrainedParamsAccessor(inner, effects, requirements);
   }
   validate(input) {
     if (!input || typeof input !== "object" || Array.isArray(input)) {
       return { valid: false, errors: [`Invalid input for model "${this.def.id}"`] };
     }
     try {
-      validateAll(this.def.paramConfig, input);
+      validateAll(this.def.paramConfig, input, this.def.constraints);
       return { valid: true };
     } catch (err) {
       return { valid: false, errors: [err instanceof Error ? err.message : String(err)] };

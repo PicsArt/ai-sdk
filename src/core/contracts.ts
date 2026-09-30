@@ -23,7 +23,7 @@ function buildInputSchema(model: ModelDefinition): Schema<GenerationContext> {
     parse(input: unknown): GenerationContext {
       requireObject(input, `Invalid input for model "${model.id}"`);
       try {
-        validateAll(model.paramConfig, input);
+        validateAll(model.paramConfig, input, model.constraints);
       } catch (err: unknown) {
         if (err instanceof ApiError) throw err;
         throw new ApiError(err instanceof Error ? err.message : String(err), {

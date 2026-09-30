@@ -220,10 +220,17 @@ export type ConstraintCondition = Record<string, ConditionOperator>;
  *  - `disabled`: param is flagged as constrained — UI interprets per-param kind
  *    (dropdowns grey out; text inputs like `prompt` stay editable but surface
  *    the reason as an info banner).
+ *  - `required`: param becomes required while the condition holds. Expresses
+ *    cross-field rules a static `required` flag cannot, e.g. "a prompt or a
+ *    first-frame image": `when` both are absent, `then` the prompt is required.
+ *    Enforced by `validate()` and at submit, and reported by `paramsFor()` as
+ *    `required: true` with `requiredReason`, so a UI gate reads it like any
+ *    other required param.
  */
 export type Restriction =
   | { allowed: unknown[]; reason?: string }
-  | { disabled: true; reason?: string };
+  | { disabled: true; reason?: string }
+  | { required: true; reason?: string };
 
 /** Declarative rule: when condition matches, apply restrictions to params. */
 export interface Constraint {

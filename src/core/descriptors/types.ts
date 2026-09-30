@@ -198,6 +198,8 @@ export interface EntryMeta {
   catalogOptions?: readonly unknown[];
   disabled?: boolean;
   disabledReason?: string;
+  /** Why the param is required, when a constraint made it so (see `Restriction`). */
+  requiredReason?: string;
 }
 
 export type EnumEntry = EntryMeta & EnumDescriptor<string | number>;

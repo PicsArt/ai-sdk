@@ -22,7 +22,8 @@ import {
 
 // ── Durations / aspect ratios ───────────────────────────────────────
 
-const V3_DURATIONS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+/** V3 accepts any whole second in 3-15s, so it is a range, not an option list. */
+const V3_DURATION = { min: 3, max: 15 } as const;
 const V26_DURATIONS = [5, 10];
 const KLING_IMAGE_AR = ['16:9', '9:16', '1:1', '21:9', '4:3', '3:2', '2:3', '3:4'];
 
@@ -42,10 +43,9 @@ const klingV3ProVideoBase = {
   ],
   paramConfig: {
     ...params.prompt({ maxLength: 2500 }),
-    ...paramPresets.videoStartEndWithAudio({
-      durations: V3_DURATIONS,
-      defaultDuration: 5,
-    }),
+    ...paramPresets.videoStartEndWithAudio(),
+    // Overrides the preset's enum duration.
+    ...params.durationRange(V3_DURATION.min, V3_DURATION.max, 5),
     ...klingV3AdvancedParams,
     ...params.renderingSpeed([{ id: 'std', label: 'Standard' }, { id: 'pro', label: 'Pro' }, { id: '4k', label: '4K' }], '4k'),
   },
@@ -73,7 +73,7 @@ const klingV3TurboVideoBase = {
   paramConfig: {
     ...params.prompt({ maxLength: 2500 }),
     ...params.aspectRatio(['16:9', '9:16', '1:1']),
-    ...params.duration(V3_DURATIONS, 5),
+    ...params.durationRange(V3_DURATION.min, V3_DURATION.max, 5),
     ...params.negativePrompt(),
     ...params.resolution(['720p', '1080p'], '720p'),
     ...params.startFrame('Start Frame'),
@@ -155,10 +155,10 @@ export const { MODELS } = defineModels('kling', [
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
       ...params.aspectRatio(['16:9', '9:16', '1:1']),
-      ...params.duration(V3_DURATIONS, 5),
+      ...params.durationRange(V3_DURATION.min, V3_DURATION.max, 5),
       // Quality tier maps straight to the wire `mode`: 720p→std, 1080p→pro, 4k→4k.
       ...params.resolution(['720p', '1080p', '4k'], '720p'),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.startFrame('First Frame'),
       ...params.endFrame('End Frame'),
       // Vendor cap: reference images + frames + multi-image elements ≤ 7
@@ -207,7 +207,7 @@ export const { MODELS } = defineModels('kling', [
       ...params.aspectRatio(['16:9', '9:16', '1:1']),
       ...params.duration([5, 10], 5),
       ...params.renderingSpeed([{ id: 'std', label: 'Standard' }, { id: 'pro', label: 'Pro' }], 'std'),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
     },
   },
   // ── Video: Motion Control ─────────────────────────────────────────

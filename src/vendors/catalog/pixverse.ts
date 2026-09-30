@@ -20,15 +20,15 @@ import { defineModels, feat, params } from '../define.ts';
 
 const PIXVERSE_QUALITIES = ['360p', '540p', '720p', '1080p'];
 const PIXVERSE_ASPECT_RATIOS = ['16:9', '4:3', '1:1', '3:4', '9:16', '2:3', '3:2', '21:9'];
-const PIXVERSE_DURATIONS = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+const PIXVERSE_DURATION = { min: 5, max: 15 } as const;
 const MAX_REFERENCE_IMAGES = 7;
 
 /** Params shared by every PixVerse operation. */
 const baseParams = {
   ...params.prompt({ maxLength: 5000 }),
   ...p.quality(PIXVERSE_QUALITIES, '540p'),
-  ...params.duration(PIXVERSE_DURATIONS, 5),
-  ...params.generateAudio(false),
+  ...params.durationRange(PIXVERSE_DURATION.min, PIXVERSE_DURATION.max, 5),
+  ...params.generateAudio(),
 };
 
 const baseFeatures = [

@@ -234,6 +234,11 @@ for (const [modelId, wantsAuto] of [
 
 for (const [modelId, expected] of [
   ['kling-t2a', { min: 3, max: 10, step: 0.5 }],
+  ['kling-v3', { min: 3, max: 15, step: 1 }],
+  ['kling-v3-omni', { min: 3, max: 15, step: 1 }],
+  ['kling-v3-turbo', { min: 3, max: 15, step: 1 }],
+  ['pixverse-v6', { min: 5, max: 15, step: 1 }],
+  ['pixverse-c1', { min: 5, max: 15, step: 1 }],
 ] as const) {
   const rangeDuration = Model(modelId).params().duration();
   assert(rangeDuration, `${modelId} duration should resolve via the shorthand, not just param('duration')`);

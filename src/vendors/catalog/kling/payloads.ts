@@ -88,7 +88,7 @@ export const buildKlingV3Payload =
   (defaultMode: 'pro' | 'std' | '4k' = 'std') =>
   (input: KlingV3Input): KlingVideoPayload => {
     const hasEndFrame = !!(input.startFrame && input.endFrame);
-    const hasSound = !!input.generateAudio;
+    const hasSound = (input.generateAudio ?? true);
     const mode: 'std' | 'pro' | '4k' = input.renderingSpeed ?? defaultMode;
     const totalDuration = input.duration ?? 5;
     if (input.multiShot && (input.shotType ?? 'customize') !== 'intelligence') {
@@ -152,7 +152,7 @@ export const buildKlingV3TurboPayload = (input: KlingV3TurboInput): KlingVideoPa
  *  - cfg_scale is NOT sent: Kling documents it as unsupported on v2.x. */
 export const buildKlingV26Payload = (input: KlingV26Input): KlingVideoPayload => {
   const hasEndFrame = !!(input.startFrame && input.endFrame);
-  const hasSound = !!input.generateAudio && !hasEndFrame;
+  const hasSound = (input.generateAudio ?? true) && !hasEndFrame;
   return {
     prompt: input.prompt,
     aspect_ratio: input.aspectRatio ?? '16:9',
@@ -196,7 +196,7 @@ const buildOmniV3 = (input: KlingOmniV3Input): KlingOmniVideoPayload => {
     : [];
   const hasBaseEdit = videoList[0]?.refer_type === 'base';
   const hasReferenceVideo = videoList.length > 0;
-  const hasSound = !!input.generateAudio && !hasReferenceVideo;
+  const hasSound = (input.generateAudio ?? true) && !hasReferenceVideo;
   // Quality tier maps straight to the wire mode; 4K is unavailable with a
   // reference video (the constraint blocks it in the UI — downgrade to pro here).
   const mode: 'std' | 'pro' | '4k' =
@@ -231,7 +231,7 @@ const buildOmniV3 = (input: KlingOmniV3Input): KlingOmniVideoPayload => {
  *  video_list / element_list for non-v3-omni models, so the O1 paramConfig
  *  intentionally omits those descriptors. Builder reads only the simple fields. */
 const buildVideoO1 = (input: KlingVideoO1Input): KlingOmniVideoPayload => {
-  const hasSound = !!input.generateAudio;
+  const hasSound = (input.generateAudio ?? true);
   return {
     prompt: input.prompt,
     model_name: 'kling-video-o1',

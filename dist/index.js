@@ -1411,7 +1411,7 @@ var klingOmniAdvancedParams = {
 };
 
 // src/vendors/catalog/kling/index.ts
-var V3_DURATIONS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+var V3_DURATION = { min: 3, max: 15 };
 var V26_DURATIONS = [5, 10];
 var KLING_IMAGE_AR = ["16:9", "9:16", "1:1", "21:9", "4:3", "3:2", "2:3", "3:4"];
 var klingV3ProVideoBase = {
@@ -1428,10 +1428,9 @@ var klingV3ProVideoBase = {
   ],
   paramConfig: {
     ...params.prompt({ maxLength: 2500 }),
-    ...paramPresets.videoStartEndWithAudio({
-      durations: V3_DURATIONS,
-      defaultDuration: 5
-    }),
+    ...paramPresets.videoStartEndWithAudio(),
+    // Overrides the preset's enum duration.
+    ...params.durationRange(V3_DURATION.min, V3_DURATION.max, 5),
     ...klingV3AdvancedParams,
     ...params.renderingSpeed([{ id: "std", label: "Standard" }, { id: "pro", label: "Pro" }, { id: "4k", label: "4K" }], "4k")
   }
@@ -1449,7 +1448,7 @@ var klingV3TurboVideoBase = {
   paramConfig: {
     ...params.prompt({ maxLength: 2500 }),
     ...params.aspectRatio(["16:9", "9:16", "1:1"]),
-    ...params.duration(V3_DURATIONS, 5),
+    ...params.durationRange(V3_DURATION.min, V3_DURATION.max, 5),
     ...params.negativePrompt(),
     ...params.resolution(["720p", "1080p"], "720p"),
     ...params.startFrame("Start Frame")
@@ -1538,10 +1537,10 @@ var { MODELS } = defineModels("kling", [
     paramConfig: {
       ...params.prompt({ maxLength: 2500 }),
       ...params.aspectRatio(["16:9", "9:16", "1:1"]),
-      ...params.duration(V3_DURATIONS, 5),
+      ...params.durationRange(V3_DURATION.min, V3_DURATION.max, 5),
       // Quality tier maps straight to the wire `mode`: 720p→std, 1080p→pro, 4k→4k.
       ...params.resolution(["720p", "1080p", "4k"], "720p"),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.startFrame("First Frame"),
       ...params.endFrame("End Frame"),
       // Vendor cap: reference images + frames + multi-image elements ≤ 7
@@ -1593,7 +1592,7 @@ var { MODELS } = defineModels("kling", [
       ...params.aspectRatio(["16:9", "9:16", "1:1"]),
       ...params.duration([5, 10], 5),
       ...params.renderingSpeed([{ id: "std", label: "Standard" }, { id: "pro", label: "Pro" }], "std"),
-      ...params.generateAudio(false)
+      ...params.generateAudio()
     }
   },
   // ── Video: Motion Control ─────────────────────────────────────────
@@ -1937,7 +1936,7 @@ function assertMultiPrompt(multiPrompt, totalDuration, model) {
 }
 var buildKlingV3Payload = (defaultMode = "std") => (input) => {
   const hasEndFrame = !!(input.startFrame && input.endFrame);
-  const hasSound = !!input.generateAudio;
+  const hasSound = input.generateAudio ?? true;
   const mode = input.renderingSpeed ?? defaultMode;
   const totalDuration = input.duration ?? 5;
   if (input.multiShot && (input.shotType ?? "customize") !== "intelligence") {
@@ -1977,7 +1976,7 @@ var buildKlingV3TurboPayload = (input) => ({
 });
 var buildKlingV26Payload = (input) => {
   const hasEndFrame = !!(input.startFrame && input.endFrame);
-  const hasSound = !!input.generateAudio && !hasEndFrame;
+  const hasSound = (input.generateAudio ?? true) && !hasEndFrame;
   return {
     prompt: input.prompt,
     aspect_ratio: input.aspectRatio ?? "16:9",
@@ -2004,7 +2003,7 @@ var buildOmniV3 = (input) => {
   }] : [];
   const hasBaseEdit = videoList[0]?.refer_type === "base";
   const hasReferenceVideo = videoList.length > 0;
-  const hasSound = !!input.generateAudio && !hasReferenceVideo;
+  const hasSound = (input.generateAudio ?? true) && !hasReferenceVideo;
   const mode = input.resolution === "4k" ? hasReferenceVideo ? "pro" : "4k" : input.resolution === "1080p" ? "pro" : "std";
   const totalDuration = input.duration ?? 5;
   if (input.multiShot && !hasBaseEdit) {
@@ -2027,7 +2026,7 @@ var buildOmniV3 = (input) => {
   };
 };
 var buildVideoO1 = (input) => {
-  const hasSound = !!input.generateAudio;
+  const hasSound = input.generateAudio ?? true;
   return {
     prompt: input.prompt,
     model_name: "kling-video-o1",
@@ -4359,7 +4358,7 @@ var buildSeedance15ProPayload = (ctx) => ({
   ratio: ctx.aspectRatio ?? "16:9",
   duration: ctx.duration ?? 5,
   resolution: ctx.resolution ?? "720p",
-  generate_audio: ctx.generateAudio ?? false,
+  generate_audio: ctx.generateAudio ?? true,
   ...ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {}
 });
 var buildSeedanceI2VPayload = (ctx) => ({
@@ -5199,7 +5198,7 @@ var { MODELS: MODELS13 } = defineModels("bytedance", [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(["480p", "720p"], "720p"),
       ...params.duration(SEEDANCE_15_DURATIONS, 5),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.startFrame(),
       ...params.endFrame()
     }
@@ -9803,13 +9802,13 @@ var { MODELS: MODELS32 } = defineModels("happyhorse", [
 // src/vendors/catalog/pixverse.ts
 var PIXVERSE_QUALITIES = ["360p", "540p", "720p", "1080p"];
 var PIXVERSE_ASPECT_RATIOS = ["16:9", "4:3", "1:1", "3:4", "9:16", "2:3", "3:2", "21:9"];
-var PIXVERSE_DURATIONS = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+var PIXVERSE_DURATION = { min: 5, max: 15 };
 var MAX_REFERENCE_IMAGES = 7;
 var baseParams = {
   ...params.prompt({ maxLength: 5e3 }),
   ...p.quality(PIXVERSE_QUALITIES, "540p"),
-  ...params.duration(PIXVERSE_DURATIONS, 5),
-  ...params.generateAudio(false)
+  ...params.durationRange(PIXVERSE_DURATION.min, PIXVERSE_DURATION.max, 5),
+  ...params.generateAudio()
 };
 var baseFeatures = [
   feat("Audio", "audio"),
@@ -9919,7 +9918,7 @@ var commonFields = (input, model) => ({
   model,
   quality: input.quality ?? "540p",
   duration: input.duration ?? 5,
-  ...input.generateAudio != null ? { generate_audio_switch: input.generateAudio } : {}
+  generate_audio_switch: input.generateAudio ?? true
 });
 var buildTextToVideoPayload = (model) => (input) => ({
   ...commonFields(input, model),

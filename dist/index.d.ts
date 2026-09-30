@@ -880,7 +880,7 @@ type ModelInputById = {
     "kling-v3": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1";
-        duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: number;
         startFrame?: string;
         endFrame?: string;
         negativePrompt?: string;
@@ -903,7 +903,7 @@ type ModelInputById = {
     "kling-v3-omni": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1";
-        duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: number;
         resolution?: "720p" | "1080p" | "4k";
         generateAudio?: boolean;
         startFrame?: string;
@@ -926,7 +926,7 @@ type ModelInputById = {
     "kling-v3-turbo": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1";
-        duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: number;
         negativePrompt?: string;
         resolution?: "720p" | "1080p";
         startFrame?: string;
@@ -1295,14 +1295,14 @@ type ModelInputById = {
     "pixverse-c1": {
         prompt: string;
         quality?: "360p" | "540p" | "720p" | "1080p";
-        duration?: 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: number;
         generateAudio?: boolean;
         aspectRatio?: "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "2:3" | "3:2" | "21:9";
     };
     "pixverse-c1-fusion": {
         prompt: string;
         quality?: "360p" | "540p" | "720p" | "1080p";
-        duration?: 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: number;
         generateAudio?: boolean;
         aspectRatio?: "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "2:3" | "3:2" | "21:9";
         imageUrls: [string, ...string[]];
@@ -1310,21 +1310,21 @@ type ModelInputById = {
     "pixverse-c1-image": {
         prompt: string;
         quality?: "360p" | "540p" | "720p" | "1080p";
-        duration?: 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: number;
         generateAudio?: boolean;
         imageUrls: [string, ...string[]];
     };
     "pixverse-v6": {
         prompt: string;
         quality?: "360p" | "540p" | "720p" | "1080p";
-        duration?: 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: number;
         generateAudio?: boolean;
         aspectRatio?: "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "2:3" | "3:2" | "21:9";
     };
     "pixverse-v6-fusion": {
         prompt: string;
         quality?: "360p" | "540p" | "720p" | "1080p";
-        duration?: 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: number;
         generateAudio?: boolean;
         aspectRatio?: "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "2:3" | "3:2" | "21:9";
         imageUrls: [string, ...string[]];
@@ -1332,7 +1332,7 @@ type ModelInputById = {
     "pixverse-v6-image": {
         prompt: string;
         quality?: "360p" | "540p" | "720p" | "1080p";
-        duration?: 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+        duration?: number;
         generateAudio?: boolean;
         imageUrls: [string, ...string[]];
     };

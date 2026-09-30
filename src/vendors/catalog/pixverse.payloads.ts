@@ -5,8 +5,8 @@
  * per entry. Inputs are typed against the generated `ModelInput<'<id>'>` so the
  * builders stay in sync with the catalog `paramConfig` at compile time.
  *
- * v6/c1 both support inline audio, so `generate_audio_switch` is forwarded
- * whenever set — no per-version gating is needed.
+ * v6/c1 both support inline audio. `generate_audio_switch` is always sent and
+ * defaults to on when the caller omits it. No per-version gating is needed.
  *
  * NOTE: outputs aren't checked against `WorkflowTypes['pixverse/v2/...']` because
  * the PixVerse workflows aren't yet in `@picsart/workflows-types` (published
@@ -31,7 +31,7 @@ const commonFields = (
   model,
   quality: input.quality ?? '540p',
   duration: input.duration ?? 5,
-  ...(input.generateAudio != null ? { generate_audio_switch: input.generateAudio } : {}),
+  generate_audio_switch: input.generateAudio ?? true,
 });
 
 /** Text-to-video: includes aspect_ratio. */

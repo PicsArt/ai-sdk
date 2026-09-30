@@ -21,10 +21,12 @@ accept<KlingInput>({
   aspectRatio: '21:9',
 });
 
-accept<KlingInput>({
+// kling-v3 duration is a range (typed `number`, bounds checked at runtime), so
+// the compile-time duration guard uses kling-v2-6, which keeps an option list.
+accept<ModelInputById['kling-v2-6']>({
   prompt: 'Cinematic city scene',
-  // @ts-expect-error invalid duration for kling-v3 (valid range is 3–15)
-  duration: 20,
+  // @ts-expect-error invalid duration for kling-v2-6 (options are 5 and 10)
+  duration: 7,
 });
 
 type PicsartChangeBgInput = ModelInputById['picsart-change-bg'];
@@ -68,8 +70,8 @@ declare const ai: AiClient;
 // ✓ Type-safe via string literal
 ai.generate('kling-v3', { prompt: 'test', duration: 5 });
 
-// @ts-expect-error — duration 20 is invalid for kling-v3 (valid range is 3–15)
-ai.generate('kling-v3', { prompt: 'test', duration: 20 });
+// @ts-expect-error — duration 7 is invalid for kling-v2-6 (options are 5 and 10)
+ai.generate('kling-v2-6', { prompt: 'test', duration: 7 });
 
 // ✓ Type-safe via Models constant (typed string literal)
 ai.generate(Models.Flux2Pro, { prompt: 'test', aspectRatio: '1:1' });
@@ -85,8 +87,8 @@ ai.getCredits('flux-2-pro', { prompt: 'test', count: 3 });
 
 ai.submit(Models.KlingV3, { prompt: 'test', duration: 5 });
 
-// @ts-expect-error — duration 20 is invalid for kling-v3 (valid range is 3–15)
-ai.submit(Models.KlingV3, { prompt: 'test', duration: 20 });
+// @ts-expect-error — duration 7 is invalid for kling-v2-6 (options are 5 and 10)
+ai.submit(Models.KlingV26, { prompt: 'test', duration: 7 });
 
 // ── HeyGen aspect ratios ────────────────────────────────────────────
 // Guards the generated union for both models: 'auto' (what custom

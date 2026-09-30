@@ -195,7 +195,7 @@ export const buildSeedance15ProPayload: PayloadBuilder = (ctx) => ({
   ratio: ctx.aspectRatio ?? '16:9',
   duration: ctx.duration ?? 5,
   resolution: ctx.resolution ?? '720p',
-  generate_audio: ctx.generateAudio ?? false,
+  generate_audio: ctx.generateAudio ?? true,
   ...(ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {}),
 });
 
@@ -1150,7 +1150,7 @@ export const { MODELS } = defineModels('bytedance', [
       ...params.aspectRatio(SEEDANCE_AR),
       ...params.resolution(['480p', '720p'], '720p'),
       ...params.duration(SEEDANCE_15_DURATIONS, 5),
-      ...params.generateAudio(false),
+      ...params.generateAudio(),
       ...params.startFrame(),
       ...params.endFrame(),
     },

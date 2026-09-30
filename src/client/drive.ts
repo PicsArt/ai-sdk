@@ -6,7 +6,7 @@
  */
 import type { AuthenticatedFetch, AppType, AppIdentity } from './types.ts';
 import type { ModelDefinition } from '../core/types.ts';
-import { MAX_DRIVE_PROMPT_LENGTH } from '../core/limits.ts';
+import { MAX_DRIVE_ATTRIBUTE_LENGTH, MAX_DRIVE_PROMPT_LENGTH } from '../core/limits.ts';
 import { isSeedanceDraftTask, type SeedanceDraftTask } from '../core/response.ts';
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -412,7 +412,7 @@ const asStringArray = (v: unknown): string[] | undefined =>
  * callers, neither of which is clamped by param validation.
  */
 export function toSdkPayload(params: Record<string, unknown>): SdkPayload {
-  const p: SdkPayload = { prompt: String(params.prompt ?? '').slice(0, MAX_DRIVE_PROMPT_LENGTH) };
+  const p: SdkPayload = { prompt: cutPrompt(String(params.prompt ?? ''), MAX_DRIVE_PROMPT_LENGTH) };
   for (const [key, value] of Object.entries(params)) {
     if (key === 'prompt') continue;
     if (value === undefined || value === null || value === '') continue;
@@ -421,10 +421,40 @@ export function toSdkPayload(params: Record<string, unknown>): SdkPayload {
   return p;
 }
 
+/** Cut to at most `max` UTF-16 units without splitting a surrogate pair: a
+ *  lone surrogate serializes as a six-character `\udXXX` escape. */
+function cutPrompt(prompt: string, max: number): string {
+  if (prompt.length <= max) return prompt;
+  const code = prompt.charCodeAt(max - 1);
+  return prompt.slice(0, code >= 0xd800 && code <= 0xdbff ? max - 1 : max);
+}
+
+/**
+ * Serialize the payload inside `MAX_DRIVE_ATTRIBUTE_LENGTH`, trimming the
+ * prompt until it fits. The prompt is trimmed rather than the attribute
+ * dropped because Recreate needs every other field, and they are small.
+ *
+ * Each pass cuts as many prompt characters as the value is over. Every
+ * character serializes to at least one, so a pass never undershoots and the
+ * loop ends in one or two. If the other params alone overflow, the prompt goes
+ * to '' and the value is returned as is: that is a params problem, not a
+ * prompt one, and truncating a URL list would corrupt the record.
+ */
+function serializeSdkPayload(params: Record<string, unknown>): string {
+  const payload = toSdkPayload(params);
+  let prompt = payload.prompt;
+  for (;;) {
+    const serialized = JSON.stringify({ ...payload, prompt });
+    const excess = serialized.length - MAX_DRIVE_ATTRIBUTE_LENGTH;
+    if (excess <= 0 || prompt.length === 0) return serialized;
+    prompt = cutPrompt(prompt, Math.max(0, prompt.length - excess));
+  }
+}
+
 export function buildGenerationAttributes(input: GenerationProvenance): DriveAttributes {
   const attrs: DriveAttributes = {
     model: input.modelId,
-    aiSDKPayload: JSON.stringify(toSdkPayload(input.params)),
+    aiSDKPayload: serializeSdkPayload(input.params),
   };
   // TODO(backend-autosave): drop this block once the backend stamps appId/appType.
   if (input.app) {

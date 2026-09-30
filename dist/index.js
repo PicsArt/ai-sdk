@@ -12342,6 +12342,7 @@ function parseTextResult(completed, model) {
 
 // src/core/limits.ts
 var MAX_DRIVE_PROMPT_LENGTH = 18e3;
+var MAX_DRIVE_ATTRIBUTE_LENGTH = 2e4;
 
 // src/client/drive.ts
 var USER_REACTION_ATTR = "userReaction";
@@ -12497,7 +12498,7 @@ function parseJsonAttr(raw) {
 var asString = (v) => typeof v === "string" && v.trim() ? v : void 0;
 var asStringArray = (v) => Array.isArray(v) && v.length && v.every((x) => typeof x === "string") ? v : void 0;
 function toSdkPayload(params2) {
-  const p2 = { prompt: String(params2.prompt ?? "").slice(0, MAX_DRIVE_PROMPT_LENGTH) };
+  const p2 = { prompt: cutPrompt(String(params2.prompt ?? ""), MAX_DRIVE_PROMPT_LENGTH) };
   for (const [key, value] of Object.entries(params2)) {
     if (key === "prompt") continue;
     if (value === void 0 || value === null || value === "") continue;
@@ -12505,10 +12506,25 @@ function toSdkPayload(params2) {
   }
   return p2;
 }
+function cutPrompt(prompt, max) {
+  if (prompt.length <= max) return prompt;
+  const code = prompt.charCodeAt(max - 1);
+  return prompt.slice(0, code >= 55296 && code <= 56319 ? max - 1 : max);
+}
+function serializeSdkPayload(params2) {
+  const payload = toSdkPayload(params2);
+  let prompt = payload.prompt;
+  for (; ; ) {
+    const serialized = JSON.stringify({ ...payload, prompt });
+    const excess = serialized.length - MAX_DRIVE_ATTRIBUTE_LENGTH;
+    if (excess <= 0 || prompt.length === 0) return serialized;
+    prompt = cutPrompt(prompt, Math.max(0, prompt.length - excess));
+  }
+}
 function buildGenerationAttributes(input) {
   const attrs = {
     model: input.modelId,
-    aiSDKPayload: JSON.stringify(toSdkPayload(input.params))
+    aiSDKPayload: serializeSdkPayload(input.params)
   };
   if (input.app) {
     attrs.appId = input.app.id;

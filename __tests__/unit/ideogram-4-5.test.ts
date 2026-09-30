@@ -1,5 +1,5 @@
 /**
- * Ideogram 4.5 — offline checks of the two preview models: release gating,
+ * Ideogram 4.5 — offline checks of the two production models: release gating,
  * wire payloads (the vendor rejects `size` with a mask, `source` without
  * images and preset sizes with images) and the declared constraints.
  */
@@ -20,10 +20,10 @@ const payload = (id: string, ctx: Record<string, unknown>) => {
   return prepareRequest(model, ctx) as { workflow: string; payload: Record<string, any> };
 };
 
-// ── Release gating: preview only ──────────────────────────────────────
+// ── Release gating: production (out of early access) ──────────────────
 for (const id of [GENERATE, PRECISE_EDIT]) {
-  assert.strictEqual(getModel(id)?.release, 'preview', `${id} must be release: preview`);
-  assert.ok(!catalog.all().some((m) => m.id === id), `${id} must be hidden from the default catalog`);
+  assert.strictEqual(getModel(id)?.release, undefined, `${id} must not carry a release tag (⇒ production)`);
+  assert.ok(catalog.all().some((m) => m.id === id), `${id} must be visible in the default catalog`);
 }
 
 // ── Generate: text-to-image ───────────────────────────────────────────

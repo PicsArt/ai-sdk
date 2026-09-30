@@ -149,7 +149,6 @@ export const { MODELS } = defineModels('ideogram', [
   {
     id: 'ideogram-4-5', name: 'Ideogram 4.5',
     addedAt: '2026-09-28',
-    release: 'preview',
     workflow: 'ideogram/v4.5/generate',
     estimatedTime: 30,
     mode: 'image', inputType: 't2i',
@@ -172,7 +171,6 @@ export const { MODELS } = defineModels('ideogram', [
   {
     id: 'ideogram-4-5-precise-edit', name: 'Ideogram 4.5 Precise Edit',
     addedAt: '2026-09-28',
-    release: 'preview',
     workflow: 'ideogram/v4.5/precise-edit',
     estimatedTime: 40,
     mode: 'image', inputType: 'i2i',

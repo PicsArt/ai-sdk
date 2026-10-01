@@ -48,7 +48,7 @@ assert.deepStrictEqual(
   // A preset size is not valid with images → left out (vendor picks auto).
   assert.deepStrictEqual(body, {
     prompt: 'edit image 1', images: ['https://x/a.png', 'https://x/b.png'],
-    magic_prompt: 'off', quality: 'high', num_images: 1,
+    magic_prompt: 'off', quality: 'medium', num_images: 1,
   });
 }
 
@@ -69,12 +69,13 @@ assert.deepStrictEqual(
 {
   const { workflow, payload: body } = payload(PRECISE_EDIT, {
     prompt: 'fix', startFrame: 'https://x/s.png', mask: 'https://x/m.png',
-    imageUrls: ['https://x/r.png'], quality: 'very_high', count: 4,
+    imageUrls: ['https://x/r.png'], quality: 'very_low', count: 8, enableCopyrightDetection: true,
   });
   assert.strictEqual(workflow, 'ideogram/v4.5/precise-edit');
   assert.deepStrictEqual(body, {
     image: 'https://x/s.png', prompt: 'fix', mask: 'https://x/m.png',
-    reference_images: ['https://x/r.png'], quality: 'very_high', num_images: 4,
+    reference_images: ['https://x/r.png'], quality: 'very_low', num_images: 8,
+    enable_copyright_detection: true,
   });
 }
 
@@ -102,18 +103,24 @@ assert.strictEqual(
   4,
 );
 
-// ── very_high caps the output count (constraints alone are UI-only) ──
-assert.throws(
-  () => payload(PRECISE_EDIT, { prompt: 'p', startFrame: 'https://x/s.png', quality: 'very_high', count: 5 }),
-  /at most 4 images/,
+// ── Quality (public launch: very_low added, very_high removed) ────────
+for (const id of [GENERATE, PRECISE_EDIT]) {
+  const quality = getModel(id)!.paramConfig.quality?.descriptor;
+  assert.ok(quality?.kind === 'enum');
+  assert.deepStrictEqual(quality.options.map((o) => o.id), ['very_low', 'low', 'medium', 'high'], `${id} quality options`);
+}
+// Omitted quality → vendor default: medium with images, high without; precise edit always medium.
+assert.strictEqual(payload(GENERATE, { prompt: 'p', imageUrls: ['https://x/a.png'] }).payload.quality, 'medium');
+assert.strictEqual(payload(PRECISE_EDIT, { prompt: 'p', startFrame: 'https://x/s.png' }).payload.quality, 'medium');
+// very_low needs a source image (constraints are UI-only, so the builder enforces it).
+assert.throws(() => payload(GENERATE, { prompt: 'p', quality: 'very_low' }), /very_low quality needs a source image/);
+assert.strictEqual(
+  payload(GENERATE, { prompt: 'p', imageUrls: ['https://x/a.png'], quality: 'very_low' }).payload.quality,
+  'very_low',
 );
 assert.strictEqual(
-  payload(PRECISE_EDIT, { prompt: 'p', startFrame: 'https://x/s.png', quality: 'very_high', count: 4 }).payload.num_images,
-  4,
-);
-assert.strictEqual(
-  payload(PRECISE_EDIT, { prompt: 'p', startFrame: 'https://x/s.png', quality: 'high', count: 8 }).payload.num_images,
-  8,
+  payload(GENERATE, { prompt: 'p', enableCopyrightDetection: true }).payload.enable_copyright_detection,
+  true,
 );
 
 // ── Constraints ───────────────────────────────────────────────────────
@@ -130,7 +137,9 @@ assert.strictEqual(
   assert.deepStrictEqual(allowedOf(GENERATE, { imageUrls: ['a'] }, 'size'), ['auto', 'source']);
   assert.strictEqual(restrictions(GENERATE, {}).get('mask')?.kind, 'disabled');
   assert.ok(!allowedOf(GENERATE, {}, 'size')?.includes('source'), 'text-to-image must not offer "source"');
-  assert.deepStrictEqual(allowedOf(PRECISE_EDIT, { quality: 'very_high' }, 'count'), [1, 2, 3, 4]);
+  assert.deepStrictEqual(allowedOf(GENERATE, {}, 'quality'), ['low', 'medium', 'high']);
+  assert.strictEqual(allowedOf(GENERATE, { imageUrls: ['a'] }, 'quality'), undefined);
+  assert.strictEqual(getModel(PRECISE_EDIT)!.constraints, undefined, 'precise edit no longer needs constraints');
 }
 
 console.log('✓ ideogram-4-5.test.ts — all passed');

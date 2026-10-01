@@ -22,8 +22,6 @@ type Ideogram45PreciseEditInput = ModelInput<'ideogram-4-5-precise-edit'>;
 const GENERATE_MAX_IMAGES_WITH_MASK = 4;
 /** With a mask the vendor allows 3 references on precise edit (the source is separate). */
 const PRECISE_EDIT_MAX_REFERENCES_WITH_MASK = 3;
-/** `very_high` picks the best of several candidates and returns at most 4 images. */
-const VERY_HIGH_MAX_COUNT = 4;
 
 /**
  * The mask takes one of the vendor's image slots, so a masked request has a
@@ -32,11 +30,7 @@ const VERY_HIGH_MAX_COUNT = 4;
  * and never drop images silently.
  */
 function assertMaskedImageLimit(model: string, count: number, max: number, what: string): void {
-  if (count > max) {
-    throw new ApiError(`${model}: with a mask, use at most ${max} ${what} (got ${count}).`, {
-      status: 400, code: 'validation_error',
-    });
-  }
+  if (count > max) throw invalid(`${model}: with a mask, use at most ${max} ${what} (got ${count}).`);
 }
 
 /**
@@ -44,6 +38,10 @@ function assertMaskedImageLimit(model: string, count: number, max: number, what:
  * with input images, and no size at all with a mask. Anything else is left out
  * so the vendor falls back to `auto` instead of rejecting the request.
  */
+function invalid(message: string): ApiError {
+  return new ApiError(message, { status: 400, code: 'validation_error' });
+}
+
 function ideogram45Size(size: string | undefined, hasImages: boolean, hasMask: boolean): string | undefined {
   if (!size || hasMask) return undefined;
   if (hasImages) return size === 'auto' || size === 'source' ? size : undefined;
@@ -56,6 +54,8 @@ const buildIdeogram45Payload = (input: Ideogram45Input) => {
   const mask = images && input.mask ? input.mask : undefined;
   if (mask) assertMaskedImageLimit('Ideogram 4.5', images!.length, GENERATE_MAX_IMAGES_WITH_MASK, 'images');
   const size = ideogram45Size(input.size, !!images, !!mask);
+  // Also declared as a constraint, but constraints only drive the UI.
+  if (input.quality === 'very_low' && !images) throw invalid('Ideogram 4.5: very_low quality needs a source image.');
 
   return {
     prompt: input.prompt,
@@ -63,9 +63,11 @@ const buildIdeogram45Payload = (input: Ideogram45Input) => {
     ...(mask ? { mask } : {}),
     ...(size ? { size } : {}),
     ...(input.magicPrompt ? { magic_prompt: input.magicPrompt } : {}),
-    quality: input.quality ?? 'high',
+    // Vendor default: medium with source images, high without.
+    quality: input.quality ?? (images ? 'medium' : 'high'),
     num_images: input.count ?? 1,
     ...(input.seed != null ? { seed: input.seed } : {}),
+    ...(input.enableCopyrightDetection ? { enable_copyright_detection: true } : {}),
   };
 };
 
@@ -76,23 +78,16 @@ const buildIdeogram45PreciseEditPayload = (input: Ideogram45PreciseEditInput) =>
       'Ideogram 4.5 Precise Edit', input.imageUrls?.length ?? 0, PRECISE_EDIT_MAX_REFERENCES_WITH_MASK, 'reference images',
     );
   }
-  // The very_high → count cap is also declared as a constraint, but constraints
-  // only drive the UI; request preparation does not enforce them.
-  if (input.quality === 'very_high' && (input.count ?? 1) > VERY_HIGH_MAX_COUNT) {
-    throw new ApiError(
-      `Ideogram 4.5 Precise Edit: very_high quality returns at most ${VERY_HIGH_MAX_COUNT} images (got ${input.count}).`,
-      { status: 400, code: 'validation_error' },
-    );
-  }
 
   return {
     image: input.startFrame,
     prompt: input.prompt,
     ...(input.mask ? { mask: input.mask } : {}),
     ...(input.imageUrls?.length ? { reference_images: input.imageUrls } : {}),
-    quality: input.quality ?? 'high',
+    quality: input.quality ?? 'medium',
     num_images: input.count ?? 1,
     ...(input.seed != null ? { seed: input.seed } : {}),
+    ...(input.enableCopyrightDetection ? { enable_copyright_detection: true } : {}),
   };
 };
 

@@ -8082,21 +8082,18 @@ var ideogram45MagicPromptParam = {
   }
 };
 var IDEOGRAM_45_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8];
+var IDEOGRAM_45_QUALITIES = ["very_low", "low", "medium", "high"];
 var ideogram45Constraints = [
   { when: { imageUrls: { exists: false } }, then: {
     size: { allowed: ["auto", ...IDEOGRAM_45_T2I_SIZES] },
-    mask: { disabled: true, reason: "A mask needs a source image." }
+    mask: { disabled: true, reason: "A mask needs a source image." },
+    quality: { allowed: ["low", "medium", "high"], reason: "Very low quality needs a source image." }
   } },
   { when: { imageUrls: { exists: true } }, then: {
     size: { allowed: ["auto", "source"], reason: 'With input images the size is "auto" or the source image size.' }
   } },
   { when: { mask: { exists: true } }, then: {
     size: { disabled: true, reason: "A masked edit keeps the source image size." }
-  } }
-];
-var ideogram45PreciseEditConstraints = [
-  { when: { quality: { is: "very_high" } }, then: {
-    count: { allowed: [1, 2, 3, 4], reason: "Very high quality returns at most 4 images." }
   } }
 ];
 var { MODELS: MODELS26 } = defineModels("ideogram", [
@@ -8119,9 +8116,10 @@ var { MODELS: MODELS26 } = defineModels("ideogram", [
       ...ideogram45MaskParam,
       ...p.size(["auto", "source", ...IDEOGRAM_45_T2I_SIZES], "auto"),
       ...ideogram45MagicPromptParam,
-      ...p.quality(["low", "medium", "high"], "high"),
+      ...p.quality(IDEOGRAM_45_QUALITIES, "high"),
       ...params.count(IDEOGRAM_45_COUNTS, 1),
-      ...params.seed()
+      ...params.seed(),
+      ...p.boolean("enableCopyrightDetection", false, "Copyright Detection")
     }
   },
   {
@@ -8134,16 +8132,16 @@ var { MODELS: MODELS26 } = defineModels("ideogram", [
     inputType: "i2i",
     description: "Ideogram 4.5 precise edit \u2014 change one area and keep the rest of the image pixel-intact, optionally with a mask and reference images.",
     features: [feat("Precise Edit", "input"), feat("Masked Edit", "input"), feat("Reference Images", "input")],
-    constraints: ideogram45PreciseEditConstraints,
     paramConfig: {
       ...params.prompt({ maxLength: 1e4 }),
       ...params.startFrame("Source Image", true, IDEOGRAM_45_IMAGE_BOUNDS),
       ...ideogram45MaskParam,
       // With a mask the vendor allows at most 3 references.
       ...params.imageInput(4, "Reference Images", false, "reference", IDEOGRAM_45_IMAGE_BOUNDS),
-      ...p.quality(["low", "medium", "high", "very_high"], "high"),
+      ...p.quality(IDEOGRAM_45_QUALITIES, "medium"),
       ...params.count(IDEOGRAM_45_COUNTS, 1),
-      ...params.seed()
+      ...params.seed(),
+      ...p.boolean("enableCopyrightDetection", false, "Copyright Detection")
     }
   },
   {
@@ -8345,14 +8343,11 @@ var { MODELS: MODELS26 } = defineModels("ideogram", [
 // src/vendors/catalog/ideogram.payloads.ts
 var GENERATE_MAX_IMAGES_WITH_MASK = 4;
 var PRECISE_EDIT_MAX_REFERENCES_WITH_MASK = 3;
-var VERY_HIGH_MAX_COUNT = 4;
 function assertMaskedImageLimit(model, count, max, what) {
-  if (count > max) {
-    throw new ApiError(`${model}: with a mask, use at most ${max} ${what} (got ${count}).`, {
-      status: 400,
-      code: "validation_error"
-    });
-  }
+  if (count > max) throw invalid2(`${model}: with a mask, use at most ${max} ${what} (got ${count}).`);
+}
+function invalid2(message) {
+  return new ApiError(message, { status: 400, code: "validation_error" });
 }
 function ideogram45Size(size, hasImages, hasMask) {
   if (!size || hasMask) return void 0;
@@ -8364,15 +8359,18 @@ var buildIdeogram45Payload = (input) => {
   const mask = images && input.mask ? input.mask : void 0;
   if (mask) assertMaskedImageLimit("Ideogram 4.5", images.length, GENERATE_MAX_IMAGES_WITH_MASK, "images");
   const size = ideogram45Size(input.size, !!images, !!mask);
+  if (input.quality === "very_low" && !images) throw invalid2("Ideogram 4.5: very_low quality needs a source image.");
   return {
     prompt: input.prompt,
     ...images ? { images } : {},
     ...mask ? { mask } : {},
     ...size ? { size } : {},
     ...input.magicPrompt ? { magic_prompt: input.magicPrompt } : {},
-    quality: input.quality ?? "high",
+    // Vendor default: medium with source images, high without.
+    quality: input.quality ?? (images ? "medium" : "high"),
     num_images: input.count ?? 1,
-    ...input.seed != null ? { seed: input.seed } : {}
+    ...input.seed != null ? { seed: input.seed } : {},
+    ...input.enableCopyrightDetection ? { enable_copyright_detection: true } : {}
   };
 };
 var buildIdeogram45PreciseEditPayload = (input) => {
@@ -8384,20 +8382,15 @@ var buildIdeogram45PreciseEditPayload = (input) => {
       "reference images"
     );
   }
-  if (input.quality === "very_high" && (input.count ?? 1) > VERY_HIGH_MAX_COUNT) {
-    throw new ApiError(
-      `Ideogram 4.5 Precise Edit: very_high quality returns at most ${VERY_HIGH_MAX_COUNT} images (got ${input.count}).`,
-      { status: 400, code: "validation_error" }
-    );
-  }
   return {
     image: input.startFrame,
     prompt: input.prompt,
     ...input.mask ? { mask: input.mask } : {},
     ...input.imageUrls?.length ? { reference_images: input.imageUrls } : {},
-    quality: input.quality ?? "high",
+    quality: input.quality ?? "medium",
     num_images: input.count ?? 1,
-    ...input.seed != null ? { seed: input.seed } : {}
+    ...input.seed != null ? { seed: input.seed } : {},
+    ...input.enableCopyrightDetection ? { enable_copyright_detection: true } : {}
   };
 };
 registerPayloads(MODELS26, {

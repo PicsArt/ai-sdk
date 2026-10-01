@@ -126,22 +126,20 @@ const ideogram45MagicPromptParam: ModelParams = {
 
 const IDEOGRAM_45_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8];
 
+/** Both 4.5 endpoints since the public launch: `very_low` (fastest, cheapest) needs source images. */
+const IDEOGRAM_45_QUALITIES = ['very_low', 'low', 'medium', 'high'];
+
 const ideogram45Constraints: Constraint[] = [
   { when: { imageUrls: { exists: false } }, then: {
     size: { allowed: ['auto', ...IDEOGRAM_45_T2I_SIZES] },
     mask: { disabled: true, reason: 'A mask needs a source image.' },
+    quality: { allowed: ['low', 'medium', 'high'], reason: 'Very low quality needs a source image.' },
   } },
   { when: { imageUrls: { exists: true } }, then: {
     size: { allowed: ['auto', 'source'], reason: 'With input images the size is "auto" or the source image size.' },
   } },
   { when: { mask: { exists: true } }, then: {
     size: { disabled: true, reason: 'A masked edit keeps the source image size.' },
-  } },
-];
-
-const ideogram45PreciseEditConstraints: Constraint[] = [
-  { when: { quality: { is: 'very_high' } }, then: {
-    count: { allowed: [1, 2, 3, 4], reason: 'Very high quality returns at most 4 images.' },
   } },
 ];
 
@@ -163,9 +161,10 @@ export const { MODELS } = defineModels('ideogram', [
       ...ideogram45MaskParam,
       ...p.size(['auto', 'source', ...IDEOGRAM_45_T2I_SIZES], 'auto'),
       ...ideogram45MagicPromptParam,
-      ...p.quality(['low', 'medium', 'high'], 'high'),
+      ...p.quality(IDEOGRAM_45_QUALITIES, 'high'),
       ...params.count(IDEOGRAM_45_COUNTS, 1),
       ...params.seed(),
+      ...p.boolean('enableCopyrightDetection', false, 'Copyright Detection'),
     },
   },
   {
@@ -176,16 +175,16 @@ export const { MODELS } = defineModels('ideogram', [
     mode: 'image', inputType: 'i2i',
     description: 'Ideogram 4.5 precise edit — change one area and keep the rest of the image pixel-intact, optionally with a mask and reference images.',
     features: [feat('Precise Edit', 'input'), feat('Masked Edit', 'input'), feat('Reference Images', 'input')],
-    constraints: ideogram45PreciseEditConstraints,
     paramConfig: {
       ...params.prompt({ maxLength: 10_000 }),
       ...params.startFrame('Source Image', true, IDEOGRAM_45_IMAGE_BOUNDS),
       ...ideogram45MaskParam,
       // With a mask the vendor allows at most 3 references.
       ...params.imageInput(4, 'Reference Images', false, 'reference', IDEOGRAM_45_IMAGE_BOUNDS),
-      ...p.quality(['low', 'medium', 'high', 'very_high'], 'high'),
+      ...p.quality(IDEOGRAM_45_QUALITIES, 'medium'),
       ...params.count(IDEOGRAM_45_COUNTS, 1),
       ...params.seed(),
+      ...p.boolean('enableCopyrightDetection', false, 'Copyright Detection'),
     },
   },
   {

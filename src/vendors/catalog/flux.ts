@@ -218,8 +218,6 @@ export const { MODELS } = defineModels('flux', [
     id: 'flux-3-image', name: 'Flux 3 Image',
     workflow: 'bfl/v1/flux-3-image',
     mode: 'image', inputType: 't2i',
-    // Early-access at the vendor — stage only until it is cleared for prod.
-    release: 'preview',
     addedAt: '2026-09-22',
     // Deliberately generous. Measured end-to-end against stage at 1k/16:9:
     // 44s for count 1, 68s for count 4 — of which only 3-6s is our pipeline,

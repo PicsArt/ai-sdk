@@ -91,16 +91,14 @@ const IDEOGRAM_45_IMAGE_BOUNDS = {
   maxAspectRatio: 6,
 };
 
-/** Text-to-image output sizes (the V4 preset list); with input images only auto/source apply. */
-const IDEOGRAM_45_T2I_SIZES = [
-  '2048x2048', '1440x2880', '2880x1440', '1664x2496', '2496x1664',
-  '1792x2240', '2240x1792', '1440x2560', '2560x1440', '1600x2560',
-  '2560x1600', '1728x2304', '2304x1728', '1296x3168', '3168x1296',
-  '1152x2944', '2944x1152', '1248x3328', '3328x1248', '1280x3072',
-  '3072x1280', '1024x3072', '3072x1024',
-  '1024x1024', '896x1120', '1120x896', '864x1152', '1152x864',
-  '832x1248', '1248x832', '800x1280', '1280x800', '720x1280',
-  '1280x720', '720x1440', '1440x720', '512x1536', '1536x512',
+/**
+ * Output aspect ratios. The worker converts ratio + resolution tier into the
+ * vendor's exact size. `auto` lets the vendor pick a 2K size; `source` keeps the
+ * first image's own size (needs images).
+ */
+const IDEOGRAM_45_ASPECT_RATIOS = [
+  'auto', 'source', '1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3',
+  '5:4', '4:5', '8:5', '5:8', '2:1', '1:2', '3:1', '1:3',
 ];
 
 /** Mask slot: same dimensions as the source image; black is edited, white is preserved. */
@@ -131,15 +129,22 @@ const IDEOGRAM_45_QUALITIES = ['very_low', 'low', 'medium', 'high'];
 
 const ideogram45Constraints: Constraint[] = [
   { when: { imageUrls: { exists: false } }, then: {
-    size: { allowed: ['auto', ...IDEOGRAM_45_T2I_SIZES] },
+    aspectRatio: {
+      allowed: IDEOGRAM_45_ASPECT_RATIOS.filter((ar) => ar !== 'source'),
+      reason: '"Source" keeps the size of a source image.',
+    },
     mask: { disabled: true, reason: 'A mask needs a source image.' },
     quality: { allowed: ['low', 'medium', 'high'], reason: 'Very low quality needs a source image.' },
   } },
-  { when: { imageUrls: { exists: true } }, then: {
-    size: { allowed: ['auto', 'source'], reason: 'With input images the size is "auto" or the source image size.' },
-  } },
   { when: { mask: { exists: true } }, then: {
-    size: { disabled: true, reason: 'A masked edit keeps the source image size.' },
+    aspectRatio: { disabled: true, reason: 'A masked edit keeps the source image size.' },
+    resolution: { disabled: true, reason: 'A masked edit keeps the source image size.' },
+  } },
+  { when: { aspectRatio: { is: 'auto' } }, then: {
+    resolution: { disabled: true, reason: 'Auto picks a 2K size.' },
+  } },
+  { when: { aspectRatio: { is: 'source' } }, then: {
+    resolution: { disabled: true, reason: 'The output keeps the source image size.' },
   } },
 ];
 
@@ -159,7 +164,8 @@ export const { MODELS } = defineModels('ideogram', [
       // With a mask the vendor allows at most 4 images.
       ...params.imageInput(5, 'Images', false, 'reference', IDEOGRAM_45_IMAGE_BOUNDS),
       ...ideogram45MaskParam,
-      ...p.size(['auto', 'source', ...IDEOGRAM_45_T2I_SIZES], 'auto'),
+      ...params.aspectRatio(IDEOGRAM_45_ASPECT_RATIOS, 'auto'),
+      ...params.resolution(['1K', '2K'], '2K'),
       ...ideogram45MagicPromptParam,
       ...p.quality(IDEOGRAM_45_QUALITIES, 'high'),
       ...params.count(IDEOGRAM_45_COUNTS, 1),

@@ -33,19 +33,22 @@ function assertMaskedImageLimit(model: string, count: number, max: number, what:
   if (count > max) throw invalid(`${model}: with a mask, use at most ${max} ${what} (got ${count}).`);
 }
 
-/**
- * The vendor accepts a preset size only for text-to-image, only `auto`/`source`
- * with input images, and no size at all with a mask. Anything else is left out
- * so the vendor falls back to `auto` instead of rejecting the request.
- */
 function invalid(message: string): ApiError {
   return new ApiError(message, { status: 400, code: 'validation_error' });
 }
 
-function ideogram45Size(size: string | undefined, hasImages: boolean, hasMask: boolean): string | undefined {
-  if (!size || hasMask) return undefined;
-  if (hasImages) return size === 'auto' || size === 'source' ? size : undefined;
-  return size === 'source' ? undefined : size;
+/**
+ * Aspect ratio + resolution go to the worker, which converts them to the
+ * vendor's exact size. A masked edit takes neither (the output keeps the source
+ * size), `source` only applies with images, and the tier only applies to an
+ * explicit ratio.
+ */
+function ideogram45Shape(input: Ideogram45Input, hasImages: boolean, hasMask: boolean) {
+  const aspectRatio = input.aspectRatio;
+  if (!aspectRatio || hasMask) return {};
+  if (aspectRatio === 'source' && !hasImages) return {};
+  if (aspectRatio === 'auto' || aspectRatio === 'source') return { aspect_ratio: aspectRatio };
+  return { aspect_ratio: aspectRatio, ...(input.resolution ? { resolution: input.resolution } : {}) };
 }
 
 const buildIdeogram45Payload = (input: Ideogram45Input) => {
@@ -53,7 +56,6 @@ const buildIdeogram45Payload = (input: Ideogram45Input) => {
   // A mask only applies to a source image.
   const mask = images && input.mask ? input.mask : undefined;
   if (mask) assertMaskedImageLimit('Ideogram 4.5', images!.length, GENERATE_MAX_IMAGES_WITH_MASK, 'images');
-  const size = ideogram45Size(input.size, !!images, !!mask);
   // Also declared as a constraint, but constraints only drive the UI.
   if (input.quality === 'very_low' && !images) throw invalid('Ideogram 4.5: very_low quality needs a source image.');
 
@@ -61,7 +63,7 @@ const buildIdeogram45Payload = (input: Ideogram45Input) => {
     prompt: input.prompt,
     ...(images ? { images } : {}),
     ...(mask ? { mask } : {}),
-    ...(size ? { size } : {}),
+    ...ideogram45Shape(input, !!images, !!mask),
     ...(input.magicPrompt ? { magic_prompt: input.magicPrompt } : {}),
     // Vendor default: medium with source images, high without.
     quality: input.quality ?? (images ? 'medium' : 'high'),

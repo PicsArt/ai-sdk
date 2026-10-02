@@ -1,7 +1,8 @@
 /**
  * Ideogram 4.5 — offline checks of the two production models: release gating,
- * wire payloads (the vendor rejects `size` with a mask, `source` without
- * images and preset sizes with images) and the declared constraints.
+ * wire payloads (aspect ratio + resolution go to the worker, which converts
+ * them to the vendor size; none with a mask, `source` only with images) and
+ * the declared constraints.
  */
 import assert from 'node:assert';
 import { catalog } from '../../src/core/descriptors/model-accessor.ts';
@@ -28,39 +29,56 @@ for (const id of [GENERATE, PRECISE_EDIT]) {
 
 // ── Generate: text-to-image ───────────────────────────────────────────
 {
-  const { workflow, payload: body } = payload(GENERATE, { prompt: 'a cat', size: '1024x1024', count: 2 });
+  const { workflow, payload: body } = payload(GENERATE, {
+    prompt: 'a cat', aspectRatio: '16:9', resolution: '1K', count: 2,
+  });
   assert.strictEqual(workflow, 'ideogram/v4.5/generate');
-  assert.deepStrictEqual(body, { prompt: 'a cat', size: '1024x1024', quality: 'high', num_images: 2 });
+  assert.deepStrictEqual(body, {
+    prompt: 'a cat', aspect_ratio: '16:9', resolution: '1K', quality: 'high', num_images: 2,
+  });
+}
+
+// `auto` sends no resolution tier (the vendor bills auto as 2K).
+assert.deepStrictEqual(
+  payload(GENERATE, { prompt: 'p', aspectRatio: 'auto', resolution: '1K' }).payload,
+  { prompt: 'p', aspect_ratio: 'auto', quality: 'high', num_images: 1 },
+);
+
+// No aspectRatio set → nothing shape-related on the wire.
+{
+  const body = payload(GENERATE, { prompt: 'p' }).payload;
+  assert.ok(!('aspect_ratio' in body) && !('resolution' in body) && !('size' in body));
 }
 
 // `source` needs images → dropped for text-to-image; a mask without images is dropped too.
 assert.deepStrictEqual(
-  payload(GENERATE, { prompt: 'p', size: 'source', mask: 'https://x/m.png' }).payload,
+  payload(GENERATE, { prompt: 'p', aspectRatio: 'source', mask: 'https://x/m.png' }).payload,
   { prompt: 'p', quality: 'high', num_images: 1 },
 );
 
 // ── Generate: edit with references (same workflow) ────────────────────
 {
   const { workflow, payload: body } = payload(GENERATE, {
-    prompt: 'edit image 1', imageUrls: ['https://x/a.png', 'https://x/b.png'], size: '1024x1024', magicPrompt: 'off',
+    prompt: 'edit image 1', imageUrls: ['https://x/a.png', 'https://x/b.png'], aspectRatio: '3:4', magicPrompt: 'off',
   });
   assert.strictEqual(workflow, 'ideogram/v4.5/generate');
-  // A preset size is not valid with images → left out (vendor picks auto).
   assert.deepStrictEqual(body, {
-    prompt: 'edit image 1', images: ['https://x/a.png', 'https://x/b.png'],
+    prompt: 'edit image 1', images: ['https://x/a.png', 'https://x/b.png'], aspect_ratio: '3:4',
     magic_prompt: 'off', quality: 'medium', num_images: 1,
   });
 }
 
-assert.strictEqual(
-  payload(GENERATE, { prompt: 'p', imageUrls: ['https://x/a.png'], size: 'source' }).payload.size,
+assert.deepStrictEqual(
+  payload(GENERATE, { prompt: 'p', imageUrls: ['https://x/a.png'], aspectRatio: 'source', resolution: '1K' }).payload
+    .aspect_ratio,
   'source',
 );
 
-// ── Generate: masked edit never sends a size ──────────────────────────
+// ── Generate: masked edit never sends an aspect ratio ─────────────────
 assert.deepStrictEqual(
   payload(GENERATE, {
-    prompt: 'p', imageUrls: ['https://x/a.png'], mask: 'https://x/m.png', size: 'source', quality: 'low', seed: 5,
+    prompt: 'p', imageUrls: ['https://x/a.png'], mask: 'https://x/m.png', aspectRatio: '16:9', resolution: '1K',
+    quality: 'low', seed: 5,
   }).payload,
   { prompt: 'p', images: ['https://x/a.png'], mask: 'https://x/m.png', quality: 'low', num_images: 1, seed: 5 },
 );
@@ -133,10 +151,17 @@ assert.strictEqual(
     return r?.kind === 'allowed' ? r.allowed : undefined;
   };
 
-  assert.strictEqual(restrictions(GENERATE, { imageUrls: ['a'], mask: 'm' }).get('size')?.kind, 'disabled');
-  assert.deepStrictEqual(allowedOf(GENERATE, { imageUrls: ['a'] }, 'size'), ['auto', 'source']);
+  const masked = restrictions(GENERATE, { imageUrls: ['a'], mask: 'm' });
+  assert.strictEqual(masked.get('aspectRatio')?.kind, 'disabled');
+  assert.strictEqual(masked.get('resolution')?.kind, 'disabled');
+  assert.strictEqual(allowedOf(GENERATE, { imageUrls: ['a'] }, 'aspectRatio'), undefined, 'with images every ratio applies');
   assert.strictEqual(restrictions(GENERATE, {}).get('mask')?.kind, 'disabled');
-  assert.ok(!allowedOf(GENERATE, {}, 'size')?.includes('source'), 'text-to-image must not offer "source"');
+  assert.ok(!allowedOf(GENERATE, {}, 'aspectRatio')?.includes('source'), 'text-to-image must not offer "source"');
+  assert.ok(allowedOf(GENERATE, {}, 'aspectRatio')?.includes('16:9'));
+  for (const ar of ['auto', 'source']) {
+    assert.strictEqual(restrictions(GENERATE, { aspectRatio: ar }).get('resolution')?.kind, 'disabled', `${ar} disables resolution`);
+  }
+  assert.strictEqual(restrictions(GENERATE, { aspectRatio: '16:9' }).get('resolution'), undefined);
   assert.deepStrictEqual(allowedOf(GENERATE, {}, 'quality'), ['low', 'medium', 'high']);
   assert.strictEqual(allowedOf(GENERATE, { imageUrls: ['a'] }, 'quality'), undefined);
   assert.strictEqual(getModel(PRECISE_EDIT)!.constraints, undefined, 'precise edit no longer needs constraints');

@@ -76,6 +76,11 @@ function recordingTransport() {
 
   const credits = await ai.getCredits('flux-2-pro', { prompt: 'a cat' });
   assert.strictEqual(credits, 12, 'getCredits reads the transport options() call');
+  assert.deepStrictEqual(
+    await ai.options('flux-2-pro', { prompt: 'a cat' }),
+    { credits: 12 },
+    'a bare-number options() answer becomes credits-only task options',
+  );
 
   const id = await ai.submit('flux-2-pro', { prompt: 'a cat' });
   assert.strictEqual(id, 'job-42');
@@ -142,6 +147,19 @@ function recordingTransport() {
 
   // Pricing is optional too: no options() means "unknown", not a failure.
   assert.strictEqual(await ai.getCredits('flux-2-pro', { prompt: 'a cat' }), null);
+  assert.strictEqual(await ai.options('flux-2-pro', { prompt: 'a cat' }), null);
+}
+
+// ── options() may answer the full response ────────────────────────────
+
+{
+  const response = { credits: 40, originalCredits: 50, usageAmount: 5, unit: 'second', price: 8, estimated: true };
+  const ai = createClient({ transport: {
+    async execute() { return { result: { url: 'https://cdn.test/x.png' } }; },
+    async options() { return response; },
+  } });
+  assert.deepStrictEqual(await ai.options('flux-2-pro', { prompt: 'a cat' }), response);
+  assert.strictEqual(await ai.getCredits('flux-2-pro', { prompt: 'a cat' }), 40, 'getCredits still answers the number');
 }
 
 // ── A transport that can submit but not poll is refused up front ─────

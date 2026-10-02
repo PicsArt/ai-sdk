@@ -148,7 +148,8 @@ export function buildTransport(wc: WorkflowsClient): SdkTransport {
       // generation flow over an estimate.
       try {
         const res = await wc.options(workflow, payload);
-        return typeof res?.credits === 'number' ? res.credits : null;
+        if (typeof res?.credits !== 'number') return null;
+        return { ...res, credits: res.credits };
       } catch { return null; }
     },
   };

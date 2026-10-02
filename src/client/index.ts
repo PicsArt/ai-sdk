@@ -1,6 +1,7 @@
 import type { GenerationMode, ModelDefinition } from '../core/types.ts';
 
 import {
+  type OptionsResult,
   type SdkTransport,
   type TransportResult,
   type WorkflowJobHandle,
@@ -21,7 +22,7 @@ import { createApis } from './apis.ts';
 import { createCatalogs } from './catalogs.ts';
 
 // ── Re-export types for the public API ──
-export type { ClientConfig, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, CreditUsage, ToolUsage, AiClient, MediaModelId } from './types.ts';
+export type { ClientConfig, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, CreditUsage, OptionsResult, ToolUsage, AiClient, MediaModelId } from './types.ts';
 export type { ApiResponse, ApiRunOptions, ApiSchemas, ApisClient } from './apis.ts';
 export type { CatalogsClient, CatalogPage, CatalogPageOptions, CatalogsOptions } from './catalogs.ts';
 export { GenerationEventType } from './types.ts';
@@ -301,6 +302,16 @@ export function createClient(config: ClientConfig) {
     };
   }
 
+  // A transport may answer /options with a bare number or the full response.
+  async function fetchOptions(model: string, params: Record<string, unknown> & { prompt: string }): Promise<OptionsResult | null> {
+    if (!transport.options) return null;
+    const resolved = resolveModel(model);
+    const { workflow, payload } = prepareRequest(resolved, params);
+    const res = await transport.options(workflow, payload);
+    if (typeof res === 'number') return { credits: res };
+    return res && typeof res.credits === 'number' ? res : null;
+  }
+
   /**
    * Reconstruct the job handle for a bare generation id. The status route is
    * workflow-scoped and a model may run on either its primary or its edit
@@ -385,10 +396,18 @@ export function createClient(config: ClientConfig) {
       model: string,
       params: Record<string, unknown> & { prompt: string },
     ): Promise<number | null> {
-      if (!transport.options) return null;
-      const resolved = resolveModel(model);
-      const { workflow, payload } = prepareRequest(resolved, params);
-      return await transport.options(workflow, payload) ?? null;
+      return (await fetchOptions(model, params))?.credits ?? null;
+    },
+
+    /**
+     * Same /options call as getCredits(), returning the whole response:
+     * credits plus billable amount, unit, rate, and whether they are estimated.
+     */
+    async options(
+      model: string,
+      params: Record<string, unknown> & { prompt: string },
+    ): Promise<OptionsResult | null> {
+      return fetchOptions(model, params);
     },
 
     /** Build the vendor-specific payload for a model without submitting. */

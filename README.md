@@ -99,12 +99,12 @@ and keep needing `apiUrl` plus `fetch`/`apiKey` if you use them: `ai.drive` and
 | `submit(request)` | no | `generate()`, `submit()` — returns the generation id |
 | `poll(handle, options)` | no | `generate()`, `result()`, `subscribe()` — resolves when the job is terminal, calls `options.onProgress` on the way |
 | `status(handle, signal?)` | no | the edit-route probe behind `result(model, id)` on models that have one |
-| `options(workflow, payload)` | no | `getCredits()` — returns credits, or null |
+| `options(workflow, payload)` | no | `getCredits()` / `options()` — returns credits, an `OptionsResult`, or null |
 
 Leave `submit`/`poll` out and the client runs **every** generation through
 `execute()`; the async lifecycle (`submit()` / `result()` / `subscribe()`) then
 rejects with a 400 `unsupported_transport` rather than pretending. Leave
-`options` out and `getCredits()` answers null.
+`options` out and `getCredits()` / `options()` answer null.
 
 ```typescript
 import type { SdkTransport } from '@picsart/ai-sdk'

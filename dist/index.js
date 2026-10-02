@@ -12247,7 +12247,8 @@ function buildTransport(wc) {
     async options(workflow, payload) {
       try {
         const res = await wc.options(workflow, payload);
-        return typeof res?.credits === "number" ? res.credits : null;
+        if (typeof res?.credits !== "number") return null;
+        return { ...res, credits: res.credits };
       } catch {
         return null;
       }
@@ -13235,6 +13236,14 @@ function createClient(config) {
       }
     };
   }
+  async function fetchOptions(model, params2) {
+    if (!transport.options) return null;
+    const resolved = resolveModel(model);
+    const { workflow, payload } = prepareRequest(resolved, params2);
+    const res = await transport.options(workflow, payload);
+    if (typeof res === "number") return { credits: res };
+    return res && typeof res.credits === "number" ? res : null;
+  }
   async function resolveJobHandle(model, generationId, signal) {
     const primary = { workflow: model.workflow, id: generationId };
     if (!model.editWorkflow || !transport.status) return primary;
@@ -13294,10 +13303,14 @@ function createClient(config) {
      * Returns null if pricing is unavailable.
      */
     async getCredits(model, params2) {
-      if (!transport.options) return null;
-      const resolved = resolveModel(model);
-      const { workflow, payload } = prepareRequest(resolved, params2);
-      return await transport.options(workflow, payload) ?? null;
+      return (await fetchOptions(model, params2))?.credits ?? null;
+    },
+    /**
+     * Same /options call as getCredits(), returning the whole response:
+     * credits plus billable amount, unit, rate, and whether they are estimated.
+     */
+    async options(model, params2) {
+      return fetchOptions(model, params2);
     },
     /** Build the vendor-specific payload for a model without submitting. */
     buildPayload(model, params2) {

@@ -41,12 +41,13 @@ type PartialWorkflowResult<R> = {
     result: R;
 };
 interface WorkflowOptions {
-    monetization?: {
-        toolId: string;
-    };
+    toolId?: string;
     usageAmount?: number;
     credits?: number;
     originalCredits?: number;
+    estimated?: boolean;
+    unit?: string;
+    price?: number;
 }
 type HistoryResponse<R> = PicsartResponse & {
     response: {

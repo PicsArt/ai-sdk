@@ -43,6 +43,26 @@ interface CreditUsage {
     /** The remaining balance. */
     balance?: number;
 }
+/**
+ * What a model's `/options` endpoint answers for one request — today its price
+ * and how it was derived (mirrors `WorkflowOptions` from `@picsart/workflows-client`).
+ */
+interface OptionsResult {
+    /** Monetization tool the request is billed under. */
+    toolId?: string;
+    /** Billable quantity, in `unit`s (e.g. seconds of video, tokens). */
+    usageAmount?: number;
+    /** Credits the request would be charged. */
+    credits: number;
+    /** Credits before any discount was applied. */
+    originalCredits?: number;
+    /** True when `credits` is a best guess rather than the exact charge — e.g. token-priced models, billed on actual usage. */
+    estimated?: boolean;
+    /** What `usageAmount` counts, e.g. "second" or "token". */
+    unit?: string;
+    /** Rate per `unit`. */
+    price?: number;
+}
 interface WorkflowPollOptions {
     intervalMs?: number;
     maxAttempts?: number;
@@ -93,8 +113,11 @@ interface SdkTransport<TPayload = Record<string, unknown>> {
     poll?(handle: WorkflowJobHandle, options?: TransportPollOptions): Promise<TransportResult>;
     /** Read a submitted job's current state in one request — no waiting. */
     status?(handle: WorkflowJobHandle, signal?: AbortSignal): Promise<TransportResult>;
-    /** Credits this request would cost, or null when pricing is unavailable. */
-    options?(workflow: string, payload: Record<string, unknown>): Promise<number | null>;
+    /**
+     * Credits this request would cost, or null when pricing is unavailable.
+     * Answer a bare number, or the full {@link OptionsResult} response.
+     */
+    options?(workflow: string, payload: Record<string, unknown>): Promise<number | OptionsResult | null>;
 }
 
 /**
@@ -3204,6 +3227,8 @@ interface AiClient {
     generateText<M extends TextModelId>(model: M, params: TextModelInputById[M], options?: GenerateOptions): Promise<GenerateTextResult>;
     /** Get exact credit cost for a model with specific parameters. */
     getCredits<M extends TypedModelId>(model: M, params: ModelInputById[M]): Promise<number | null>;
+    /** What the model's /options endpoint answers for these params — credits, how they were derived, and anything else it reports. */
+    options<M extends TypedModelId>(model: M, params: ModelInputById[M]): Promise<OptionsResult | null>;
     /** Submit a generation job and get its generation id back. Media models only. */
     submit<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<string>;
     /** Poll a submitted job until it completes and return the parsed result. Media models only. */
@@ -3656,4 +3681,4 @@ declare const getModel: (id: string) => ModelDefinition | undefined;
  */
 declare const findModel: (ref: string) => ModelDefinition | undefined;
 
-export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type OptionsResult, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };

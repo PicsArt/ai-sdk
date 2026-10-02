@@ -6,6 +6,7 @@ import type {
   WorkflowProgress,
   WorkflowSubmitRequest,
   CreditUsage,
+  OptionsResult,
   ToolUsage,
 } from '../core/workflow.ts';
 import type { TypedModelId, ModelInputById, TextModelId, TextModelInputById } from '../generated/model-input-types.ts';
@@ -24,6 +25,7 @@ export type {
   WorkflowJobHandle,
   WorkflowSubmitRequest,
   CreditUsage,
+  OptionsResult,
   ToolUsage,
 };
 
@@ -267,6 +269,9 @@ export interface AiClient {
 
   /** Get exact credit cost for a model with specific parameters. */
   getCredits<M extends TypedModelId>(model: M, params: ModelInputById[M]): Promise<number | null>;
+
+  /** What the model's /options endpoint answers for these params — credits, how they were derived, and anything else it reports. */
+  options<M extends TypedModelId>(model: M, params: ModelInputById[M]): Promise<OptionsResult | null>;
 
   /** Submit a generation job and get its generation id back. Media models only. */
   submit<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<string>;

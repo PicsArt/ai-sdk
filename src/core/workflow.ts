@@ -73,6 +73,27 @@ export interface WorkflowStatusResult<TResult = unknown> {
   raw: unknown;
 }
 
+/**
+ * What a model's `/options` endpoint answers for one request — today its price
+ * and how it was derived (mirrors `WorkflowOptions` from `@picsart/workflows-client`).
+ */
+export interface OptionsResult {
+  /** Monetization tool the request is billed under. */
+  toolId?: string;
+  /** Billable quantity, in `unit`s (e.g. seconds of video, tokens). */
+  usageAmount?: number;
+  /** Credits the request would be charged. */
+  credits: number;
+  /** Credits before any discount was applied. */
+  originalCredits?: number;
+  /** True when `credits` is a best guess rather than the exact charge — e.g. token-priced models, billed on actual usage. */
+  estimated?: boolean;
+  /** What `usageAmount` counts, e.g. "second" or "token". */
+  unit?: string;
+  /** Rate per `unit`. */
+  price?: number;
+}
+
 export interface WorkflowPollOptions {
   intervalMs?: number;
   maxAttempts?: number;
@@ -126,6 +147,9 @@ export interface SdkTransport<TPayload = Record<string, unknown>> {
   poll?(handle: WorkflowJobHandle, options?: TransportPollOptions): Promise<TransportResult>;
   /** Read a submitted job's current state in one request — no waiting. */
   status?(handle: WorkflowJobHandle, signal?: AbortSignal): Promise<TransportResult>;
-  /** Credits this request would cost, or null when pricing is unavailable. */
-  options?(workflow: string, payload: Record<string, unknown>): Promise<number | null>;
+  /**
+   * Credits this request would cost, or null when pricing is unavailable.
+   * Answer a bare number, or the full {@link OptionsResult} response.
+   */
+  options?(workflow: string, payload: Record<string, unknown>): Promise<number | OptionsResult | null>;
 }

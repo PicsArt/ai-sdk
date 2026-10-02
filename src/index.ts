@@ -31,6 +31,7 @@ export type {
   WorkflowJobHandle,
   GenerationProgress,
   CreditUsage,
+  OptionsResult,
   ToolUsage,
   DriveConfig,
   DriveClient,

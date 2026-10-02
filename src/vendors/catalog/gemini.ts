@@ -101,6 +101,23 @@ export const buildGemini31FlashLiteImagePayload: PayloadBuilder = (ctx) => ({
   ...buildThinkingConfig(ctx),
 });
 
+/**
+ * Spicy Mayo — Google's latest image model, built for fast generation and
+ * editing. Same `gemini/v2/images` payload shape as the Gemini 3.x image
+ * models, but `imageSize` is pinned: only the 1K tier is priced, and the
+ * worker answers 400 `unsupported_image_size` for anything else.
+ */
+export const buildSpicyMayoPayload: PayloadBuilder = (ctx) => ({
+  prompt: ctx.prompt,
+  model: 'spicy-mayo',
+  count: ctx.count ?? 1,
+  ...(ctx.seed != null ? { seed: ctx.seed } : {}),
+  ...(ctx.imageUrls?.length ? { imageUrls: ctx.imageUrls } : {}),
+  aspectRatio: ctx.aspectRatio ?? '1:1',
+  imageSize: '1K',
+  ...buildThinkingConfig(ctx),
+});
+
 function inferMimeType(url: string): 'image/png' | 'image/jpeg' {
   return url.match(/\.png(\?|$)/i) ? 'image/png' : 'image/jpeg';
 }
@@ -225,8 +242,55 @@ const thinkingBudgetParam: ModelParams = {
   },
 };
 
+/**
+ * Spicy Mayo exposes a third step between the two the Gemini 3.x entries
+ * offer. All three are accepted by the model (verified against the live
+ * global endpoint 2026-09-10).
+ */
+const spicyMayoThinkingParam: ModelParams = {
+  thinkingLevel: {
+    label: 'Thinking',
+    descriptor: {
+      kind: 'enum',
+      valueType: 'string',
+      options: [
+        { id: 'minimal', label: 'Minimal (faster)' },
+        { id: 'medium', label: 'Medium (balanced)' },
+        { id: 'high', label: 'High (more reasoning)' },
+      ],
+      default: 'minimal',
+    },
+  },
+};
+
 export const { MODELS } = defineModels('google', [
   // ── Image ─────────────────────────────────────────────────────────
+  {
+    id: 'spicy-mayo', name: 'Spicy Mayo',
+    addedAt: '2026-10-02',
+    // Confidential early access at the vendor, authorized for named projects
+    // only — stage until the co-launch clears it for prod.
+    release: 'preview',
+    workflow: 'gemini/v2/images',
+    buildPayload: buildSpicyMayoPayload,
+    // Measured end-to-end against stage at 1K/1:1: 9s to generate, 13s to edit
+    // with two reference images. Rounded up — vendor testing capacity is capped.
+    estimatedTime: 15,
+    mode: 'image', inputType: 't2i', modelId: 'spicy-mayo',
+    badge: ['fast'] as const,
+    description: 'Fast Google image generation and editing with multi-image references.',
+    // Only the 1K tier is priced, so no `resolution` param: the builder pins
+    // imageSize and anything else is a 400 from the worker.
+    features: [feat('Multi-Image Input', 'input'), feat('1K', 'resolution')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio([...GEMINI_AR_WIDE], '1:1'),
+      ...params.count(),
+      ...params.seed(),
+      ...spicyMayoThinkingParam,
+      ...params.imageInput(14, 'Source Images'),
+    },
+  },
   {
     id: 'gemini-3.1-flash-image',
     addedAt: '2026-02-26',

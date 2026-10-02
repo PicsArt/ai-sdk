@@ -1908,6 +1908,14 @@ type ModelInputById = {
         imageUrls?: string[];
         negativePrompt?: string;
     };
+    "spicy-mayo": {
+        prompt: string;
+        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto";
+        count?: 1 | 2 | 4 | 6 | 8 | 10;
+        seed?: number;
+        thinkingLevel?: "minimal" | "medium" | "high";
+        imageUrls?: string[];
+    };
     "topaz-upscale-image": {
         imageUrls: [string, ...string[]];
         model?: "Standard V2" | "Standard MAX" | "Low Resolution V2" | "High Fidelity V2" | "CGI" | "Text Refine" | "Redefine" | "Recovery" | "Recovery V2" | "Wonder" | "Wonder 3";
@@ -3524,6 +3532,7 @@ declare const Models: {
     readonly Seedream50Flash: "seedream-5.0-flash";
     readonly Seedream50Lite: "seedream-5.0-lite";
     readonly Seedream50Pro: "seedream-5.0-pro";
+    readonly SpicyMayo: "spicy-mayo";
     readonly TopazUpscaleImage: "topaz-upscale-image";
     readonly TopazUpscaleVideo: "topaz-upscale-video";
     readonly VeedFabricV1: "veed-fabric-v1";

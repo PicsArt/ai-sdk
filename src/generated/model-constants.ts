@@ -508,6 +508,8 @@ export const Seedream50Flash = 'seedream-5.0-flash' as const;
 export const Seedream50Lite = 'seedream-5.0-lite' as const;
 /** Seedream 5.0 Pro — bytedance (image) */
 export const Seedream50Pro = 'seedream-5.0-pro' as const;
+/** Spicy Mayo — google (image) */
+export const SpicyMayo = 'spicy-mayo' as const;
 /** Topaz Image Upscale — topaz (image) */
 export const TopazUpscaleImage = 'topaz-upscale-image' as const;
 /** Topaz Video Upscale — topaz (video) */
@@ -788,6 +790,7 @@ export const Models = {
   Seedream50Flash,
   Seedream50Lite,
   Seedream50Pro,
+  SpicyMayo,
   TopazUpscaleImage,
   TopazUpscaleVideo,
   VeedFabricV1,

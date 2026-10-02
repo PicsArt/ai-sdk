@@ -6583,6 +6583,16 @@ var buildGemini31FlashLiteImagePayload = (ctx) => ({
   imageSize: ctx.resolution ?? "1K",
   ...buildThinkingConfig(ctx)
 });
+var buildSpicyMayoPayload = (ctx) => ({
+  prompt: ctx.prompt,
+  model: "spicy-mayo",
+  count: ctx.count ?? 1,
+  ...ctx.seed != null ? { seed: ctx.seed } : {},
+  ...ctx.imageUrls?.length ? { imageUrls: ctx.imageUrls } : {},
+  aspectRatio: ctx.aspectRatio ?? "1:1",
+  imageSize: "1K",
+  ...buildThinkingConfig(ctx)
+});
 function inferMimeType2(url) {
   return url.match(/\.png(\?|$)/i) ? "image/png" : "image/jpeg";
 }
@@ -6661,8 +6671,52 @@ var thinkingBudgetParam = {
     descriptor: { kind: "range", min: 128, max: 24576, step: 128, default: 128 }
   }
 };
+var spicyMayoThinkingParam = {
+  thinkingLevel: {
+    label: "Thinking",
+    descriptor: {
+      kind: "enum",
+      valueType: "string",
+      options: [
+        { id: "minimal", label: "Minimal (faster)" },
+        { id: "medium", label: "Medium (balanced)" },
+        { id: "high", label: "High (more reasoning)" }
+      ],
+      default: "minimal"
+    }
+  }
+};
 var { MODELS: MODELS22 } = defineModels("google", [
   // ── Image ─────────────────────────────────────────────────────────
+  {
+    id: "spicy-mayo",
+    name: "Spicy Mayo",
+    addedAt: "2026-10-02",
+    // Confidential early access at the vendor, authorized for named projects
+    // only — stage until the co-launch clears it for prod.
+    release: "preview",
+    workflow: "gemini/v2/images",
+    buildPayload: buildSpicyMayoPayload,
+    // Measured end-to-end against stage at 1K/1:1: 9s to generate, 13s to edit
+    // with two reference images. Rounded up — vendor testing capacity is capped.
+    estimatedTime: 15,
+    mode: "image",
+    inputType: "t2i",
+    modelId: "spicy-mayo",
+    badge: ["fast"],
+    description: "Fast Google image generation and editing with multi-image references.",
+    // Only the 1K tier is priced, so no `resolution` param: the builder pins
+    // imageSize and anything else is a 400 from the worker.
+    features: [feat("Multi-Image Input", "input"), feat("1K", "resolution")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio([...GEMINI_AR_WIDE], "1:1"),
+      ...params.count(),
+      ...params.seed(),
+      ...spicyMayoThinkingParam,
+      ...params.imageInput(14, "Source Images")
+    }
+  },
   {
     id: "gemini-3.1-flash-image",
     addedAt: "2026-02-26",
@@ -13670,6 +13724,7 @@ var Seedream47 = "seedream-4.7";
 var Seedream50Flash = "seedream-5.0-flash";
 var Seedream50Lite = "seedream-5.0-lite";
 var Seedream50Pro = "seedream-5.0-pro";
+var SpicyMayo = "spicy-mayo";
 var TopazUpscaleImage = "topaz-upscale-image";
 var TopazUpscaleVideo = "topaz-upscale-video";
 var VeedFabricV1 = "veed-fabric-v1";
@@ -13928,6 +13983,7 @@ var Models = {
   Seedream50Flash,
   Seedream50Lite,
   Seedream50Pro,
+  SpicyMayo,
   TopazUpscaleImage,
   TopazUpscaleVideo,
   VeedFabricV1,

@@ -29,10 +29,6 @@ const EXPECTED: Record<string, number> = {
   'ltx-v2.3-extend': 5000,
   'ltx-v2.3-retake': 5000,
   // Luma errors reference: "maximum length is 5000 characters".
-  'luma-ray-2': 5000,
-  'luma-ray-flash-2': 5000,
-  'luma-ray-2-reframe-video': 5000,
-  'luma-ray-flash-2-reframe-video': 5000,
   'luma-ray-3.2': 5000,
   'luma-ray-3.2-edit': 5000,
   'luma-ray-3.2-reframe-video': 5000,
@@ -85,7 +81,7 @@ const EXPECTED: Record<string, number> = {
 
 // ── An over-long prompt is rejected before submit ──────────────────────
 {
-  const result = Model('luma-ray-2').validate({
+  const result = Model('luma-ray-3.2').validate({
     prompt: 'x'.repeat(5001),
     aspectRatio: '16:9',
     resolution: '720p',

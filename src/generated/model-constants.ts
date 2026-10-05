@@ -278,20 +278,12 @@ export const LtxV23Retake = 'ltx-v2.3-retake' as const;
 export const LtxV25Fast = 'ltx-v2.5-fast' as const;
 /** LTX 2.5 Pro — ltx (video) */
 export const LtxV25Pro = 'ltx-v2.5-pro' as const;
-/** Luma Ray 2 — luma (video) */
-export const LumaRay2 = 'luma-ray-2' as const;
-/** Luma Ray 2 Reframe — luma (video) */
-export const LumaRay2ReframeVideo = 'luma-ray-2-reframe-video' as const;
 /** Luma Ray 3.2 — luma (video) */
 export const LumaRay32 = 'luma-ray-3.2' as const;
 /** Luma Ray 3.2 Edit — luma (video) */
 export const LumaRay32Edit = 'luma-ray-3.2-edit' as const;
 /** Luma Ray 3.2 Reframe — luma (video) */
 export const LumaRay32ReframeVideo = 'luma-ray-3.2-reframe-video' as const;
-/** Luma Flash 2 — luma (video) */
-export const LumaRayFlash2 = 'luma-ray-flash-2' as const;
-/** Luma Flash 2 Reframe — luma (video) */
-export const LumaRayFlash2ReframeVideo = 'luma-ray-flash-2-reframe-video' as const;
 /** Luma UNI-1 — luma (image) */
 export const LumaUni1 = 'luma-uni-1' as const;
 /** Luma UNI-1 Max — luma (image) */
@@ -681,13 +673,9 @@ export const Models = {
   LtxV23Retake,
   LtxV25Fast,
   LtxV25Pro,
-  LumaRay2,
-  LumaRay2ReframeVideo,
   LumaRay32,
   LumaRay32Edit,
   LumaRay32ReframeVideo,
-  LumaRayFlash2,
-  LumaRayFlash2ReframeVideo,
   LumaUni1,
   LumaUni1Max,
   Lyria3Clip,

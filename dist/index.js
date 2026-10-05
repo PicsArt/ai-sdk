@@ -3881,52 +3881,7 @@ registerPayloads(MODELS11, {
 });
 
 // src/vendors/catalog/luma.ts
-var buildLumaRay2Payload = (ctx) => {
-  const keyframes = {};
-  if (ctx.startFrame) keyframes.frame0 = { type: "image", url: ctx.startFrame };
-  if (ctx.endFrame) keyframes.frame1 = { type: "image", url: ctx.endFrame };
-  return {
-    prompt: ctx.prompt,
-    model: "ray-2",
-    ...Object.keys(keyframes).length ? { keyframes } : {},
-    aspect_ratio: ctx.aspectRatio ?? "16:9",
-    resolution: ctx.resolution ?? "720p",
-    duration: `${ctx.duration ?? 5}s`
-  };
-};
-var buildLumaFlash2I2VPayload = (ctx) => {
-  const keyframes = {};
-  if (ctx.startFrame) keyframes.frame0 = { type: "image", url: ctx.startFrame };
-  if (ctx.endFrame) keyframes.frame1 = { type: "image", url: ctx.endFrame };
-  return {
-    prompt: ctx.prompt,
-    model: "ray-flash-2",
-    ...Object.keys(keyframes).length ? { keyframes } : {},
-    aspect_ratio: ctx.aspectRatio ?? "16:9",
-    resolution: ctx.resolution ?? "720p",
-    duration: `${ctx.duration ?? 5}s`
-  };
-};
-var WORKFLOW = "luma-image-to-video-generation";
-var REFRAME_WORKFLOW = "luma-media-reframe";
-var makeReframeVideoPayload = (model) => (ctx) => ({
-  generation_type: "reframe_video",
-  model,
-  media: { url: ctx.videoUrl ?? "" },
-  aspect_ratio: ctx.aspectRatio ?? "16:9",
-  ...ctx.prompt ? { prompt: ctx.prompt } : {}
-});
-var buildLumaRay2ReframeVideoPayload = makeReframeVideoPayload("ray-2");
-var buildLumaRayFlash2ReframeVideoPayload = makeReframeVideoPayload("ray-flash-2");
-var LUMA_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "9:21"];
-var LUMA_RESOLUTIONS = ["540p", "720p", "1080p", "4k"];
 var LUMA_PROMPT_MAX = 5e3;
-var lumaParamConfig = {
-  ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
-  ...params.aspectRatio(LUMA_AR),
-  ...params.resolution(LUMA_RESOLUTIONS, "720p"),
-  ...params.duration([5, 9], 5)
-};
 var LUMA_UNI1_AR = ["3:1", "2:1", "16:9", "3:2", "1:1", "2:3", "9:16", "1:2", "1:3"];
 var LUMA_UNI1_STYLES = [
   { id: "auto", label: "Auto" },
@@ -4025,71 +3980,6 @@ var ray32EditConstraints = [
   } }
 ];
 var { MODELS: MODELS12 } = defineModels("luma", [
-  {
-    id: "luma-ray-2",
-    name: "Luma Ray 2",
-    addedAt: "2026-02-06",
-    workflow: WORKFLOW,
-    editWorkflow: WORKFLOW,
-    buildPayload: buildLumaRay2Payload,
-    estimatedTime: 18,
-    editEstimatedTime: 24,
-    mode: "video",
-    inputType: "t2v",
-    description: "Smooth video with a dreamy, polished aesthetic \u2014 up to 4K resolution.",
-    features: [feat("Image Input", "input"), feat("Start/End Frame", "frame"), feat("Up to 4K", "resolution"), feat("5/9 sec", "duration")],
-    paramConfig: { ...lumaParamConfig, ...params.startFrame(), ...params.endFrame() }
-  },
-  {
-    id: "luma-ray-flash-2",
-    name: "Luma Flash 2",
-    addedAt: "2026-02-06",
-    workflow: WORKFLOW,
-    buildPayload: buildLumaFlash2I2VPayload,
-    estimatedTime: 9,
-    mode: "video",
-    inputType: "i2v",
-    description: "Quick image-to-video with smooth, stylized motion \u2014 up to 4K.",
-    features: [feat("Image Input", "input"), feat("Start/End Frame", "frame"), feat("Up to 4K", "resolution"), feat("5/9 sec", "duration")],
-    paramConfig: { ...lumaParamConfig, ...params.startFrame("Start Frame", true), ...params.endFrame() }
-  },
-  // ── Reframe video (ray-2 + ray-flash-2; image reframe not supported) ──
-  {
-    id: "luma-ray-2-reframe-video",
-    name: "Luma Ray 2 Reframe",
-    modelId: "luma-ray-2",
-    addedAt: "2026-05-21",
-    workflow: REFRAME_WORKFLOW,
-    buildPayload: buildLumaRay2ReframeVideoPayload,
-    estimatedTime: 20,
-    mode: "video",
-    inputType: "v2v",
-    description: "Reframe a video to a new aspect ratio using Luma Ray 2.",
-    features: [feat("Video Input", "input"), feat("Reframe", "characteristic")],
-    paramConfig: {
-      ...params.prompt({ required: false, maxLength: LUMA_PROMPT_MAX }),
-      ...params.aspectRatio(LUMA_AR, "16:9"),
-      ...params.videoInput("Source Video")
-    }
-  },
-  {
-    id: "luma-ray-flash-2-reframe-video",
-    name: "Luma Flash 2 Reframe",
-    modelId: "luma-ray-flash-2",
-    addedAt: "2026-05-21",
-    workflow: REFRAME_WORKFLOW,
-    buildPayload: buildLumaRayFlash2ReframeVideoPayload,
-    estimatedTime: 12,
-    mode: "video",
-    inputType: "v2v",
-    description: "Reframe a video to a new aspect ratio using Luma Flash 2.",
-    features: [feat("Video Input", "input"), feat("Reframe", "characteristic")],
-    paramConfig: {
-      ...params.prompt({ required: false, maxLength: LUMA_PROMPT_MAX }),
-      ...params.aspectRatio(LUMA_AR, "16:9"),
-      ...params.videoInput("Source Video")
-    }
-  },
   {
     id: "luma-uni-1",
     name: "Luma UNI-1",
@@ -6231,9 +6121,10 @@ var flux3ImageAspectRatios = [
   "5:7",
   "2:3",
   "9:16",
+  "9:21",
   "1:2"
 ];
-var flux3ImageResolutions = ["512sq", "768sq", "1k", "2k", "4k"];
+var flux3ImageResolutions = ["768sq", "1k", "1.5k", "2k", "4k"];
 var buildFluxV2Payload = (modelId) => (ctx) => ({
   prompt: ctx.prompt,
   model: modelId,
@@ -6402,7 +6293,7 @@ var { MODELS: MODELS21 } = defineModels("flux", [
     // count (up to 10) samples further into the tail. Stage has seen 4+ minutes,
     // and one 512sq run took 287s. Over-estimating only makes the bar finish
     // early; under-estimating parks it at 99%.
-    estimatedTime: { "512sq": 90, "768sq": 110, "1k": 150, "2k": 240, "4k": 360 },
+    estimatedTime: { "768sq": 110, "1k": 150, "1.5k": 195, "2k": 240, "4k": 360 },
     description: "Generate and edit images with up to 10 references \u2014 multi-reference composition, precise local edits and text rendering, natively up to 4K.",
     features: [
       feat("Multi-Image Input", "input"),
@@ -13615,13 +13506,9 @@ var LtxV23Reframe = "ltx-v2.3-reframe";
 var LtxV23Retake = "ltx-v2.3-retake";
 var LtxV25Fast = "ltx-v2.5-fast";
 var LtxV25Pro = "ltx-v2.5-pro";
-var LumaRay2 = "luma-ray-2";
-var LumaRay2ReframeVideo = "luma-ray-2-reframe-video";
 var LumaRay32 = "luma-ray-3.2";
 var LumaRay32Edit = "luma-ray-3.2-edit";
 var LumaRay32ReframeVideo = "luma-ray-3.2-reframe-video";
-var LumaRayFlash2 = "luma-ray-flash-2";
-var LumaRayFlash2ReframeVideo = "luma-ray-flash-2-reframe-video";
 var LumaUni1 = "luma-uni-1";
 var LumaUni1Max = "luma-uni-1-max";
 var Lyria3Clip = "lyria-3-clip";
@@ -13874,13 +13761,9 @@ var Models = {
   LtxV23Retake,
   LtxV25Fast,
   LtxV25Pro,
-  LumaRay2,
-  LumaRay2ReframeVideo,
   LumaRay32,
   LumaRay32Edit,
   LumaRay32ReframeVideo,
-  LumaRayFlash2,
-  LumaRayFlash2ReframeVideo,
   LumaUni1,
   LumaUni1Max,
   Lyria3Clip,

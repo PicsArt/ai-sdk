@@ -342,8 +342,8 @@ type ModelInputById = {
     };
     "flux-3-image": {
         prompt: string;
-        aspectRatio?: "auto" | "21:9" | "2:1" | "16:9" | "3:2" | "7:5" | "4:3" | "5:4" | "1:1" | "4:5" | "3:4" | "5:7" | "2:3" | "9:16" | "1:2";
-        resolution?: "512sq" | "768sq" | "1k" | "2k" | "4k";
+        aspectRatio?: "auto" | "21:9" | "2:1" | "16:9" | "3:2" | "7:5" | "4:3" | "5:4" | "1:1" | "4:5" | "3:4" | "5:7" | "2:3" | "9:16" | "9:21" | "1:2";
+        resolution?: "768sq" | "1k" | "1.5k" | "2k" | "4k";
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         imageUrls?: string[];
         safetyTolerance?: number;
@@ -1073,19 +1073,6 @@ type ModelInputById = {
         startFrame?: string;
         endFrame?: string;
     };
-    "luma-ray-2": {
-        prompt: string;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "9:21";
-        resolution?: "540p" | "720p" | "1080p" | "4k";
-        duration?: 5 | 9;
-        startFrame?: string;
-        endFrame?: string;
-    };
-    "luma-ray-2-reframe-video": {
-        prompt?: string;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "9:21";
-        videoUrl: string;
-    };
     "luma-ray-3.2": {
         prompt: string;
         aspectRatio?: "9:16" | "3:4" | "1:1" | "4:3" | "16:9" | "21:9";
@@ -1111,19 +1098,6 @@ type ModelInputById = {
         aspectRatio?: "9:16" | "3:4" | "1:1" | "4:3" | "16:9" | "21:9";
         videoUrl: string;
         resolution?: "540p" | "720p" | "1080p";
-    };
-    "luma-ray-flash-2": {
-        prompt: string;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "9:21";
-        resolution?: "540p" | "720p" | "1080p" | "4k";
-        duration?: 5 | 9;
-        startFrame: string;
-        endFrame?: string;
-    };
-    "luma-ray-flash-2-reframe-video": {
-        prompt?: string;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "9:21";
-        videoUrl: string;
     };
     "luma-uni-1": {
         prompt: string;
@@ -3423,13 +3397,9 @@ declare const Models: {
     readonly LtxV23Retake: "ltx-v2.3-retake";
     readonly LtxV25Fast: "ltx-v2.5-fast";
     readonly LtxV25Pro: "ltx-v2.5-pro";
-    readonly LumaRay2: "luma-ray-2";
-    readonly LumaRay2ReframeVideo: "luma-ray-2-reframe-video";
     readonly LumaRay32: "luma-ray-3.2";
     readonly LumaRay32Edit: "luma-ray-3.2-edit";
     readonly LumaRay32ReframeVideo: "luma-ray-3.2-reframe-video";
-    readonly LumaRayFlash2: "luma-ray-flash-2";
-    readonly LumaRayFlash2ReframeVideo: "luma-ray-flash-2-reframe-video";
     readonly LumaUni1: "luma-uni-1";
     readonly LumaUni1Max: "luma-uni-1-max";
     readonly Lyria3Clip: "lyria-3-clip";

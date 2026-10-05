@@ -1,6 +1,6 @@
 /**
  * Luma — single source of truth.
- * GOTCHA: duration is string with 's' suffix: "5s", "9s" (NOT "10s").
+ * GOTCHA: duration is string with 's' suffix: "5s", "10s".
  *
  * UNI-1: combined-entry T2I (workflow) + image-edit (editWorkflow). For the
  * image-edit path, `ctx.imageUrls[0]` becomes the source image; remaining
@@ -10,66 +10,11 @@ import type { Constraint, PayloadBuilder } from '../../core/types.ts';
 import { p } from '../../core/descriptors/presets.ts';
 import { defineModels, feat, params } from '../define.ts';
 
-/** Ray 2 T2V + I2V (unified). keyframes added when image present.
- *  UI puts first frame in imageUrls[0], last frame in imageUrls[1]. */
-export const buildLumaRay2Payload: PayloadBuilder = (ctx) => {
-  const keyframes: Record<string, unknown> = {};
-  if (ctx.startFrame) keyframes.frame0 = { type: 'image', url: ctx.startFrame };
-  if (ctx.endFrame) keyframes.frame1 = { type: 'image', url: ctx.endFrame };
-  return {
-    prompt: ctx.prompt,
-    model: 'ray-2',
-    ...(Object.keys(keyframes).length ? { keyframes } : {}),
-    aspect_ratio: ctx.aspectRatio ?? '16:9',
-    resolution: ctx.resolution ?? '720p',
-    duration: `${ctx.duration ?? 5}s`,
-  };
-};
-
-/** Flash 2 I2V — same as Ray 2 I2V but with ray-flash-2 model. */
-export const buildLumaFlash2I2VPayload: PayloadBuilder = (ctx) => {
-  const keyframes: Record<string, unknown> = {};
-  if (ctx.startFrame) keyframes.frame0 = { type: 'image', url: ctx.startFrame };
-  if (ctx.endFrame) keyframes.frame1 = { type: 'image', url: ctx.endFrame };
-  return {
-    prompt: ctx.prompt,
-    model: 'ray-flash-2',
-    ...(Object.keys(keyframes).length ? { keyframes } : {}),
-    aspect_ratio: ctx.aspectRatio ?? '16:9',
-    resolution: ctx.resolution ?? '720p',
-    duration: `${ctx.duration ?? 5}s`,
-  };
-};
-
-const WORKFLOW = 'luma-image-to-video-generation';
-const REFRAME_WORKFLOW = 'luma-media-reframe';
-
-/** Reframe video — input video is reframed to a target aspect ratio.
- *  Note: image reframe is not supported by Luma Ray models. */
-const makeReframeVideoPayload = (model: 'ray-2' | 'ray-flash-2'): PayloadBuilder => (ctx) => ({
-  generation_type: 'reframe_video',
-  model,
-  media: { url: ctx.videoUrl ?? '' },
-  aspect_ratio: ctx.aspectRatio ?? '16:9',
-  ...(ctx.prompt ? { prompt: ctx.prompt } : {}),
-});
-
-export const buildLumaRay2ReframeVideoPayload: PayloadBuilder = makeReframeVideoPayload('ray-2');
-export const buildLumaRayFlash2ReframeVideoPayload: PayloadBuilder = makeReframeVideoPayload('ray-flash-2');
-
-const LUMA_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', '9:21'];
-const LUMA_RESOLUTIONS = ['540p', '720p', '1080p', '4k'];
 /** Luma rejects the submission with "Prompt is too long, maximum length is
  *  5000 characters" (docs.lumalabs.ai/docs/errors). One cap for every Luma
  *  model; the earlier 6,000 let prompts through that the vendor then refused. */
 const LUMA_PROMPT_MAX = 5000;
 
-const lumaParamConfig = {
-  ...params.prompt({ maxLength: LUMA_PROMPT_MAX }),
-  ...params.aspectRatio(LUMA_AR),
-  ...params.resolution(LUMA_RESOLUTIONS, '720p'),
-  ...params.duration([5, 9], 5),
-};
 
 const LUMA_UNI1_AR = ['3:1', '2:1', '16:9', '3:2', '1:1', '2:3', '9:16', '1:2', '1:3'];
 const LUMA_UNI1_STYLES = [
@@ -197,59 +142,6 @@ const ray32EditConstraints: Constraint[] = [
 ];
 
 export const { MODELS } = defineModels('luma', [
-  {
-    id: 'luma-ray-2', name: 'Luma Ray 2',
-    addedAt: '2026-02-06',
-    workflow: WORKFLOW, editWorkflow: WORKFLOW,
-    buildPayload: buildLumaRay2Payload,
-    estimatedTime: 18, editEstimatedTime: 24,
-    mode: 'video', inputType: 't2v',
-    description: 'Smooth video with a dreamy, polished aesthetic — up to 4K resolution.',
-    features: [feat('Image Input', 'input'), feat('Start/End Frame', 'frame'), feat('Up to 4K', 'resolution'), feat('5/9 sec', 'duration')],
-    paramConfig: { ...lumaParamConfig, ...params.startFrame(), ...params.endFrame() },
-  },
-  {
-    id: 'luma-ray-flash-2', name: 'Luma Flash 2',
-    addedAt: '2026-02-06',
-    workflow: WORKFLOW,
-    buildPayload: buildLumaFlash2I2VPayload,
-    estimatedTime: 9,
-    mode: 'video', inputType: 'i2v',
-    description: 'Quick image-to-video with smooth, stylized motion — up to 4K.',
-    features: [feat('Image Input', 'input'), feat('Start/End Frame', 'frame'), feat('Up to 4K', 'resolution'), feat('5/9 sec', 'duration')],
-    paramConfig: { ...lumaParamConfig, ...params.startFrame('Start Frame', true), ...params.endFrame() },
-  },
-  // ── Reframe video (ray-2 + ray-flash-2; image reframe not supported) ──
-  {
-    id: 'luma-ray-2-reframe-video', name: 'Luma Ray 2 Reframe', modelId: 'luma-ray-2',
-    addedAt: '2026-05-21',
-    workflow: REFRAME_WORKFLOW,
-    buildPayload: buildLumaRay2ReframeVideoPayload,
-    estimatedTime: 20,
-    mode: 'video', inputType: 'v2v',
-    description: 'Reframe a video to a new aspect ratio using Luma Ray 2.',
-    features: [feat('Video Input', 'input'), feat('Reframe', 'characteristic')],
-    paramConfig: {
-      ...params.prompt({ required: false, maxLength: LUMA_PROMPT_MAX }),
-      ...params.aspectRatio(LUMA_AR, '16:9'),
-      ...params.videoInput('Source Video'),
-    },
-  },
-  {
-    id: 'luma-ray-flash-2-reframe-video', name: 'Luma Flash 2 Reframe', modelId: 'luma-ray-flash-2',
-    addedAt: '2026-05-21',
-    workflow: REFRAME_WORKFLOW,
-    buildPayload: buildLumaRayFlash2ReframeVideoPayload,
-    estimatedTime: 12,
-    mode: 'video', inputType: 'v2v',
-    description: 'Reframe a video to a new aspect ratio using Luma Flash 2.',
-    features: [feat('Video Input', 'input'), feat('Reframe', 'characteristic')],
-    paramConfig: {
-      ...params.prompt({ required: false, maxLength: LUMA_PROMPT_MAX }),
-      ...params.aspectRatio(LUMA_AR, '16:9'),
-      ...params.videoInput('Source Video'),
-    },
-  },
   {
     id: 'luma-uni-1', name: 'Luma UNI-1',
     addedAt: '2026-05-20',

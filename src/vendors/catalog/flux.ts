@@ -28,13 +28,16 @@ const fluxResolutions = ['1K', '2K', '4K'];
 // lowercase `auto` (not `0:0`) for "follow the first reference image".
 const flux3ImageAspectRatios = [
   'auto', '21:9', '2:1', '16:9', '3:2', '7:5', '4:3', '5:4',
-  '1:1', '4:5', '3:4', '5:7', '2:3', '9:16', '1:2',
+  '1:1', '4:5', '3:4', '5:7', '2:3', '9:16', '9:21', '1:2',
 ];
 
 // Flux3ImageResolution enum values. Lowercase — the FLUX 3 image endpoint takes
 // a named tier (not `width`/`height` like FLUX.2) and its casing differs from
 // the `1K`/`2K`/`4K` of `fluxResolutions` above. Copy it exactly.
-const flux3ImageResolutions = ['512sq', '768sq', '1k', '2k', '4k'];
+// The vendor dropped 512sq and added 1.5k after the initial integration.
+// Each tier is priced separately, so a tier offered here without a matching
+// pricing entry fails the request outright.
+const flux3ImageResolutions = ['768sq', '1k', '1.5k', '2k', '4k'];
 
 // ── Payload builders ────────────────────────────────────────────────
 
@@ -227,7 +230,7 @@ export const { MODELS } = defineModels('flux', [
     // count (up to 10) samples further into the tail. Stage has seen 4+ minutes,
     // and one 512sq run took 287s. Over-estimating only makes the bar finish
     // early; under-estimating parks it at 99%.
-    estimatedTime: { '512sq': 90, '768sq': 110, '1k': 150, '2k': 240, '4k': 360 },
+    estimatedTime: { '768sq': 110, '1k': 150, '1.5k': 195, '2k': 240, '4k': 360 },
     description: 'Generate and edit images with up to 10 references — multi-reference composition, precise local edits and text rendering, natively up to 4K.',
     features: [
       feat('Multi-Image Input', 'input'),

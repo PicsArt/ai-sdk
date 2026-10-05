@@ -201,6 +201,8 @@ export const Happyhorse11R2v = 'happyhorse-1.1-r2v' as const;
 export const Happyhorse11T2v = 'happyhorse-1.1-t2v' as const;
 /** HeyGen Talking Photo — heygen (video) */
 export const HeygenTalkingPhoto = 'heygen-talking-photo' as const;
+/** HeyGen Video — heygen (video) */
+export const HeygenVideo1 = 'heygen-video-1' as const;
 /** HeyGen Video Avatar — heygen (video) */
 export const HeygenVideoAvatar = 'heygen-video-avatar' as const;
 /** Hunyuan V3 — hunyuan (image) */
@@ -637,6 +639,7 @@ export const Models = {
   Happyhorse11R2v,
   Happyhorse11T2v,
   HeygenTalkingPhoto,
+  HeygenVideo1,
   HeygenVideoAvatar,
   HunyuanV3,
   Ideogram45,

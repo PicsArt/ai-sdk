@@ -759,6 +759,18 @@ type ModelInputById = {
         voiceId: string;
         prompt: string;
     };
+    "heygen-video-1": {
+        prompt: string;
+        startFrame?: string;
+        imageUrls?: string[];
+        videoUrls?: string[];
+        audioUrls?: string[];
+        resolution?: "480p" | "768p";
+        duration?: number;
+        aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
+        promptEnhancement?: "turbo" | "quality" | "disabled";
+        seed?: number;
+    };
     "heygen-video-avatar": {
         videoId: string;
         engine?: "avatar_iv" | "avatar_v";
@@ -3361,6 +3373,7 @@ declare const Models: {
     readonly Happyhorse11R2v: "happyhorse-1.1-r2v";
     readonly Happyhorse11T2v: "happyhorse-1.1-t2v";
     readonly HeygenTalkingPhoto: "heygen-talking-photo";
+    readonly HeygenVideo1: "heygen-video-1";
     readonly HeygenVideoAvatar: "heygen-video-avatar";
     readonly HunyuanV3: "hunyuan-v3";
     readonly Ideogram45: "ideogram-4-5";

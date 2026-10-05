@@ -35,6 +35,7 @@ import './openai.payloads.ts'; // registers the GPT Image 2.5 payload builders a
 import { MODELS as elevenlabsMODELS } from './elevenlabs.ts';
 import './elevenlabs.payloads.ts'; // registers the TTS, STS, dialogue, music and transcription payload builders after model definitions
 import { MODELS as heygenMODELS } from './heygen.ts';
+import './heygen.payloads.ts'; // registers the HeyGen Video 1 payload builder after model definitions
 import { MODELS as minimaxMODELS } from './minimax.ts';
 import './minimax.payloads.ts'; // registers the Music v3 payload builder after model definitions
 import { MODELS as ideogramMODELS } from './ideogram.ts';

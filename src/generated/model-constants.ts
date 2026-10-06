@@ -120,6 +120,8 @@ export const Gemini38Flash = 'gemini-3.8-flash' as const;
 export const Gemini38FlashLiteTts = 'gemini-3.8-flash-lite-tts' as const;
 /** Gemini 3.8 Flash TTS — google (audio) */
 export const Gemini38FlashTts = 'gemini-3.8-flash-tts' as const;
+/** Nano Banana 2.1 — google (image) */
+export const GeminiNanoBanana21 = 'gemini-nano-banana-2.1' as const;
 /** Gemini Omni 1.1 Flash — google (video) */
 export const GeminiOmni11FlashPreview = 'gemini-omni-1.1-flash-preview' as const;
 /** Gemini Omni — google (video) */
@@ -502,8 +504,6 @@ export const Seedream50Flash = 'seedream-5.0-flash' as const;
 export const Seedream50Lite = 'seedream-5.0-lite' as const;
 /** Seedream 5.0 Pro — bytedance (image) */
 export const Seedream50Pro = 'seedream-5.0-pro' as const;
-/** Spicy Mayo — google (image) */
-export const SpicyMayo = 'spicy-mayo' as const;
 /** Topaz Image Upscale — topaz (image) */
 export const TopazUpscaleImage = 'topaz-upscale-image' as const;
 /** Topaz Video Upscale — topaz (video) */
@@ -601,6 +601,7 @@ export const Models = {
   Gemini38Flash,
   Gemini38FlashLiteTts,
   Gemini38FlashTts,
+  GeminiNanoBanana21,
   GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,
   Gpt41Mini,
@@ -783,7 +784,6 @@ export const Models = {
   Seedream50Flash,
   Seedream50Lite,
   Seedream50Pro,
-  SpicyMayo,
   TopazUpscaleImage,
   TopazUpscaleVideo,
   TypesafeEvaluate,

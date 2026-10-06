@@ -506,6 +506,15 @@ type ModelInputById = {
             voiceName: string;
         }>;
     };
+    "gemini-nano-banana-2.1": {
+        prompt: string;
+        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto";
+        resolution?: "1K" | "2K" | "4K";
+        count?: 1 | 2 | 4 | 6 | 8 | 10;
+        seed?: number;
+        thinkingLevel?: "minimal" | "medium" | "high";
+        imageUrls?: string[];
+    };
     "gemini-omni-1.1-flash-preview": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16";
@@ -1893,14 +1902,6 @@ type ModelInputById = {
         aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9";
         imageUrls?: string[];
         negativePrompt?: string;
-    };
-    "spicy-mayo": {
-        prompt: string;
-        aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto";
-        count?: 1 | 2 | 4 | 6 | 8 | 10;
-        seed?: number;
-        thinkingLevel?: "minimal" | "medium" | "high";
-        imageUrls?: string[];
     };
     "topaz-upscale-image": {
         imageUrls: [string, ...string[]];
@@ -3385,6 +3386,7 @@ declare const Models: {
     readonly Gemini38Flash: "gemini-3.8-flash";
     readonly Gemini38FlashLiteTts: "gemini-3.8-flash-lite-tts";
     readonly Gemini38FlashTts: "gemini-3.8-flash-tts";
+    readonly GeminiNanoBanana21: "gemini-nano-banana-2.1";
     readonly GeminiOmni11FlashPreview: "gemini-omni-1.1-flash-preview";
     readonly GeminiOmniFlashPreview: "gemini-omni-flash-preview";
     readonly Gpt41Mini: "gpt-4.1-mini";
@@ -3567,7 +3569,6 @@ declare const Models: {
     readonly Seedream50Flash: "seedream-5.0-flash";
     readonly Seedream50Lite: "seedream-5.0-lite";
     readonly Seedream50Pro: "seedream-5.0-pro";
-    readonly SpicyMayo: "spicy-mayo";
     readonly TopazUpscaleImage: "topaz-upscale-image";
     readonly TopazUpscaleVideo: "topaz-upscale-video";
     readonly TypesafeEvaluate: "typesafe-evaluate";

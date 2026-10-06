@@ -6489,14 +6489,14 @@ var buildGemini31FlashLiteImagePayload = (ctx) => ({
   imageSize: ctx.resolution ?? "1K",
   ...buildThinkingConfig(ctx)
 });
-var buildSpicyMayoPayload = (ctx) => ({
+var buildNanoBanana21Payload = (ctx) => ({
   prompt: ctx.prompt,
-  model: "spicy-mayo",
+  model: "gemini-nano-banana-2.1",
   count: ctx.count ?? 1,
   ...ctx.seed != null ? { seed: ctx.seed } : {},
   ...ctx.imageUrls?.length ? { imageUrls: ctx.imageUrls } : {},
   aspectRatio: ctx.aspectRatio ?? "1:1",
-  imageSize: "1K",
+  imageSize: ctx.resolution ?? "1K",
   ...buildThinkingConfig(ctx)
 });
 function inferMimeType2(url) {
@@ -6577,7 +6577,7 @@ var thinkingBudgetParam = {
     descriptor: { kind: "range", min: 128, max: 24576, step: 128, default: 128 }
   }
 };
-var spicyMayoThinkingParam = {
+var nanoBanana21ThinkingParam = {
   thinkingLevel: {
     label: "Thinking",
     descriptor: {
@@ -6595,31 +6595,28 @@ var spicyMayoThinkingParam = {
 var { MODELS: MODELS22 } = defineModels("google", [
   // ── Image ─────────────────────────────────────────────────────────
   {
-    id: "spicy-mayo",
-    name: "Spicy Mayo",
-    addedAt: "2026-10-02",
-    // Confidential early access at the vendor, authorized for named projects
-    // only — stage until the co-launch clears it for prod.
-    release: "preview",
+    id: "gemini-nano-banana-2.1",
+    name: "Nano Banana 2.1",
+    addedAt: "2026-10-06",
     workflow: "gemini/v2/images",
-    buildPayload: buildSpicyMayoPayload,
-    // Measured end-to-end against stage at 1K/1:1: 9s to generate, 13s to edit
-    // with two reference images. Rounded up — vendor testing capacity is capped.
-    estimatedTime: 15,
+    buildPayload: buildNanoBanana21Payload,
+    // Measured end-to-end through the worker (generation plus the CDN upload a caller
+    // waits on), two runs per tier: 1K 15-17s, 2K 28-29s, 4K 45-50s. Rounded up.
+    estimatedTime: { "1K": 18, "2K": 30, "4K": 50 },
     mode: "image",
     inputType: "t2i",
-    modelId: "spicy-mayo",
+    modelId: "gemini-nano-banana-2.1",
     badge: ["fast"],
     description: "Fast Google image generation and editing with multi-image references.",
-    // Only the 1K tier is priced, so no `resolution` param: the builder pins
-    // imageSize and anything else is a 400 from the worker.
-    features: [feat("Multi-Image Input", "input"), feat("1K", "resolution")],
+    features: [feat("Multi-Image Input", "input"), feat("4K", "resolution")],
     paramConfig: {
       ...params.prompt(),
       ...params.aspectRatio([...GEMINI_AR_WIDE], "1:1"),
+      // 0.5K is rejected by the vendor; 1K/2K/4K each genuinely scale the output.
+      ...params.resolution(["1K", "2K", "4K"], "1K"),
       ...params.count(),
       ...params.seed(),
-      ...spicyMayoThinkingParam,
+      ...nanoBanana21ThinkingParam,
       ...params.imageInput(14, "Source Images")
     }
   },
@@ -13646,6 +13643,7 @@ var Gemini37Flash = "gemini-3.7-flash";
 var Gemini38Flash = "gemini-3.8-flash";
 var Gemini38FlashLiteTts = "gemini-3.8-flash-lite-tts";
 var Gemini38FlashTts = "gemini-3.8-flash-tts";
+var GeminiNanoBanana21 = "gemini-nano-banana-2.1";
 var GeminiOmni11FlashPreview = "gemini-omni-1.1-flash-preview";
 var GeminiOmniFlashPreview = "gemini-omni-flash-preview";
 var Gpt41Mini = "gpt-4.1-mini";
@@ -13828,7 +13826,6 @@ var Seedream47 = "seedream-4.7";
 var Seedream50Flash = "seedream-5.0-flash";
 var Seedream50Lite = "seedream-5.0-lite";
 var Seedream50Pro = "seedream-5.0-pro";
-var SpicyMayo = "spicy-mayo";
 var TopazUpscaleImage = "topaz-upscale-image";
 var TopazUpscaleVideo = "topaz-upscale-video";
 var TypesafeEvaluate = "typesafe-evaluate";
@@ -13903,6 +13900,7 @@ var Models = {
   Gemini38Flash,
   Gemini38FlashLiteTts,
   Gemini38FlashTts,
+  GeminiNanoBanana21,
   GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,
   Gpt41Mini,
@@ -14085,7 +14083,6 @@ var Models = {
   Seedream50Flash,
   Seedream50Lite,
   Seedream50Pro,
-  SpicyMayo,
   TopazUpscaleImage,
   TopazUpscaleVideo,
   TypesafeEvaluate,

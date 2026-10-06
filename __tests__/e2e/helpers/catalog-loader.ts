@@ -146,13 +146,13 @@ function buildDefaultContext(model: ModelDefinition): Record<string, unknown> {
 
 /** An object param's value: a single item, or as many as the array's `min` demands. */
 function buildObjectValue(d: ObjectDescriptor): unknown {
-  if (!d.array) return buildObjectItem(d.fields);
+  if (!d.array) return buildObjectItem(d.fields ?? {});
   const count = Math.max(1, d.array.min ?? 1);
-  return Array.from({ length: count }, () => buildObjectItem(d.fields));
+  return Array.from({ length: count }, () => buildObjectItem(d.fields ?? {}));
 }
 
 /** One synthesized value per nested field, using the same rules as the top level. */
-function buildObjectItem(fields: ObjectDescriptor['fields']): Record<string, unknown> {
+function buildObjectItem(fields: NonNullable<ObjectDescriptor['fields']>): Record<string, unknown> {
   const item: Record<string, unknown> = {};
   for (const [key, field] of Object.entries(fields)) {
     switch (field.kind) {
@@ -168,8 +168,9 @@ function buildObjectItem(fields: ObjectDescriptor['fields']): Record<string, unk
         item[key] = buildObjectValue(field);
         break;
       default:
-        // enum / catalog / range / boolean all carry their own default.
-        if (field.default !== undefined) item[key] = field.default;
+        // enum / catalog / range / boolean carry their own default; `unknown`
+        // (vendor pass-through) has nothing to synthesize.
+        if ('default' in field && field.default !== undefined) item[key] = field.default;
     }
   }
   return item;

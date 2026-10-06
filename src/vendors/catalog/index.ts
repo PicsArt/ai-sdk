@@ -57,6 +57,8 @@ import { MODELS as captionsaiMODELS } from './captionsai.ts';
 import './captionsai.payloads.ts'; // registers the video-captions payload builder after model definitions
 import { MODELS as metaMODELS } from './meta.ts';
 import './meta.payloads.ts'; // registers the Muse Image payload builders after model definitions
+import { MODELS as typesafeMODELS } from './typesafe.ts';
+import './typesafe.payloads.ts'; // registers the evaluate payload builder after model definitions
 import './creatify.payloads.ts'; // registers the Creatify Boreal payload builder after model definitions
 import './ltx.payloads.ts'; // registers the LTX 2.5 payload builders after model definitions
 
@@ -103,6 +105,7 @@ export const ALL_MODELS: ModelDefinition[] = [
   ...llmMODELS,
   ...captionsaiMODELS,
   ...metaMODELS,
+  ...typesafeMODELS,
 ];
 
 /**

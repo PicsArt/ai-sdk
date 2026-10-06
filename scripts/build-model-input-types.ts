@@ -58,15 +58,25 @@ function typeFromDescriptor(d: ParamDescriptor): string {
     }
     case 'object': {
       const od = d as ObjectDescriptor;
-      const inner = Object.entries(od.fields)
+      const declared = Object.entries(od.fields ?? {});
+      const inner = declared
         .map(([k, fd]) => {
           const req = (fd as { required?: boolean }).required ?? true;
           return `${k}${req ? '' : '?'}: ${typeFromDescriptor(fd)}`;
         })
         .join('; ');
-      const objType = `{ ${inner} }`;
+      // JSON-Schema additionalProperties: no declared fields → open-keyed
+      // dictionary (Record); alongside fields → declared shape plus extras
+      // (the index-signature intersection also disables excess-property checks).
+      const extra = od.additionalProperties ? typeFromDescriptor(od.additionalProperties) : null;
+      const objType =
+        declared.length === 0 && extra ? `Record<string, ${extra}>` :
+        extra ? `{ ${inner} } & Record<string, ${extra}>` :
+        `{ ${inner} }`;
       return od.array != null ? `Array<${objType}>` : objType;
     }
+    case 'unknown':
+      return 'unknown';
   }
 }
 
@@ -138,6 +148,12 @@ function buildFileContent(models: ModelDefinition[]): string {
   lines.push('/** IDs of text-generation (LLM) models — narrows generateText(). */');
   lines.push(`export type TextModelId = ${textIds.length ? stringUnion(textIds) : 'never'};`);
   lines.push('export type TextModelInputById = Pick<ModelInputById, TextModelId>;');
+  lines.push('');
+
+  // Structured-output (json-mode) models — subset run() answers with GenerateJsonResult.
+  const jsonIds = sorted.filter(m => m.mode === 'json').map(m => m.id);
+  lines.push("/** IDs of structured-output (json-mode) models — narrows run()'s result type. */");
+  lines.push(`export type JsonModelId = ${jsonIds.length ? stringUnion(jsonIds) : 'never'};`);
   lines.push('');
   lines.push('/** Ensure caller does not pass keys unsupported by the target model input shape. */');
   lines.push('export type NoExtraKeys<Shape, T extends Shape> = T & Record<Exclude<keyof T, keyof Shape>, never>;');

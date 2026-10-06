@@ -149,12 +149,29 @@ export interface FileDescriptor {
   maxBytes?: number;
 }
 
+/** Any value — no validation, generates as `unknown`. Only meaningful as an
+ *  ObjectDescriptor's `additionalProperties` (or a nested field): it marks a
+ *  pass-through slot whose shape the vendor owns. */
+export interface UnknownDescriptor {
+  kind: 'unknown';
+}
+
 export interface ObjectDescriptor {
   kind: 'object';
-  /** Nested fields use the flat EntryMeta + Descriptor merge — same shape as
+  /** Declared fields — flat EntryMeta + Descriptor merge, same shape as
    *  EnumEntry / RangeEntry / etc. Authors can mark a nested field optional
    *  by setting `required: false`. Default is required. */
-  fields: Record<string, EntryMeta & ParamDescriptor>;
+  fields?: Record<string, EntryMeta & ParamDescriptor>;
+  /**
+   * JSON-Schema-style `additionalProperties`: keys beyond `fields` are
+   * allowed, each value validated against this descriptor. With no `fields`
+   * the object is an open-keyed dictionary (generates `Record<string, V>` —
+   * e.g. question id → question object); alongside `fields` it admits
+   * vendor-defined extras (generates `{ …fields } & Record<string, V>`).
+   * Use `{ kind: 'unknown' }` to pass extras through unvalidated.
+   * Omitted → closed shape: exactly `fields`.
+   */
+  additionalProperties?: ParamDescriptor;
   array?: { min?: number; max?: number };
 }
 
@@ -166,7 +183,8 @@ export type ParamDescriptor =
   | BooleanDescriptor
   | TextDescriptor
   | FileDescriptor
-  | ObjectDescriptor;
+  | ObjectDescriptor
+  | UnknownDescriptor;
 
 export interface ParamEntry {
   label?: string;
@@ -209,6 +227,7 @@ export type BooleanEntry = EntryMeta & BooleanDescriptor;
 export type TextEntry = EntryMeta & TextDescriptor;
 export type FileEntry = EntryMeta & FileDescriptor;
 export type ObjectEntry = EntryMeta & ObjectDescriptor;
+export type UnknownEntry = EntryMeta & UnknownDescriptor;
 
 /** Flat param entry with key — returned by ModelAccessor.params(). */
 export type FlatParamEntry = EntryMeta & ParamDescriptor & { key: string };

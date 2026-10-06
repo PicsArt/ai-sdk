@@ -117,6 +117,14 @@ const SEEDANCE_25_VIDEO_BOUNDS: VideoBounds = {
   maxDurationSec: SEEDANCE_25_MAX_MEDIA_SEC,
   maxFrameRate: SEEDANCE_MAX_FRAME_RATE,
 };
+/** The edit task's SOURCE clip has a stricter floor than a reference clip:
+ *  "the video selected must satisfy the duration requirement of 4 to 30
+ *  seconds". Only the `edit` task type is known to enforce it (finding F86 on
+ *  the generation-failure board: no edit with a sub-4 s source ever succeeded). */
+const SEEDANCE_25_EDIT_SOURCE_BOUNDS: VideoBounds = {
+  ...SEEDANCE_25_VIDEO_BOUNDS,
+  minDurationSec: 4,
+};
 const SEEDANCE_20_VIDEO_BOUNDS: VideoBounds = {
   minAspectRatio: SEEDANCE_MIN_ASPECT_RATIO,
   maxAspectRatio: SEEDANCE_MAX_ASPECT_RATIO,
@@ -770,7 +778,7 @@ export const { MODELS } = defineModels('bytedance', [
       ...seedance25DraftParam,
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
       // / maxBytes args predate it and are skipped rather than duplicated.
-      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_25_VIDEO_BOUNDS),
+      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_25_EDIT_SOURCE_BOUNDS),
       ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
     },
   },
@@ -799,7 +807,7 @@ export const { MODELS } = defineModels('bytedance', [
       ...seedance25DraftParam,
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
       // / maxBytes args predate it and are skipped rather than duplicated.
-      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_25_VIDEO_BOUNDS),
+      ...params.videoInput('Source Video', 'reference', true, undefined, undefined, undefined, SEEDANCE_25_EDIT_SOURCE_BOUNDS),
       ...params.imageInput(30, 'Reference Images', false, 'reference', SEEDANCE_IMAGE_BOUNDS),
     },
   },

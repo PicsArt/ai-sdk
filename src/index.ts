@@ -19,6 +19,7 @@ export type {
   GenerateResultItem,
   GenerateResultItemMetadata,
   GenerateTextResult,
+  RunResponse,
   GenerateOptions,
   GenerationEvent,
   GenerationOptions,
@@ -80,7 +81,7 @@ export type {
 } from './core/catalogs.ts';
 export { toVoiceOption, toAvatarOption } from './core/catalogs.ts';
 export type { CatalogsClient, CatalogPage, CatalogPageOptions, CatalogsOptions } from './client/index.ts';
-export type { TypedModelId, ModelInput, ModelInputById, TextModelId, TextModelInputById } from './generated/model-input-types.ts';
+export type { TypedModelId, ModelInput, ModelInputById, TextModelId, TextModelInputById, JsonModelId } from './generated/model-input-types.ts';
 export type { MediaModelId } from './client/index.ts';
 
 
@@ -98,6 +99,7 @@ export type {
   TextDescriptor,
   FileDescriptor,
   ObjectDescriptor,
+  UnknownDescriptor,
   EnumEntry,
   CatalogEntry,
   RangeEntry,
@@ -105,6 +107,7 @@ export type {
   TextEntry,
   FileEntry,
   ObjectEntry,
+  UnknownEntry,
   EntryMeta,
   FlatParamEntry,
   ModelDescriptor,

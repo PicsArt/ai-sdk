@@ -41,6 +41,7 @@ export const providers: Record<Provider, ProviderMeta> = {
   async: { color: '#5E5CE6', label: 'AA', name: 'Async AI' },
   captionsai: { color: '#1D1F20', label: 'MR', name: 'Mirage' },
   meta: { color: '#0081FB', label: 'MT', name: 'Meta' },
+  typesafe: { color: '#3E6B8F', label: 'TS', name: 'TypeSafe' },
 };
 
 export const getProviderColor = (provider: Provider): string =>

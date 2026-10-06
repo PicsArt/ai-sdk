@@ -13,16 +13,16 @@ import { extractSyncResult, toCompletedStatus } from '../core/response.ts';
 import { resolveModel } from '../core/resolve.ts';
 import { ApiError } from '../core/errors.ts';
 
-import type { ClientConfig, GenerateResult, GenerateTextResult, GenerateOptions, GenerationOptions, PayloadInputsTransformationOptions, AiClient, GenerationEvent } from './types.ts';
+import type { ClientConfig, GenerateResult, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, PayloadInputsTransformationOptions, AiClient, GenerationEvent } from './types.ts';
 import type { PayloadDriveOptions } from './drive.ts';
 import { buildTransport, createWorkflowsClient, maybeFetch } from './transport.ts';
-import { prepareRequest, parseResult, parseTextResult } from './prepare.ts';
+import { prepareRequest, parseResult, parseTextResult, parseRunResult } from './prepare.ts';
 import { createDriveClient, buildFilename, buildGenerationAttributes, expectedOutputFormat } from './drive.ts';
 import { createApis } from './apis.ts';
 import { createCatalogs } from './catalogs.ts';
 
 // ── Re-export types for the public API ──
-export type { ClientConfig, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, CreditUsage, OptionsResult, ToolUsage, AiClient, MediaModelId } from './types.ts';
+export type { ClientConfig, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, CreditUsage, OptionsResult, ToolUsage, AiClient, MediaModelId } from './types.ts';
 export type { ApiResponse, ApiRunOptions, ApiSchemas, ApisClient } from './apis.ts';
 export type { CatalogsClient, CatalogPage, CatalogPageOptions, CatalogsOptions } from './catalogs.ts';
 export { GenerationEventType } from './types.ts';
@@ -41,11 +41,15 @@ export { inferResourceType, buildFilename, resolveExtension, expectedOutputForma
  * Precedence, widest to narrowest: mode default → model `pollOptions` →
  * per-call `intervalMs` / `maxAttempts`.
  */
+/** Modes served by the media lifecycle (generate/submit/result/subscribe). */
+const MEDIA_MODES: ReadonlySet<GenerationMode> = new Set(['video', 'image', 'audio']);
+
 const MODE_POLL_DEFAULTS: Record<GenerationMode, { intervalMs: number; maxAttempts: number }> = {
   video: { intervalMs: 2000, maxAttempts: 1800 }, // 2s × 1800 = 1 hour
   image: { intervalMs: 1000, maxAttempts: 1200 }, // 1s × 1200 = 20 min
   audio: { intervalMs: 1000, maxAttempts: 1200 }, // 1s × 1200 = 20 min
   text: { intervalMs: 1000, maxAttempts: 1200 },  // 1s × 1200 = 20 min
+  json: { intervalMs: 1000, maxAttempts: 1200 },  // 1s × 1200 = 20 min
 };
 
 /**
@@ -189,14 +193,19 @@ export function createClient(config: ClientConfig) {
     if (!transport.poll) throw unsupportedTransport('polling');
   }
 
-  /** Reject text models on the media lifecycle with the standard ApiError. */
+  /** Whether the model is served by the media lifecycle (generate/submit/result/subscribe). */
+  function isMediaModel(model: ModelDefinition): boolean {
+    return MEDIA_MODES.has(model.mode);
+  }
+
+  /** Reject non-media models on the media lifecycle with the standard ApiError. */
   function assertMediaModel(model: ModelDefinition): void {
-    if (model.mode === 'text') {
-      throw new ApiError(`${model.name} is a text model — use generateText() instead.`, {
-        status: 400,
-        code: 'wrong_model_mode',
-      });
-    }
+    if (isMediaModel(model)) return;
+    const alternative = model.mode === 'text' ? 'generateText()' : 'run()';
+    throw new ApiError(`${model.name} is a ${model.mode} model — use ${alternative} instead.`, {
+      status: 400,
+      code: 'wrong_model_mode',
+    });
   }
 
   /**
@@ -338,6 +347,26 @@ export function createClient(config: ClientConfig) {
 
   return {
     // ── Simple path ──────────────────────────────────────────────────
+
+    /**
+     * Run any model by id and get the task result back, generically — the
+     * model-id counterpart of `ai.apis.run()`. Works on every model: builds
+     * and validates the payload from paramConfig, executes the workflow
+     * (sync or async), applies the model's `outputSchema` when declared, and
+     * returns the task result as-is — no media-URL or text extraction, no
+     * Drive save, no options injection. The only generation surface for
+     * json-mode (structured-output) models.
+     */
+    async run(
+      model: string,
+      params: Record<string, unknown>,
+      options?: GenerateOptions,
+    ): Promise<RunResponse> {
+      const resolved = resolveModel(model);
+      const { workflow, payload, contract } = prepareRequest(resolved, params);
+      const completed = await executeModel(resolved, workflow, payload, options);
+      return parseRunResult(completed, resolved, contract);
+    },
 
     /**
      * Generate content using a model.

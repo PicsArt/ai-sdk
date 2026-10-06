@@ -566,12 +566,22 @@ function validateDescriptor(key, d, val, required) {
           `"${key}" allows at most ${d.array.max} items`
         );
       }
+      const declared = d.fields ?? {};
       for (const item of items) {
         if (item == null || typeof item !== "object" || Array.isArray(item)) {
-          throw new Error(`"${key}" items must be objects`);
+          throw new Error(d.array ? `"${key}" items must be objects` : `"${key}" must be an object`);
         }
-        for (const [fk, fd] of Object.entries(d.fields)) {
-          validateDescriptor(`${key}.${fk}`, fd, item[fk]);
+        if (required && !d.array && d.additionalProperties && Object.keys(declared).length === 0 && Object.keys(item).length === 0) {
+          throw new Error(`"${key}" is required`);
+        }
+        for (const [fk, fd] of Object.entries(declared)) {
+          validateDescriptor(`${key}.${fk}`, fd, item[fk], fd.required);
+        }
+        if (d.additionalProperties) {
+          for (const [ek, ev] of Object.entries(item)) {
+            if (ek in declared) continue;
+            validateDescriptor(`${key}.${ek}`, d.additionalProperties, ev, true);
+          }
         }
       }
       break;
@@ -784,7 +794,8 @@ var providers = {
   anthropic: { color: "#D97757", label: "CL", name: "Anthropic" },
   async: { color: "#5E5CE6", label: "AA", name: "Async AI" },
   captionsai: { color: "#1D1F20", label: "MR", name: "Mirage" },
-  meta: { color: "#0081FB", label: "MT", name: "Meta" }
+  meta: { color: "#0081FB", label: "MT", name: "Meta" },
+  typesafe: { color: "#3E6B8F", label: "TS", name: "TypeSafe" }
 };
 
 // src/core/descriptors/presets.ts
@@ -1162,7 +1173,7 @@ var passthroughPayload = (paramConfig) => (ctx) => {
   return payload;
 };
 function defineModels(provider, configs) {
-  const MODELS38 = [];
+  const MODELS39 = [];
   for (const c of configs) {
     const prov = c.provider ?? provider;
     const resolvedPayload = c.buildPayload ?? passthroughPayload(c.paramConfig);
@@ -1198,19 +1209,19 @@ function defineModels(provider, configs) {
     if (c.constraints !== void 0) model.constraints = c.constraints;
     const contract = createModelContract(model);
     model.outputSchema = c.outputSchema ?? contract.output;
-    MODELS38.push(model);
+    MODELS39.push(model);
   }
-  return { MODELS: MODELS38 };
+  return { MODELS: MODELS39 };
 }
-function registerPayloads(MODELS38, payloads) {
+function registerPayloads(MODELS39, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS38.find((m) => m.id === id);
+    const model = MODELS39.find((m) => m.id === id);
     if (model) model.buildPayload = builder;
   }
 }
-function registerEditPayloads(MODELS38, payloads) {
+function registerEditPayloads(MODELS39, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS38.find((m) => m.id === id);
+    const model = MODELS39.find((m) => m.id === id);
     if (model) model.buildEditPayload = builder;
   }
 }
@@ -4176,6 +4187,10 @@ var SEEDANCE_25_VIDEO_BOUNDS = {
   maxDurationSec: SEEDANCE_25_MAX_MEDIA_SEC,
   maxFrameRate: SEEDANCE_MAX_FRAME_RATE
 };
+var SEEDANCE_25_EDIT_SOURCE_BOUNDS = {
+  ...SEEDANCE_25_VIDEO_BOUNDS,
+  minDurationSec: 4
+};
 var SEEDANCE_20_VIDEO_BOUNDS = {
   minAspectRatio: SEEDANCE_MIN_ASPECT_RATIO,
   maxAspectRatio: SEEDANCE_MAX_ASPECT_RATIO,
@@ -4658,7 +4673,7 @@ var { MODELS: MODELS13 } = defineModels("bytedance", [
       ...seedance25DraftParam,
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
       // / maxBytes args predate it and are skipped rather than duplicated.
-      ...params.videoInput("Source Video", "reference", true, void 0, void 0, void 0, SEEDANCE_25_VIDEO_BOUNDS),
+      ...params.videoInput("Source Video", "reference", true, void 0, void 0, void 0, SEEDANCE_25_EDIT_SOURCE_BOUNDS),
       ...params.imageInput(30, "Reference Images", false, "reference", SEEDANCE_IMAGE_BOUNDS)
     }
   },
@@ -4690,7 +4705,7 @@ var { MODELS: MODELS13 } = defineModels("bytedance", [
       ...seedance25DraftParam,
       // Every limit rides in `bounds`; the positional maxDuration / maxShortSide
       // / maxBytes args predate it and are skipped rather than duplicated.
-      ...params.videoInput("Source Video", "reference", true, void 0, void 0, void 0, SEEDANCE_25_VIDEO_BOUNDS),
+      ...params.videoInput("Source Video", "reference", true, void 0, void 0, void 0, SEEDANCE_25_EDIT_SOURCE_BOUNDS),
       ...params.imageInput(30, "Reference Images", false, "reference", SEEDANCE_IMAGE_BOUNDS)
     }
   },
@@ -7674,7 +7689,7 @@ var buildElevenLabsDialoguePayload = (catalogId, modelId) => (input) => {
 };
 function dialogueCharacterCap(catalogId) {
   const descriptor = MODELS24.find((m) => m.id === catalogId)?.paramConfig.dialogue?.descriptor;
-  const text = descriptor?.kind === "object" ? descriptor.fields.text : void 0;
+  const text = descriptor?.kind === "object" ? descriptor.fields?.text : void 0;
   const cap = text && "maxLength" in text ? text.maxLength : void 0;
   if (typeof cap !== "number") {
     throw new Error(`${catalogId}: dialogue entry declares no per-line maxLength to derive the cap from`);
@@ -10652,6 +10667,77 @@ registerEditPayloads(MODELS37, {
   "muse-image-1.0": buildMuseImageEditPayload
 });
 
+// src/vendors/catalog/typesafe.ts
+var evaluateOutputSchema = {
+  parse(output) {
+    const obj = output;
+    if (!obj || typeof obj.answers !== "object" || obj.answers == null) {
+      throw new Error("No answers in TypeSafe evaluate response");
+    }
+    return output;
+  }
+};
+var { MODELS: MODELS38 } = defineModels("typesafe", [
+  {
+    id: "typesafe-evaluate",
+    name: "Jev",
+    workflow: "typesafe/v1/systemone/evaluate",
+    addedAt: "2026-10-05",
+    modelId: "jev-latest",
+    estimatedTime: 6,
+    badge: ["new"],
+    mode: "json",
+    inputType: "t2t",
+    outputSchema: evaluateOutputSchema,
+    description: "Evaluate content against named questions (yes/no, choice, score) and get structured answers back.",
+    features: [feat("Structured Output", "characteristic")],
+    paramConfig: {
+      ...p.text("state", { label: "Content", required: true }),
+      questions: {
+        label: "Questions",
+        required: true,
+        // Dictionary of caller-chosen question ids → question objects.
+        descriptor: {
+          kind: "object",
+          additionalProperties: {
+            kind: "object",
+            fields: {
+              type: {
+                kind: "enum",
+                valueType: "string",
+                default: "noul",
+                required: true,
+                options: [
+                  { id: "noul", label: "Yes/No" },
+                  { id: "choice", label: "Choice" },
+                  { id: "score", label: "Score" }
+                ]
+              },
+              // Plain string or a structured instruction object — the shape is
+              // vendor-defined (see https://docs.typesafe.ai/api), so only
+              // presence is enforced here.
+              instructions: { kind: "unknown", required: true }
+            },
+            // Choice options, score bounds, etc. are question-type-specific —
+            // see https://docs.typesafe.ai/api; pass them through unvalidated.
+            additionalProperties: { kind: "unknown" }
+          }
+        }
+      }
+    }
+  }
+]);
+
+// src/vendors/catalog/typesafe.payloads.ts
+var buildEvaluatePayload = (input) => ({
+  state: input.state,
+  model: "jev-latest",
+  questions: input.questions
+});
+registerPayloads(MODELS38, {
+  "typesafe-evaluate": buildEvaluatePayload
+});
+
 // src/vendors/catalog/creatify.payloads.ts
 var buildCreatifyBorealPayload = (input) => ({
   prompt: input.prompt,
@@ -10806,7 +10892,8 @@ var ALL_MODELS = [
   ...MODELS34,
   ...MODELS35,
   ...MODELS36,
-  ...MODELS37
+  ...MODELS37,
+  ...MODELS38
 ];
 var getModelsByMode = (mode, includeHidden = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeHidden || isVisibleForReleases(m)));
 
@@ -12352,6 +12439,24 @@ function parseTextResult(completed, model) {
   }
   return { text, model: model.id, raw: completed.raw ?? completed.result, usage: completed.usage };
 }
+function parseRunResult(completed, model, contract) {
+  throwIfErrorResult(completed.result, model.name);
+  throwIfErrorResult(completed.raw, model.name);
+  const result = contract?.output ? contract.output.parse(completed.result) : completed.result;
+  if (result == null) {
+    throw new ApiError(`${model.name}: unexpected response \u2014 empty result`, {
+      status: 502,
+      code: "invalid_response"
+    });
+  }
+  return {
+    result,
+    status: "COMPLETED",
+    usage: completed.usage,
+    // Sync executions have no job id (nothing to poll) — omit rather than ''.
+    ...completed.handle.id ? { id: completed.handle.id } : {}
+  };
+}
 
 // src/core/limits.ts
 var MAX_DRIVE_PROMPT_LENGTH = 18e3;
@@ -13128,6 +13233,7 @@ var GenerationEventType = {
 };
 
 // src/client/index.ts
+var MEDIA_MODES = /* @__PURE__ */ new Set(["video", "image", "audio"]);
 var MODE_POLL_DEFAULTS = {
   video: { intervalMs: 2e3, maxAttempts: 1800 },
   // 2s × 1800 = 1 hour
@@ -13135,7 +13241,9 @@ var MODE_POLL_DEFAULTS = {
   // 1s × 1200 = 20 min
   audio: { intervalMs: 1e3, maxAttempts: 1200 },
   // 1s × 1200 = 20 min
-  text: { intervalMs: 1e3, maxAttempts: 1200 }
+  text: { intervalMs: 1e3, maxAttempts: 1200 },
+  // 1s × 1200 = 20 min
+  json: { intervalMs: 1e3, maxAttempts: 1200 }
   // 1s × 1200 = 20 min
 };
 function resolvePollOptions(model, overrides) {
@@ -13193,13 +13301,16 @@ function createClient(config) {
     if (!transport.submit) throw unsupportedTransport("submit");
     if (!transport.poll) throw unsupportedTransport("polling");
   }
+  function isMediaModel(model) {
+    return MEDIA_MODES.has(model.mode);
+  }
   function assertMediaModel(model) {
-    if (model.mode === "text") {
-      throw new ApiError(`${model.name} is a text model \u2014 use generateText() instead.`, {
-        status: 400,
-        code: "wrong_model_mode"
-      });
-    }
+    if (isMediaModel(model)) return;
+    const alternative = model.mode === "text" ? "generateText()" : "run()";
+    throw new ApiError(`${model.name} is a ${model.mode} model \u2014 use ${alternative} instead.`, {
+      status: 400,
+      code: "wrong_model_mode"
+    });
   }
   async function submitJob(workflow, payload, signal) {
     if (signal?.aborted) {
@@ -13282,6 +13393,21 @@ function createClient(config) {
   }
   return {
     // ── Simple path ──────────────────────────────────────────────────
+    /**
+     * Run any model by id and get the task result back, generically — the
+     * model-id counterpart of `ai.apis.run()`. Works on every model: builds
+     * and validates the payload from paramConfig, executes the workflow
+     * (sync or async), applies the model's `outputSchema` when declared, and
+     * returns the task result as-is — no media-URL or text extraction, no
+     * Drive save, no options injection. The only generation surface for
+     * json-mode (structured-output) models.
+     */
+    async run(model, params2, options) {
+      const resolved = resolveModel(model);
+      const { workflow, payload, contract } = prepareRequest(resolved, params2);
+      const completed = await executeModel(resolved, workflow, payload, options);
+      return parseRunResult(completed, resolved, contract);
+    },
     /**
      * Generate content using a model.
      *
@@ -13705,6 +13831,7 @@ var Seedream50Pro = "seedream-5.0-pro";
 var SpicyMayo = "spicy-mayo";
 var TopazUpscaleImage = "topaz-upscale-image";
 var TopazUpscaleVideo = "topaz-upscale-video";
+var TypesafeEvaluate = "typesafe-evaluate";
 var VeedFabricV1 = "veed-fabric-v1";
 var VeedFabricV1Fast = "veed-fabric-v1-fast";
 var Veo31 = "veo-3.1";
@@ -13961,6 +14088,7 @@ var Models = {
   SpicyMayo,
   TopazUpscaleImage,
   TopazUpscaleVideo,
+  TypesafeEvaluate,
   VeedFabricV1,
   VeedFabricV1Fast,
   Veo31,

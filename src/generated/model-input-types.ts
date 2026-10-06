@@ -246,6 +246,7 @@ export type ModelInputById = {
   "spicy-mayo": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto"; count?: 1 | 2 | 4 | 6 | 8 | 10; seed?: number; thinkingLevel?: "minimal" | "medium" | "high"; imageUrls?: string[]; };
   "topaz-upscale-image": { imageUrls: [string, ...string[]]; model?: "Standard V2" | "Standard MAX" | "Low Resolution V2" | "High Fidelity V2" | "CGI" | "Text Refine" | "Redefine" | "Recovery" | "Recovery V2" | "Wonder" | "Wonder 3"; };
   "topaz-upscale-video": { videoUrl: string; model?: "Proteus" | "Artemis HQ" | "Artemis MQ" | "Artemis LQ" | "Nyx" | "Nyx Fast" | "Nyx XL" | "Nyx HF" | "Gaia HQ" | "Gaia CG" | "Gaia 2" | "Starlight Precise 2.5" | "Starlight HQ" | "Starlight Mini" | "Starlight Sharp" | "Starlight Fast 2"; };
+  "typesafe-evaluate": { state: string; questions: Record<string, { type: "noul" | "choice" | "score"; instructions: unknown } & Record<string, unknown>>; };
   "veed-fabric-v1": { prompt?: string; resolution?: "480p" | "720p"; imageUrls: [string, ...string[]]; audioUrl: string; };
   "veed-fabric-v1-fast": { prompt?: string; resolution?: "480p" | "720p"; imageUrls: [string, ...string[]]; audioUrl: string; };
   "veo-3.1": { prompt: string; aspectRatio?: "16:9" | "9:16"; duration?: 4 | 6 | 8; resolution?: "720p" | "1080p" | "4k"; imageUrls?: string[]; generateAudio?: boolean; negativePrompt?: string; startFrame?: string; endFrame?: string; };
@@ -268,6 +269,9 @@ export type ModelInput<M extends TypedModelId> = ModelInputById[M];
 /** IDs of text-generation (LLM) models — narrows generateText(). */
 export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol";
 export type TextModelInputById = Pick<ModelInputById, TextModelId>;
+
+/** IDs of structured-output (json-mode) models — narrows run()'s result type. */
+export type JsonModelId = "typesafe-evaluate";
 
 /** Ensure caller does not pass keys unsupported by the target model input shape. */
 export type NoExtraKeys<Shape, T extends Shape> = T & Record<Exclude<keyof T, keyof Shape>, never>;

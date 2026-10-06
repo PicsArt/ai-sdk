@@ -508,6 +508,8 @@ export const SpicyMayo = 'spicy-mayo' as const;
 export const TopazUpscaleImage = 'topaz-upscale-image' as const;
 /** Topaz Video Upscale — topaz (video) */
 export const TopazUpscaleVideo = 'topaz-upscale-video' as const;
+/** Jev — typesafe (json) */
+export const TypesafeEvaluate = 'typesafe-evaluate' as const;
 /** VEED Fabric 1.0 — veed (video) */
 export const VeedFabricV1 = 'veed-fabric-v1' as const;
 /** VEED Fabric 1.0 Fast — veed (video) */
@@ -784,6 +786,7 @@ export const Models = {
   SpicyMayo,
   TopazUpscaleImage,
   TopazUpscaleVideo,
+  TypesafeEvaluate,
   VeedFabricV1,
   VeedFabricV1Fast,
   Veo31,

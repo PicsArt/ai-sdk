@@ -33,13 +33,16 @@ type AppProvider =
   | 'async'
   | 'captionsai'
   | 'meta'
+  | 'typesafe'
 
 
 /** Provider used by model definitions. */
 export type Provider = AppProvider;
 
-/** App generation modes. */
-export type GenerationMode = 'video' | 'image' | 'audio' | 'text';
+/** App generation modes. `json` marks structured-output models (judges,
+ *  evaluators, classifiers) — no media URL, no extractable text; their parsed
+ *  result is returned as-is by `ai.run()`. */
+export type GenerationMode = 'video' | 'image' | 'audio' | 'text' | 'json';
 
 
 /** App input types. */

@@ -235,6 +235,40 @@ catalog.find({ output: 'text' })
 image/video model throws, and `generate()` throws on a text model — use the matching
 method for each.
 
+## Generic Execution — ai.run()
+
+`run()` executes any model by id and answers the task result generically — the
+model-id counterpart of `ai.apis.run()` (which is keyed by API name). It works
+on every model and runs one uniform path: paramConfig validation, vendor payload
+build, workflow execution (sync or async), and the model's `outputSchema` when
+one is declared. The result comes back as-is in `{ result, status, usage, id }` —
+no media-URL or text extraction, no Drive save. Use `generate()`/`generateText()`
+when you want the parsed media/text surfaces; use `run()` when you want the raw
+task result — and for `mode: 'json'` models, `run()` is the only surface:
+structured-output models (judges, evaluators, classifiers) are rejected by
+`generate()`, `generateText()`, and the async lifecycle.
+
+The first json model is `typesafe-evaluate` (`Models.TypesafeEvaluate`) — LLM-judge
+evaluation of any content against named questions. Type the result via the `R`
+generic, same as `ai.apis.run()`:
+
+```typescript
+interface EvaluateResult { model: string; answers: Record<string, unknown>; usage: unknown }
+
+const { result } = await ai.run<EvaluateResult>(Models.TypesafeEvaluate, {
+  state: 'The weather is lovely and everyone is having a great time.',
+  questions: {
+    is_safe: { type: 'noul', instructions: 'Is this content safe for all audiences?' },
+    tone: { type: 'choice', instructions: 'Pick the tone.', options: ['positive', 'neutral', 'negative'] },
+  },
+})
+// result: { model: 'jev-1.13.0', answers: { is_safe: …, tone: … }, usage: { input_tokens, output_tokens } }
+```
+
+Question ids are caller-chosen; each question is `noul` (yes/no), `choice`, or
+`score`, with type-specific extras (`options`, bounds — see the
+[TypeSafe docs](https://docs.typesafe.ai/api)) passed through as-is.
+
 ## Voice, Avatar & Template Catalogs
 
 Models with catalog-backed params (voices, avatars, effect / caption templates) serve their option lists

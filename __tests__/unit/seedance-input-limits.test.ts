@@ -48,6 +48,14 @@ const fileDescriptor = (modelId: string, key: string): FileDescriptor | undefine
 /** The per-family per-clip cap, which is the only limit that differs. */
 const maxMediaSec = (modelId: string) => (modelId.startsWith('seedance-2.5') ? 30 : 15);
 
+/** The edit task refuses a source clip under 4 s ("the video selected must
+ *  satisfy the duration requirement of 4 to 30 seconds"), a stricter floor
+ *  than the 1.8 s every reference clip gets (finding F86). */
+const EDIT_SOURCE_MIN_SEC = 4;
+const EDIT_MODELS = ['seedance-2.5-video-edit', 'seedance-2.5-without-moderation-video-edit'];
+const minVideoSec = (modelId: string, key: string) =>
+  (key === 'videoUrl' && EDIT_MODELS.includes(modelId) ? EDIT_SOURCE_MIN_SEC : MIN_MEDIA_SEC);
+
 {
   assert.ok(seedanceModels.length >= 18, `expected the full 2.x family, got ${seedanceModels.length}`);
 }
@@ -123,7 +131,7 @@ const maxMediaSec = (modelId: string) => (modelId.startsWith('seedance-2.5') ? 3
           minAspectRatio: MIN_ASPECT_RATIO,
           maxAspectRatio: MAX_ASPECT_RATIO,
           maxBytes: MAX_VIDEO_BYTES,
-          minDurationSec: MIN_MEDIA_SEC,
+          minDurationSec: minVideoSec(model.id, key),
           maxDurationSec: maxMediaSec(model.id),
           maxFrameRate: MAX_FRAME_RATE,
         },
@@ -131,6 +139,23 @@ const maxMediaSec = (modelId: string) => (modelId.startsWith('seedance-2.5') ? 3
       );
     }
   }
+}
+
+// ── Edit source floor is 4 s; reference videos keep the vendor's 1.8 s ──
+{
+  for (const id of EDIT_MODELS) {
+    const descriptor = fileDescriptor(id, 'videoUrl');
+    assert.ok(descriptor, `${id}: declares a source video`);
+    assert.ok(
+      (descriptor.minDurationSec ?? 0) >= EDIT_SOURCE_MIN_SEC,
+      `${id}: source video minDurationSec ${descriptor.minDurationSec} is under ${EDIT_SOURCE_MIN_SEC}`,
+    );
+    assert.strictEqual(descriptor.maxDurationSec, 30, `${id}: source video maxDurationSec`);
+  }
+
+  const references = fileDescriptor('seedance-2.5', 'videoUrls');
+  assert.ok(references, 'seedance-2.5: declares reference videos');
+  assert.strictEqual(references.minDurationSec, MIN_MEDIA_SEC, 'seedance-2.5: reference video minDurationSec');
 }
 
 // ── Audio slots, which declared nothing whatsoever before ───────────────

@@ -9,7 +9,7 @@ import type {
   OptionsResult,
   ToolUsage,
 } from '../core/workflow.ts';
-import type { TypedModelId, ModelInputById, TextModelId, TextModelInputById } from '../generated/model-input-types.ts';
+import type { TypedModelId, ModelInputById, TextModelId, TextModelInputById, JsonModelId } from '../generated/model-input-types.ts';
 import type { DriveFolder, DriveSaveResult, PayloadDriveOptions, DriveClient } from './drive.ts';
 import type { ApisClient } from './apis.ts';
 import type { CatalogsClient, CatalogsOptions } from './catalogs.ts';
@@ -159,6 +159,21 @@ export interface GenerateResult {
   drive?: DriveSaveResult;
 }
 
+/**
+ * Response of {@link AiClient.run} — the same shape `ai.apis.run()` answers
+ * ({ result, status, usage, id }), in the SDK's own vocabulary.
+ */
+export interface RunResponse<R = unknown> {
+  /** The task result as-is, validated by the model's `outputSchema` when declared. */
+  result: R;
+  /** Always `COMPLETED` — failures throw {@link ApiError} instead. */
+  status: 'COMPLETED';
+  /** Credit usage reported by the platform — same structure as the pluggable APIs' GenAITaskResponse. */
+  usage?: CreditUsage;
+  /** The generation/job id — absent for syncExecute models (nothing to poll). */
+  id?: string;
+}
+
 /** Result of a text-generation (LLM) model. */
 export interface GenerateTextResult {
   /** Generated text. */
@@ -230,13 +245,13 @@ export interface GenerateOptions {
   signal?: AbortSignal;
   /**
    * Poll interval for the async status loop, in ms. Overrides the model's
-   * `pollOptions` and the mode default (video 2s; image/audio/text 1s).
+   * `pollOptions` and the mode default (video 2s; image/audio/text/json 1s).
    */
   intervalMs?: number;
   /**
    * Max poll attempts before the call throws a timeout. Overrides the model's
    * `pollOptions` and the mode default (video 1800 ≈ 1 hour;
-   * image/audio/text 1200 ≈ 20 min).
+   * image/audio/text/json 1200 ≈ 20 min).
    */
   maxAttempts?: number;
   /** Save to a specific subfolder instead of the root (legacy — used by SDK DriveConfig). */
@@ -257,10 +272,21 @@ export interface GenerateOptions {
 // ── Type-safe client interface ──────────────────────────────────────
 
 /** Non-text (image/video/audio) model IDs — the media generation surface. */
-export type MediaModelId = Exclude<TypedModelId, TextModelId>;
+export type MediaModelId = Exclude<TypedModelId, TextModelId | JsonModelId>;
 
 /** AI SDK client with type-safe, model-aware method signatures. */
 export interface AiClient {
+  /**
+   * Run any model by id and get the task result back, generically — the
+   * model-id counterpart of {@link ApisClient.run}. Works on every model:
+   * builds and validates the payload from paramConfig, executes the workflow,
+   * applies the model's `outputSchema` when declared, and answers the task
+   * result as-is (no media-URL/text extraction, no Drive save). The only
+   * generation surface for json-mode (structured-output) models. Type the
+   * result via `R` (mirrors `ai.apis.run()`): `ai.run<MyResult>(id, params)`.
+   */
+  run<R = unknown, M extends TypedModelId = TypedModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<RunResponse<R>>;
+
   /** Generate content using a media model. Text/LLM models use generateText(). */
   generate<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<GenerateResult>;
 

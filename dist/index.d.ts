@@ -1910,6 +1910,13 @@ type ModelInputById = {
         videoUrl: string;
         model?: "Proteus" | "Artemis HQ" | "Artemis MQ" | "Artemis LQ" | "Nyx" | "Nyx Fast" | "Nyx XL" | "Nyx HF" | "Gaia HQ" | "Gaia CG" | "Gaia 2" | "Starlight Precise 2.5" | "Starlight HQ" | "Starlight Mini" | "Starlight Sharp" | "Starlight Fast 2";
     };
+    "typesafe-evaluate": {
+        state: string;
+        questions: Record<string, {
+            type: "noul" | "choice" | "score";
+            instructions: unknown;
+        } & Record<string, unknown>>;
+    };
     "veed-fabric-v1": {
         prompt?: string;
         resolution?: "480p" | "720p";
@@ -2049,6 +2056,8 @@ type ModelInput<M extends TypedModelId> = ModelInputById[M];
 /** IDs of text-generation (LLM) models — narrows generateText(). */
 type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol";
 type TextModelInputById = Pick<ModelInputById, TextModelId>;
+/** IDs of structured-output (json-mode) models — narrows run()'s result type. */
+type JsonModelId = "typesafe-evaluate";
 
 interface ParamSchema {
     type: 'string' | 'number' | 'boolean' | 'file';
@@ -2260,18 +2269,34 @@ interface FileDescriptor {
      */
     maxBytes?: number;
 }
+/** Any value — no validation, generates as `unknown`. Only meaningful as an
+ *  ObjectDescriptor's `additionalProperties` (or a nested field): it marks a
+ *  pass-through slot whose shape the vendor owns. */
+interface UnknownDescriptor {
+    kind: 'unknown';
+}
 interface ObjectDescriptor {
     kind: 'object';
-    /** Nested fields use the flat EntryMeta + Descriptor merge — same shape as
+    /** Declared fields — flat EntryMeta + Descriptor merge, same shape as
      *  EnumEntry / RangeEntry / etc. Authors can mark a nested field optional
      *  by setting `required: false`. Default is required. */
-    fields: Record<string, EntryMeta & ParamDescriptor>;
+    fields?: Record<string, EntryMeta & ParamDescriptor>;
+    /**
+     * JSON-Schema-style `additionalProperties`: keys beyond `fields` are
+     * allowed, each value validated against this descriptor. With no `fields`
+     * the object is an open-keyed dictionary (generates `Record<string, V>` —
+     * e.g. question id → question object); alongside `fields` it admits
+     * vendor-defined extras (generates `{ …fields } & Record<string, V>`).
+     * Use `{ kind: 'unknown' }` to pass extras through unvalidated.
+     * Omitted → closed shape: exactly `fields`.
+     */
+    additionalProperties?: ParamDescriptor;
     array?: {
         min?: number;
         max?: number;
     };
 }
-type ParamDescriptor = EnumDescriptor<string> | EnumDescriptor<number> | CatalogDescriptor | RangeDescriptor | BooleanDescriptor | TextDescriptor | FileDescriptor | ObjectDescriptor;
+type ParamDescriptor = EnumDescriptor<string> | EnumDescriptor<number> | CatalogDescriptor | RangeDescriptor | BooleanDescriptor | TextDescriptor | FileDescriptor | ObjectDescriptor | UnknownDescriptor;
 interface ParamEntry {
     label?: string;
     required?: boolean;
@@ -2306,6 +2331,7 @@ type BooleanEntry = EntryMeta & BooleanDescriptor;
 type TextEntry = EntryMeta & TextDescriptor;
 type FileEntry = EntryMeta & FileDescriptor;
 type ObjectEntry = EntryMeta & ObjectDescriptor;
+type UnknownEntry = EntryMeta & UnknownDescriptor;
 /** Flat param entry with key — returned by ModelAccessor.params(). */
 type FlatParamEntry = EntryMeta & ParamDescriptor & {
     key: string;
@@ -2433,11 +2459,13 @@ interface ModelFilter {
     release?: ReleaseTag[];
 }
 
-type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async' | 'captionsai' | 'meta';
+type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async' | 'captionsai' | 'meta' | 'typesafe';
 /** Provider used by model definitions. */
 type Provider = AppProvider;
-/** App generation modes. */
-type GenerationMode = 'video' | 'image' | 'audio' | 'text';
+/** App generation modes. `json` marks structured-output models (judges,
+ *  evaluators, classifiers) — no media URL, no extractable text; their parsed
+ *  result is returned as-is by `ai.run()`. */
+type GenerationMode = 'video' | 'image' | 'audio' | 'text' | 'json';
 /** App input types. */
 type InputType = 't2v' | 'i2v' | 'v2v' | 'a2v' | 't2i' | 'i2i' | 't2a' | 'v2a' | 'tts' | 'sts' | 'sfx' | 'music' | 't2t' | 'i2t' | 'v2t' | 'a2t';
 interface ModelFeature {
@@ -3121,6 +3149,20 @@ interface GenerateResult {
     /** Present when Drive is enabled and the file was saved. */
     drive?: DriveSaveResult;
 }
+/**
+ * Response of {@link AiClient.run} — the same shape `ai.apis.run()` answers
+ * ({ result, status, usage, id }), in the SDK's own vocabulary.
+ */
+interface RunResponse<R = unknown> {
+    /** The task result as-is, validated by the model's `outputSchema` when declared. */
+    result: R;
+    /** Always `COMPLETED` — failures throw {@link ApiError} instead. */
+    status: 'COMPLETED';
+    /** Credit usage reported by the platform — same structure as the pluggable APIs' GenAITaskResponse. */
+    usage?: CreditUsage;
+    /** The generation/job id — absent for syncExecute models (nothing to poll). */
+    id?: string;
+}
 /** Result of a text-generation (LLM) model. */
 interface GenerateTextResult {
     /** Generated text. */
@@ -3189,13 +3231,13 @@ interface GenerateOptions {
     signal?: AbortSignal;
     /**
      * Poll interval for the async status loop, in ms. Overrides the model's
-     * `pollOptions` and the mode default (video 2s; image/audio/text 1s).
+     * `pollOptions` and the mode default (video 2s; image/audio/text/json 1s).
      */
     intervalMs?: number;
     /**
      * Max poll attempts before the call throws a timeout. Overrides the model's
      * `pollOptions` and the mode default (video 1800 ≈ 1 hour;
-     * image/audio/text 1200 ≈ 20 min).
+     * image/audio/text/json 1200 ≈ 20 min).
      */
     maxAttempts?: number;
     /** Save to a specific subfolder instead of the root (legacy — used by SDK DriveConfig). */
@@ -3213,9 +3255,19 @@ interface GenerateOptions {
     app?: AppIdentity;
 }
 /** Non-text (image/video/audio) model IDs — the media generation surface. */
-type MediaModelId = Exclude<TypedModelId, TextModelId>;
+type MediaModelId = Exclude<TypedModelId, TextModelId | JsonModelId>;
 /** AI SDK client with type-safe, model-aware method signatures. */
 interface AiClient {
+    /**
+     * Run any model by id and get the task result back, generically — the
+     * model-id counterpart of {@link ApisClient.run}. Works on every model:
+     * builds and validates the payload from paramConfig, executes the workflow,
+     * applies the model's `outputSchema` when declared, and answers the task
+     * result as-is (no media-URL/text extraction, no Drive save). The only
+     * generation surface for json-mode (structured-output) models. Type the
+     * result via `R` (mirrors `ai.apis.run()`): `ai.run<MyResult>(id, params)`.
+     */
+    run<R = unknown, M extends TypedModelId = TypedModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<RunResponse<R>>;
     /** Generate content using a media model. Text/LLM models use generateText(). */
     generate<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<GenerateResult>;
     /** Generate text using an LLM model. Returns the generated text plus the raw response. */
@@ -3518,6 +3570,7 @@ declare const Models: {
     readonly SpicyMayo: "spicy-mayo";
     readonly TopazUpscaleImage: "topaz-upscale-image";
     readonly TopazUpscaleVideo: "topaz-upscale-video";
+    readonly TypesafeEvaluate: "typesafe-evaluate";
     readonly VeedFabricV1: "veed-fabric-v1";
     readonly VeedFabricV1Fast: "veed-fabric-v1-fast";
     readonly Veo31: "veo-3.1";
@@ -3674,4 +3727,4 @@ declare const getModel: (id: string) => ModelDefinition | undefined;
  */
 declare const findModel: (ref: string) => ModelDefinition | undefined;
 
-export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type OptionsResult, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type JsonModelId, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type OptionsResult, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type RunResponse, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UnknownDescriptor, type UnknownEntry, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };

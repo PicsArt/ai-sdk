@@ -134,7 +134,7 @@ const buildElevenLabsDialoguePayload =
  */
 function dialogueCharacterCap(catalogId: string): number {
   const descriptor = MODELS.find((m) => m.id === catalogId)?.paramConfig.dialogue?.descriptor;
-  const text = descriptor?.kind === 'object' ? descriptor.fields.text : undefined;
+  const text = descriptor?.kind === 'object' ? descriptor.fields?.text : undefined;
   const cap = text && 'maxLength' in text ? text.maxLength : undefined;
   if (typeof cap !== 'number') {
     throw new Error(`${catalogId}: dialogue entry declares no per-line maxLength to derive the cap from`);

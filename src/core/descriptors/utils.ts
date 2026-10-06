@@ -125,16 +125,36 @@ export function validateDescriptor(
           `"${key}" allows at most ${d.array.max} items`,
         );
       }
+      const declared = d.fields ?? {};
       for (const item of items) {
         if (item == null || typeof item !== 'object' || Array.isArray(item)) {
-          throw new Error(`"${key}" items must be objects`);
+          throw new Error(d.array ? `"${key}" items must be objects` : `"${key}" must be an object`);
         }
-        for (const [fk, fd] of Object.entries(d.fields)) {
-          validateDescriptor(`${key}.${fk}`, fd, item[fk]);
+        // A pure dictionary ({} fields + additionalProperties) with no entries
+        // counts as absent for a required param (mirrors isAbsent's
+        // empty-string/array rules).
+        if (required && !d.array && d.additionalProperties
+          && Object.keys(declared).length === 0 && Object.keys(item).length === 0) {
+          throw new Error(`"${key}" is required`);
+        }
+        for (const [fk, fd] of Object.entries(declared)) {
+          validateDescriptor(`${key}.${fk}`, fd, item[fk], fd.required);
+        }
+        // Keys beyond the declared fields validate against additionalProperties
+        // (JSON-Schema semantics); without it they pass through untouched —
+        // the generated input type is what keeps closed shapes closed.
+        if (d.additionalProperties) {
+          for (const [ek, ev] of Object.entries(item)) {
+            if (ek in declared) continue;
+            validateDescriptor(`${key}.${ek}`, d.additionalProperties, ev, true);
+          }
         }
       }
       break;
     }
+    case 'unknown':
+      // Vendor-owned pass-through slot — anything goes.
+      break;
   }
 }
 

@@ -42,6 +42,7 @@ export const providers: Record<Provider, ProviderMeta> = {
   captionsai: { color: '#1D1F20', label: 'MR', name: 'Mirage' },
   meta: { color: '#0081FB', label: 'MT', name: 'Meta' },
   typesafe: { color: '#3E6B8F', label: 'TS', name: 'TypeSafe' },
+  'depth-anything': { color: '#0EA5E9', label: 'DA', name: 'Depth Anything' },
 };
 
 export const getProviderColor = (provider: Provider): string =>

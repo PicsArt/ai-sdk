@@ -38,6 +38,8 @@ export const ClaudeSonnet5 = 'claude-sonnet-5' as const;
 export const CreatifyAurora = 'creatify-aurora' as const;
 /** Creatify Boreal — creatify (video) */
 export const CreatifyBoreal = 'creatify-boreal' as const;
+/** Video Depth Anything — depth-anything (video) */
+export const DepthAnythingVideo = 'depth-anything-video' as const;
 /** Eleven Audio Isolation — elevenlabs (audio) */
 export const ElevenAudioIsolation = 'eleven-audio-isolation' as const;
 /** Eleven Dialogue v4 — elevenlabs (audio) */
@@ -562,6 +564,7 @@ export const Models = {
   ClaudeSonnet5,
   CreatifyAurora,
   CreatifyBoreal,
+  DepthAnythingVideo,
   ElevenAudioIsolation,
   ElevenDialogueV4,
   ElevenDubbing,

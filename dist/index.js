@@ -795,7 +795,8 @@ var providers = {
   async: { color: "#5E5CE6", label: "AA", name: "Async AI" },
   captionsai: { color: "#1D1F20", label: "MR", name: "Mirage" },
   meta: { color: "#0081FB", label: "MT", name: "Meta" },
-  typesafe: { color: "#3E6B8F", label: "TS", name: "TypeSafe" }
+  typesafe: { color: "#3E6B8F", label: "TS", name: "TypeSafe" },
+  "depth-anything": { color: "#0EA5E9", label: "DA", name: "Depth Anything" }
 };
 
 // src/core/descriptors/presets.ts
@@ -1173,7 +1174,7 @@ var passthroughPayload = (paramConfig) => (ctx) => {
   return payload;
 };
 function defineModels(provider, configs) {
-  const MODELS39 = [];
+  const MODELS40 = [];
   for (const c of configs) {
     const prov = c.provider ?? provider;
     const resolvedPayload = c.buildPayload ?? passthroughPayload(c.paramConfig);
@@ -1209,19 +1210,19 @@ function defineModels(provider, configs) {
     if (c.constraints !== void 0) model.constraints = c.constraints;
     const contract = createModelContract(model);
     model.outputSchema = c.outputSchema ?? contract.output;
-    MODELS39.push(model);
+    MODELS40.push(model);
   }
-  return { MODELS: MODELS39 };
+  return { MODELS: MODELS40 };
 }
-function registerPayloads(MODELS39, payloads) {
+function registerPayloads(MODELS40, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS39.find((m) => m.id === id);
+    const model = MODELS40.find((m) => m.id === id);
     if (model) model.buildPayload = builder;
   }
 }
-function registerEditPayloads(MODELS39, payloads) {
+function registerEditPayloads(MODELS40, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS39.find((m) => m.id === id);
+    const model = MODELS40.find((m) => m.id === id);
     if (model) model.buildEditPayload = builder;
   }
 }
@@ -10781,6 +10782,53 @@ registerPayloads(MODELS38, {
   "typesafe-evaluate": buildEvaluatePayload
 });
 
+// src/vendors/catalog/depth-anything.ts
+var { MODELS: MODELS39 } = defineModels("depth-anything", [
+  {
+    // Billed per second of the source clip at one flat rate, so none of the
+    // knobs below changes the price. `max_frames` / `output_fps` are left to
+    // the vendor defaults on purpose: a frame cap would shorten the processed
+    // clip while billing still counts the whole source.
+    id: "depth-anything-video",
+    name: "Video Depth Anything",
+    modelId: "fal-ai-depth-anything-video",
+    addedAt: "2026-10-08",
+    workflow: "depth-anything-video",
+    estimatedTime: 60,
+    mode: "video",
+    inputType: "v2v",
+    description: "Estimate temporally consistent depth for every frame of a video and render it as a depth-map video \u2014 grayscale or a color map, optionally side by side with the source.",
+    features: [
+      feat("Depth Map", "characteristic"),
+      feat("Video Input", "input"),
+      feat("1080p", "resolution")
+    ],
+    paramConfig: {
+      ...params.videoInput("Source Video", "asset", true),
+      // Small is fastest, Large is the most accurate.
+      ...p.enum("model", ["VDA-Small", "VDA-Base", "VDA-Large"], "VDA-Large", { label: "Model Size" }),
+      ...p.enum("colormap", ["grayscale", "turbo", "inferno", "magma", "viridis"], "grayscale", { label: "Color Map" }),
+      // 'auto' keeps the source resolution, capped at 1080p.
+      ...params.resolution(["auto", "360p", "480p", "720p", "1080p"], "auto"),
+      ...p.boolean("sideBySide", false, "Side by Side")
+    }
+  }
+]);
+
+// src/vendors/catalog/depth-anything.payloads.ts
+var buildDepthAnythingVideoPayload = (input) => ({
+  video_url: input.videoUrl,
+  model: input.model ?? "VDA-Large",
+  colormap: input.colormap ?? "grayscale",
+  resolution: input.resolution ?? "auto",
+  side_by_side: input.sideBySide ?? false,
+  // The .npz export is a second, non-media output the SDK has no slot for.
+  include_raw_depths: false
+});
+registerPayloads(MODELS39, {
+  "depth-anything-video": buildDepthAnythingVideoPayload
+});
+
 // src/vendors/catalog/creatify.payloads.ts
 var buildCreatifyBorealPayload = (input) => ({
   prompt: input.prompt,
@@ -10936,7 +10984,8 @@ var ALL_MODELS = [
   ...MODELS35,
   ...MODELS36,
   ...MODELS37,
-  ...MODELS38
+  ...MODELS38,
+  ...MODELS39
 ];
 var getModelsByMode = (mode, includeHidden = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeHidden || isVisibleForReleases(m)));
 
@@ -13648,6 +13697,7 @@ var ClaudeSonnet46 = "claude-sonnet-4-6";
 var ClaudeSonnet5 = "claude-sonnet-5";
 var CreatifyAurora = "creatify-aurora";
 var CreatifyBoreal = "creatify-boreal";
+var DepthAnythingVideo = "depth-anything-video";
 var ElevenAudioIsolation = "eleven-audio-isolation";
 var ElevenDialogueV4 = "eleven-dialogue-v4";
 var ElevenDubbing = "eleven-dubbing";
@@ -13906,6 +13956,7 @@ var Models = {
   ClaudeSonnet5,
   CreatifyAurora,
   CreatifyBoreal,
+  DepthAnythingVideo,
   ElevenAudioIsolation,
   ElevenDialogueV4,
   ElevenDubbing,

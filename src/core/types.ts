@@ -34,6 +34,7 @@ type AppProvider =
   | 'captionsai'
   | 'meta'
   | 'typesafe'
+  | 'depth-anything'
 
 
 /** Provider used by model definitions. */

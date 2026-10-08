@@ -902,15 +902,15 @@ interface EditedImageResult {
 }
 
 interface ImageToVideoInput$1 {
-    resolution?: "480p" | "720p" | "1080p";
-    negative_prompt?: string | unknown;
     enable_prompt_expansion?: boolean;
-    audio_url?: string | unknown;
-    prompt: string;
-    seed?: number | unknown;
-    image_url: string;
-    duration?: "5" | "10";
     enable_safety_checker?: boolean;
+    audio_url?: string | unknown;
+    duration?: "5" | "10";
+    negative_prompt?: string | unknown;
+    image_url: string;
+    seed?: number | unknown;
+    resolution?: "480p" | "720p" | "1080p";
+    prompt: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -931,31 +931,31 @@ interface Wan25PreviewImageToVideoResponse {
     result: VideoOutput$1;
 }
 interface VideoOutput$1 {
-    video: {
-        content_type?: string | unknown;
-        height?: number | unknown;
-        file_name?: string | unknown;
-        num_frames?: number | unknown;
-        fps?: number | unknown;
-        width?: number | unknown;
-        file_size?: number | unknown;
-        url: string;
-        duration?: number | unknown;
-    };
-    seed: number;
     actual_prompt?: string | unknown;
+    seed: number;
+    video: {
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        file_size?: number | unknown;
+        duration?: number | unknown;
+        num_frames?: number | unknown;
+        height?: number | unknown;
+        url: string;
+        width?: number | unknown;
+        fps?: number | unknown;
+    };
 }
 
 interface TextToVideoInput {
-    resolution?: "480p" | "720p" | "1080p";
-    negative_prompt?: string | unknown;
     enable_prompt_expansion?: boolean;
-    aspect_ratio?: "16:9" | "9:16" | "1:1";
+    enable_safety_checker?: boolean;
     audio_url?: string | unknown;
+    duration?: "5" | "10";
+    negative_prompt?: string | unknown;
+    resolution?: "480p" | "720p" | "1080p";
+    aspect_ratio?: "16:9" | "9:16" | "1:1";
     prompt: string;
     seed?: number | unknown;
-    duration?: "5" | "10";
-    enable_safety_checker?: boolean;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -976,41 +976,41 @@ interface Wan25PreviewTextToVideoResponse {
     result: VideoOutput;
 }
 interface VideoOutput {
-    video: {
-        content_type?: string | unknown;
-        height?: number | unknown;
-        file_name?: string | unknown;
-        num_frames?: number | unknown;
-        fps?: number | unknown;
-        width?: number | unknown;
-        file_size?: number | unknown;
-        url: string;
-        duration?: number | unknown;
-    };
-    seed: number;
     actual_prompt?: string | unknown;
+    seed: number;
+    video: {
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        file_size?: number | unknown;
+        duration?: number | unknown;
+        num_frames?: number | unknown;
+        height?: number | unknown;
+        url: string;
+        width?: number | unknown;
+        fps?: number | unknown;
+    };
 }
 
 interface BaseQwenImageInput {
-    output_format?: "jpeg" | "png";
     seed?: number | unknown;
+    output_format?: "jpeg" | "png";
     negative_prompt?: string;
+    guidance_scale?: number;
+    acceleration?: "none" | "regular" | "high";
+    enable_safety_checker?: boolean;
+    use_turbo?: boolean;
+    prompt: string;
     image_size?: {
         height?: number;
         width?: number;
     } | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9";
     sync_mode?: boolean;
-    acceleration?: "none" | "regular" | "high";
-    use_turbo?: boolean;
     loras?: {
         path: string;
         scale?: number;
     }[];
-    guidance_scale?: number;
-    enable_safety_checker?: boolean;
-    num_images?: number;
-    prompt: string;
     num_inference_steps?: number;
+    num_images?: number;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1031,40 +1031,40 @@ interface QwenImageResponse {
     result: QwenImageOutput;
 }
 interface QwenImageOutput {
+    seed: number;
+    timings: Record<string, number>;
+    prompt: string;
+    has_nsfw_concepts: boolean[];
     images: ({
         height: number;
-        url: string;
-        content_type?: string | unknown;
         width: number;
+        content_type?: string | unknown;
+        url: string;
     })[];
-    timings: Record<string, number>;
-    has_nsfw_concepts: boolean[];
-    prompt: string;
-    seed: number;
 }
 
 interface QwenImageI2IInput {
     negative_prompt?: string;
-    image_url: string;
     acceleration?: "none" | "regular" | "high";
-    use_turbo?: boolean;
-    guidance_scale?: number;
-    prompt: string;
-    seed?: number | unknown;
-    output_format?: "jpeg" | "png";
-    strength?: number;
     num_images?: number;
-    sync_mode?: boolean;
-    loras?: {
-        path: string;
-        scale?: number;
-    }[];
+    use_turbo?: boolean;
     image_size?: {
         height?: number;
         width?: number;
     } | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9" | unknown;
+    loras?: {
+        path: string;
+        scale?: number;
+    }[];
     enable_safety_checker?: boolean;
     num_inference_steps?: number;
+    seed?: number | unknown;
+    guidance_scale?: number;
+    strength?: number;
+    image_url: string;
+    prompt: string;
+    sync_mode?: boolean;
+    output_format?: "jpeg" | "png";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1085,33 +1085,33 @@ interface QwenImageImageToImageResponse {
     result: QwenImageI2IOutput;
 }
 interface QwenImageI2IOutput {
+    seed: number;
+    timings: Record<string, number>;
+    prompt: string;
+    has_nsfw_concepts: boolean[];
     images: ({
         height: number;
-        url: string;
-        content_type?: string | unknown;
         width: number;
+        content_type?: string | unknown;
+        url: string;
     })[];
-    timings: Record<string, number>;
-    has_nsfw_concepts: boolean[];
-    prompt: string;
-    seed: number;
 }
 
 interface HunyuanTextToImageInputV3 {
-    guidance_scale?: number;
-    output_format?: "jpeg" | "png";
+    sync_mode?: boolean;
+    seed?: number | unknown;
     num_images?: number;
+    output_format?: "jpeg" | "png";
+    image_size?: {
+        height?: number;
+        width?: number;
+    } | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9";
+    enable_safety_checker?: boolean;
+    prompt: string;
+    negative_prompt?: string;
     enable_prompt_expansion?: boolean;
     num_inference_steps?: number;
-    negative_prompt?: string;
-    prompt: string;
-    image_size?: {
-        width?: number;
-        height?: number;
-    } | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9";
-    seed?: number | unknown;
-    sync_mode?: boolean;
-    enable_safety_checker?: boolean;
+    guidance_scale?: number;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1134,12 +1134,12 @@ interface HunyuanImageV3TextToImageResponse {
 interface HunyuanTextToImageV3Output {
     seed: number;
     images: ({
-        height?: number | unknown;
-        width?: number | unknown;
-        content_type?: string | unknown;
         file_size?: number | unknown;
         url: string;
+        width?: number | unknown;
+        height?: number | unknown;
         file_name?: string | unknown;
+        content_type?: string | unknown;
     })[];
 }
 
@@ -1366,14 +1366,14 @@ interface FabricOneOutput {
 }
 
 interface UpscaleInput {
-    target_fps?: number;
     bit_depth?: 8 | 10 | 12;
-    enhancement_tier?: "fast" | "standard" | "pro";
-    video_url: string;
-    fidelity?: "high" | "medium";
-    target_resolution?: "1080p" | "2k" | "4k" | "6k" | "8k";
-    enhancement_preset?: "general" | "ugc" | "short_series" | "aigc" | "old_film";
     scale_ratio?: number | unknown;
+    enhancement_tier?: "fast" | "standard" | "pro";
+    target_resolution?: "1080p" | "2k" | "4k" | "6k" | "8k";
+    target_fps?: number;
+    video_url: string;
+    enhancement_preset?: "general" | "ugc" | "short_series" | "aigc" | "old_film";
+    fidelity?: "high" | "medium";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1397,18 +1397,18 @@ interface UpscaleOutput {
     duration: number;
     video: {
         content_type?: string | unknown;
-        url: string;
         file_name?: string | unknown;
+        url: string;
         file_size?: number | unknown;
     };
 }
 
 interface TextToSpeechRequestV3 {
-    text: string;
     apply_text_normalization?: "auto" | "on" | "off";
     language_code?: string | unknown;
-    timestamps?: boolean;
+    text: string;
     voice?: string;
+    timestamps?: boolean;
     stability?: number;
     options?: {
         safety_checks?: {
@@ -1432,20 +1432,20 @@ interface ElevenlabsTtsElevenV3Response {
 interface TTSOutput {
     audio: {
         file_name?: string | unknown;
-        file_size?: number | unknown;
-        url: string;
         content_type?: string | unknown;
+        url: string;
+        file_size?: number | unknown;
     };
     timestamps?: unknown[] | unknown;
 }
 
 interface OviT2VRequest {
-    seed?: number | unknown;
-    audio_negative_prompt?: string;
-    resolution?: "512x992" | "992x512" | "960x512" | "512x960" | "720x720" | "448x1120" | "1120x448";
-    negative_prompt?: string;
     num_inference_steps?: number;
+    negative_prompt?: string;
+    resolution?: "512x992" | "992x512" | "960x512" | "512x960" | "720x720" | "448x1120" | "1120x448";
+    audio_negative_prompt?: string;
     prompt: string;
+    seed?: number | unknown;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1466,22 +1466,22 @@ interface OviResponse {
     result: OviT2VResponse;
 }
 interface OviT2VResponse {
-    seed: number;
     video?: {
         file_name?: string | unknown;
         content_type?: string | unknown;
-        url: string;
         file_size?: number | unknown;
+        url: string;
     } | unknown;
+    seed: number;
 }
 
 interface OviI2VRequest {
+    num_inference_steps?: number;
+    negative_prompt?: string;
     image_url: string;
     audio_negative_prompt?: string;
-    seed?: number | unknown;
-    negative_prompt?: string;
-    num_inference_steps?: number;
     prompt: string;
+    seed?: number | unknown;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1502,95 +1502,23 @@ interface OviImageToVideoResponse {
     result: OviI2VResponse;
 }
 interface OviI2VResponse {
-    seed: number;
     video?: {
         file_name?: string | unknown;
         content_type?: string | unknown;
-        url: string;
         file_size?: number | unknown;
+        url: string;
     } | unknown;
-}
-
-interface ReveCreateInput {
-    aspect_ratio?: "16:9" | "9:16" | "3:2" | "2:3" | "4:3" | "3:4" | "1:1";
-    prompt: string;
-    num_images?: number;
-    output_format?: "png" | "jpeg" | "webp";
-    sync_mode?: boolean;
-    options?: {
-        safety_checks?: {
-            enabled?: boolean;
-        };
-        drive?: {
-            name: string;
-            attributes?: Record<string, string>;
-            folder?: {
-                path?: string;
-                id?: string;
-            };
-        };
-    };
-}
-interface ReveTextToImageResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: ReveCreateOutput;
-}
-interface ReveCreateOutput {
-    images: ({
-        height?: number | unknown;
-        url: string;
-        content_type?: string | unknown;
-        file_name?: string | unknown;
-        width?: number | unknown;
-        file_size?: number | unknown;
-    })[];
-}
-
-interface ReveEditInput {
-    prompt: string;
-    num_images?: number;
-    output_format?: "png" | "jpeg" | "webp";
-    sync_mode?: boolean;
-    image_url: string;
-    options?: {
-        safety_checks?: {
-            enabled?: boolean;
-        };
-        drive?: {
-            name: string;
-            attributes?: Record<string, string>;
-            folder?: {
-                path?: string;
-                id?: string;
-            };
-        };
-    };
-}
-interface ReveEditResponse {
-    id: string;
-    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
-    result: ReveEditOutput;
-}
-interface ReveEditOutput {
-    images: ({
-        height?: number | unknown;
-        url: string;
-        content_type?: string | unknown;
-        file_name?: string | unknown;
-        width?: number | unknown;
-        file_size?: number | unknown;
-    })[];
+    seed: number;
 }
 
 interface MergeVideosInput {
-    resolution_aspect_ratio_video_index?: number | unknown;
-    video_urls: string[];
     target_fps?: number | unknown;
     resolution?: {
-        width?: number;
         height?: number;
+        width?: number;
     } | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9" | unknown;
+    resolution_aspect_ratio_video_index?: number | unknown;
+    video_urls: string[];
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1614,9 +1542,9 @@ interface MergeVideosOutput {
     metadata: Record<string, unknown>;
     video: {
         file_name?: string | unknown;
-        file_size?: number | unknown;
         content_type?: string | unknown;
         url: string;
+        file_size?: number | unknown;
     };
 }
 
@@ -1646,18 +1574,18 @@ interface FfmpegApiMergeAudioVideoResponse {
 interface CombineOutput {
     video: {
         file_name?: string | unknown;
-        file_size?: number | unknown;
         content_type?: string | unknown;
         url: string;
+        file_size?: number | unknown;
     };
 }
 
 interface SoundEffectRequestV2 {
-    output_format?: "mp3_22050_32" | "mp3_44100_32" | "mp3_44100_64" | "mp3_44100_96" | "mp3_44100_128" | "mp3_44100_192" | "pcm_8000" | "pcm_16000" | "pcm_22050" | "pcm_24000" | "pcm_44100" | "pcm_48000" | "ulaw_8000" | "alaw_8000" | "opus_48000_32" | "opus_48000_64" | "opus_48000_96" | "opus_48000_128" | "opus_48000_192";
-    duration_seconds?: number | unknown;
     text: string;
-    prompt_influence?: number;
+    output_format?: "mp3_22050_32" | "mp3_44100_32" | "mp3_44100_64" | "mp3_44100_96" | "mp3_44100_128" | "mp3_44100_192" | "pcm_8000" | "pcm_16000" | "pcm_22050" | "pcm_24000" | "pcm_44100" | "pcm_48000" | "ulaw_8000" | "alaw_8000" | "opus_48000_32" | "opus_48000_64" | "opus_48000_96" | "opus_48000_128" | "opus_48000_192";
     loop?: boolean;
+    duration_seconds?: number | unknown;
+    prompt_influence?: number;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1680,9 +1608,9 @@ interface ElevenlabsSoundEffectsV2Response {
 interface SoundEffectOutput {
     audio: {
         file_name?: string | unknown;
-        file_size?: number | unknown;
-        url: string;
         content_type?: string | unknown;
+        url: string;
+        file_size?: number | unknown;
     };
 }
 
@@ -1749,22 +1677,22 @@ interface FfmpegApiExtractFrameResponse {
 }
 interface FrameOutput {
     images: ({
-        width?: number | unknown;
+        content_type?: string | unknown;
         file_name?: string | unknown;
         height?: number | unknown;
-        file_size?: number | unknown;
-        content_type?: string | unknown;
         url: string;
+        width?: number | unknown;
+        file_size?: number | unknown;
     })[];
 }
 
 interface AuroraInputModel {
-    audio_guidance_scale?: number | unknown;
-    resolution?: "480p" | "720p";
-    image_url: string;
     guidance_scale?: number | unknown;
     audio_url: string;
+    audio_guidance_scale?: number | unknown;
+    image_url: string;
     prompt?: string | unknown;
+    resolution?: "480p" | "720p";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1786,29 +1714,29 @@ interface CreatifyAuroraResponse {
 }
 interface AuroraOutputModel {
     video: {
-        file_name?: string | unknown;
         num_frames?: number | unknown;
         file_size?: number | unknown;
-        width?: number | unknown;
-        fps?: number | unknown;
-        height?: number | unknown;
-        url: string;
         content_type?: string | unknown;
+        url: string;
+        height?: number | unknown;
+        fps?: number | unknown;
         duration?: number | unknown;
+        width?: number | unknown;
+        file_name?: string | unknown;
     };
 }
 
 interface VideoUpscaleRequest {
-    H264_output?: boolean;
     grain?: number | unknown;
-    video_url: string;
-    target_fps?: number | unknown;
-    compression?: number | unknown;
-    noise?: number | unknown;
-    upscale_factor?: number;
-    model?: "Proteus" | "Artemis HQ" | "Artemis MQ" | "Artemis LQ" | "Gaia HQ" | "Gaia CG" | "Gaia 2" | "Nyx" | "Nyx Fast" | "Nyx XL" | "Nyx HF" | "Starlight Precise 2.5" | "Starlight HQ" | "Starlight Mini" | "Starlight Sharp" | "Starlight Fast 2" | "Starlight Precise 1" | "Starlight Precise 2" | "Starlight Fast 1";
     halo?: number | unknown;
+    H264_output?: boolean;
+    video_url: string;
     recover_detail?: number | unknown;
+    target_fps?: number | unknown;
+    noise?: number | unknown;
+    model?: "Proteus" | "Artemis HQ" | "Artemis MQ" | "Artemis LQ" | "Gaia HQ" | "Gaia CG" | "Gaia 2" | "Nyx" | "Nyx Fast" | "Nyx XL" | "Nyx HF" | "Starlight Precise 2.5" | "Starlight HQ" | "Starlight Mini" | "Starlight Sharp" | "Starlight Fast 2" | "Starlight Precise 1" | "Starlight Precise 2" | "Starlight Fast 1";
+    upscale_factor?: number;
+    compression?: number | unknown;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1830,32 +1758,32 @@ interface TopazUpscaleVideoResponse {
 }
 interface VideoUpscaleOutput {
     video: {
-        content_type?: string | unknown;
-        file_name?: string | unknown;
         file_size?: number | unknown;
         url: string;
+        content_type?: string | unknown;
+        file_name?: string | unknown;
     };
 }
 
 interface ImageUpscaleRequest {
-    output_format?: "jpeg" | "png";
-    upscale_factor?: number;
-    detail?: number | unknown;
-    face_enhancement_creativity?: number;
     denoise?: number | unknown;
-    face_enhancement?: boolean;
-    fix_compression?: number | unknown;
-    model?: "Standard V2" | "High Fidelity V2" | "Low Resolution V2" | "CGI" | "Text Refine" | "Wonder 3" | "Wonder" | "Standard MAX" | "Redefine" | "Recovery V2" | "Recovery";
-    strength?: number | unknown;
-    subject_detection?: "All" | "Foreground" | "Background";
-    sharpen?: number | unknown;
+    output_format?: "jpeg" | "png";
     image_url: string;
-    face_enhancement_strength?: number;
+    subject_detection?: "All" | "Foreground" | "Background";
     prompt?: string | unknown;
+    face_enhancement_creativity?: number;
+    upscale_factor?: number;
+    face_enhancement?: boolean;
+    sharpen?: number | unknown;
+    enhancement_strength?: "low" | "medium" | "high" | unknown;
+    detail?: number | unknown;
+    creativity?: number | unknown;
+    strength?: number | unknown;
+    face_enhancement_strength?: number;
+    fix_compression?: number | unknown;
     texture?: number | unknown;
     autoprompt?: boolean | unknown;
-    enhancement_strength?: "low" | "medium" | "high" | unknown;
-    creativity?: number | unknown;
+    model?: "Standard V2" | "High Fidelity V2" | "Low Resolution V2" | "CGI" | "Text Refine" | "Wonder 3" | "Wonder" | "Standard MAX" | "Redefine" | "Recovery V2" | "Recovery";
     crop_to_fill?: boolean;
     options?: {
         safety_checks?: {
@@ -1878,10 +1806,10 @@ interface TopazUpscaleImageResponse {
 }
 interface ImageUpscaleOutput {
     image: {
-        content_type?: string | unknown;
-        file_name?: string | unknown;
         file_size?: number | unknown;
         url: string;
+        content_type?: string | unknown;
+        file_name?: string | unknown;
     };
 }
 
@@ -1900,16 +1828,16 @@ interface UseCaseProps {
 type EmptyModel$1 = Record<string, never>;
 
 interface ImageToVideoInput {
-    seed?: number | unknown;
-    resolution?: "720p" | "1080p";
-    enable_safety_checker?: boolean;
-    enable_prompt_expansion?: boolean;
     audio_url?: string | unknown;
+    seed?: number | unknown;
     prompt: string;
     multi_shots?: boolean;
-    image_url: string;
-    duration?: "5" | "10" | "15";
     negative_prompt?: string | unknown;
+    enable_prompt_expansion?: boolean;
+    duration?: "5" | "10" | "15";
+    resolution?: "720p" | "1080p";
+    image_url: string;
+    enable_safety_checker?: boolean;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1930,32 +1858,32 @@ interface WanV26ImageToVideoResponse {
     result: ImageToVideoOutput;
 }
 interface ImageToVideoOutput {
-    seed: number;
     actual_prompt?: string | unknown;
     video: {
-        file_name?: string | unknown;
-        duration?: number | unknown;
-        height?: number | unknown;
-        width?: number | unknown;
-        fps?: number | unknown;
-        file_size?: number | unknown;
         num_frames?: number | unknown;
+        duration?: number | unknown;
+        width?: number | unknown;
+        file_size?: number | unknown;
+        height?: number | unknown;
+        fps?: number | unknown;
+        file_name?: string | unknown;
         content_type?: string | unknown;
         url: string;
     };
+    seed: number;
 }
 
 interface ReferenceToVideoInput {
-    multi_shots?: boolean;
-    resolution?: "720p" | "1080p";
-    enable_safety_checker?: boolean;
-    duration?: "5" | "10";
-    prompt: string;
-    seed?: number | unknown;
     negative_prompt?: string | unknown;
-    enable_prompt_expansion?: boolean;
-    video_urls: string[];
     aspect_ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+    enable_prompt_expansion?: boolean;
+    duration?: "5" | "10";
+    video_urls: string[];
+    seed?: number | unknown;
+    multi_shots?: boolean;
+    enable_safety_checker?: boolean;
+    prompt: string;
+    resolution?: "720p" | "1080p";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -1979,13 +1907,13 @@ interface ReferenceToVideoOutput {
     seed: number;
     actual_prompt?: string | unknown;
     video: {
-        file_name?: string | unknown;
-        duration?: number | unknown;
-        height?: number | unknown;
-        width?: number | unknown;
-        fps?: number | unknown;
-        file_size?: number | unknown;
         num_frames?: number | unknown;
+        duration?: number | unknown;
+        width?: number | unknown;
+        file_size?: number | unknown;
+        height?: number | unknown;
+        fps?: number | unknown;
+        file_name?: string | unknown;
         content_type?: string | unknown;
         url: string;
     };
@@ -2022,14 +1950,14 @@ interface ThumbnailResult {
 }
 
 interface SeedVRImageInput {
-    output_format?: "png" | "jpg" | "webp";
-    upscale_factor?: number;
-    image_url: string;
+    upscale_mode?: "target" | "factor";
+    noise_scale?: number;
+    seed?: number | unknown;
     target_resolution?: "720p" | "1080p" | "1440p" | "2160p";
     sync_mode?: boolean;
-    noise_scale?: number;
-    upscale_mode?: "target" | "factor";
-    seed?: number | unknown;
+    upscale_factor?: number;
+    image_url: string;
+    output_format?: "png" | "jpg" | "webp";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -2051,23 +1979,23 @@ interface SeedvrUpscaleImageResponse {
 }
 interface SeedVRImageOutput {
     image: {
-        file_name?: string | unknown;
-        file_size?: number | unknown;
-        height?: number | unknown;
-        url: string;
-        content_type?: string | unknown;
         width?: number | unknown;
+        height?: number | unknown;
+        content_type?: string | unknown;
+        file_name?: string | unknown;
+        url: string;
+        file_size?: number | unknown;
     };
     seed: number;
 }
 
 interface XAIImageInput {
-    output_format?: "jpeg" | "png" | "webp";
     aspect_ratio?: "2:1" | "20:9" | "19.5:9" | "16:9" | "4:3" | "3:2" | "1:1" | "2:3" | "3:4" | "9:16" | "9:19.5" | "9:20" | "1:2";
-    resolution?: "1k" | "2k";
     sync_mode?: boolean;
-    prompt: string;
     num_images?: number;
+    prompt: string;
+    resolution?: "1k" | "2k";
+    output_format?: "jpeg" | "png" | "webp";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -2090,23 +2018,23 @@ interface XaiGrokImagineImageResponse {
 interface XAIImageOutput {
     revised_prompt?: string | unknown;
     images: ({
-        file_name?: string | unknown;
-        file_size?: number | unknown;
-        height?: number | unknown;
         url: string;
         content_type?: string | unknown;
+        file_name?: string | unknown;
+        height?: number | unknown;
+        file_size?: number | unknown;
         width?: number | unknown;
     })[];
 }
 
 interface XAIImageEditInput {
-    output_format?: "jpeg" | "png" | "webp";
     aspect_ratio?: "auto" | "2:1" | "20:9" | "19.5:9" | "16:9" | "4:3" | "3:2" | "1:1" | "2:3" | "3:4" | "9:16" | "9:19.5" | "9:20" | "1:2";
-    resolution?: "1k" | "2k";
     sync_mode?: boolean;
-    image_urls?: string[];
-    prompt: string;
     num_images?: number;
+    prompt: string;
+    resolution?: "1k" | "2k";
+    output_format?: "jpeg" | "png" | "webp";
+    image_urls?: string[];
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -2129,20 +2057,20 @@ interface XaiGrokImagineImageEditResponse {
 interface XAIImageEditOutput {
     revised_prompt?: string | unknown;
     images: ({
-        file_name?: string | unknown;
-        file_size?: number | unknown;
-        height?: number | unknown;
         url: string;
         content_type?: string | unknown;
+        file_name?: string | unknown;
+        height?: number | unknown;
+        file_size?: number | unknown;
         width?: number | unknown;
     })[];
 }
 
 interface XAITextToVideoInput {
-    resolution?: "480p" | "720p";
-    duration?: number;
-    prompt: string;
     aspect_ratio?: "16:9" | "4:3" | "3:2" | "1:1" | "2:3" | "3:4" | "9:16";
+    duration?: number;
+    resolution?: "480p" | "720p";
+    prompt: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -2164,24 +2092,24 @@ interface XaiGrokImagineVideoTextToVideoResponse {
 }
 interface XAITextToVideoOutput {
     video: {
-        file_name?: string | unknown;
-        duration?: number | unknown;
-        file_size?: number | unknown;
-        width?: number | unknown;
-        fps?: number | unknown;
-        height?: number | unknown;
-        num_frames?: number | unknown;
-        content_type?: string | unknown;
         url: string;
+        duration?: number | unknown;
+        width?: number | unknown;
+        num_frames?: number | unknown;
+        fps?: number | unknown;
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        height?: number | unknown;
+        file_size?: number | unknown;
     };
 }
 
 interface XAIImageToVideoInput {
-    resolution?: "480p" | "720p";
-    image_url: string;
-    duration?: number;
-    prompt: string;
     aspect_ratio?: "auto" | "16:9" | "4:3" | "3:2" | "1:1" | "2:3" | "3:4" | "9:16" | unknown;
+    duration?: number;
+    resolution?: "480p" | "720p";
+    prompt: string;
+    image_url: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -2203,22 +2131,22 @@ interface XaiGrokImagineVideoImageToVideoResponse {
 }
 interface XAIImageToVideoOutput {
     video: {
-        file_name?: string | unknown;
-        duration?: number | unknown;
-        file_size?: number | unknown;
-        width?: number | unknown;
-        fps?: number | unknown;
-        height?: number | unknown;
-        num_frames?: number | unknown;
-        content_type?: string | unknown;
         url: string;
+        duration?: number | unknown;
+        width?: number | unknown;
+        num_frames?: number | unknown;
+        fps?: number | unknown;
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        height?: number | unknown;
+        file_size?: number | unknown;
     };
 }
 
 interface XAIVideoEditInput {
+    prompt: string;
     resolution?: "auto" | "480p" | "720p";
     video_url: string;
-    prompt: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -2240,23 +2168,23 @@ interface XaiGrokImagineVideoEditVideoResponse {
 }
 interface XAIVideoEditOutput {
     video: {
-        file_name?: string | unknown;
-        duration?: number | unknown;
-        file_size?: number | unknown;
-        width?: number | unknown;
-        fps?: number | unknown;
-        height?: number | unknown;
-        num_frames?: number | unknown;
-        content_type?: string | unknown;
         url: string;
+        duration?: number | unknown;
+        width?: number | unknown;
+        num_frames?: number | unknown;
+        fps?: number | unknown;
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        height?: number | unknown;
+        file_size?: number | unknown;
     };
 }
 
 interface TrimVideoInput {
-    video_url: string;
-    duration?: number | unknown;
     end_time?: number | unknown;
     start_time?: number;
+    duration?: number | unknown;
+    video_url: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -2280,8 +2208,8 @@ interface TrimVideoOutput {
     video: {
         url: string;
         content_type?: string | unknown;
-        file_size?: number | unknown;
         file_name?: string | unknown;
+        file_size?: number | unknown;
     };
     original_duration: number;
     trimmed_duration: number;
@@ -2317,14 +2245,14 @@ interface VideoFrameNsfw {
 }
 
 interface ImageExpansionInput {
-    canvas_size: number[];
-    image_url: string;
     negative_prompt?: string;
     original_image_size?: number[] | unknown;
-    original_image_location?: number[] | unknown;
-    prompt?: string;
     seed?: number | unknown;
+    original_image_location?: number[] | unknown;
     aspect_ratio?: "1:1" | "2:3" | "3:2" | "3:4" | "4:3" | "4:5" | "5:4" | "9:16" | "16:9" | unknown;
+    image_url: string;
+    prompt?: string;
+    canvas_size: number[];
     sync_mode?: boolean;
     options?: {
         safety_checks?: {
@@ -2348,12 +2276,12 @@ interface BriaExpandResponse {
 interface ImageExpansionOutput {
     seed: number;
     image: {
-        width?: number | unknown;
         file_name?: string | unknown;
         height?: number | unknown;
-        file_size?: number | unknown;
+        width?: number | unknown;
         content_type?: string | unknown;
         url: string;
+        file_size?: number | unknown;
     };
 }
 
@@ -3920,12 +3848,12 @@ interface WanImagesResult {
 }
 
 interface LTXV23TextToVideoRequest {
-    resolution?: "1080p" | "1440p" | "2160p";
+    generate_audio?: boolean;
     duration?: 6 | 8 | 10;
     prompt: string;
-    fps?: 24 | 25 | 48 | 50;
-    generate_audio?: boolean;
+    resolution?: "1080p" | "1440p" | "2160p";
     aspect_ratio?: "16:9" | "9:16";
+    fps?: 24 | 25 | 48 | 50;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -3947,27 +3875,27 @@ interface Ltx23TextToVideoResponse {
 }
 interface LTXV23TextToVideoResponse$1 {
     video: {
+        file_name?: string | unknown;
+        file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        width?: number | unknown;
         duration?: number | unknown;
         content_type?: string | unknown;
-        width?: number | unknown;
-        file_name?: string | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        file_size?: number | unknown;
-        height?: number | unknown;
         url: string;
+        num_frames?: number | unknown;
     };
 }
 
 interface LTXV23ImageToVideoRequest {
-    duration?: 6 | 8 | 10;
-    fps?: 24 | 25 | 48 | 50;
-    end_image_url?: string | unknown;
-    image_url: string;
-    generate_audio?: boolean;
     resolution?: "1080p" | "1440p" | "2160p";
-    prompt: string;
     aspect_ratio?: "auto" | "16:9" | "9:16";
+    image_url: string;
+    fps?: 24 | 25 | 48 | 50;
+    prompt: string;
+    duration?: 6 | 8 | 10;
+    generate_audio?: boolean;
+    end_image_url?: string | unknown;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -3989,25 +3917,25 @@ interface Ltx23ImageToVideoResponse {
 }
 interface LTXV23ImageToVideoResponse$1 {
     video: {
+        file_name?: string | unknown;
+        file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        width?: number | unknown;
         duration?: number | unknown;
         content_type?: string | unknown;
-        width?: number | unknown;
-        file_name?: string | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        file_size?: number | unknown;
-        height?: number | unknown;
         url: string;
+        num_frames?: number | unknown;
     };
 }
 
 interface LTXV23TextToVideoFastRequest {
-    resolution?: "1080p" | "1440p" | "2160p";
+    generate_audio?: boolean;
     duration?: 6 | 8 | 10 | 12 | 14 | 16 | 18 | 20;
     prompt: string;
-    fps?: 24 | 25 | 48 | 50;
-    generate_audio?: boolean;
+    resolution?: "1080p" | "1440p" | "2160p";
     aspect_ratio?: "16:9" | "9:16";
+    fps?: 24 | 25 | 48 | 50;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -4029,27 +3957,27 @@ interface Ltx23TextToVideoFastResponse {
 }
 interface LTXV23TextToVideoFastResponse$1 {
     video: {
+        file_name?: string | unknown;
+        file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        width?: number | unknown;
         duration?: number | unknown;
         content_type?: string | unknown;
-        width?: number | unknown;
-        file_name?: string | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        file_size?: number | unknown;
-        height?: number | unknown;
         url: string;
+        num_frames?: number | unknown;
     };
 }
 
 interface LTXV23ImageToVideoFastRequest {
-    duration?: 6 | 8 | 10 | 12 | 14 | 16 | 18 | 20;
-    fps?: 24 | 25 | 48 | 50;
-    end_image_url?: string | unknown;
-    image_url: string;
-    generate_audio?: boolean;
     resolution?: "1080p" | "1440p" | "2160p";
-    prompt: string;
     aspect_ratio?: "auto" | "16:9" | "9:16";
+    image_url: string;
+    fps?: 24 | 25 | 48 | 50;
+    prompt: string;
+    duration?: 6 | 8 | 10 | 12 | 14 | 16 | 18 | 20;
+    generate_audio?: boolean;
+    end_image_url?: string | unknown;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -4071,24 +3999,24 @@ interface Ltx23ImageToVideoFastResponse {
 }
 interface LTXV23ImageToVideoFastResponse$1 {
     video: {
+        file_name?: string | unknown;
+        file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        width?: number | unknown;
         duration?: number | unknown;
         content_type?: string | unknown;
-        width?: number | unknown;
-        file_name?: string | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        file_size?: number | unknown;
-        height?: number | unknown;
         url: string;
+        num_frames?: number | unknown;
     };
 }
 
 interface LTXV23AudioToVideoRequest {
-    aspect_ratio?: "auto" | "16:9" | "9:16";
     prompt?: string | unknown;
-    image_url?: string | unknown;
     guidance_scale?: number | unknown;
     audio_url: string;
+    aspect_ratio?: "auto" | "16:9" | "9:16";
+    image_url?: string | unknown;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -4110,23 +4038,23 @@ interface Ltx23AudioToVideoResponse {
 }
 interface LTXV23AudioToVideoResponse {
     video: {
+        file_name?: string | unknown;
+        file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        width?: number | unknown;
         duration?: number | unknown;
         content_type?: string | unknown;
-        width?: number | unknown;
-        file_name?: string | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        file_size?: number | unknown;
-        height?: number | unknown;
         url: string;
+        num_frames?: number | unknown;
     };
 }
 
 interface LTXV23ExtendVideoRequest {
     mode?: "start" | "end";
-    duration?: number;
     prompt?: string | unknown;
     context?: number | unknown;
+    duration?: number;
     video_url: string;
     options?: {
         safety_checks?: {
@@ -4149,23 +4077,23 @@ interface Ltx23ExtendVideoResponse {
 }
 interface LTXV23ExtendVideoResponse {
     video: {
+        file_name?: string | unknown;
+        file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        width?: number | unknown;
         duration?: number | unknown;
         content_type?: string | unknown;
-        width?: number | unknown;
-        file_name?: string | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        file_size?: number | unknown;
-        height?: number | unknown;
         url: string;
+        num_frames?: number | unknown;
     };
 }
 
 interface LTXV23RetakeVideoRequest {
-    video_url: string;
+    prompt: string;
     duration?: number;
     retake_mode?: "replace_audio" | "replace_video" | "replace_audio_and_video";
-    prompt: string;
+    video_url: string;
     start_time?: number;
     options?: {
         safety_checks?: {
@@ -4188,15 +4116,15 @@ interface Ltx23RetakeVideoResponse {
 }
 interface LTXV23RetakeVideoResponse {
     video: {
+        file_name?: string | unknown;
+        file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        width?: number | unknown;
         duration?: number | unknown;
         content_type?: string | unknown;
-        width?: number | unknown;
-        file_name?: string | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        file_size?: number | unknown;
-        height?: number | unknown;
         url: string;
+        num_frames?: number | unknown;
     };
 }
 
@@ -4646,36 +4574,36 @@ interface WanImageToVideoFirstAndLastFramesResult {
 }
 
 interface SingleImageInputModel {
-    uv_unwrap_smooth_strength?: number;
-    ss_sampling_steps?: number;
-    shape_slat_guidance_strength?: number;
-    ss_guidance_strength?: number;
-    remesh?: boolean;
-    tex_slat_sampling_steps?: number;
-    shape_slat_guidance_interval_end?: number;
-    tex_slat_guidance_interval_end?: number;
-    shape_slat_guidance_rescale?: number;
-    shape_slat_sampling_steps?: number;
-    uv_unwrap_global_iterations?: number;
-    ss_guidance_rescale?: number;
     remesh_project?: number;
-    ss_guidance_interval_end?: number;
-    uv_unwrap_refine_iterations?: number;
-    seed?: number | unknown;
-    resolution?: 512 | 1024 | 1536;
-    uv_unwrap_angle_threshold_deg?: number;
-    image_url: string;
-    texture_size?: 1024 | 2048 | 4096;
-    remesh_band?: number;
-    shape_slat_rescale_t?: number;
-    shape_slat_guidance_interval_start?: number;
-    ss_rescale_t?: number;
-    tex_slat_guidance_rescale?: number;
-    decimation_target?: number;
-    tex_slat_guidance_strength?: number;
-    tex_slat_rescale_t?: number;
     ss_guidance_interval_start?: number;
+    shape_slat_guidance_strength?: number;
+    shape_slat_sampling_steps?: number;
+    uv_unwrap_angle_threshold_deg?: number;
+    ss_rescale_t?: number;
+    texture_size?: 1024 | 2048 | 4096;
+    resolution?: 512 | 1024 | 1536;
+    tex_slat_sampling_steps?: number;
+    seed?: number | unknown;
+    shape_slat_guidance_interval_start?: number;
+    uv_unwrap_smooth_strength?: number;
+    decimation_target?: number;
+    shape_slat_guidance_rescale?: number;
+    tex_slat_guidance_rescale?: number;
+    shape_slat_rescale_t?: number;
+    uv_unwrap_refine_iterations?: number;
+    tex_slat_rescale_t?: number;
     tex_slat_guidance_interval_start?: number;
+    remesh_band?: number;
+    ss_guidance_strength?: number;
+    ss_guidance_rescale?: number;
+    shape_slat_guidance_interval_end?: number;
+    remesh?: boolean;
+    ss_guidance_interval_end?: number;
+    uv_unwrap_global_iterations?: number;
+    ss_sampling_steps?: number;
+    tex_slat_guidance_strength?: number;
+    image_url: string;
+    tex_slat_guidance_interval_end?: number;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -4698,9 +4626,9 @@ interface Trellis2Response {
 interface ObjectOutput {
     model_glb: {
         file_name?: string | unknown;
-        file_size?: number | unknown;
         content_type?: string | unknown;
         url: string;
+        file_size?: number | unknown;
     };
 }
 
@@ -4943,18 +4871,18 @@ interface WanV2VideoEditResult {
 }
 
 interface QwenImage2TextToImageInput {
+    seed?: number | unknown;
+    sync_mode?: boolean;
+    num_images?: number;
+    output_format?: "jpeg" | "png" | "webp";
+    enable_prompt_expansion?: boolean;
+    enable_safety_checker?: boolean;
+    prompt: string;
+    negative_prompt?: string | unknown;
     image_size?: {
         height?: number;
         width?: number;
     } | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9";
-    num_images?: number;
-    enable_prompt_expansion?: boolean;
-    negative_prompt?: string | unknown;
-    sync_mode?: boolean;
-    output_format?: "jpeg" | "png" | "webp";
-    seed?: number | unknown;
-    enable_safety_checker?: boolean;
-    prompt: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -4977,27 +4905,27 @@ interface QwenImage2TextToImageResponse {
 interface QwenImage2TextToImageOutput {
     seed: number;
     images: ({
-        url: string;
-        content_type?: string | unknown;
         file_size?: number | unknown;
+        url: string;
         file_name?: string | unknown;
+        content_type?: string | unknown;
     })[];
 }
 
 interface QwenImage2EditInput {
+    seed?: number | unknown;
+    sync_mode?: boolean;
+    num_images?: number;
+    output_format?: "jpeg" | "png" | "webp";
+    enable_prompt_expansion?: boolean;
+    enable_safety_checker?: boolean;
+    prompt: string;
+    negative_prompt?: string | unknown;
     image_size?: {
         height?: number;
         width?: number;
     } | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9" | unknown;
-    num_images?: number;
-    enable_prompt_expansion?: boolean;
-    negative_prompt?: string | unknown;
-    output_format?: "jpeg" | "png" | "webp";
-    sync_mode?: boolean;
-    seed?: number | unknown;
     image_urls: string[];
-    enable_safety_checker?: boolean;
-    prompt: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -5020,26 +4948,26 @@ interface QwenImage2EditResponse {
 interface QwenImage2EditOutput {
     seed: number;
     images: ({
-        url: string;
-        content_type?: string | unknown;
         file_size?: number | unknown;
+        url: string;
         file_name?: string | unknown;
+        content_type?: string | unknown;
     })[];
 }
 
 interface QwenImage2ProTextToImageInput {
+    seed?: number | unknown;
+    sync_mode?: boolean;
+    num_images?: number;
+    output_format?: "jpeg" | "png" | "webp";
+    enable_prompt_expansion?: boolean;
+    enable_safety_checker?: boolean;
+    prompt: string;
+    negative_prompt?: string | unknown;
     image_size?: {
         height?: number;
         width?: number;
     } | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9";
-    num_images?: number;
-    enable_prompt_expansion?: boolean;
-    negative_prompt?: string | unknown;
-    sync_mode?: boolean;
-    output_format?: "jpeg" | "png" | "webp";
-    seed?: number | unknown;
-    enable_safety_checker?: boolean;
-    prompt: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -5062,27 +4990,27 @@ interface QwenImage2ProTextToImageResponse {
 interface QwenImage2ProTextToImageOutput {
     seed: number;
     images: ({
-        url: string;
-        content_type?: string | unknown;
         file_size?: number | unknown;
+        url: string;
         file_name?: string | unknown;
+        content_type?: string | unknown;
     })[];
 }
 
 interface QwenImage2ProEditInput {
+    seed?: number | unknown;
+    sync_mode?: boolean;
+    num_images?: number;
+    output_format?: "jpeg" | "png" | "webp";
+    enable_prompt_expansion?: boolean;
+    enable_safety_checker?: boolean;
+    prompt: string;
+    negative_prompt?: string | unknown;
     image_size?: {
         height?: number;
         width?: number;
     } | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9" | unknown;
-    num_images?: number;
-    enable_prompt_expansion?: boolean;
-    negative_prompt?: string | unknown;
-    output_format?: "jpeg" | "png" | "webp";
-    sync_mode?: boolean;
-    seed?: number | unknown;
     image_urls: string[];
-    enable_safety_checker?: boolean;
-    prompt: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -5105,10 +5033,10 @@ interface QwenImage2ProEditResponse {
 interface QwenImage2ProEditOutput {
     seed: number;
     images: ({
-        url: string;
-        content_type?: string | unknown;
         file_size?: number | unknown;
+        url: string;
         file_name?: string | unknown;
+        content_type?: string | unknown;
     })[];
 }
 
@@ -5927,14 +5855,14 @@ interface IdeogramClientData$5 {
 }
 
 interface Seedance2T2VInput {
-    generate_audio?: boolean;
-    resolution?: "480p" | "720p" | "1080p" | "4k";
-    aspect_ratio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
-    end_user_id?: string | unknown;
     codec?: "auto" | "H264" | "H265";
-    bitrate_mode?: "standard" | "high";
     prompt: string;
     duration?: "auto" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15";
+    end_user_id?: string | unknown;
+    aspect_ratio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
+    generate_audio?: boolean;
+    resolution?: "480p" | "720p" | "1080p" | "4k";
+    bitrate_mode?: "standard" | "high";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -5955,26 +5883,26 @@ interface BytedanceSeedance20TextToVideoResponse {
     result: Seedance2VideoOutput$5;
 }
 interface Seedance2VideoOutput$5 {
+    seed: number;
     video: {
         file_name?: string | unknown;
-        file_size?: number | unknown;
         url: string;
         content_type?: string | unknown;
+        file_size?: number | unknown;
     };
-    seed: number;
 }
 
 interface Seedance2I2VInput {
-    bitrate_mode?: "standard" | "high";
-    resolution?: "480p" | "720p" | "1080p" | "4k";
     image_url: string;
-    end_image_url?: string | unknown;
-    aspect_ratio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
-    end_user_id?: string | unknown;
     codec?: "auto" | "H264" | "H265";
-    duration?: "auto" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15";
+    end_image_url?: string | unknown;
     prompt: string;
+    duration?: "auto" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15";
+    end_user_id?: string | unknown;
+    aspect_ratio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
     generate_audio?: boolean;
+    resolution?: "480p" | "720p" | "1080p" | "4k";
+    bitrate_mode?: "standard" | "high";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -5995,24 +5923,24 @@ interface BytedanceSeedance20ImageToVideoResponse {
     result: Seedance2VideoOutput$4;
 }
 interface Seedance2VideoOutput$4 {
+    seed: number;
     video: {
         file_name?: string | unknown;
-        file_size?: number | unknown;
         url: string;
         content_type?: string | unknown;
+        file_size?: number | unknown;
     };
-    seed: number;
 }
 
 interface Seedance2T2VFastInput {
-    generate_audio?: boolean;
-    resolution?: "480p" | "720p";
-    aspect_ratio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
-    end_user_id?: string | unknown;
     codec?: "auto" | "H264" | "H265";
-    bitrate_mode?: "standard" | "high";
     prompt: string;
     duration?: "auto" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15";
+    end_user_id?: string | unknown;
+    aspect_ratio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
+    generate_audio?: boolean;
+    resolution?: "480p" | "720p";
+    bitrate_mode?: "standard" | "high";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -6033,26 +5961,26 @@ interface BytedanceSeedance20FastTextToVideoResponse {
     result: Seedance2VideoOutput$3;
 }
 interface Seedance2VideoOutput$3 {
+    seed: number;
     video: {
         file_name?: string | unknown;
-        file_size?: number | unknown;
         url: string;
         content_type?: string | unknown;
+        file_size?: number | unknown;
     };
-    seed: number;
 }
 
 interface Seedance2I2VFastInput {
-    bitrate_mode?: "standard" | "high";
-    resolution?: "480p" | "720p";
     image_url: string;
-    end_image_url?: string | unknown;
-    aspect_ratio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
-    end_user_id?: string | unknown;
     codec?: "auto" | "H264" | "H265";
-    duration?: "auto" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15";
+    end_image_url?: string | unknown;
     prompt: string;
+    duration?: "auto" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15";
+    end_user_id?: string | unknown;
+    aspect_ratio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
     generate_audio?: boolean;
+    resolution?: "480p" | "720p";
+    bitrate_mode?: "standard" | "high";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -6073,27 +6001,27 @@ interface BytedanceSeedance20FastImageToVideoResponse {
     result: Seedance2VideoOutput$2;
 }
 interface Seedance2VideoOutput$2 {
+    seed: number;
     video: {
         file_name?: string | unknown;
-        file_size?: number | unknown;
         url: string;
         content_type?: string | unknown;
+        file_size?: number | unknown;
     };
-    seed: number;
 }
 
 interface Seedance2R2VInput {
-    duration?: "auto" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15";
+    image_urls?: string[];
+    codec?: "auto" | "H264" | "H265";
+    prompt: string;
     video_urls?: string[];
-    resolution?: "480p" | "720p" | "1080p" | "4k";
-    bitrate_mode?: "standard" | "high";
+    duration?: "auto" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15";
+    end_user_id?: string | unknown;
     generate_audio?: boolean;
     aspect_ratio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
-    end_user_id?: string | unknown;
-    codec?: "auto" | "H264" | "H265";
     audio_urls?: string[];
-    prompt: string;
-    image_urls?: string[];
+    bitrate_mode?: "standard" | "high";
+    resolution?: "480p" | "720p" | "1080p" | "4k";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -6114,27 +6042,27 @@ interface BytedanceSeedance20ReferenceToVideoResponse {
     result: Seedance2VideoOutput$1;
 }
 interface Seedance2VideoOutput$1 {
+    seed: number;
     video: {
         file_name?: string | unknown;
-        file_size?: number | unknown;
         url: string;
         content_type?: string | unknown;
+        file_size?: number | unknown;
     };
-    seed: number;
 }
 
 interface Seedance2R2VFastInput {
-    duration?: "auto" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15";
+    image_urls?: string[];
+    codec?: "auto" | "H264" | "H265";
+    prompt: string;
     video_urls?: string[];
-    resolution?: "480p" | "720p";
-    bitrate_mode?: "standard" | "high";
+    duration?: "auto" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15";
+    end_user_id?: string | unknown;
     generate_audio?: boolean;
     aspect_ratio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
-    end_user_id?: string | unknown;
-    codec?: "auto" | "H264" | "H265";
     audio_urls?: string[];
-    prompt: string;
-    image_urls?: string[];
+    bitrate_mode?: "standard" | "high";
+    resolution?: "480p" | "720p";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -6155,13 +6083,13 @@ interface BytedanceSeedance20FastReferenceToVideoResponse {
     result: Seedance2VideoOutput;
 }
 interface Seedance2VideoOutput {
+    seed: number;
     video: {
         file_name?: string | unknown;
-        file_size?: number | unknown;
         url: string;
         content_type?: string | unknown;
+        file_size?: number | unknown;
     };
-    seed: number;
 }
 
 interface ChatCompletionsCommand {
@@ -11018,15 +10946,15 @@ interface VoiceDeleteResult {
 }
 
 interface TurboTextToVideoHailuo03Input$1 {
+    prompt_expansion_mode: string;
     aspect_ratio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
     target_audio_url?: string | unknown;
-    enable_safety_checker?: boolean;
     duration?: number;
-    resolution?: "480P" | "768P" | "1080P";
     prompt: string;
-    sync_mode?: boolean;
-    prompt_expansion_mode: string;
     seed?: number | unknown;
+    enable_safety_checker?: boolean;
+    sync_mode?: boolean;
+    resolution?: "480P" | "768P" | "1080P";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11047,27 +10975,27 @@ interface MinimaxH3MaxTextToVideoResponse {
     result: TurboTextToVideoHailuo03Output$1;
 }
 interface TurboTextToVideoHailuo03Output$1 {
+    timings?: Record<string, number> | unknown;
     video: {
         file_size?: number | unknown;
-        file_name?: string | unknown;
         content_type?: string | unknown;
         url: string;
+        file_name?: string | unknown;
     };
     expanded_prompt?: string | unknown;
-    timings?: Record<string, number> | unknown;
 }
 
 interface TurboImageToVideoHailuo03Input$1 {
-    target_audio_url?: string | unknown;
-    enable_safety_checker?: boolean;
-    image_url?: string | unknown;
-    duration?: number;
-    resolution?: "480P" | "768P" | "1080P";
-    end_image_url?: string | unknown;
-    prompt: string;
-    sync_mode?: boolean;
     prompt_expansion_mode: string;
+    image_url?: string | unknown;
+    target_audio_url?: string | unknown;
+    duration?: number;
+    prompt: string;
     seed?: number | unknown;
+    end_image_url?: string | unknown;
+    enable_safety_checker?: boolean;
+    sync_mode?: boolean;
+    resolution?: "480P" | "768P" | "1080P";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11088,14 +11016,14 @@ interface MinimaxH3MaxImageToVideoResponse {
     result: TurboImageToVideoHailuo03Output$2;
 }
 interface TurboImageToVideoHailuo03Output$2 {
+    timings?: Record<string, number> | unknown;
     video: {
         file_size?: number | unknown;
-        file_name?: string | unknown;
         content_type?: string | unknown;
         url: string;
+        file_name?: string | unknown;
     };
     expanded_prompt?: string | unknown;
-    timings?: Record<string, number> | unknown;
 }
 
 interface MetaImagesGenerationsCommand {
@@ -11200,17 +11128,21 @@ interface MetaGeneratedImage {
 }
 
 interface TurboReferenceToVideoHailuo03Input {
+    reference_image_urls?: string[];
     aspect_ratio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
-    enable_safety_checker?: boolean;
+    reference_audio_urls?: string[];
+    middle_image_url?: string | unknown;
     duration?: number;
+    end_image_url?: string | unknown;
+    seed?: number | unknown;
+    enable_safety_checker?: boolean;
+    sync_mode?: boolean;
     resolution?: "480P" | "768P" | "1080P";
+    prompt_expansion_mode: string;
+    middle_frame_time?: number | unknown;
     reference_video_urls?: string[];
     prompt: string;
-    sync_mode?: boolean;
-    prompt_expansion_mode: string;
-    reference_audio_urls?: string[];
-    seed?: number | unknown;
-    reference_image_urls?: string[];
+    image_url?: string | unknown;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11231,15 +11163,15 @@ interface MinimaxH3MaxReferenceToVideoResponse {
     result: TurboReferenceToVideoHailuo03Output;
 }
 interface TurboReferenceToVideoHailuo03Output {
+    timings?: Record<string, number> | unknown;
+    seed: number;
     video: {
         file_size?: number | unknown;
-        file_name?: string | unknown;
         content_type?: string | unknown;
         url: string;
+        file_name?: string | unknown;
     };
     expanded_prompt?: string | unknown;
-    seed: number;
-    timings?: Record<string, number> | unknown;
 }
 
 interface VideoEffectsCommand {
@@ -11309,25 +11241,25 @@ interface CatalogPreviewResult {
 }
 
 interface MultipleAnglesInput {
+    num_inference_steps?: number;
+    acceleration?: "none" | "regular";
     image_size?: {
         height?: number;
         width?: number;
     } | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9" | unknown;
-    vertical_angle?: number;
-    seed?: number | unknown;
-    enable_safety_checker?: boolean;
-    num_inference_steps?: number;
-    num_images?: number;
-    negative_prompt?: string;
-    lora_scale?: number;
-    sync_mode?: boolean;
-    output_format?: "png" | "jpeg" | "webp";
-    image_urls: string[];
-    guidance_scale?: number;
     horizontal_angle?: number;
+    guidance_scale?: number;
     zoom?: number;
-    acceleration?: "none" | "regular";
+    vertical_angle?: number;
     additional_prompt?: string | unknown;
+    enable_safety_checker?: boolean;
+    image_urls: string[];
+    seed?: number | unknown;
+    output_format?: "png" | "jpeg" | "webp";
+    num_images?: number;
+    sync_mode?: boolean;
+    lora_scale?: number;
+    negative_prompt?: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11350,26 +11282,26 @@ interface QwenImageEdit2511MultipleAnglesResponse {
 interface MultipleAnglesOutput {
     seed: number;
     images: ({
+        width?: number | unknown;
         url: string;
         height?: number | unknown;
-        width?: number | unknown;
         content_type?: string | unknown;
-        file_size?: number | unknown;
         file_name?: string | unknown;
+        file_size?: number | unknown;
     })[];
     prompt: string;
 }
 
 interface TurboTextToVideoHailuo03Input {
+    prompt_expansion_mode: string;
     aspect_ratio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
     target_audio_url?: string | unknown;
-    enable_safety_checker?: boolean;
     duration?: number;
-    resolution?: "480P" | "768P" | "1080P";
     prompt: string;
-    sync_mode?: boolean;
-    prompt_expansion_mode: string;
     seed?: number | unknown;
+    enable_safety_checker?: boolean;
+    sync_mode?: boolean;
+    resolution?: "480P" | "768P" | "1080P";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11390,27 +11322,27 @@ interface MinimaxH3MaxTurboTextToVideoResponse {
     result: TurboTextToVideoHailuo03Output;
 }
 interface TurboTextToVideoHailuo03Output {
+    timings?: Record<string, number> | unknown;
     video: {
         file_size?: number | unknown;
-        file_name?: string | unknown;
         content_type?: string | unknown;
         url: string;
+        file_name?: string | unknown;
     };
     expanded_prompt?: string | unknown;
-    timings?: Record<string, number> | unknown;
 }
 
 interface TurboImageToVideoHailuo03Input {
-    target_audio_url?: string | unknown;
-    enable_safety_checker?: boolean;
-    image_url?: string | unknown;
-    duration?: number;
-    resolution?: "480P" | "768P" | "1080P";
-    end_image_url?: string | unknown;
-    prompt: string;
-    sync_mode?: boolean;
     prompt_expansion_mode: string;
+    image_url?: string | unknown;
+    target_audio_url?: string | unknown;
+    duration?: number;
+    prompt: string;
     seed?: number | unknown;
+    end_image_url?: string | unknown;
+    enable_safety_checker?: boolean;
+    sync_mode?: boolean;
+    resolution?: "480P" | "768P" | "1080P";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11431,14 +11363,14 @@ interface MinimaxH3MaxTurboImageToVideoResponse {
     result: TurboImageToVideoHailuo03Output$1;
 }
 interface TurboImageToVideoHailuo03Output$1 {
+    timings?: Record<string, number> | unknown;
     video: {
         file_size?: number | unknown;
-        file_name?: string | unknown;
         content_type?: string | unknown;
         url: string;
+        file_name?: string | unknown;
     };
     expanded_prompt?: string | unknown;
-    timings?: Record<string, number> | unknown;
 }
 
 interface AifiltersCommand {
@@ -11634,20 +11566,20 @@ interface VideoEnhanceResultData {
 }
 
 interface H3MaxMultiAngleInput {
-    enable_safety_checker?: boolean;
-    image_url: string;
-    duration?: number;
-    resolution?: "480P" | "768P" | "1080P";
-    prompt?: string;
-    sync_mode?: boolean;
     prompt_expansion_mode: string;
     camera_trajectory?: {
-        time: number;
-        elevation: number;
-        distance: number;
         azimuth: number;
+        distance: number;
+        elevation: number;
+        time: number;
     }[];
+    duration?: number;
+    prompt?: string;
     seed?: number | unknown;
+    enable_safety_checker?: boolean;
+    image_url: string;
+    sync_mode?: boolean;
+    resolution?: "480P" | "768P" | "1080P";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11668,14 +11600,14 @@ interface MinimaxH3MaxCameraControlsResponse {
     result: TurboImageToVideoHailuo03Output;
 }
 interface TurboImageToVideoHailuo03Output {
+    timings?: Record<string, number> | unknown;
     video: {
         file_size?: number | unknown;
-        file_name?: string | unknown;
         content_type?: string | unknown;
         url: string;
+        file_name?: string | unknown;
     };
     expanded_prompt?: string | unknown;
-    timings?: Record<string, number> | unknown;
 }
 
 interface IdeogramV4RemixCommand {
@@ -11730,14 +11662,14 @@ interface IdeogramClientData$2 {
 }
 
 interface BorealInputModel {
-    resolution?: "720p" | "1080p" | "2k";
-    duration?: number;
-    prompt: string;
-    image_url?: string | unknown;
-    audio_url?: string | unknown;
-    manifest_disclosure?: boolean;
     negative_prompt?: string;
     aspect_ratio?: "auto" | "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+    duration?: number;
+    audio_url?: string | unknown;
+    prompt: string;
+    image_url?: string | unknown;
+    manifest_disclosure?: boolean;
+    resolution?: "720p" | "1080p" | "2k";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11759,25 +11691,25 @@ interface CreatifyBorealResponse {
 }
 interface BorealOutputModel {
     video: {
-        width?: number | unknown;
-        content_type?: string | unknown;
-        duration?: number | unknown;
-        file_name?: string | unknown;
         num_frames?: number | unknown;
+        file_size?: number | unknown;
+        content_type?: string | unknown;
+        url: string;
         height?: number | unknown;
         fps?: number | unknown;
-        file_size?: number | unknown;
-        url: string;
+        duration?: number | unknown;
+        width?: number | unknown;
+        file_name?: string | unknown;
     };
 }
 
 interface LipSyncImageInput {
+    enable_transcription?: boolean;
+    audio_url: string;
     enable_safety_checker?: boolean;
     image_url: string;
-    audio_url: string;
     seed?: number | unknown;
     resolution?: "480P" | "768P" | "1080P" | "2K";
-    enable_transcription?: boolean;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11798,15 +11730,15 @@ interface MinimaxH3MaxLipSyncImageToVideoResponse {
     result: LipSyncOutput;
 }
 interface LipSyncOutput {
+    duration: number;
+    timings?: Record<string, number> | unknown;
+    seed: number;
     video: {
         file_size?: number | unknown;
-        file_name?: string | unknown;
         content_type?: string | unknown;
         url: string;
+        file_name?: string | unknown;
     };
-    duration: number;
-    seed: number;
-    timings?: Record<string, number> | unknown;
 }
 
 interface Flux3ImageCommand {
@@ -11854,13 +11786,13 @@ interface GeneratedImageResult {
 }
 
 interface LTXV25TextToVideoRequest {
-    camera_motion?: "dolly_in" | "dolly_out" | "dolly_left" | "dolly_right" | "jib_up" | "jib_down" | "static" | "focus_shift" | unknown;
     duration?: 6 | 8 | 10 | "auto";
-    aspect_ratio?: "16:9" | "9:16";
-    prompt: string;
-    generate_audio?: boolean;
-    resolution?: "720p" | "1080p";
     fps?: 24 | 25 | 50;
+    generate_audio?: boolean;
+    aspect_ratio?: "16:9" | "9:16";
+    resolution?: "720p" | "1080p";
+    camera_motion?: "dolly_in" | "dolly_out" | "dolly_left" | "dolly_right" | "jib_up" | "jib_down" | "static" | "focus_shift" | unknown;
+    prompt: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11883,27 +11815,27 @@ interface LightricksLtx25TextToVideoProResponse {
 interface LTXV23TextToVideoResponse {
     video: {
         file_name?: string | unknown;
-        content_type?: string | unknown;
-        height?: number | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        duration?: number | unknown;
         url: string;
-        width?: number | unknown;
+        content_type?: string | unknown;
+        num_frames?: number | unknown;
         file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        duration?: number | unknown;
+        width?: number | unknown;
     };
 }
 
 interface LTXV25ImageToVideoRequest {
-    camera_motion?: "dolly_in" | "dolly_out" | "dolly_left" | "dolly_right" | "jib_up" | "jib_down" | "static" | "focus_shift" | unknown;
-    resolution?: "720p" | "1080p";
     image_url: string;
-    duration?: 6 | 8 | 10 | "auto";
-    aspect_ratio?: "auto" | "16:9" | "9:16";
-    generate_audio?: boolean;
-    prompt: string;
     end_image_url?: string | unknown;
+    camera_motion?: "dolly_in" | "dolly_out" | "dolly_left" | "dolly_right" | "jib_up" | "jib_down" | "static" | "focus_shift" | unknown;
+    prompt: string;
+    duration?: 6 | 8 | 10 | "auto";
     fps?: 24 | 25 | 50;
+    generate_audio?: boolean;
+    aspect_ratio?: "auto" | "16:9" | "9:16";
+    resolution?: "720p" | "1080p";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11926,25 +11858,25 @@ interface LightricksLtx25ImageToVideoProResponse {
 interface LTXV23ImageToVideoResponse {
     video: {
         file_name?: string | unknown;
-        content_type?: string | unknown;
-        height?: number | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        duration?: number | unknown;
         url: string;
-        width?: number | unknown;
+        content_type?: string | unknown;
+        num_frames?: number | unknown;
         file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        duration?: number | unknown;
+        width?: number | unknown;
     };
 }
 
 interface LTXV25TextToVideoFastRequest {
-    camera_motion?: "dolly_in" | "dolly_out" | "dolly_left" | "dolly_right" | "jib_up" | "jib_down" | "static" | "focus_shift" | unknown;
     duration?: 6 | 8 | 10 | 12 | 14 | 16 | 18 | 20 | "auto";
-    aspect_ratio?: "16:9" | "9:16";
-    prompt: string;
-    generate_audio?: boolean;
-    resolution?: "720p" | "1080p" | "1440p" | "2160p";
     fps?: 24 | 25 | 48 | 50;
+    generate_audio?: boolean;
+    aspect_ratio?: "16:9" | "9:16";
+    resolution?: "720p" | "1080p" | "1440p" | "2160p";
+    camera_motion?: "dolly_in" | "dolly_out" | "dolly_left" | "dolly_right" | "jib_up" | "jib_down" | "static" | "focus_shift" | unknown;
+    prompt: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -11967,27 +11899,27 @@ interface LightricksLtx25TextToVideoFastResponse {
 interface LTXV23TextToVideoFastResponse {
     video: {
         file_name?: string | unknown;
-        content_type?: string | unknown;
-        height?: number | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        duration?: number | unknown;
         url: string;
-        width?: number | unknown;
+        content_type?: string | unknown;
+        num_frames?: number | unknown;
         file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        duration?: number | unknown;
+        width?: number | unknown;
     };
 }
 
 interface LTXV25ImageToVideoFastRequest {
-    camera_motion?: "dolly_in" | "dolly_out" | "dolly_left" | "dolly_right" | "jib_up" | "jib_down" | "static" | "focus_shift" | unknown;
-    resolution?: "720p" | "1080p" | "1440p" | "2160p";
     image_url: string;
-    duration?: 6 | 8 | 10 | 12 | 14 | 16 | 18 | 20 | "auto";
-    aspect_ratio?: "auto" | "16:9" | "9:16";
-    generate_audio?: boolean;
-    prompt: string;
     end_image_url?: string | unknown;
+    camera_motion?: "dolly_in" | "dolly_out" | "dolly_left" | "dolly_right" | "jib_up" | "jib_down" | "static" | "focus_shift" | unknown;
+    prompt: string;
+    duration?: 6 | 8 | 10 | 12 | 14 | 16 | 18 | 20 | "auto";
     fps?: 24 | 25 | 48 | 50;
+    generate_audio?: boolean;
+    aspect_ratio?: "auto" | "16:9" | "9:16";
+    resolution?: "720p" | "1080p" | "1440p" | "2160p";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -12010,21 +11942,21 @@ interface LightricksLtx25ImageToVideoFastResponse {
 interface LTXV23ImageToVideoFastResponse {
     video: {
         file_name?: string | unknown;
-        content_type?: string | unknown;
-        height?: number | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        duration?: number | unknown;
         url: string;
-        width?: number | unknown;
+        content_type?: string | unknown;
+        num_frames?: number | unknown;
         file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        duration?: number | unknown;
+        width?: number | unknown;
     };
 }
 
 interface LTXV23ReframeVideoRequest {
-    resolution?: "720p" | "1080p";
-    aspect_ratio?: "1:1" | "4:5" | "5:4" | "9:16" | "16:9";
     video_url: string;
+    aspect_ratio?: "1:1" | "4:5" | "5:4" | "9:16" | "16:9";
+    resolution?: "720p" | "1080p";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -12046,41 +11978,41 @@ interface Ltx23ReframeResponse {
 }
 interface LTXV23ReframeVideoResponse {
     video: {
+        file_name?: string | unknown;
+        file_size?: number | unknown;
+        fps?: number | unknown;
+        height?: number | unknown;
+        width?: number | unknown;
         duration?: number | unknown;
         content_type?: string | unknown;
-        width?: number | unknown;
-        file_name?: string | unknown;
-        fps?: number | unknown;
-        num_frames?: number | unknown;
-        file_size?: number | unknown;
-        height?: number | unknown;
         url: string;
+        num_frames?: number | unknown;
     };
 }
 
 interface LTX23QualityOutpaintInput {
-    video_write_mode?: "fast" | "balanced" | "small";
-    enable_safety_checker?: boolean;
     num_inference_steps?: number;
-    prompt: string;
-    frames_per_second?: number;
-    sync_mode?: boolean;
-    num_frames?: number;
-    video_quality?: "low" | "medium" | "high" | "maximum";
-    negative_prompt?: string;
+    aspect_ratio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "9:21";
+    enable_safety_checker?: boolean;
     guidance_scale?: number;
     enable_prompt_expansion?: boolean;
-    generate_audio?: boolean;
-    source_scale?: number;
-    video_strength?: number;
+    video_write_mode?: "fast" | "balanced" | "small";
+    num_frames?: number;
     seed?: number | unknown;
-    aspect_ratio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "9:21";
-    video_url: string;
+    frames_per_second?: number;
+    video_quality?: "low" | "medium" | "high" | "maximum";
+    generate_audio?: boolean;
+    prompt: string;
     resolution?: {
-        width?: number;
         height?: number;
+        width?: number;
     } | "auto" | "square_hd" | "square" | "portrait_4_3" | "portrait_16_9" | "landscape_4_3" | "landscape_16_9";
+    sync_mode?: boolean;
     output_resolution?: "480p" | "720p" | "1080p";
+    source_scale?: number;
+    video_url: string;
+    video_strength?: number;
+    negative_prompt?: string;
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -12101,14 +12033,14 @@ interface Ltx23QualityOutpaintResponse {
     result: LTX23QualityOutput;
 }
 interface LTX23QualityOutput {
-    prompt: string;
     video: {
-        file_name?: string | unknown;
-        file_size?: number | unknown;
-        content_type?: string | unknown;
         url: string;
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        file_size?: number | unknown;
     };
     seed: number;
+    prompt: string;
 }
 
 interface VideoToMusicCommand {
@@ -12190,14 +12122,15 @@ interface TranscriptCharacter {
 
 interface TurboExtendVideoHailuo03Input {
     aspect_ratio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
-    enable_safety_checker?: boolean;
-    duration?: number;
-    resolution?: "480P" | "768P" | "1080P" | "2K";
+    enable_prompt_expansion?: boolean;
+    reference_audio_urls?: string[];
     output?: "extended" | "continuation";
+    video_url: string;
+    duration?: number;
     prompt: string;
     seed?: number | unknown;
-    video_url: string;
-    enable_prompt_expansion?: boolean;
+    enable_safety_checker?: boolean;
+    resolution?: "480P" | "768P" | "1080P" | "2K";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -12218,17 +12151,17 @@ interface MinimaxH3MaxExtendVideoResponse {
     result: TurboExtendVideoHailuo03Output;
 }
 interface TurboExtendVideoHailuo03Output {
+    duration: number;
+    timings?: Record<string, number>;
+    source: Record<string, unknown>;
+    seed: number;
     video: {
         file_size?: number | unknown;
-        file_name?: string | unknown;
         content_type?: string | unknown;
         url: string;
+        file_name?: string | unknown;
     };
-    source: Record<string, unknown>;
-    duration: number;
     expanded_prompt?: string | unknown;
-    seed: number;
-    timings?: Record<string, number>;
 }
 
 interface IdeogramV45GenerateCommand {
@@ -12379,18 +12312,18 @@ interface VideoMattingResultData {
 }
 
 interface FullImageTo3DInput {
-    texture_alignment?: "original_image" | "geometry";
-    model_seed?: number | unknown;
-    auto_size?: boolean;
-    texture_seed?: number | unknown;
-    image_url: string;
     face_limit?: number | unknown;
-    pbr?: boolean;
-    orientation?: "default" | "align_image";
-    quad?: boolean;
-    texture?: boolean;
-    geometry_quality?: "standard" | "detailed";
     texture_quality?: "standard" | "detailed";
+    geometry_quality?: "standard" | "detailed";
+    texture_seed?: number | unknown;
+    auto_size?: boolean;
+    texture?: boolean;
+    orientation?: "default" | "align_image";
+    pbr?: boolean;
+    model_seed?: number | unknown;
+    quad?: boolean;
+    image_url: string;
+    texture_alignment?: "original_image" | "geometry";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -12414,55 +12347,56 @@ interface Tripo3DOutput$1 {
     rendered_image?: {
         file_name?: string | unknown;
         content_type?: string | unknown;
-        url: string;
         file_size?: number | unknown;
+        url: string;
     } | unknown;
+    task_id?: string | unknown;
+    model_mesh: {
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        file_size?: number | unknown;
+        url: string;
+    };
     model_urls: {
         fbx?: {
             file_name?: string | unknown;
             content_type?: string | unknown;
-            url: string;
             file_size?: number | unknown;
-        } | unknown;
-        glb?: {
-            file_name?: string | unknown;
-            content_type?: string | unknown;
             url: string;
-            file_size?: number | unknown;
-        } | unknown;
-        base_model?: {
-            file_name?: string | unknown;
-            content_type?: string | unknown;
-            url: string;
-            file_size?: number | unknown;
         } | unknown;
         pbr_model?: {
             file_name?: string | unknown;
             content_type?: string | unknown;
-            url: string;
             file_size?: number | unknown;
+            url: string;
         } | unknown;
-    };
-    model_mesh: {
-        file_name?: string | unknown;
-        content_type?: string | unknown;
-        url: string;
-        file_size?: number | unknown;
+        base_model?: {
+            file_name?: string | unknown;
+            content_type?: string | unknown;
+            file_size?: number | unknown;
+            url: string;
+        } | unknown;
+        glb?: {
+            file_name?: string | unknown;
+            content_type?: string | unknown;
+            file_size?: number | unknown;
+            url: string;
+        } | unknown;
     };
 }
 
 interface FullTextTo3DInput {
-    texture?: boolean;
-    pbr?: boolean;
-    auto_size?: boolean;
-    prompt: string;
-    texture_seed?: number | unknown;
     face_limit?: number | unknown;
-    model_seed?: number | unknown;
-    image_seed?: number | unknown;
-    quad?: boolean;
-    negative_prompt?: string | unknown;
+    pbr?: boolean;
     geometry_quality?: "standard" | "detailed";
+    image_seed?: number | unknown;
+    texture_seed?: number | unknown;
+    prompt: string;
+    texture?: boolean;
+    auto_size?: boolean;
+    negative_prompt?: string | unknown;
+    model_seed?: number | unknown;
+    quad?: boolean;
     texture_quality?: "standard" | "detailed";
     options?: {
         safety_checks?: {
@@ -12487,67 +12421,68 @@ interface Tripo3DOutput {
     rendered_image?: {
         file_name?: string | unknown;
         content_type?: string | unknown;
-        url: string;
         file_size?: number | unknown;
+        url: string;
     } | unknown;
+    task_id?: string | unknown;
+    model_mesh: {
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        file_size?: number | unknown;
+        url: string;
+    };
     model_urls: {
         fbx?: {
             file_name?: string | unknown;
             content_type?: string | unknown;
-            url: string;
             file_size?: number | unknown;
-        } | unknown;
-        glb?: {
-            file_name?: string | unknown;
-            content_type?: string | unknown;
             url: string;
-            file_size?: number | unknown;
-        } | unknown;
-        base_model?: {
-            file_name?: string | unknown;
-            content_type?: string | unknown;
-            url: string;
-            file_size?: number | unknown;
         } | unknown;
         pbr_model?: {
             file_name?: string | unknown;
             content_type?: string | unknown;
-            url: string;
             file_size?: number | unknown;
+            url: string;
         } | unknown;
-    };
-    model_mesh: {
-        file_name?: string | unknown;
-        content_type?: string | unknown;
-        url: string;
-        file_size?: number | unknown;
+        base_model?: {
+            file_name?: string | unknown;
+            content_type?: string | unknown;
+            file_size?: number | unknown;
+            url: string;
+        } | unknown;
+        glb?: {
+            file_name?: string | unknown;
+            content_type?: string | unknown;
+            file_size?: number | unknown;
+            url: string;
+        } | unknown;
     };
 }
 
 interface RodinGen25ImageTo3DInput {
-    texture_mode?: "legacy" | "extreme-low" | "low" | "medium" | "high" | unknown;
-    is_micro?: boolean;
-    tier?: "Gen-2.5-Minimum" | "Gen-2.5-Extreme-Low" | "Gen-2.5-Low" | "Gen-2.5-Medium" | "Gen-2.5-High" | "Gen-2.5-Extreme-High";
-    quality_mesh_option?: "Auto" | "4K Quad" | "8K Quad" | "18K Quad" | "50K Quad" | "100K Quad" | "200K Quad" | "2K Triangle" | "20K Triangle" | "50K Triangle" | "150K Triangle" | "500K Triangle" | "1M Triangle" | "2M Triangle";
-    use_original_alpha?: boolean;
-    material?: "PBR" | "Shaded" | "All" | "None";
-    TAPose?: boolean;
-    image_urls?: string[];
+    addons?: {
+        high_pack?: boolean;
+    } | unknown;
     preview_render?: boolean;
+    image_urls?: string[];
     texture_delight?: boolean;
+    hd_texture?: boolean;
+    material?: "PBR" | "Shaded" | "All" | "None";
+    quality_mesh_option?: "Auto" | "4K Quad" | "8K Quad" | "18K Quad" | "50K Quad" | "100K Quad" | "200K Quad" | "2K Triangle" | "20K Triangle" | "50K Triangle" | "150K Triangle" | "500K Triangle" | "1M Triangle" | "2M Triangle";
     bbox_condition?: {
         width?: number;
         height?: number;
         length?: number;
     } | unknown;
-    enable_creative_mode?: boolean;
-    prompt?: string;
-    addons?: {
-        high_pack?: boolean;
-    } | unknown;
-    seed?: number | unknown;
-    hd_texture?: boolean;
     geometry_file_format?: "glb" | "usdz" | "fbx" | "obj" | "stl";
+    seed?: number | unknown;
+    TAPose?: boolean;
+    is_micro?: boolean;
+    texture_mode?: "legacy" | "extreme-low" | "low" | "medium" | "high" | unknown;
+    enable_creative_mode?: boolean;
+    use_original_alpha?: boolean;
+    prompt?: string;
+    tier?: "Gen-2.5-Minimum" | "Gen-2.5-Extreme-Low" | "Gen-2.5-Low" | "Gen-2.5-Medium" | "Gen-2.5-High" | "Gen-2.5-Extreme-High";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -12569,49 +12504,49 @@ interface Hyper3dRodinV25Response {
 }
 interface ObjectOutputv2$1 {
     model_meshes?: ({
-        content_type?: string | unknown;
         file_name?: string | unknown;
-        file_size?: number | unknown;
+        content_type?: string | unknown;
         url: string;
+        file_size?: number | unknown;
+    })[];
+    textures: ({
+        width?: number | unknown;
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        height?: number | unknown;
+        url: string;
+        file_size?: number | unknown;
     })[];
     seed: number;
     model_mesh: {
-        content_type?: string | unknown;
         file_name?: string | unknown;
-        file_size?: number | unknown;
+        content_type?: string | unknown;
         url: string;
+        file_size?: number | unknown;
     };
-    textures: ({
-        content_type?: string | unknown;
-        width?: number | unknown;
-        file_name?: string | unknown;
-        height?: number | unknown;
-        file_size?: number | unknown;
-        url: string;
-    })[];
 }
 
 interface RodinGen25TextTo3DInput {
-    texture_mode?: "legacy" | "extreme-low" | "low" | "medium" | "high" | unknown;
-    geometry_file_format?: "glb" | "usdz" | "fbx" | "obj" | "stl";
-    is_micro?: boolean;
     tier?: "Gen-2.5-Minimum" | "Gen-2.5-Extreme-Low" | "Gen-2.5-Low" | "Gen-2.5-Medium" | "Gen-2.5-High" | "Gen-2.5-Extreme-High";
-    quality_mesh_option?: "Auto" | "4K Quad" | "8K Quad" | "18K Quad" | "50K Quad" | "100K Quad" | "200K Quad" | "2K Triangle" | "20K Triangle" | "50K Triangle" | "150K Triangle" | "500K Triangle" | "1M Triangle" | "2M Triangle";
     bbox_condition?: {
         width?: number;
         height?: number;
         length?: number;
     } | unknown;
-    material?: "PBR" | "Shaded" | "All" | "None";
-    enable_creative_mode?: boolean;
-    TAPose?: boolean;
+    is_micro?: boolean;
     seed?: number | unknown;
-    prompt: string;
+    TAPose?: boolean;
     addons?: {
         high_pack?: boolean;
     } | unknown;
-    hd_texture?: boolean;
+    texture_mode?: "legacy" | "extreme-low" | "low" | "medium" | "high" | unknown;
+    prompt: string;
+    enable_creative_mode?: boolean;
+    quality_mesh_option?: "Auto" | "4K Quad" | "8K Quad" | "18K Quad" | "50K Quad" | "100K Quad" | "200K Quad" | "2K Triangle" | "20K Triangle" | "50K Triangle" | "150K Triangle" | "500K Triangle" | "1M Triangle" | "2M Triangle";
+    geometry_file_format?: "glb" | "usdz" | "fbx" | "obj" | "stl";
     texture_delight?: boolean;
+    hd_texture?: boolean;
+    material?: "PBR" | "Shaded" | "All" | "None";
     options?: {
         safety_checks?: {
             enabled?: boolean;
@@ -12633,26 +12568,26 @@ interface Hyper3dRodinV25TextTo3dResponse {
 }
 interface ObjectOutputv2 {
     model_meshes?: ({
-        content_type?: string | unknown;
         file_name?: string | unknown;
-        file_size?: number | unknown;
+        content_type?: string | unknown;
         url: string;
+        file_size?: number | unknown;
+    })[];
+    textures: ({
+        width?: number | unknown;
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        height?: number | unknown;
+        url: string;
+        file_size?: number | unknown;
     })[];
     seed: number;
     model_mesh: {
-        content_type?: string | unknown;
         file_name?: string | unknown;
-        file_size?: number | unknown;
+        content_type?: string | unknown;
         url: string;
+        file_size?: number | unknown;
     };
-    textures: ({
-        content_type?: string | unknown;
-        width?: number | unknown;
-        file_name?: string | unknown;
-        height?: number | unknown;
-        file_size?: number | unknown;
-        url: string;
-    })[];
 }
 
 interface HeygenVideoModelCommand {
@@ -12711,6 +12646,87 @@ interface HeygenVideoModelResult {
     height?: number;
     mimeType?: string;
     driveFile?: Record<string, unknown>;
+}
+
+interface RelightInput {
+    aspect_ratio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
+    resolution?: "480P" | "768P" | "1080P" | "2K";
+    seed?: number | unknown;
+    reference_image_url: string;
+    enable_safety_checker?: boolean;
+    sync_mode?: boolean;
+    video_url: string;
+    options?: {
+        safety_checks?: {
+            enabled?: boolean;
+        };
+        drive?: {
+            name: string;
+            attributes?: Record<string, string>;
+            folder?: {
+                path?: string;
+                id?: string;
+            };
+        };
+    };
+}
+interface MinimaxH3MaxRelightResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: RelightOutput;
+}
+interface RelightOutput {
+    timings?: Record<string, number> | unknown;
+    seed: number;
+    video: {
+        file_size?: number | unknown;
+        content_type?: string | unknown;
+        url: string;
+        file_name?: string | unknown;
+    };
+}
+
+interface DepthAnythingVideoInput {
+    output_fps?: number | unknown;
+    include_raw_depths?: boolean;
+    resolution?: "auto" | "360p" | "480p" | "720p" | "1080p";
+    side_by_side?: boolean;
+    max_frames?: number | unknown;
+    video_url: string;
+    model?: "VDA-Small" | "VDA-Base" | "VDA-Large";
+    colormap?: "grayscale" | "turbo" | "inferno" | "magma" | "viridis";
+    options?: {
+        safety_checks?: {
+            enabled?: boolean;
+        };
+        drive?: {
+            name: string;
+            attributes?: Record<string, string>;
+            folder?: {
+                path?: string;
+                id?: string;
+            };
+        };
+    };
+}
+interface DepthAnythingVideoResponse {
+    id: string;
+    status: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+    result: DepthAnythingVideoOutput;
+}
+interface DepthAnythingVideoOutput {
+    raw_depths?: {
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        file_size?: number | unknown;
+        url: string;
+    } | unknown;
+    video: {
+        file_name?: string | unknown;
+        content_type?: string | unknown;
+        file_size?: number | unknown;
+        url: string;
+    };
 }
 
 interface WorkflowTypes {
@@ -12829,14 +12845,6 @@ interface WorkflowTypes {
     'ovi/image-to-video': {
         params: OviI2VRequest;
         result: OviImageToVideoResponse;
-    };
-    'reve/text-to-image': {
-        params: ReveCreateInput;
-        result: ReveTextToImageResponse;
-    };
-    'reve/edit': {
-        params: ReveEditInput;
-        result: ReveEditResponse;
     };
     'ffmpeg-api/merge-videos': {
         params: MergeVideosInput;
@@ -13861,6 +13869,14 @@ interface WorkflowTypes {
     'heygen/v1/models/video/generate': {
         params: HeygenVideoModelCommand;
         result: HeygenVideoModelResponse;
+    };
+    'minimax/h3-max/relight': {
+        params: RelightInput;
+        result: MinimaxH3MaxRelightResponse;
+    };
+    'depth-anything-video': {
+        params: DepthAnythingVideoInput;
+        result: DepthAnythingVideoResponse;
     };
 }
 

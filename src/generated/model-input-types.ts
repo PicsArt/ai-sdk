@@ -20,6 +20,7 @@ export type ModelInputById = {
   "claude-sonnet-5": { prompt: string; imageUrls?: string[]; };
   "creatify-aurora": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; };
   "creatify-boreal": { prompt: string; imageUrls?: string[]; audioUrl?: string; negativePrompt?: string; resolution?: "720p" | "1080p" | "2k"; aspectRatio?: "auto" | "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; duration?: number; manifestDisclosure?: boolean; };
+  "depth-anything-video": { videoUrl: string; model?: "VDA-Small" | "VDA-Base" | "VDA-Large"; colormap?: "grayscale" | "turbo" | "inferno" | "magma" | "viridis"; resolution?: "auto" | "360p" | "480p" | "720p" | "1080p"; sideBySide?: boolean; };
   "eleven-audio-isolation": { audioUrl: string; };
   "eleven-dialogue-v4": { dialogue: Array<{ voiceId: string; text: string }>; stability?: number; similarity?: number; language?: string; seed?: number; };
   "eleven-dubbing": { audioUrl: string; language: string; };

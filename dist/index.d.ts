@@ -203,6 +203,13 @@ type ModelInputById = {
         duration?: number;
         manifestDisclosure?: boolean;
     };
+    "depth-anything-video": {
+        videoUrl: string;
+        model?: "VDA-Small" | "VDA-Base" | "VDA-Large";
+        colormap?: "grayscale" | "turbo" | "inferno" | "magma" | "viridis";
+        resolution?: "auto" | "360p" | "480p" | "720p" | "1080p";
+        sideBySide?: boolean;
+    };
     "eleven-audio-isolation": {
         audioUrl: string;
     };
@@ -2468,7 +2475,7 @@ interface ModelFilter {
     release?: ReleaseTag[];
 }
 
-type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async' | 'captionsai' | 'meta' | 'typesafe';
+type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async' | 'captionsai' | 'meta' | 'typesafe' | 'depth-anything';
 /** Provider used by model definitions. */
 type Provider = AppProvider;
 /** App generation modes. `json` marks structured-output models (judges,
@@ -3353,6 +3360,7 @@ declare const Models: {
     readonly ClaudeSonnet5: "claude-sonnet-5";
     readonly CreatifyAurora: "creatify-aurora";
     readonly CreatifyBoreal: "creatify-boreal";
+    readonly DepthAnythingVideo: "depth-anything-video";
     readonly ElevenAudioIsolation: "eleven-audio-isolation";
     readonly ElevenDialogueV4: "eleven-dialogue-v4";
     readonly ElevenDubbing: "eleven-dubbing";

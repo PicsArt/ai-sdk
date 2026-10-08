@@ -308,6 +308,8 @@ export const MinimaxH3MaxCameraControls = 'minimax-h3-max-camera-controls' as co
 export const MinimaxH3MaxExtend = 'minimax-h3-max-extend' as const;
 /** MiniMax H3 Max Lip Sync — minimax (video) */
 export const MinimaxH3MaxLipSync = 'minimax-h3-max-lip-sync' as const;
+/** MiniMax H3 Max Relight — minimax (video) */
+export const MinimaxH3MaxRelight = 'minimax-h3-max-relight' as const;
 /** MiniMax H3 Max Turbo — minimax (video) */
 export const MinimaxH3MaxTurbo = 'minimax-h3-max-turbo' as const;
 /** MiniMax Music v2 — minimax (audio) */
@@ -692,6 +694,7 @@ export const Models = {
   MinimaxH3MaxCameraControls,
   MinimaxH3MaxExtend,
   MinimaxH3MaxLipSync,
+  MinimaxH3MaxRelight,
   MinimaxH3MaxTurbo,
   MinimaxMusicV2,
   MinimaxMusicV3,

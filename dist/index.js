@@ -3287,6 +3287,41 @@ var { MODELS: MODELS9 } = defineModels("minimax", [
       // Default-less on purpose: unset means the vendor picks a random seed.
       ...params.seed()
     }
+  },
+  {
+    // Relight sibling of minimax-h3-max: re-lights an existing clip to match
+    // a lighting-reference image (a sphere render showing the target light).
+    // No prompt and no duration on this wire — the output keeps the source
+    // clip's length (the source is converted to constant 24 fps and trimmed
+    // to the closest 17n+5 frame count, with at least ~2.33s remaining).
+    id: "minimax-h3-max-relight",
+    name: "MiniMax H3 Max Relight",
+    modelId: "fal-ai-h3-max-relight",
+    addedAt: "2026-10-08",
+    workflow: "minimax/h3-max/relight",
+    estimatedTime: 120,
+    mode: "video",
+    inputType: "v2v",
+    description: "Relight an existing video with MiniMax H3 Max \u2014 a sphere-render reference image sets the target lighting and the output keeps the source clip's length. Sources up to 15s, output up to 2K.",
+    features: [
+      feat("Relight", "characteristic"),
+      feat("Video Input", "input"),
+      feat("Image Input", "input"),
+      feat("2K", "resolution")
+    ],
+    paramConfig: {
+      ...params.videoInput("Source Video", "asset", true, 15),
+      // The target lighting, as a sphere render.
+      ...params.imageInput(1, "Lighting Reference", true, "reference"),
+      // 480p/768p generate natively; 1080p and 2K are latent refinements
+      // of a native 768p generation.
+      ...params.resolution(["480p", "768p", "1080p", "2k"], "768p"),
+      // 'adaptive' follows the source video's ratio.
+      ...params.aspectRatio(["adaptive", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "16:9"),
+      // Default-less on purpose: unset means the vendor picks a random seed.
+      ...params.seed(),
+      ...p.boolean("enableSafetyChecker", true, "Safety Checker")
+    }
   }
 ]);
 
@@ -8001,13 +8036,24 @@ var buildMinimaxH3MaxExtendPayload = (input) => ({
   enable_prompt_expansion: input.enhancePrompt ?? true,
   enable_safety_checker: input.enableSafetyChecker ?? true
 });
+var buildMinimaxH3MaxRelightPayload = (input) => ({
+  video_url: input.videoUrl,
+  // The single lighting reference travels as a scalar on the wire.
+  reference_image_url: input.imageUrls?.[0],
+  // The vendor enum is uppercase; paramConfig keeps the lowercase form.
+  resolution: (input.resolution ?? "768p").toUpperCase(),
+  aspect_ratio: input.aspectRatio ?? "16:9",
+  ...input.seed != null ? { seed: input.seed } : {},
+  enable_safety_checker: input.enableSafetyChecker ?? true
+});
 registerPayloads(MODELS9, {
   "minimax-music-v3": buildMinimaxMusicV3Payload,
   "minimax-h3-max": buildMinimaxH3MaxPayload,
   "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload,
   "minimax-h3-max-camera-controls": buildMinimaxH3MaxCameraControlsPayload,
   "minimax-h3-max-lip-sync": buildMinimaxH3MaxLipSyncPayload,
-  "minimax-h3-max-extend": buildMinimaxH3MaxExtendPayload
+  "minimax-h3-max-extend": buildMinimaxH3MaxExtendPayload,
+  "minimax-h3-max-relight": buildMinimaxH3MaxRelightPayload
 });
 registerEditPayloads(MODELS9, {
   "minimax-h3-max-turbo": buildMinimaxH3MaxTurboPayload
@@ -13734,6 +13780,7 @@ var MinimaxH3Max = "minimax-h3-max";
 var MinimaxH3MaxCameraControls = "minimax-h3-max-camera-controls";
 var MinimaxH3MaxExtend = "minimax-h3-max-extend";
 var MinimaxH3MaxLipSync = "minimax-h3-max-lip-sync";
+var MinimaxH3MaxRelight = "minimax-h3-max-relight";
 var MinimaxH3MaxTurbo = "minimax-h3-max-turbo";
 var MinimaxMusicV2 = "minimax-music-v2";
 var MinimaxMusicV3 = "minimax-music-v3";
@@ -13991,6 +14038,7 @@ var Models = {
   MinimaxH3MaxCameraControls,
   MinimaxH3MaxExtend,
   MinimaxH3MaxLipSync,
+  MinimaxH3MaxRelight,
   MinimaxH3MaxTurbo,
   MinimaxMusicV2,
   MinimaxMusicV3,

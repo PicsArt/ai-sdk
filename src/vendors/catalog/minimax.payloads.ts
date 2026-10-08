@@ -144,6 +144,22 @@ const buildMinimaxH3MaxExtendPayload = (input: MinimaxH3MaxExtendInput): Minimax
   enable_safety_checker: input.enableSafetyChecker ?? true,
 });
 
+type MinimaxH3MaxRelightInput = ModelInput<'minimax-h3-max-relight'>;
+
+// TODO: 'minimax/h3-max/relight' is not in @picsart/workflows-types yet
+// (checked 1.1.165) — the return stays inferred; annotate it with
+// WorkflowTypes['minimax/h3-max/relight']['params'] once published.
+const buildMinimaxH3MaxRelightPayload = (input: MinimaxH3MaxRelightInput) => ({
+  video_url: input.videoUrl,
+  // The single lighting reference travels as a scalar on the wire.
+  reference_image_url: input.imageUrls?.[0],
+  // The vendor enum is uppercase; paramConfig keeps the lowercase form.
+  resolution: (input.resolution ?? '768p').toUpperCase(),
+  aspect_ratio: input.aspectRatio ?? '16:9',
+  ...(input.seed != null ? { seed: input.seed } : {}),
+  enable_safety_checker: input.enableSafetyChecker ?? true,
+});
+
 registerPayloads(MODELS, {
   'minimax-music-v3': buildMinimaxMusicV3Payload,
   'minimax-h3-max': buildMinimaxH3MaxPayload,
@@ -151,6 +167,7 @@ registerPayloads(MODELS, {
   'minimax-h3-max-camera-controls': buildMinimaxH3MaxCameraControlsPayload,
   'minimax-h3-max-lip-sync': buildMinimaxH3MaxLipSyncPayload,
   'minimax-h3-max-extend': buildMinimaxH3MaxExtendPayload,
+  'minimax-h3-max-relight': buildMinimaxH3MaxRelightPayload,
 });
 
 // Edit slot — turbo keeps a separate image-to-video workflow, and the frame

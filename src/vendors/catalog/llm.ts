@@ -86,6 +86,14 @@ const { MODELS: ANTHROPIC } = defineModels('anthropic', [
     paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
   },
   {
+    id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5',
+    workflow: 'claude/v1/messages', addedAt: '2026-10-09', estimatedTime: 4,
+    mode: 'text', inputType: 'i2t', badge: ['fast'],
+    description: 'Next-generation Haiku — fast, lightweight Claude for high-volume text tasks.',
+    features: [feat('Vision', 'input')],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, 'Images') },
+  },
+  {
     id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5',
     workflow: 'claude/v1/messages', addedAt: ADDED, estimatedTime: 4,
     mode: 'text', inputType: 'i2t', badge: ['fast'],

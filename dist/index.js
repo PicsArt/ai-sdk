@@ -10150,6 +10150,19 @@ var { MODELS: ANTHROPIC } = defineModels("anthropic", [
     paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
   },
   {
+    id: "claude-haiku-5-5",
+    name: "Claude Haiku 5.5",
+    workflow: "claude/v1/messages",
+    addedAt: "2026-10-09",
+    estimatedTime: 4,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["fast"],
+    description: "Next-generation Haiku \u2014 fast, lightweight Claude for high-volume text tasks.",
+    features: [feat("Vision", "input")],
+    paramConfig: { ...params.prompt(), ...params.imageInput(8, "Images") }
+  },
+  {
     id: "claude-haiku-4-5",
     name: "Claude Haiku 4.5",
     workflow: "claude/v1/messages",
@@ -10569,6 +10582,7 @@ registerPayloads(MODELS35, {
   "claude-sonnet-5": buildClaudePayload("claude-sonnet-5"),
   "claude-sonnet-4-6": buildClaudePayload("claude-sonnet-4-6"),
   "claude-sonnet-4-5": buildClaudePayload("claude-sonnet-4-5"),
+  "claude-haiku-5-5": buildClaudePayload("claude-haiku-5-5"),
   "claude-haiku-4-5": buildClaudePayload("claude-haiku-4-5"),
   "gpt-6-astra": buildOpenAiPayload("gpt-6-astra"),
   "gpt-6-sol": buildOpenAiPayload("gpt-6-sol"),
@@ -13690,6 +13704,7 @@ var CaptionsaiVideoCaptions = "captionsai-video-captions";
 var ClaudeFable5 = "claude-fable-5";
 var ClaudeFable51 = "claude-fable-5-1";
 var ClaudeHaiku45 = "claude-haiku-4-5";
+var ClaudeHaiku55 = "claude-haiku-5-5";
 var ClaudeOpus48 = "claude-opus-4-8";
 var ClaudeOpus5 = "claude-opus-5";
 var ClaudeSonnet45 = "claude-sonnet-4-5";
@@ -13949,6 +13964,7 @@ var Models = {
   ClaudeFable5,
   ClaudeFable51,
   ClaudeHaiku45,
+  ClaudeHaiku55,
   ClaudeOpus48,
   ClaudeOpus5,
   ClaudeSonnet45,

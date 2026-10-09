@@ -24,6 +24,8 @@ export const ClaudeFable5 = 'claude-fable-5' as const;
 export const ClaudeFable51 = 'claude-fable-5-1' as const;
 /** Claude Haiku 4.5 — anthropic (text) */
 export const ClaudeHaiku45 = 'claude-haiku-4-5' as const;
+/** Claude Haiku 5.5 — anthropic (text) */
+export const ClaudeHaiku55 = 'claude-haiku-5-5' as const;
 /** Claude Opus 4.8 — anthropic (text) */
 export const ClaudeOpus48 = 'claude-opus-4-8' as const;
 /** Claude Opus 5 — anthropic (text) */
@@ -557,6 +559,7 @@ export const Models = {
   ClaudeFable5,
   ClaudeFable51,
   ClaudeHaiku45,
+  ClaudeHaiku55,
   ClaudeOpus48,
   ClaudeOpus5,
   ClaudeSonnet45,

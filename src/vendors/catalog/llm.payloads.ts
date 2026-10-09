@@ -55,7 +55,14 @@ const buildOpenAiPayload = (modelId: ChatModel) => (input: OpenAiInput): ChatPar
 // ── Claude (claude/v1/messages) — shared by all Claude text models ──
 type ClaudeInput = ModelInput<'claude-opus-4-8'>;
 
-const buildClaudePayload = (modelId: ClaudeParams['model']) => (input: ClaudeInput): ClaudeParams => {
+// Upstream gap: @picsart/workflows-types@1.1.167 `ClaudeV1Models` ships
+// opus/sonnet 5.5 but not claude-haiku-5-5 yet (the deployed worker's enum
+// has it). Widen the wire `model` locally until the published union catches
+// up, then drop this.
+type ClaudeModel = ClaudeParams['model'] | 'claude-haiku-5-5';
+type ClaudeParamsWide = Omit<ClaudeParams, 'model'> & { model: ClaudeModel };
+
+const buildClaudePayload = (modelId: ClaudeModel) => (input: ClaudeInput): ClaudeParamsWide => {
   const content: ClaudeParams['messages'][number]['content'] = [{ type: 'text', text: input.prompt }];
   for (const url of input.imageUrls ?? []) {
     content.push({ type: 'image', source: { type: 'url', url } });
@@ -97,6 +104,7 @@ registerPayloads(MODELS, {
   'claude-sonnet-5': buildClaudePayload('claude-sonnet-5'),
   'claude-sonnet-4-6': buildClaudePayload('claude-sonnet-4-6'),
   'claude-sonnet-4-5': buildClaudePayload('claude-sonnet-4-5'),
+  'claude-haiku-5-5': buildClaudePayload('claude-haiku-5-5'),
   'claude-haiku-4-5': buildClaudePayload('claude-haiku-4-5'),
   'gpt-6-astra': buildOpenAiPayload('gpt-6-astra'),
   'gpt-6-sol': buildOpenAiPayload('gpt-6-sol'),

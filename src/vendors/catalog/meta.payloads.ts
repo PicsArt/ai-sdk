@@ -8,6 +8,8 @@
  * enable* booleans assemble into `tool_enablement`. `aspectRatio` maps to the
  * wire `size` ("widthxheight" — the backend accepts any size string).
  *
+ * sam-3-video (`sam-3/video`): camelCase → fal snake_case, `outputFormat` maps
+ * to the fal `video_output_type` labels.
  */
 import type { WorkflowTypes } from '@picsart/workflows-types';
 import type { ModelInput } from '../../generated/model-input-types.ts';
@@ -17,6 +19,8 @@ import { MODELS } from './meta.ts';
 type MuseImageInput = ModelInput<'muse-image-1.0'>;
 type MuseGenerationsPayload = WorkflowTypes['meta/v1/images/generations']['params'];
 type MuseEditsPayload = WorkflowTypes['meta/v1/images/edits']['params'];
+type Sam3VideoInput = ModelInput<'sam-3-video'>;
+type Sam3VideoPayload = WorkflowTypes['sam-3/video']['params'];
 
 // The backend `size` is a free-form "widthxheight" *aspect-ratio hint* — the
 // vendor renders at its own resolution. Keep the short side at 1024 and derive
@@ -56,8 +60,23 @@ const buildMuseImageEditPayload = (input: MuseImageInput): MuseEditsPayload => (
   images: input.imageUrls ?? [],
 });
 
+const SAM3_OUTPUT_TYPE = {
+  mp4: 'X264 (.mp4)',
+  webm: 'VP9 (.webm)',
+} as const;
+
+/** Video segmentation (sam-3/video). */
+const buildSam3VideoPayload = (input: Sam3VideoInput): Sam3VideoPayload => ({
+  video_url: input.videoUrl,
+  prompt: input.prompt,
+  detection_threshold: input.detectionThreshold ?? 0.5,
+  apply_mask: input.applyMask ?? true,
+  video_output_type: SAM3_OUTPUT_TYPE[input.outputFormat ?? 'mp4'],
+});
+
 registerPayloads(MODELS, {
   'muse-image-1.0': buildMuseImagePayload,
+  'sam-3-video': buildSam3VideoPayload,
 });
 
 registerEditPayloads(MODELS, {

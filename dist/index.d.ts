@@ -1622,6 +1622,13 @@ type ModelInputById = {
         aspectRatio?: "16:9" | "9:16";
         imageUrls?: string[];
     };
+    "sam-3-video": {
+        prompt: string;
+        videoUrl: string;
+        detectionThreshold?: number;
+        applyMask?: boolean;
+        outputFormat?: "mp4" | "webm";
+    };
     "seed-audio-1.0": {
         prompt: string;
         voiceId?: string;
@@ -3563,6 +3570,7 @@ declare const Models: {
     readonly RunwayGen4Aleph: "runway-gen4-aleph";
     readonly RunwayGen4Ref: "runway-gen4-ref";
     readonly RunwayGen45: "runway-gen4.5";
+    readonly Sam3Video: "sam-3-video";
     readonly SeedAudio10: "seed-audio-1.0";
     readonly SeedAudio10Multilingual: "seed-audio-1.0-multilingual";
     readonly Seedance15Pro: "seedance-1.5-pro";

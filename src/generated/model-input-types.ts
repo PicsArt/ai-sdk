@@ -219,6 +219,7 @@ export type ModelInputById = {
   "runway-gen4-aleph": { prompt: string; videoUrl: string; };
   "runway-gen4-ref": { prompt: string; aspectRatio?: "16:9" | "9:16"; imageUrls: [string, ...string[]]; };
   "runway-gen4.5": { prompt: string; duration?: 5 | 8 | 10; aspectRatio?: "16:9" | "9:16"; imageUrls?: string[]; };
+  "sam-3-video": { prompt: string; videoUrl: string; detectionThreshold?: number; applyMask?: boolean; outputFormat?: "mp4" | "webm"; };
   "seed-audio-1.0": { prompt: string; voiceId?: string; audioUrls?: string[]; imageUrls?: string[]; format?: "wav" | "mp3" | "pcm" | "ogg_opus"; sampleRate?: 8000 | 16000 | 24000 | 32000 | 44100 | 48000; speechRate?: number; loudnessRate?: number; pitchRate?: number; aigcWatermark?: boolean; };
   "seed-audio-1.0-multilingual": { prompt: string; voiceId?: string; audioUrls?: string[]; imageUrls?: string[]; format?: "wav" | "mp3" | "pcm" | "ogg_opus"; sampleRate?: 8000 | 16000 | 24000 | 32000 | 44100 | 48000; speechRate?: number; loudnessRate?: number; pitchRate?: number; aigcWatermark?: boolean; };
   "seedance-1.5-pro": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive"; resolution?: "480p" | "720p"; duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12; generateAudio?: boolean; startFrame?: string; endFrame?: string; };

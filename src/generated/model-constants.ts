@@ -451,6 +451,8 @@ export const RunwayGen4Aleph = 'runway-gen4-aleph' as const;
 export const RunwayGen4Ref = 'runway-gen4-ref' as const;
 /** Runway Gen 4.5 — runway (video) */
 export const RunwayGen45 = 'runway-gen4.5' as const;
+/** SAM 3 Video — meta (video) */
+export const Sam3Video = 'sam-3-video' as const;
 /** Seed Audio — bytedance (audio) */
 export const SeedAudio10 = 'seed-audio-1.0' as const;
 /** Seed Audio Multilingual — bytedance (audio) */
@@ -765,6 +767,7 @@ export const Models = {
   RunwayGen4Aleph,
   RunwayGen4Ref,
   RunwayGen45,
+  Sam3Video,
   SeedAudio10,
   SeedAudio10Multilingual,
   Seedance15Pro,

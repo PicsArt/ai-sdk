@@ -159,4 +159,17 @@ const perCallDrive = { drive: { folder: { path: 'AI' } } as unknown as PayloadDr
   assert.strictEqual(driveName(payloads[0]), 'keep-me.png', 'an explicit name is never rewritten');
 }
 
+// ── Unknown mode (dynamic mode, model not in the local catalog) ──────
+// No extension beats a wrong one — media is identified by it downstream.
+{
+  assert.strictEqual(resolveExtension('unknown'), '', 'unknown mode resolves to no extension');
+  assert.match(buildFilename('a dog', 'unknown'), /^a-dog-\d+$/, 'unknown mode names stay extension-less');
+  assert.match(buildFilename(undefined, 'unknown'), /^ai-generation-\d+$/, 'promptless fallback too');
+  assert.match(
+    buildFilename('a dog', 'unknown', { format: 'mp4' }),
+    /^a-dog-\d+\.mp4$/,
+    'a format hint still names the file for an unknown mode',
+  );
+}
+
 console.log('drive-filename.test.ts: OK');

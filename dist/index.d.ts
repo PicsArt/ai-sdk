@@ -2918,7 +2918,8 @@ interface FilenameHints {
 /**
  * Pick a file extension for a generation. Most to least reliable: the result's
  * MIME type, the result URL's path extension, the requested output format, then
- * the mode default (png / mp4 / mp3).
+ * the mode default (png / mp4 / mp3). An unknown mode resolves to '' — the
+ * filename stays extension-less rather than mislabeled.
  */
 declare function resolveExtension(mode: string, hints?: FilenameHints): string;
 /**
@@ -3063,6 +3064,20 @@ declare class ApiError extends Error {
     constructor(message: string, init: ApiErrorInit);
 }
 
+/** Catalog query filters — map 1:1 onto `/v1/models-catalog` query params. */
+interface ModelCatalogFilters {
+    /** Restrict to one or more generation modes (`video`, `image`, …). */
+    mode?: GenerationMode | GenerationMode[];
+    /** Restrict to one or more provider ids. */
+    provider?: string | string[];
+    /** Release tiers to request. Server default: production + general-availability. */
+    release?: ReleaseTag | ReleaseTag[];
+    /** Include models flagged deprecated. */
+    includeDeprecated?: boolean;
+    /** Free-text search across id / name / provider. */
+    search?: string;
+}
+
 /** Worker-reported progress on a generation.progress event. */
 type GenerationProgress = WorkflowProgress;
 /** A fetch-like function that handles authentication (headers, cookies, etc.). */
@@ -3086,8 +3101,34 @@ interface AppIdentity {
     id: string;
     type: AppType;
 }
+/**
+ * How the client sources its model catalog and builds generation requests.
+ * - `'static'` (default) — the bundled catalog: per-model workflows and local
+ *   payload builders, exactly as before.
+ * - `'dynamic'` — generation routes through the models-hub `v1/models`
+ *   workflow (the server builds the vendor payload), and the model catalog is
+ *   loaded from the backend via {@link AiClient.initModelCatalog}. Until that
+ *   load completes, the sync accessors (`Model()`, `catalog.*`) throw
+ *   `ApiError` 409 `catalog_not_loaded`; `generate()`/`submit()` never wait.
+ *
+ * The loaded catalog is process-global (`Model()` and `catalog.*` are
+ * module-level): one catalog source per process, last install wins.
+ *
+ * **One catalog MODE per process, too — do not mix static and dynamic
+ * clients.** Creating a dynamic client flips the process-global catalog:
+ * a static client in the same process then throws `catalog_not_loaded` from
+ * its sync accessors until the load lands, and once the loaded catalog is
+ * installed its generation pipeline would resolve definitions that carry no
+ * payload builders (builders are code and never ride the wire) — producing
+ * invalid vendor payloads. Run static clients in a separate process. Static
+ * mode is the compatibility path and is slated for removal once all
+ * consumers run dynamic.
+ */
+type SdkMode = 'static' | 'dynamic';
 /** Settings that apply whichever transport serves the client. */
 interface ClientConfigBase {
+    /** Catalog/generation mode — see {@link SdkMode}. Default: `'static'`. */
+    mode?: SdkMode;
     /** Enable Drive integration — auto-save generations to a Drive folder. */
     drive?: DriveConfig;
     /**
@@ -3281,6 +3322,13 @@ interface GenerateOptions {
      */
     app?: AppIdentity;
 }
+
+/** Options for {@link AiClient.initModelCatalog}. The endpoint is always
+ *  `${apiUrl}/gw-v2/v1/models-catalog` — derived from the client's `apiUrl`. */
+interface InitModelCatalogOptions {
+    /** Restrict what the catalog load requests — mode, provider, release, deprecated, search. */
+    filtersOptions?: ModelCatalogFilters;
+}
 /** Non-text (image/video/audio) model IDs — the media generation surface. */
 type MediaModelId = Exclude<TypedModelId, TextModelId | JsonModelId>;
 /** AI SDK client with type-safe, model-aware method signatures. */
@@ -3315,8 +3363,27 @@ interface AiClient {
      * exceptions.
      */
     subscribe(model: MediaModelId, generationId: string, options?: GenerationOptions): AsyncGenerator<GenerationEvent, void, void>;
-    /** Build the vendor-specific payload for a model without submitting. */
+    /** Build the vendor-specific payload for a model without submitting. Static mode only. */
     buildPayload<M extends TypedModelId>(model: M, params: ModelInputById[M]): Record<string, unknown>;
+    /**
+     * Dynamic mode only: fetch the model catalog from models-hub and install it
+     * as the active catalog — afterwards `Model()`, `catalog.*` and
+     * `ai.validate()` serve the loaded data. The ONLY trigger for the load
+     * (`createClient` never starts it). Idempotent: concurrent/repeat calls
+     * share one in-flight load; a failed load may be retried. Rejects with
+     * `ApiError` 400 `invalid_mode` on a static client, and 409
+     * `catalog_conflict` when a different url/filters catalog is already loaded
+     * in this process.
+     */
+    initModelCatalog(options?: InitModelCatalogOptions): Promise<void>;
+    /**
+     * Validate params against the model's descriptors without generating.
+     * Static mode: resolves immediately off the bundled catalog. Dynamic mode:
+     * awaits the catalog load started by {@link initModelCatalog} — rejects
+     * with `ApiError` 409 `catalog_not_loaded` when it was never called.
+     * Unknown models reject with `ApiError` 400 `unknown_model`.
+     */
+    validate(model: string, params: Record<string, unknown>): Promise<ValidationResult>;
     /**
      * Direct, low-level access to the Picsart model APIs — run any API by name.
      * See {@link ApisClient}.
@@ -3329,6 +3396,23 @@ interface AiClient {
     catalogs: CatalogsClient;
     /** Drive operations. Only available when drive config is provided. */
     drive: DriveClient | undefined;
+}
+
+/** Platform options carried on a {@link ModelsCommand} (ModelsGenAIOptions on the backend). */
+interface ModelsGenAIOptions {
+    safety_checks?: {
+        enabled?: boolean;
+    };
+    drive?: PayloadDriveOptions;
+    inputs_transformation?: {
+        downscale_oversized_images?: boolean;
+    };
+}
+/** The `v1/models` request body: which model, the SDK-shaped params, platform options. */
+interface ModelsCommand {
+    model: string;
+    params: Record<string, unknown>;
+    options?: ModelsGenAIOptions;
 }
 
 /**
@@ -3626,6 +3710,54 @@ declare const Models: {
 
 declare function getVoiceById(id: string): VoiceOption | undefined;
 
+/** Nested provider block — flattened onto `ModelDefinition.provider*`. */
+interface CatalogProvider {
+    id: string;
+    name: string;
+    color: string;
+    label: string;
+}
+/**
+ * A param as served on the wire: the SDK's flat entry form (descriptor
+ * fields merged with `label` / `required` / `category`), keyed by param
+ * name instead of carrying `key`.
+ */
+type CatalogParam = {
+    label?: string;
+    required?: boolean;
+    category?: 'asset' | 'reference';
+} & ParamDescriptor;
+interface CatalogModel {
+    id: string;
+    name: string;
+    description?: string;
+    mode: GenerationMode;
+    inputType: InputType;
+    provider: CatalogProvider;
+    badges?: BadgeType[];
+    features?: ModelFeature[];
+    release?: ReleaseTag;
+    addedAt?: string;
+    estimatedTime?: number | Record<string, number>;
+    deprecated?: boolean;
+    /** `include=schema` */
+    params?: Record<string, CatalogParam>;
+    /** `include=constraints` */
+    constraints?: Constraint[];
+    /** `include=routing` */
+    workflow?: string;
+    editWorkflow?: string;
+    modelId?: string;
+    syncExecute?: boolean;
+}
+interface CatalogModelsResponse {
+    status: 'success';
+    response: {
+        total: number;
+        models: CatalogModel[];
+    };
+}
+
 /**
  * Pricing internals — owns the ModelPricingClient, the per-model cache, and
  * the credit-range lookup. The Model accessor delegates to the helpers below
@@ -3758,4 +3890,4 @@ declare const getModel: (id: string) => ModelDefinition | undefined;
  */
 declare const findModel: (ref: string) => ModelDefinition | undefined;
 
-export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogPage, type CatalogPageOptions, type CatalogPreview, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type JsonModelId, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ObjectDescriptor, type ObjectEntry, type OptionsResult, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type RunResponse, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UnknownDescriptor, type UnknownEntry, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };
+export { ALL_MODELS, type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogModel, type CatalogModelsResponse, type CatalogPage, type CatalogPageOptions, type CatalogParam, type CatalogPreview, type CatalogProvider, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type InitModelCatalogOptions, type JsonModelId, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelCatalogFilters, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelInput, type ModelInputById, type ModelMeta, type ModelParams, type ModelParamsAccessor, Models, type ModelsCommand, type ModelsGenAIOptions, type ObjectDescriptor, type ObjectEntry, type OptionsResult, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type RunResponse, type SaveParams, type SdkMode, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type TextModelId, type TextModelInputById, type ToolUsage, type TransportPollOptions, type TransportResult, type TypedModelId, type UnknownDescriptor, type UnknownEntry, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getModelsByMode, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };

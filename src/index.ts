@@ -14,6 +14,15 @@ export { ApiError } from './core/errors.ts';
 export type { ApiErrorCode, ApiErrorInit } from './core/errors.ts';
 export type { SeedanceDraftTask } from './core/response.ts';
 
+// ── Dynamic mode ────────────────────────────────────────────────────
+// `createClient({ mode: 'dynamic' })` + `ai.initModelCatalog()`: the model
+// catalog loads from models-hub and generation rides the `v1/models`
+// workflow. See docs/DYNAMIC-CATALOG-MIGRATION.md.
+export type { SdkMode, InitModelCatalogOptions } from './client/types.ts';
+export type { ModelCatalogFilters } from './core/catalog-store.ts';
+export type { CatalogModel, CatalogParam, CatalogProvider, CatalogModelsResponse } from './core/catalog-wire.ts';
+export type { ModelsCommand, ModelsGenAIOptions } from './client/prepare.ts';
+
 export type {
   GenerateResult,
   GenerateResultItem,

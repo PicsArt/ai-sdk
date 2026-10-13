@@ -40,7 +40,7 @@ import type {
 import { extractDefaults, descriptorsToSchema, transferValues, validateAll } from './utils.ts';
 import { getHydratedCatalog } from '../catalogs.ts';
 import { resolveModel } from '../resolve.ts';
-import { ALL_MODELS } from '../../vendors/catalog/index.ts';
+import { activeModels } from '../active-catalog.ts';
 import {
   configurePricing,
   loadPricing,
@@ -367,14 +367,14 @@ function _model(id: string): ModelDescriptor {
 
 function _all(filter: { release?: readonly ReleaseTag[] } = {}): ModelDescriptor[] {
   const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
-  return ALL_MODELS
+  return activeModels()
     .filter(m => isVisibleForReleases(m, releases))
     .map(m => new ModelDescriptorImpl(m));
 }
 
 function _find(filter: ModelFilter): ModelDescriptor[] {
   const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
-  return ALL_MODELS.filter(m => {
+  return activeModels().filter(m => {
     if (!isVisibleForReleases(m, releases)) return false;
     if (filter.output && m.mode !== filter.output) return false;
     if (filter.provider && m.provider !== filter.provider) return false;
@@ -385,7 +385,7 @@ function _find(filter: ModelFilter): ModelDescriptor[] {
 function _search(query: string, filter: { release?: readonly ReleaseTag[] } = {}): ModelDescriptor[] {
   const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
   const q = query.toLowerCase();
-  return ALL_MODELS.filter(m =>
+  return activeModels().filter(m =>
     isVisibleForReleases(m, releases) && (
       m.id.toLowerCase().includes(q) ||
       m.name.toLowerCase().includes(q) ||

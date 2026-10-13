@@ -11039,6 +11039,35 @@ var ALL_MODELS = [
 ];
 var getModelsByMode = (mode, includeHidden = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeHidden || isVisibleForReleases(m)));
 
+// src/core/active-catalog.ts
+var _models = void 0;
+var _generation = 0;
+function installCatalog(models) {
+  _models = models;
+  _generation++;
+}
+function markCatalogPending() {
+  if (_models === void 0) {
+    _models = null;
+    _generation++;
+  }
+}
+function catalogGeneration() {
+  return _generation;
+}
+function activeModels() {
+  if (_models === null) {
+    throw new ApiError(
+      "Model catalog not loaded \u2014 call ai.initModelCatalog() after createClient({ mode: 'dynamic' }).",
+      { status: 409, code: "catalog_not_loaded" }
+    );
+  }
+  return _models ?? ALL_MODELS;
+}
+function peekActiveModels() {
+  return _models === void 0 ? ALL_MODELS : _models;
+}
+
 // src/core/contracts.ts
 function requireObject(value, message) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -11083,10 +11112,13 @@ function createModelContract(model) {
   };
 }
 var _contracts = null;
+var _contractsGen = -1;
 function ensureContracts() {
-  if (!_contracts) {
+  const gen = catalogGeneration();
+  if (!_contracts || _contractsGen !== gen) {
+    _contractsGen = gen;
     _contracts = Object.fromEntries(
-      ALL_MODELS.map((model) => {
+      activeModels().map((model) => {
         const autoContract = createModelContract(model);
         const outputSchema = model.outputSchema ?? autoContract.output;
         return [model.id, { id: model.id, input: autoContract.input, output: outputSchema }];
@@ -11301,36 +11333,52 @@ function toCompletedStatus(handle, result, raw, usage) {
 }
 
 // src/core/model-registry.ts
-var MODEL_BY_ID = new Map(ALL_MODELS.map((model) => [model.id, model]));
-var MODEL_BY_MODEL_ID = /* @__PURE__ */ new Map();
-var MODEL_BY_WORKFLOW = /* @__PURE__ */ new Map();
-var MODEL_BY_NAME = /* @__PURE__ */ new Map();
-var AMBIGUOUS_MODEL_NAMES = /* @__PURE__ */ new Set();
-for (const model of ALL_MODELS) {
-  if (model.modelId && !MODEL_BY_MODEL_ID.has(model.modelId)) {
-    MODEL_BY_MODEL_ID.set(model.modelId, model);
+var _idx = null;
+var _idxGen = -1;
+function buildIndexes(models) {
+  const byId = new Map(models.map((model) => [model.id, model]));
+  const byModelId = /* @__PURE__ */ new Map();
+  const byWorkflow = /* @__PURE__ */ new Map();
+  const byName = /* @__PURE__ */ new Map();
+  const ambiguousNames = /* @__PURE__ */ new Set();
+  for (const model of models) {
+    if (model.modelId && !byModelId.has(model.modelId)) {
+      byModelId.set(model.modelId, model);
+    }
+    if (model.workflow && !byWorkflow.has(model.workflow)) {
+      byWorkflow.set(model.workflow, model);
+    }
+    if (model.editWorkflow && !byWorkflow.has(model.editWorkflow)) {
+      byWorkflow.set(model.editWorkflow, model);
+    }
+    const nameKey = model.name.trim().toLowerCase();
+    if (!nameKey) continue;
+    if (ambiguousNames.has(nameKey)) continue;
+    if (byName.has(nameKey)) {
+      byName.delete(nameKey);
+      ambiguousNames.add(nameKey);
+      continue;
+    }
+    byName.set(nameKey, model);
   }
-  if (!MODEL_BY_WORKFLOW.has(model.workflow)) {
-    MODEL_BY_WORKFLOW.set(model.workflow, model);
-  }
-  if (model.editWorkflow && !MODEL_BY_WORKFLOW.has(model.editWorkflow)) {
-    MODEL_BY_WORKFLOW.set(model.editWorkflow, model);
-  }
-  const nameKey = model.name.trim().toLowerCase();
-  if (!nameKey) continue;
-  if (AMBIGUOUS_MODEL_NAMES.has(nameKey)) continue;
-  if (MODEL_BY_NAME.has(nameKey)) {
-    MODEL_BY_NAME.delete(nameKey);
-    AMBIGUOUS_MODEL_NAMES.add(nameKey);
-    continue;
-  }
-  MODEL_BY_NAME.set(nameKey, model);
+  return { byId, byModelId, byWorkflow, byName, ambiguousNames };
 }
-var getModel = (id) => MODEL_BY_ID.get(id) ?? MODEL_BY_MODEL_ID.get(id);
+function indexes() {
+  const gen = catalogGeneration();
+  if (!_idx || _idxGen !== gen) {
+    _idx = buildIndexes(activeModels());
+    _idxGen = gen;
+  }
+  return _idx;
+}
+var getModel = (id) => {
+  const idx = indexes();
+  return idx.byId.get(id) ?? idx.byModelId.get(id);
+};
 var findModel = (ref) => {
   const key = ref.trim();
   if (!key) return void 0;
-  return getModel(key) ?? MODEL_BY_WORKFLOW.get(key) ?? MODEL_BY_NAME.get(key.toLowerCase());
+  return getModel(key) ?? indexes().byWorkflow.get(key) ?? indexes().byName.get(key.toLowerCase());
 };
 
 // src/core/resolve.ts
@@ -11341,6 +11389,525 @@ function resolveModel(id) {
   }
   return found;
 }
+
+// src/core/catalog-wire.ts
+function toParamEntry(wire) {
+  const { label, required, category, ...descriptor } = wire;
+  const entry = { descriptor };
+  if (label !== void 0) entry.label = label;
+  if (required !== void 0) entry.required = required;
+  if (category !== void 0) entry.category = category;
+  return entry;
+}
+function invalidResponse(detail) {
+  return new ApiError(`Invalid models-catalog response: ${detail}`, {
+    status: 502,
+    code: "invalid_response"
+  });
+}
+function toModelDefinition(wire) {
+  if (!wire || typeof wire.id !== "string" || !wire.provider) {
+    throw invalidResponse("model entry is missing `id` or `provider`");
+  }
+  const paramConfig = {};
+  for (const [key, param] of Object.entries(wire.params ?? {})) {
+    paramConfig[key] = toParamEntry(param);
+  }
+  const def = {
+    id: wire.id,
+    name: wire.name,
+    provider: wire.provider.id,
+    providerName: wire.provider.name,
+    providerColor: wire.provider.color,
+    providerLabel: wire.provider.label,
+    description: wire.description ?? "",
+    features: wire.features ?? [],
+    mode: wire.mode,
+    inputType: wire.inputType,
+    workflow: wire.workflow ?? "",
+    paramConfig
+  };
+  if (wire.badges !== void 0) def.badge = wire.badges;
+  if (wire.release !== void 0) def.release = wire.release;
+  if (wire.addedAt !== void 0) def.addedAt = wire.addedAt;
+  if (wire.estimatedTime !== void 0) def.estimatedTime = wire.estimatedTime;
+  if (wire.deprecated !== void 0) def.deprecated = wire.deprecated;
+  if (wire.constraints !== void 0) def.constraints = wire.constraints;
+  if (wire.editWorkflow !== void 0) def.editWorkflow = wire.editWorkflow;
+  if (wire.modelId !== void 0) def.modelId = wire.modelId;
+  if (wire.syncExecute !== void 0) def.syncExecute = wire.syncExecute;
+  return def;
+}
+function deserializeCatalog(json) {
+  const body = json;
+  if (!body || body.status !== "success" || !body.response || !Array.isArray(body.response.models)) {
+    throw invalidResponse('expected `{ status: "success", response: { models: [...] } }`');
+  }
+  return body.response.models.map(toModelDefinition);
+}
+
+// src/core/catalog-store.ts
+var CATALOG_PATH = "/gw-v2/v1/models-catalog";
+var _loadPromise = null;
+var _loaded = false;
+var _key = null;
+var keyOf2 = (apiUrl, filters) => `${apiUrl}::${JSON.stringify(filters ?? {})}`;
+function buildQuery(filters) {
+  const query = new URLSearchParams();
+  query.set("include", "schema,constraints,routing");
+  const join = (v) => Array.isArray(v) ? v.join(",") : v;
+  if (filters?.mode) query.set("mode", join(filters.mode));
+  if (filters?.provider) query.set("provider", join(filters.provider));
+  if (filters?.release) query.set("release", join(filters.release));
+  if (filters?.includeDeprecated) query.set("includeDeprecated", "true");
+  if (filters?.search) query.set("search", filters.search);
+  return query.toString();
+}
+async function fetchAndInstall(f, apiUrl, filters) {
+  const url = `${apiUrl.replace(/\/+$/, "")}${CATALOG_PATH}?${buildQuery(filters)}`;
+  const res = await f(url, { method: "GET" });
+  if (!res.ok) {
+    let reason;
+    let message = `Model catalog request failed with status ${res.status}`;
+    try {
+      const body = await res.json();
+      reason = body?.reason;
+      if (body?.message) message = body.message;
+    } catch {
+    }
+    throw new ApiError(message, { status: res.status, code: reason ?? codeForStatus(res.status) });
+  }
+  const models = deserializeCatalog(await res.json());
+  installCatalog(models);
+}
+function loadModelCatalog(f, apiUrl, filters) {
+  const key = keyOf2(apiUrl, filters);
+  if (_loadPromise) {
+    if (_key !== key) {
+      return Promise.reject(new ApiError(
+        `Model catalog already ${_loaded ? "loaded" : "loading"} from "${_key?.split("::")[0]}" \u2014 one catalog source per process.`,
+        { status: 409, code: "catalog_conflict" }
+      ));
+    }
+    return _loadPromise;
+  }
+  _key = key;
+  _loadPromise = fetchAndInstall(f, apiUrl, filters).then(() => {
+    _loaded = true;
+  }).catch((err) => {
+    _loadPromise = null;
+    _key = null;
+    throw err;
+  });
+  return _loadPromise;
+}
+function whenModelCatalogLoaded() {
+  return _loadPromise;
+}
+
+// src/core/descriptors/pricing.ts
+var import_pa_model_pricing_sdk = __toESM(require_build(), 1);
+var _client = null;
+var _byModel = null;
+var _loadPromise2 = null;
+function configurePricing(options) {
+  _client = new import_pa_model_pricing_sdk.ModelPricingClient(options);
+  _byModel = null;
+  _loadPromise2 = null;
+}
+function loadPricing() {
+  if (_byModel) return Promise.resolve();
+  if (!_client) {
+    return Promise.reject(new Error(
+      "loadPricing(): not configured. Call catalog.pricing.configure({ baseUrl, fetch }) first."
+    ));
+  }
+  if (!_loadPromise2) {
+    const client = _client;
+    _loadPromise2 = client.init().then(() => {
+      const byModel = /* @__PURE__ */ new Map();
+      for (const entry of client.getModelPricing()) {
+        const id = entry.metadata.modelId;
+        const list = byModel.get(id);
+        if (list) list.push(entry);
+        else byModel.set(id, [entry]);
+      }
+      _byModel = byModel;
+    }).catch((err) => {
+      _loadPromise2 = null;
+      throw err;
+    });
+  }
+  return _loadPromise2;
+}
+function isPricingLoaded() {
+  return _byModel !== null;
+}
+function getCreditsForModel(modelId, ctx) {
+  if (!_byModel) return null;
+  let entries = _byModel.get(modelId);
+  if (!entries || entries.length === 0) return null;
+  if (ctx) {
+    entries = entries.filter((e) => {
+      if (ctx.generateAudio !== void 0 && e.metadata.audio !== ctx.generateAudio) return false;
+      if (ctx.resolution !== void 0 && e.metadata.quality !== ctx.resolution) return false;
+      return true;
+    });
+    if (entries.length === 0) return null;
+  }
+  let min = Infinity;
+  let max = -Infinity;
+  let unit = entries[0].unit;
+  for (const e of entries) {
+    if (e.credits < min) min = e.credits;
+    if (e.credits > max) max = e.credits;
+    if (e.unit !== unit) unit = void 0;
+  }
+  const tiers = entries.map((e) => ({
+    credits: e.credits,
+    unit: e.unit,
+    quality: e.metadata.quality || void 0,
+    audio: e.metadata.audio,
+    useCase: e.metadata.useCase
+  }));
+  return unit ? { min, max, unit, tiers } : { min, max, tiers };
+}
+
+// src/core/descriptors/model-accessor.ts
+function withHydration(entry, flat) {
+  if (entry.descriptor.kind !== "catalog") return flat;
+  const hydrated = getHydratedCatalog(entry.descriptor.source);
+  if (!hydrated) return flat;
+  return { ...flat, catalogOptions: hydrated.catalogOptions };
+}
+var ModelParamsAccessorImpl = class {
+  def;
+  constructor(def) {
+    this.def = def;
+  }
+  param(key) {
+    const entry = this.def.paramConfig[key];
+    if (!entry) return void 0;
+    const { descriptor, ...meta } = entry;
+    return withHydration(entry, { ...meta, ...descriptor });
+  }
+  hasParam(key) {
+    return key in this.def.paramConfig;
+  }
+  all() {
+    return Object.entries(this.def.paramConfig).map(
+      ([key, entry]) => {
+        const { descriptor, ...meta } = entry;
+        return withHydration(entry, { key, ...meta, ...descriptor });
+      }
+    );
+  }
+  // Kind-narrowed accessors
+  enum(key) {
+    return this.narrow(key, "enum");
+  }
+  catalog(key) {
+    return this.narrow(key, "catalog");
+  }
+  range(key) {
+    return this.narrow(key, "range");
+  }
+  boolean(key) {
+    return this.narrow(key, "boolean");
+  }
+  text(key) {
+    return this.narrow(key, "text");
+  }
+  file(key) {
+    return this.narrow(key, "file");
+  }
+  // Well-known shorthands
+  prompt() {
+    return this.narrow("prompt", "text");
+  }
+  aspectRatio() {
+    return this.narrow("aspectRatio", "enum");
+  }
+  /** Enum on fixed-option models, range where the vendor accepts every value
+   *  in a span — callers narrow on `.kind`. */
+  duration() {
+    const entry = this.param("duration");
+    if (!entry || entry.kind !== "enum" && entry.kind !== "range") return void 0;
+    return entry;
+  }
+  resolution() {
+    return this.narrow("resolution", "enum");
+  }
+  generateAudio() {
+    return this.narrow("generateAudio", "boolean");
+  }
+  startFrame() {
+    return this.narrow("startFrame", "file");
+  }
+  endFrame() {
+    return this.narrow("endFrame", "file");
+  }
+  // Absorbed from Models namespace
+  hasFileInput() {
+    return Object.values(this.def.paramConfig).some((e) => e.descriptor.kind === "file");
+  }
+  getDefault(key) {
+    const entry = this.def.paramConfig[key];
+    if (!entry) return void 0;
+    const d = entry.descriptor;
+    return "default" in d ? d.default : void 0;
+  }
+  getDefaults() {
+    return extractDefaults(this.def.paramConfig);
+  }
+  toSchema() {
+    return descriptorsToSchema(this.def.paramConfig);
+  }
+  transferValues(prev) {
+    return transferValues(this.def.paramConfig, prev);
+  }
+  narrow(key, kind) {
+    const entry = this.param(key);
+    if (!entry || entry.kind !== kind) return void 0;
+    return entry;
+  }
+};
+var ConstrainedParamsAccessor = class {
+  inner;
+  effects;
+  requirements;
+  constructor(inner, effects, requirements = /* @__PURE__ */ new Map()) {
+    this.inner = inner;
+    this.effects = effects;
+    this.requirements = requirements;
+  }
+  // ── Decorated accessors ──────────────────────────────────────────
+  enum(key) {
+    return this.require(key, this.applyEnum(key, this.inner.enum(key)));
+  }
+  catalog(key) {
+    return this.require(key, this.applyEntry(key, this.inner.catalog(key)));
+  }
+  range(key) {
+    return this.require(key, this.applyEntry(key, this.inner.range(key)));
+  }
+  boolean(key) {
+    return this.require(key, this.applyEntry(key, this.inner.boolean(key)));
+  }
+  text(key) {
+    return this.require(key, this.applyEntry(key, this.inner.text(key)));
+  }
+  file(key) {
+    return this.require(key, this.applyEntry(key, this.inner.file(key)));
+  }
+  prompt() {
+    return this.require("prompt", this.applyEntry("prompt", this.inner.prompt()));
+  }
+  aspectRatio() {
+    return this.require("aspectRatio", this.applyEnum("aspectRatio", this.inner.aspectRatio()));
+  }
+  duration() {
+    const entry = this.inner.duration();
+    return this.require("duration", entry?.kind === "enum" ? this.applyEnum("duration", entry) : this.applyEntry("duration", entry));
+  }
+  resolution() {
+    return this.require("resolution", this.applyEnum("resolution", this.inner.resolution()));
+  }
+  generateAudio() {
+    return this.require("generateAudio", this.applyEntry("generateAudio", this.inner.generateAudio()));
+  }
+  startFrame() {
+    return this.require("startFrame", this.applyEntry("startFrame", this.inner.startFrame()));
+  }
+  endFrame() {
+    return this.require("endFrame", this.applyEntry("endFrame", this.inner.endFrame()));
+  }
+  all() {
+    return this.inner.all().map((e) => this.decorateFlat(e.key, e));
+  }
+  /** Generic lookup, decorated exactly as `all()` decorates the same key, so a
+   *  caller that reads params by key sees the same restrictions and
+   *  requirements as one that iterates them. */
+  param(key) {
+    const entry = this.inner.param(key);
+    return entry && this.decorateFlat(key, entry);
+  }
+  // ── Pass-through delegates ───────────────────────────────────────
+  hasParam(key) {
+    return this.inner.hasParam(key);
+  }
+  hasFileInput() {
+    return this.inner.hasFileInput();
+  }
+  getDefault(key) {
+    return this.inner.getDefault(key);
+  }
+  getDefaults() {
+    return this.inner.getDefaults();
+  }
+  toSchema() {
+    return this.inner.toSchema();
+  }
+  transferValues(prev) {
+    return this.inner.transferValues(prev);
+  }
+  // ── Private helpers ──────────────────────────────────────────────
+  decorateFlat(key, entry) {
+    const r = this.effects.get(key);
+    let decorated = entry;
+    if (r && entry.kind === "enum") decorated = this.decorateEnumFlat(entry, r);
+    else if (r?.kind === "disabled") decorated = { ...entry, disabled: true, disabledReason: r.reason };
+    return this.require(key, decorated);
+  }
+  /** Mark the entry required when a matching `required` restriction names it. */
+  require(key, entry) {
+    if (!entry) return void 0;
+    const requirement = this.requirements.get(key);
+    if (!requirement) return entry;
+    return { ...entry, required: true, requiredReason: requirement.reason };
+  }
+  applyEntry(key, entry) {
+    if (!entry) return void 0;
+    const r = this.effects.get(key);
+    if (!r) return entry;
+    if (r.kind === "disabled") return { ...entry, disabled: true, disabledReason: r.reason };
+    return entry;
+  }
+  applyEnum(key, entry) {
+    if (!entry) return void 0;
+    const r = this.effects.get(key);
+    if (!r) return entry;
+    if (r.kind === "disabled") {
+      const options2 = entry.options.map((opt) => ({ ...opt, disabled: true, disabledReason: r.reason }));
+      return { ...entry, options: options2, disabled: true, disabledReason: r.reason };
+    }
+    const allowed = new Set(r.allowed.map(String));
+    const options = entry.options.map(
+      (opt) => allowed.has(String(opt.id)) ? opt : { ...opt, disabled: true, disabledReason: r.reason }
+    );
+    return { ...entry, options };
+  }
+  decorateEnumFlat(entry, r) {
+    if (entry.kind !== "enum") return entry;
+    if (r.kind === "disabled") {
+      const options2 = entry.options.map((opt) => ({
+        ...opt,
+        disabled: true,
+        disabledReason: r.reason
+      }));
+      return { ...entry, options: options2, disabled: true, disabledReason: r.reason };
+    }
+    const allowed = new Set(r.allowed.map(String));
+    const options = entry.options.map(
+      (opt) => allowed.has(String(opt.id)) ? opt : { ...opt, disabled: true, disabledReason: r.reason }
+    );
+    return { ...entry, options };
+  }
+};
+var ModelMetaImpl = class {
+  mode;
+  inputType;
+  description;
+  features;
+  badges;
+  provider;
+  addedAt;
+  release;
+  constructor(def) {
+    this.mode = def.mode;
+    this.inputType = def.inputType;
+    this.description = def.description;
+    this.features = def.features;
+    this.badges = def.badge ?? [];
+    this.release = def.release ?? "production";
+    this.provider = {
+      id: def.provider,
+      name: def.providerName,
+      color: def.providerColor,
+      label: def.providerLabel
+    };
+    this.addedAt = def.addedAt ?? null;
+  }
+};
+var ModelDescriptorImpl = class {
+  id;
+  name;
+  api;
+  def;
+  _params;
+  _meta;
+  constructor(def) {
+    this.id = def.id;
+    this.name = def.name;
+    this.api = { workflow: def.workflow, editWorkflow: def.editWorkflow };
+    this.def = def;
+  }
+  params() {
+    return this._params ??= new ModelParamsAccessorImpl(this.def);
+  }
+  paramsFor(values) {
+    const inner = this.params();
+    const effects = evaluateConstraints(this.def.constraints, values);
+    const requirements = evaluateRequirements(this.def.constraints, values);
+    if (!effects.size && !requirements.size) return inner;
+    return new ConstrainedParamsAccessor(inner, effects, requirements);
+  }
+  validate(input) {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      return { valid: false, errors: [`Invalid input for model "${this.def.id}"`] };
+    }
+    try {
+      validateAll(this.def.paramConfig, input, this.def.constraints);
+      return { valid: true };
+    } catch (err) {
+      return { valid: false, errors: [err instanceof Error ? err.message : String(err)] };
+    }
+  }
+  meta() {
+    return this._meta ??= new ModelMetaImpl(this.def);
+  }
+  getCreditsInfo(ctx) {
+    if (this.def.modelId) {
+      const byModelId = getCreditsForModel(this.def.modelId, ctx);
+      if (byModelId) return byModelId;
+    }
+    return getCreditsForModel(this.def.id, ctx);
+  }
+};
+function _model(id) {
+  return new ModelDescriptorImpl(resolveModel(id));
+}
+function _all(filter = {}) {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
+  return activeModels().filter((m) => isVisibleForReleases(m, releases)).map((m) => new ModelDescriptorImpl(m));
+}
+function _find(filter) {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
+  return activeModels().filter((m) => {
+    if (!isVisibleForReleases(m, releases)) return false;
+    if (filter.output && m.mode !== filter.output) return false;
+    if (filter.provider && m.provider !== filter.provider) return false;
+    return true;
+  }).map((m) => new ModelDescriptorImpl(m));
+}
+function _search(query, filter = {}) {
+  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
+  const q = query.toLowerCase();
+  return activeModels().filter(
+    (m) => isVisibleForReleases(m, releases) && (m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q) || m.provider.toLowerCase().includes(q))
+  ).map((m) => new ModelDescriptorImpl(m));
+}
+var Model = _model;
+var catalog = {
+  all: _all,
+  find: _find,
+  search: _search,
+  pricing: {
+    configure: configurePricing,
+    load: loadPricing,
+    isLoaded: isPricingLoaded
+  }
+};
 
 // ../../node_modules/@picsart/workflows-client/dist/index.mjs
 var logger_default = {
@@ -12599,6 +13166,79 @@ function parseRunResult(completed, model, contract) {
     ...completed.handle.id ? { id: completed.handle.id } : {}
   };
 }
+var MODELS_WORKFLOW = "v1/models";
+function buildModelsCommand(model, params2, options) {
+  if (!options) return { model, params: params2 };
+  return {
+    model,
+    params: params2,
+    options: {
+      inputs_transformation: {
+        downscale_oversized_images: options.downscaleOversizedImages ?? false
+      },
+      ...options.drive ? { drive: options.drive } : {}
+    }
+  };
+}
+function asModelsResult(result) {
+  return result && typeof result === "object" ? result : {};
+}
+function parseDynamicResult(completed, modelRef) {
+  throwIfErrorResult(completed.result, modelRef);
+  const r = asModelsResult(completed.result);
+  const items = Array.isArray(r.items) && r.items.length > 0 ? r.items.map((item) => ({
+    url: item.url,
+    ...item.metadata ? { metadata: item.metadata } : {}
+  })) : r.url ? [{ url: r.url }] : [];
+  if (!items.length || !items[0].url) {
+    throw new ApiError(`${modelRef}: unexpected response \u2014 no result URL`, {
+      status: 502,
+      code: "invalid_response"
+    });
+  }
+  return {
+    url: items[0].url,
+    items,
+    results: items,
+    // Sync executions have no job id (nothing to poll) — omit rather than ''.
+    ...completed.handle.id ? { generationId: completed.handle.id } : {},
+    usage: completed.usage
+  };
+}
+function parseDynamicTextResult(completed, modelRef) {
+  throwIfErrorResult(completed.result, modelRef);
+  throwIfErrorResult(completed.raw, modelRef);
+  const r = asModelsResult(completed.result);
+  if (typeof r.text !== "string") {
+    throw new ApiError(`${modelRef}: unexpected response \u2014 no text`, {
+      status: 502,
+      code: "invalid_response"
+    });
+  }
+  return {
+    text: r.text,
+    model: r.model ?? modelRef,
+    raw: completed.raw ?? completed.result,
+    usage: completed.usage
+  };
+}
+function parseDynamicRunResult(completed, modelRef) {
+  throwIfErrorResult(completed.result, modelRef);
+  throwIfErrorResult(completed.raw, modelRef);
+  if (completed.result == null) {
+    throw new ApiError(`${modelRef}: unexpected response \u2014 empty result`, {
+      status: 502,
+      code: "invalid_response"
+    });
+  }
+  return {
+    result: completed.result,
+    status: "COMPLETED",
+    usage: completed.usage,
+    // Sync executions have no job id (nothing to poll) — omit rather than ''.
+    ...completed.handle.id ? { id: completed.handle.id } : {}
+  };
+}
 
 // src/core/limits.ts
 var MAX_DRIVE_PROMPT_LENGTH = 18e3;
@@ -12677,7 +13317,18 @@ function extensionFromUrl(url) {
   return normalizeExtension(match?.[1]);
 }
 function defaultExtension(mode) {
-  return mode === "video" ? "mp4" : mode === "audio" ? "mp3" : "png";
+  switch (mode) {
+    case "video":
+      return "mp4";
+    case "audio":
+      return "mp3";
+    case "image":
+      return "png";
+    // Mode genuinely unknown (dynamic mode, model not in the local catalog):
+    // no extension beats a wrong one — media would be misidentified by it.
+    default:
+      return "";
+  }
 }
 function resolveExtension(mode, hints = {}) {
   return extensionFromMime(hints.mimeType) ?? extensionFromUrl(hints.url) ?? normalizeExtension(hints.format) ?? defaultExtension(mode);
@@ -12697,9 +13348,10 @@ function expectedOutputFormat(model, params2) {
 function buildFilename(prompt, mode, hints) {
   const shortId = String(Date.now()).slice(-6);
   const ext = resolveExtension(mode, hints);
-  if (!prompt) return `ai-generation-${shortId}.${ext}`;
+  const suffix = ext ? `.${ext}` : "";
+  if (!prompt) return `ai-generation-${shortId}${suffix}`;
   const slug = prompt.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50);
-  return `${slug}-${shortId}.${ext}`;
+  return `${slug}-${shortId}${suffix}`;
 }
 function inferMediaType(file) {
   const name = String(file.name || "");
@@ -13251,7 +13903,7 @@ function abortable(promise, signal) {
 function createCatalogs(transport, options) {
   const stores = /* @__PURE__ */ new Map();
   const inflight = /* @__PURE__ */ new Map();
-  const keyOf2 = (s) => `${s.workflow} ${s.modelId ?? ""}`;
+  const keyOf3 = (s) => `${s.workflow} ${s.modelId ?? ""}`;
   async function fetchPage(workflow, query) {
     const payload = {};
     if (query.modelId) payload.modelId = query.modelId;
@@ -13280,7 +13932,7 @@ function createCatalogs(transport, options) {
     return { ...result, nextCursor: result.nextCursor ?? null };
   }
   function storeFor(source, forceRefresh) {
-    const key = keyOf2(source);
+    const key = keyOf3(source);
     let store = stores.get(key);
     if (!store) {
       store = { pages: /* @__PURE__ */ new Map(), version: "", expiresAt: 0, gen: 0 };
@@ -13307,7 +13959,7 @@ function createCatalogs(transport, options) {
     const cursorKey = options2?.cursor ?? "";
     const cached = store.pages.get(cursorKey);
     if (cached) return abortable(Promise.resolve(copyPage(cached)), options2?.signal);
-    const inflightKey = `${keyOf2(source)} ${cursorKey}`;
+    const inflightKey = `${keyOf3(source)} ${cursorKey}`;
     if (!options2?.forceRefresh) {
       const pending = inflight.get(inflightKey);
       if (pending) return abortable(pending.then(copyPage), options2?.signal);
@@ -13357,8 +14009,8 @@ function createCatalogs(transport, options) {
       for (const [key, entry] of Object.entries(def.paramConfig)) {
         const d = entry.descriptor;
         const source = d.kind === "catalog" ? d.source : void 0;
-        if (!source || seen.has(keyOf2(source))) continue;
-        seen.add(keyOf2(source));
+        if (!source || seen.has(keyOf3(source))) continue;
+        seen.add(keyOf3(source));
         void loadPage(def, key, source).catch(() => {
         });
       }
@@ -13396,6 +14048,9 @@ function resolvePollOptions(model, overrides) {
   return resolved;
 }
 function createClient(config) {
+  const mode = config.mode ?? "static";
+  const isDynamic = mode === "dynamic";
+  if (isDynamic) markCatalogPending();
   const authedFetch = maybeFetch(config);
   const wc = config.apiUrl && authedFetch ? createWorkflowsClient(config.apiUrl, authedFetch) : null;
   function buildDefaultTransport() {
@@ -13512,13 +14167,24 @@ function createClient(config) {
       }
     };
   }
-  async function fetchOptions(model, params2) {
-    if (!transport.options) return null;
-    const resolved = resolveModel(model);
-    const { workflow, payload } = prepareRequest(resolved, params2);
+  async function askOptionsRoute(workflow, payload) {
     const res = await transport.options(workflow, payload);
     if (typeof res === "number") return { credits: res };
     return res && typeof res.credits === "number" ? res : null;
+  }
+  async function fetchOptionsStatic(model, params2) {
+    if (!transport.options) return null;
+    const resolved = resolveModel(model);
+    const { workflow, payload } = prepareRequest(resolved, params2);
+    return askOptionsRoute(workflow, payload);
+  }
+  async function fetchOptionsDynamic(model, params2) {
+    if (!transport.options) return null;
+    const command = buildModelsCommand(model, params2);
+    return askOptionsRoute(MODELS_WORKFLOW, command);
+  }
+  function fetchOptions(model, params2) {
+    return isDynamic ? fetchOptionsDynamic(model, params2) : fetchOptionsStatic(model, params2);
   }
   async function resolveJobHandle(model, generationId, signal) {
     const primary = { workflow: model.workflow, id: generationId };
@@ -13533,6 +14199,222 @@ function createClient(config) {
       throw err;
     }
   }
+  function dynamicPollOptions(overrides) {
+    const resolved = { ...MODE_POLL_DEFAULTS.video };
+    if (overrides?.intervalMs !== void 0) resolved.intervalMs = overrides.intervalMs;
+    if (overrides?.maxAttempts !== void 0) resolved.maxAttempts = overrides.maxAttempts;
+    if (overrides?.signal !== void 0) resolved.signal = overrides.signal;
+    return resolved;
+  }
+  async function executeDynamic(command, options) {
+    const signal = options?.signal;
+    const payload = command;
+    try {
+      if (!supportsAsync) {
+        const res2 = await transport.execute({ workflow: MODELS_WORKFLOW, payload, signal });
+        return toCompletedStatus({ workflow: MODELS_WORKFLOW, id: "" }, res2.result, res2.raw ?? res2.result, res2.usage);
+      }
+      const id = await submitJob(MODELS_WORKFLOW, payload, signal);
+      const res = await pollJob({ workflow: MODELS_WORKFLOW, id }, dynamicPollOptions(options));
+      return asCompleted({ workflow: MODELS_WORKFLOW, id }, res);
+    } catch (err) {
+      throw toApiError2(err, signal);
+    }
+  }
+  function buildDynamicDriveOptions(modelRef, params2, options) {
+    const def = peekActiveModels() !== null ? findModel(modelRef) : void 0;
+    if (def) return buildDrivePayloadOptions(def, params2, options);
+    const explicit = options?.drive;
+    if (!driveConfig && !explicit) return void 0;
+    const generation = explicit?.generation;
+    const attributes = buildGenerationAttributes(generation ? { ...generation, app: generation.app ?? options?.app } : { modelId: modelRef, params: params2, app: options?.app });
+    const folderPath = options?.folder?.name ?? driveConfig?.folder;
+    return {
+      name: explicit?.name ?? buildFilename(params2.prompt, "unknown", {
+        format: expectedOutputFormat({ paramConfig: {} }, params2)
+      }),
+      attributes: { ...explicit?.attributes ?? {}, ...attributes },
+      folder: explicit?.folder ?? (folderPath ? { path: folderPath } : void 0)
+    };
+  }
+  function resolveDownscale(options) {
+    return options?.inputsTransformation?.downscaleOversizedImages ?? inputsTransformationConfig?.downscaleOversizedImages ?? false;
+  }
+  function subscribeGenerator(resolveHandle, pollOptions, parse, options) {
+    return (async function* () {
+      let handle;
+      try {
+        handle = await resolveHandle();
+      } catch (err) {
+        yield { type: "generation.failed", error: toApiError2(err, options?.signal) };
+        return;
+      }
+      const poll = new AbortController();
+      if (options?.signal) {
+        if (options.signal.aborted) poll.abort();
+        else options.signal.addEventListener("abort", () => poll.abort(), { once: true });
+      }
+      const queue = [];
+      let wake;
+      let waker = new Promise((resolve) => {
+        wake = () => resolve(null);
+      });
+      const done = pollJob(
+        handle,
+        { ...pollOptions, signal: poll.signal },
+        (p2) => {
+          queue.push(p2);
+          wake();
+        }
+      ).then(
+        (res) => ({ ok: true, res }),
+        (err) => ({ ok: false, err })
+      );
+      try {
+        for (; ; ) {
+          while (queue.length) yield { type: "generation.progress", progress: queue.shift() };
+          const raced = await Promise.race([done, waker]);
+          if (raced === null) {
+            waker = new Promise((resolve) => {
+              wake = () => resolve(null);
+            });
+            continue;
+          }
+          while (queue.length) yield { type: "generation.progress", progress: queue.shift() };
+          if (!raced.ok) {
+            yield { type: "generation.failed", error: toApiError2(raced.err, options?.signal) };
+            return;
+          }
+          const completed = asCompleted(handle, raced.res);
+          try {
+            yield { type: "generation.completed", result: parse(completed) };
+          } catch (err) {
+            yield { type: "generation.failed", error: toApiError2(err, options?.signal) };
+          }
+          return;
+        }
+      } finally {
+        poll.abort();
+      }
+    })();
+  }
+  async function runStatic(model, params2, options) {
+    const resolved = resolveModel(model);
+    const { workflow, payload, contract } = prepareRequest(resolved, params2);
+    const completed = await executeModel(resolved, workflow, payload, options);
+    return parseRunResult(completed, resolved, contract);
+  }
+  async function runDynamic(model, params2, options) {
+    const completed = await executeDynamic(buildModelsCommand(model, params2), options);
+    return parseDynamicRunResult(completed, model);
+  }
+  async function generateStatic(model, params2, options) {
+    const resolved = resolveModel(model);
+    assertMediaModel(resolved);
+    const { workflow, payload, contract } = prepareRequest(resolved, params2);
+    const drive = buildDrivePayloadOptions(resolved, params2, options);
+    const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
+    const completed = await executeModel(resolved, workflow, finalPayload, options);
+    return parseResult(completed, resolved, contract);
+  }
+  async function generateDynamic(model, params2, options) {
+    const drive = buildDynamicDriveOptions(model, params2, options);
+    const command = buildModelsCommand(model, params2, {
+      drive,
+      downscaleOversizedImages: resolveDownscale(options)
+    });
+    const completed = await executeDynamic(command, options);
+    return parseDynamicResult(completed, model);
+  }
+  async function generateTextStatic(model, params2, options) {
+    const resolved = resolveModel(model);
+    if (resolved.mode !== "text") {
+      throw new ApiError(`${resolved.name} is not a text model \u2014 use generate() instead.`, {
+        status: 400,
+        code: "wrong_model_mode"
+      });
+    }
+    const { workflow, payload } = prepareRequest(resolved, params2);
+    const completed = await executeModel(resolved, workflow, payload, options);
+    return parseTextResult(completed, resolved);
+  }
+  async function generateTextDynamic(model, params2, options) {
+    const completed = await executeDynamic(buildModelsCommand(model, params2), options);
+    return parseDynamicTextResult(completed, model);
+  }
+  async function submitStatic(model, params2, options) {
+    const resolved = resolveModel(model);
+    assertMediaModel(resolved);
+    assertAsyncLifecycle();
+    const { workflow, payload } = prepareRequest(resolved, params2);
+    const drive = buildDrivePayloadOptions(resolved, params2, options);
+    const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
+    try {
+      return await submitJob(workflow, finalPayload, options?.signal);
+    } catch (err) {
+      throw toApiError2(err, options?.signal);
+    }
+  }
+  async function submitDynamic(model, params2, options) {
+    assertAsyncLifecycle();
+    const drive = buildDynamicDriveOptions(model, params2, options);
+    const command = buildModelsCommand(model, params2, {
+      drive,
+      downscaleOversizedImages: resolveDownscale(options)
+    });
+    try {
+      return await submitJob(MODELS_WORKFLOW, command, options?.signal);
+    } catch (err) {
+      throw toApiError2(err, options?.signal);
+    }
+  }
+  async function resultStatic(model, generationId, options) {
+    const resolved = resolveModel(model);
+    assertMediaModel(resolved);
+    const contract = getModelContract(resolved.id);
+    assertAsyncLifecycle();
+    const handle = await resolveJobHandle(resolved, generationId, options?.signal);
+    let completed;
+    try {
+      completed = asCompleted(handle, await pollJob(handle, resolvePollOptions(resolved, options)));
+    } catch (err) {
+      throw toApiError2(err, options?.signal);
+    }
+    return parseResult(completed, resolved, contract);
+  }
+  async function resultDynamic(model, generationId, options) {
+    assertAsyncLifecycle();
+    const handle = { workflow: MODELS_WORKFLOW, id: generationId };
+    let completed;
+    try {
+      completed = asCompleted(handle, await pollJob(handle, dynamicPollOptions(options)));
+    } catch (err) {
+      throw toApiError2(err, options?.signal);
+    }
+    return parseDynamicResult(completed, model);
+  }
+  function subscribeStatic(model, generationId, options) {
+    const resolved = resolveModel(model);
+    assertMediaModel(resolved);
+    assertAsyncLifecycle();
+    const contract = getModelContract(resolved.id);
+    return subscribeGenerator(
+      () => resolveJobHandle(resolved, generationId, options?.signal),
+      resolvePollOptions(resolved, options),
+      (completed) => parseResult(completed, resolved, contract),
+      options
+    );
+  }
+  function subscribeDynamic(model, generationId, options) {
+    assertAsyncLifecycle();
+    return subscribeGenerator(
+      // The workflow is always v1/models — no edit-route probe needed.
+      async () => ({ workflow: MODELS_WORKFLOW, id: generationId }),
+      dynamicPollOptions(options),
+      (completed) => parseDynamicResult(completed, model),
+      options
+    );
+  }
   return {
     // ── Simple path ──────────────────────────────────────────────────
     /**
@@ -13544,11 +14426,8 @@ function createClient(config) {
      * Drive save, no options injection. The only generation surface for
      * json-mode (structured-output) models.
      */
-    async run(model, params2, options) {
-      const resolved = resolveModel(model);
-      const { workflow, payload, contract } = prepareRequest(resolved, params2);
-      const completed = await executeModel(resolved, workflow, payload, options);
-      return parseRunResult(completed, resolved, contract);
+    run(model, params2, options) {
+      return isDynamic ? runDynamic(model, params2, options) : runStatic(model, params2, options);
     },
     /**
      * Generate content using a model.
@@ -13559,14 +14438,8 @@ function createClient(config) {
      * If drive options are provided (or DriveConfig is set), the backend
      * saves the result to Picsart Drive.
      */
-    async generate(model, params2, options) {
-      const resolved = resolveModel(model);
-      assertMediaModel(resolved);
-      const { workflow, payload, contract } = prepareRequest(resolved, params2);
-      const drive = buildDrivePayloadOptions(resolved, params2, options);
-      const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
-      const completed = await executeModel(resolved, workflow, finalPayload, options);
-      return parseResult(completed, resolved, contract);
+    generate(model, params2, options) {
+      return isDynamic ? generateDynamic(model, params2, options) : generateStatic(model, params2, options);
     },
     /**
      * Generate text using an LLM model (Claude, Gemini, OpenAI).
@@ -13576,17 +14449,8 @@ function createClient(config) {
      * pass text and optional image/video, get text back. Text results are not
      * saved to Drive.
      */
-    async generateText(model, params2, options) {
-      const resolved = resolveModel(model);
-      if (resolved.mode !== "text") {
-        throw new ApiError(`${resolved.name} is not a text model \u2014 use generate() instead.`, {
-          status: 400,
-          code: "wrong_model_mode"
-        });
-      }
-      const { workflow, payload } = prepareRequest(resolved, params2);
-      const completed = await executeModel(resolved, workflow, payload, options);
-      return parseTextResult(completed, resolved);
+    generateText(model, params2, options) {
+      return isDynamic ? generateTextDynamic(model, params2, options) : generateTextStatic(model, params2, options);
     },
     /**
      * Get exact credit cost for a model with specific parameters.
@@ -13603,8 +14467,14 @@ function createClient(config) {
     async options(model, params2) {
       return fetchOptions(model, params2);
     },
-    /** Build the vendor-specific payload for a model without submitting. */
+    /** Build the vendor-specific payload for a model without submitting. Static mode only. */
     buildPayload(model, params2) {
+      if (isDynamic) {
+        throw new ApiError("buildPayload() builds vendor payloads locally \u2014 static mode only. In dynamic mode models-hub builds the payload server-side.", {
+          status: 400,
+          code: "unsupported_in_dynamic_mode"
+        });
+      }
       const resolved = resolveModel(model);
       const { payload } = prepareRequest(resolved, params2);
       return payload;
@@ -13613,33 +14483,12 @@ function createClient(config) {
     /** Submit a generation job and get its generation id back. Media models
      *  only — text models have no async lifecycle (`result()`/`subscribe()`
      *  reject them). Pass the id to `result(model, id)` / `subscribe(model, id)`. */
-    async submit(model, params2, options) {
-      const resolved = resolveModel(model);
-      assertMediaModel(resolved);
-      assertAsyncLifecycle();
-      const { workflow, payload } = prepareRequest(resolved, params2);
-      const drive = buildDrivePayloadOptions(resolved, params2, options);
-      const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
-      try {
-        return await submitJob(workflow, finalPayload, options?.signal);
-      } catch (err) {
-        throw toApiError2(err, options?.signal);
-      }
+    submit(model, params2, options) {
+      return isDynamic ? submitDynamic(model, params2, options) : submitStatic(model, params2, options);
     },
     /** Poll a submitted job until it completes and return the parsed result. */
-    async result(model, generationId, options) {
-      const resolved = resolveModel(model);
-      assertMediaModel(resolved);
-      const contract = getModelContract(resolved.id);
-      assertAsyncLifecycle();
-      const handle = await resolveJobHandle(resolved, generationId, options?.signal);
-      let completed;
-      try {
-        completed = asCompleted(handle, await pollJob(handle, resolvePollOptions(resolved, options)));
-      } catch (err) {
-        throw toApiError2(err, options?.signal);
-      }
-      return parseResult(completed, resolved, contract);
+    result(model, generationId, options) {
+      return isDynamic ? resultDynamic(model, generationId, options) : resultStatic(model, generationId, options);
     },
     /**
      * Subscribe to live updates for a submitted job. Yields one
@@ -13658,66 +14507,46 @@ function createClient(config) {
      * ```
      */
     subscribe(model, generationId, options) {
-      const resolved = resolveModel(model);
-      assertMediaModel(resolved);
-      assertAsyncLifecycle();
-      const contract = getModelContract(resolved.id);
-      return (async function* () {
-        let handle;
-        try {
-          handle = await resolveJobHandle(resolved, generationId, options?.signal);
-        } catch (err) {
-          yield { type: "generation.failed", error: toApiError2(err, options?.signal) };
-          return;
-        }
-        const poll = new AbortController();
-        if (options?.signal) {
-          if (options.signal.aborted) poll.abort();
-          else options.signal.addEventListener("abort", () => poll.abort(), { once: true });
-        }
-        const queue = [];
-        let wake;
-        let waker = new Promise((resolve) => {
-          wake = () => resolve(null);
+      return isDynamic ? subscribeDynamic(model, generationId, options) : subscribeStatic(model, generationId, options);
+    },
+    // ── Dynamic catalog ──────────────────────────────────────────────
+    /**
+     * Fetch the model catalog from models-hub and install it as the active
+     * catalog. Dynamic mode only, and the only trigger for the load —
+     * createClient never starts it. Idempotent; a failed load may be retried.
+     */
+    async initModelCatalog(initOptions) {
+      if (!isDynamic) {
+        throw new ApiError("initModelCatalog() is only available in dynamic mode \u2014 create the client with createClient({ mode: 'dynamic' }).", {
+          status: 400,
+          code: "invalid_mode"
         });
-        const done = pollJob(
-          handle,
-          { ...resolvePollOptions(resolved, options), signal: poll.signal },
-          (p2) => {
-            queue.push(p2);
-            wake();
-          }
-        ).then(
-          (res) => ({ ok: true, res }),
-          (err) => ({ ok: false, err })
-        );
-        try {
-          for (; ; ) {
-            while (queue.length) yield { type: "generation.progress", progress: queue.shift() };
-            const raced = await Promise.race([done, waker]);
-            if (raced === null) {
-              waker = new Promise((resolve) => {
-                wake = () => resolve(null);
-              });
-              continue;
-            }
-            while (queue.length) yield { type: "generation.progress", progress: queue.shift() };
-            if (!raced.ok) {
-              yield { type: "generation.failed", error: toApiError2(raced.err, options?.signal) };
-              return;
-            }
-            const completed = asCompleted(handle, raced.res);
-            try {
-              yield { type: "generation.completed", result: parseResult(completed, resolved, contract) };
-            } catch (err) {
-              yield { type: "generation.failed", error: toApiError2(err, options?.signal) };
-            }
-            return;
-          }
-        } finally {
-          poll.abort();
+      }
+      if (!config.apiUrl || !authedFetch) {
+        throw new ApiError("initModelCatalog() requires `apiUrl` plus `fetch` or `apiKey` \u2014 the catalog is a REST surface, not served by a custom transport.", {
+          status: 400,
+          code: "validation_error"
+        });
+      }
+      return loadModelCatalog(authedFetch, config.apiUrl, initOptions?.filtersOptions);
+    },
+    /**
+     * Validate params against the model's descriptors without generating.
+     * Static mode resolves off the bundled catalog immediately; dynamic mode
+     * waits for the catalog load started by initModelCatalog().
+     */
+    async validate(model, params2) {
+      if (isDynamic) {
+        const loading = whenModelCatalogLoaded();
+        if (!loading) {
+          throw new ApiError("Model catalog not loaded \u2014 call ai.initModelCatalog() before ai.validate().", {
+            status: 409,
+            code: "catalog_not_loaded"
+          });
         }
-      })();
+        await loading;
+      }
+      return Model(model).validate(params2);
     },
     // ── apis (direct, low-level API access) ───────────────────────────
     /** Direct, low-level access to the Picsart model APIs. See `./apis.ts`. */
@@ -14253,410 +15082,6 @@ var Models = {
   Wan27VideoEdit,
   Wan30Video,
   Wan30VideoPrime
-};
-
-// src/core/descriptors/pricing.ts
-var import_pa_model_pricing_sdk = __toESM(require_build(), 1);
-var _client = null;
-var _byModel = null;
-var _loadPromise = null;
-function configurePricing(options) {
-  _client = new import_pa_model_pricing_sdk.ModelPricingClient(options);
-  _byModel = null;
-  _loadPromise = null;
-}
-function loadPricing() {
-  if (_byModel) return Promise.resolve();
-  if (!_client) {
-    return Promise.reject(new Error(
-      "loadPricing(): not configured. Call catalog.pricing.configure({ baseUrl, fetch }) first."
-    ));
-  }
-  if (!_loadPromise) {
-    const client = _client;
-    _loadPromise = client.init().then(() => {
-      const byModel = /* @__PURE__ */ new Map();
-      for (const entry of client.getModelPricing()) {
-        const id = entry.metadata.modelId;
-        const list = byModel.get(id);
-        if (list) list.push(entry);
-        else byModel.set(id, [entry]);
-      }
-      _byModel = byModel;
-    }).catch((err) => {
-      _loadPromise = null;
-      throw err;
-    });
-  }
-  return _loadPromise;
-}
-function isPricingLoaded() {
-  return _byModel !== null;
-}
-function getCreditsForModel(modelId, ctx) {
-  if (!_byModel) return null;
-  let entries = _byModel.get(modelId);
-  if (!entries || entries.length === 0) return null;
-  if (ctx) {
-    entries = entries.filter((e) => {
-      if (ctx.generateAudio !== void 0 && e.metadata.audio !== ctx.generateAudio) return false;
-      if (ctx.resolution !== void 0 && e.metadata.quality !== ctx.resolution) return false;
-      return true;
-    });
-    if (entries.length === 0) return null;
-  }
-  let min = Infinity;
-  let max = -Infinity;
-  let unit = entries[0].unit;
-  for (const e of entries) {
-    if (e.credits < min) min = e.credits;
-    if (e.credits > max) max = e.credits;
-    if (e.unit !== unit) unit = void 0;
-  }
-  const tiers = entries.map((e) => ({
-    credits: e.credits,
-    unit: e.unit,
-    quality: e.metadata.quality || void 0,
-    audio: e.metadata.audio,
-    useCase: e.metadata.useCase
-  }));
-  return unit ? { min, max, unit, tiers } : { min, max, tiers };
-}
-
-// src/core/descriptors/model-accessor.ts
-function withHydration(entry, flat) {
-  if (entry.descriptor.kind !== "catalog") return flat;
-  const hydrated = getHydratedCatalog(entry.descriptor.source);
-  if (!hydrated) return flat;
-  return { ...flat, catalogOptions: hydrated.catalogOptions };
-}
-var ModelParamsAccessorImpl = class {
-  def;
-  constructor(def) {
-    this.def = def;
-  }
-  param(key) {
-    const entry = this.def.paramConfig[key];
-    if (!entry) return void 0;
-    const { descriptor, ...meta } = entry;
-    return withHydration(entry, { ...meta, ...descriptor });
-  }
-  hasParam(key) {
-    return key in this.def.paramConfig;
-  }
-  all() {
-    return Object.entries(this.def.paramConfig).map(
-      ([key, entry]) => {
-        const { descriptor, ...meta } = entry;
-        return withHydration(entry, { key, ...meta, ...descriptor });
-      }
-    );
-  }
-  // Kind-narrowed accessors
-  enum(key) {
-    return this.narrow(key, "enum");
-  }
-  catalog(key) {
-    return this.narrow(key, "catalog");
-  }
-  range(key) {
-    return this.narrow(key, "range");
-  }
-  boolean(key) {
-    return this.narrow(key, "boolean");
-  }
-  text(key) {
-    return this.narrow(key, "text");
-  }
-  file(key) {
-    return this.narrow(key, "file");
-  }
-  // Well-known shorthands
-  prompt() {
-    return this.narrow("prompt", "text");
-  }
-  aspectRatio() {
-    return this.narrow("aspectRatio", "enum");
-  }
-  /** Enum on fixed-option models, range where the vendor accepts every value
-   *  in a span — callers narrow on `.kind`. */
-  duration() {
-    const entry = this.param("duration");
-    if (!entry || entry.kind !== "enum" && entry.kind !== "range") return void 0;
-    return entry;
-  }
-  resolution() {
-    return this.narrow("resolution", "enum");
-  }
-  generateAudio() {
-    return this.narrow("generateAudio", "boolean");
-  }
-  startFrame() {
-    return this.narrow("startFrame", "file");
-  }
-  endFrame() {
-    return this.narrow("endFrame", "file");
-  }
-  // Absorbed from Models namespace
-  hasFileInput() {
-    return Object.values(this.def.paramConfig).some((e) => e.descriptor.kind === "file");
-  }
-  getDefault(key) {
-    const entry = this.def.paramConfig[key];
-    if (!entry) return void 0;
-    const d = entry.descriptor;
-    return "default" in d ? d.default : void 0;
-  }
-  getDefaults() {
-    return extractDefaults(this.def.paramConfig);
-  }
-  toSchema() {
-    return descriptorsToSchema(this.def.paramConfig);
-  }
-  transferValues(prev) {
-    return transferValues(this.def.paramConfig, prev);
-  }
-  narrow(key, kind) {
-    const entry = this.param(key);
-    if (!entry || entry.kind !== kind) return void 0;
-    return entry;
-  }
-};
-var ConstrainedParamsAccessor = class {
-  inner;
-  effects;
-  requirements;
-  constructor(inner, effects, requirements = /* @__PURE__ */ new Map()) {
-    this.inner = inner;
-    this.effects = effects;
-    this.requirements = requirements;
-  }
-  // ── Decorated accessors ──────────────────────────────────────────
-  enum(key) {
-    return this.require(key, this.applyEnum(key, this.inner.enum(key)));
-  }
-  catalog(key) {
-    return this.require(key, this.applyEntry(key, this.inner.catalog(key)));
-  }
-  range(key) {
-    return this.require(key, this.applyEntry(key, this.inner.range(key)));
-  }
-  boolean(key) {
-    return this.require(key, this.applyEntry(key, this.inner.boolean(key)));
-  }
-  text(key) {
-    return this.require(key, this.applyEntry(key, this.inner.text(key)));
-  }
-  file(key) {
-    return this.require(key, this.applyEntry(key, this.inner.file(key)));
-  }
-  prompt() {
-    return this.require("prompt", this.applyEntry("prompt", this.inner.prompt()));
-  }
-  aspectRatio() {
-    return this.require("aspectRatio", this.applyEnum("aspectRatio", this.inner.aspectRatio()));
-  }
-  duration() {
-    const entry = this.inner.duration();
-    return this.require("duration", entry?.kind === "enum" ? this.applyEnum("duration", entry) : this.applyEntry("duration", entry));
-  }
-  resolution() {
-    return this.require("resolution", this.applyEnum("resolution", this.inner.resolution()));
-  }
-  generateAudio() {
-    return this.require("generateAudio", this.applyEntry("generateAudio", this.inner.generateAudio()));
-  }
-  startFrame() {
-    return this.require("startFrame", this.applyEntry("startFrame", this.inner.startFrame()));
-  }
-  endFrame() {
-    return this.require("endFrame", this.applyEntry("endFrame", this.inner.endFrame()));
-  }
-  all() {
-    return this.inner.all().map((e) => this.decorateFlat(e.key, e));
-  }
-  /** Generic lookup, decorated exactly as `all()` decorates the same key, so a
-   *  caller that reads params by key sees the same restrictions and
-   *  requirements as one that iterates them. */
-  param(key) {
-    const entry = this.inner.param(key);
-    return entry && this.decorateFlat(key, entry);
-  }
-  // ── Pass-through delegates ───────────────────────────────────────
-  hasParam(key) {
-    return this.inner.hasParam(key);
-  }
-  hasFileInput() {
-    return this.inner.hasFileInput();
-  }
-  getDefault(key) {
-    return this.inner.getDefault(key);
-  }
-  getDefaults() {
-    return this.inner.getDefaults();
-  }
-  toSchema() {
-    return this.inner.toSchema();
-  }
-  transferValues(prev) {
-    return this.inner.transferValues(prev);
-  }
-  // ── Private helpers ──────────────────────────────────────────────
-  decorateFlat(key, entry) {
-    const r = this.effects.get(key);
-    let decorated = entry;
-    if (r && entry.kind === "enum") decorated = this.decorateEnumFlat(entry, r);
-    else if (r?.kind === "disabled") decorated = { ...entry, disabled: true, disabledReason: r.reason };
-    return this.require(key, decorated);
-  }
-  /** Mark the entry required when a matching `required` restriction names it. */
-  require(key, entry) {
-    if (!entry) return void 0;
-    const requirement = this.requirements.get(key);
-    if (!requirement) return entry;
-    return { ...entry, required: true, requiredReason: requirement.reason };
-  }
-  applyEntry(key, entry) {
-    if (!entry) return void 0;
-    const r = this.effects.get(key);
-    if (!r) return entry;
-    if (r.kind === "disabled") return { ...entry, disabled: true, disabledReason: r.reason };
-    return entry;
-  }
-  applyEnum(key, entry) {
-    if (!entry) return void 0;
-    const r = this.effects.get(key);
-    if (!r) return entry;
-    if (r.kind === "disabled") {
-      const options2 = entry.options.map((opt) => ({ ...opt, disabled: true, disabledReason: r.reason }));
-      return { ...entry, options: options2, disabled: true, disabledReason: r.reason };
-    }
-    const allowed = new Set(r.allowed.map(String));
-    const options = entry.options.map(
-      (opt) => allowed.has(String(opt.id)) ? opt : { ...opt, disabled: true, disabledReason: r.reason }
-    );
-    return { ...entry, options };
-  }
-  decorateEnumFlat(entry, r) {
-    if (entry.kind !== "enum") return entry;
-    if (r.kind === "disabled") {
-      const options2 = entry.options.map((opt) => ({
-        ...opt,
-        disabled: true,
-        disabledReason: r.reason
-      }));
-      return { ...entry, options: options2, disabled: true, disabledReason: r.reason };
-    }
-    const allowed = new Set(r.allowed.map(String));
-    const options = entry.options.map(
-      (opt) => allowed.has(String(opt.id)) ? opt : { ...opt, disabled: true, disabledReason: r.reason }
-    );
-    return { ...entry, options };
-  }
-};
-var ModelMetaImpl = class {
-  mode;
-  inputType;
-  description;
-  features;
-  badges;
-  provider;
-  addedAt;
-  release;
-  constructor(def) {
-    this.mode = def.mode;
-    this.inputType = def.inputType;
-    this.description = def.description;
-    this.features = def.features;
-    this.badges = def.badge ?? [];
-    this.release = def.release ?? "production";
-    this.provider = {
-      id: def.provider,
-      name: def.providerName,
-      color: def.providerColor,
-      label: def.providerLabel
-    };
-    this.addedAt = def.addedAt ?? null;
-  }
-};
-var ModelDescriptorImpl = class {
-  id;
-  name;
-  api;
-  def;
-  _params;
-  _meta;
-  constructor(def) {
-    this.id = def.id;
-    this.name = def.name;
-    this.api = { workflow: def.workflow, editWorkflow: def.editWorkflow };
-    this.def = def;
-  }
-  params() {
-    return this._params ??= new ModelParamsAccessorImpl(this.def);
-  }
-  paramsFor(values) {
-    const inner = this.params();
-    const effects = evaluateConstraints(this.def.constraints, values);
-    const requirements = evaluateRequirements(this.def.constraints, values);
-    if (!effects.size && !requirements.size) return inner;
-    return new ConstrainedParamsAccessor(inner, effects, requirements);
-  }
-  validate(input) {
-    if (!input || typeof input !== "object" || Array.isArray(input)) {
-      return { valid: false, errors: [`Invalid input for model "${this.def.id}"`] };
-    }
-    try {
-      validateAll(this.def.paramConfig, input, this.def.constraints);
-      return { valid: true };
-    } catch (err) {
-      return { valid: false, errors: [err instanceof Error ? err.message : String(err)] };
-    }
-  }
-  meta() {
-    return this._meta ??= new ModelMetaImpl(this.def);
-  }
-  getCreditsInfo(ctx) {
-    if (this.def.modelId) {
-      const byModelId = getCreditsForModel(this.def.modelId, ctx);
-      if (byModelId) return byModelId;
-    }
-    return getCreditsForModel(this.def.id, ctx);
-  }
-};
-function _model(id) {
-  return new ModelDescriptorImpl(resolveModel(id));
-}
-function _all(filter = {}) {
-  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
-  return ALL_MODELS.filter((m) => isVisibleForReleases(m, releases)).map((m) => new ModelDescriptorImpl(m));
-}
-function _find(filter) {
-  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
-  return ALL_MODELS.filter((m) => {
-    if (!isVisibleForReleases(m, releases)) return false;
-    if (filter.output && m.mode !== filter.output) return false;
-    if (filter.provider && m.provider !== filter.provider) return false;
-    return true;
-  }).map((m) => new ModelDescriptorImpl(m));
-}
-function _search(query, filter = {}) {
-  const releases = filter.release ?? DEFAULT_VISIBLE_RELEASES;
-  const q = query.toLowerCase();
-  return ALL_MODELS.filter(
-    (m) => isVisibleForReleases(m, releases) && (m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q) || m.provider.toLowerCase().includes(q))
-  ).map((m) => new ModelDescriptorImpl(m));
-}
-var Model = _model;
-var catalog = {
-  all: _all,
-  find: _find,
-  search: _search,
-  pricing: {
-    configure: configurePricing,
-    load: loadPricing,
-    isLoaded: isPricingLoaded
-  }
 };
 function toBase64Url(bytes) {
   let binary = "";

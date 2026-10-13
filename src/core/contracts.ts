@@ -65,14 +65,17 @@ export function validateModelInput(model: ModelDefinition, input: unknown): Gene
 // ── Pre-built contracts for all models (lazy) ───────────────────────
 // Lazy to break circular dependency: contracts ↔ catalog ↔ vendors → define → contracts
 
-import { ALL_MODELS } from '../vendors/catalog/index.ts';
+import { activeModels, catalogGeneration } from './active-catalog.ts';
 
 let _contracts: Record<string, ModelContract> | null = null;
+let _contractsGen = -1;
 
 function ensureContracts(): Record<string, ModelContract> {
-  if (!_contracts) {
+  const gen = catalogGeneration();
+  if (!_contracts || _contractsGen !== gen) {
+    _contractsGen = gen;
     _contracts = Object.fromEntries(
-      ALL_MODELS.map((model) => {
+      activeModels().map((model) => {
         const autoContract = createModelContract(model);
         const outputSchema = model.outputSchema ?? autoContract.output;
         return [model.id, { id: model.id, input: autoContract.input, output: outputSchema }];

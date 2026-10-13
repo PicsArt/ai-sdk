@@ -278,13 +278,21 @@ function extensionFromUrl(url: string | undefined): string | undefined {
 }
 
 function defaultExtension(mode: string): string {
-  return mode === 'video' ? 'mp4' : mode === 'audio' ? 'mp3' : 'png';
+  switch (mode) {
+    case 'video': return 'mp4';
+    case 'audio': return 'mp3';
+    case 'image': return 'png';
+    // Mode genuinely unknown (dynamic mode, model not in the local catalog):
+    // no extension beats a wrong one — media would be misidentified by it.
+    default: return '';
+  }
 }
 
 /**
  * Pick a file extension for a generation. Most to least reliable: the result's
  * MIME type, the result URL's path extension, the requested output format, then
- * the mode default (png / mp4 / mp3).
+ * the mode default (png / mp4 / mp3). An unknown mode resolves to '' — the
+ * filename stays extension-less rather than mislabeled.
  */
 export function resolveExtension(mode: string, hints: FilenameHints = {}): string {
   return extensionFromMime(hints.mimeType)
@@ -320,13 +328,14 @@ export function expectedOutputFormat(
 export function buildFilename(prompt: string | undefined, mode: string, hints?: FilenameHints): string {
   const shortId = String(Date.now()).slice(-6);
   const ext = resolveExtension(mode, hints);
-  if (!prompt) return `ai-generation-${shortId}.${ext}`;
+  const suffix = ext ? `.${ext}` : '';
+  if (!prompt) return `ai-generation-${shortId}${suffix}`;
   const slug = prompt
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 50);
-  return `${slug}-${shortId}.${ext}`;
+  return `${slug}-${shortId}${suffix}`;
 }
 
 function inferMediaType(file: Record<string, unknown>): MediaTypeFilter {

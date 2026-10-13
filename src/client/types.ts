@@ -59,8 +59,35 @@ export interface AppIdentity {
   type: AppType;
 }
 
+/**
+ * How the client sources its model catalog and builds generation requests.
+ * - `'static'` (default) — the bundled catalog: per-model workflows and local
+ *   payload builders, exactly as before.
+ * - `'dynamic'` — generation routes through the models-hub `v1/models`
+ *   workflow (the server builds the vendor payload), and the model catalog is
+ *   loaded from the backend via {@link AiClient.initModelCatalog}. Until that
+ *   load completes, the sync accessors (`Model()`, `catalog.*`) throw
+ *   `ApiError` 409 `catalog_not_loaded`; `generate()`/`submit()` never wait.
+ *
+ * The loaded catalog is process-global (`Model()` and `catalog.*` are
+ * module-level): one catalog source per process, last install wins.
+ *
+ * **One catalog MODE per process, too — do not mix static and dynamic
+ * clients.** Creating a dynamic client flips the process-global catalog:
+ * a static client in the same process then throws `catalog_not_loaded` from
+ * its sync accessors until the load lands, and once the loaded catalog is
+ * installed its generation pipeline would resolve definitions that carry no
+ * payload builders (builders are code and never ride the wire) — producing
+ * invalid vendor payloads. Run static clients in a separate process. Static
+ * mode is the compatibility path and is slated for removal once all
+ * consumers run dynamic.
+ */
+export type SdkMode = 'static' | 'dynamic';
+
 /** Settings that apply whichever transport serves the client. */
 interface ClientConfigBase {
+  /** Catalog/generation mode — see {@link SdkMode}. Default: `'static'`. */
+  mode?: SdkMode;
   /** Enable Drive integration — auto-save generations to a Drive folder. */
   drive?: DriveConfig;
   /**
@@ -269,6 +296,18 @@ export interface GenerateOptions {
   app?: AppIdentity;
 }
 
+// ── Dynamic-mode options ────────────────────────────────────────────
+
+import type { ModelCatalogFilters } from '../core/catalog-store.ts';
+import type { ValidationResult } from '../core/descriptors/types.ts';
+
+/** Options for {@link AiClient.initModelCatalog}. The endpoint is always
+ *  `${apiUrl}/gw-v2/v1/models-catalog` — derived from the client's `apiUrl`. */
+export interface InitModelCatalogOptions {
+  /** Restrict what the catalog load requests — mode, provider, release, deprecated, search. */
+  filtersOptions?: ModelCatalogFilters;
+}
+
 // ── Type-safe client interface ──────────────────────────────────────
 
 /** Non-text (image/video/audio) model IDs — the media generation surface. */
@@ -314,8 +353,29 @@ export interface AiClient {
    */
   subscribe(model: MediaModelId, generationId: string, options?: GenerationOptions): AsyncGenerator<GenerationEvent, void, void>;
 
-  /** Build the vendor-specific payload for a model without submitting. */
+  /** Build the vendor-specific payload for a model without submitting. Static mode only. */
   buildPayload<M extends TypedModelId>(model: M, params: ModelInputById[M]): Record<string, unknown>;
+
+  /**
+   * Dynamic mode only: fetch the model catalog from models-hub and install it
+   * as the active catalog — afterwards `Model()`, `catalog.*` and
+   * `ai.validate()` serve the loaded data. The ONLY trigger for the load
+   * (`createClient` never starts it). Idempotent: concurrent/repeat calls
+   * share one in-flight load; a failed load may be retried. Rejects with
+   * `ApiError` 400 `invalid_mode` on a static client, and 409
+   * `catalog_conflict` when a different url/filters catalog is already loaded
+   * in this process.
+   */
+  initModelCatalog(options?: InitModelCatalogOptions): Promise<void>;
+
+  /**
+   * Validate params against the model's descriptors without generating.
+   * Static mode: resolves immediately off the bundled catalog. Dynamic mode:
+   * awaits the catalog load started by {@link initModelCatalog} — rejects
+   * with `ApiError` 409 `catalog_not_loaded` when it was never called.
+   * Unknown models reject with `ApiError` 400 `unknown_model`.
+   */
+  validate(model: string, params: Record<string, unknown>): Promise<ValidationResult>;
 
   /**
    * Direct, low-level access to the Picsart model APIs — run any API by name.

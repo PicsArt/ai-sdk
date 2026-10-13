@@ -27,6 +27,8 @@ export interface PlatformHooks {
   execute?: (workflow: string, payload: Record<string, unknown>) => unknown;
   /** Returns the credits for an /options call (null → no credits field). */
   options?: (workflow: string, payload: Record<string, unknown>) => number | null;
+  /** Returns the body for a GET /v1/models-catalog request. Default: empty catalog. */
+  modelsCatalog?: (search: URLSearchParams) => unknown;
 }
 
 export interface PlatformMock {
@@ -35,6 +37,7 @@ export interface PlatformMock {
     submits: Array<{ workflow: string; payload: Record<string, unknown> }>;
     polls: number;
     executes: Array<{ workflow: string; payload: Record<string, unknown> }>;
+    catalogFetches: Array<{ search: string }>;
   };
 }
 
@@ -42,7 +45,7 @@ const json = (status: number, body: unknown): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
 export function mockPlatform(hooks: PlatformHooks = {}): PlatformMock {
-  const calls: PlatformMock['calls'] = { submits: [], polls: 0, executes: [] };
+  const calls: PlatformMock['calls'] = { submits: [], polls: 0, executes: [], catalogFetches: [] };
   const pollCounts = new Map<string, number>();
 
   const fetch: AuthenticatedFetch = async (url, init) => {
@@ -50,6 +53,12 @@ export function mockPlatform(hooks: PlatformHooks = {}): PlatformMock {
       throw new DOMException('The operation was aborted.', 'AbortError');
     }
     const u = new URL(url);
+    if (u.pathname.endsWith('/v1/models-catalog')) {
+      calls.catalogFetches.push({ search: u.search });
+      const body = hooks.modelsCatalog?.(u.searchParams)
+        ?? { status: 'success', response: { total: 0, models: [] } };
+      return json(200, body);
+    }
     const path = u.pathname.replace(/^.*\/workflows\//, '');
     const params = init?.body ? (JSON.parse(String(init.body)).params ?? {}) : {};
 

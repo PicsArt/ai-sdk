@@ -18,10 +18,10 @@ export const buildChangeBgPayload: PayloadBuilder = (ctx) => ({
   count: 1,
 });
 
+/** No `model`: pcp/v2/sod runs SOD v8.2 from its default config card (`pcp-v2-sod-default`). */
 const buildRemoveBgPayload: PayloadBuilder = (ctx) => ({
   photo: ctx.imageUrls?.[0] ?? '',
   postprocess_image: true,
-  model: 'model-sod-v8-2',
 });
 
 /** SOD returns { id, data: { alpha, image } } — extract the processed image URL. */

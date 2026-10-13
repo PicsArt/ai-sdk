@@ -9373,8 +9373,7 @@ var buildChangeBgPayload = (ctx) => ({
 });
 var buildRemoveBgPayload = (ctx) => ({
   photo: ctx.imageUrls?.[0] ?? "",
-  postprocess_image: true,
-  model: "model-sod-v8-2"
+  postprocess_image: true
 });
 var sodOutputSchema = {
   parse(output) {

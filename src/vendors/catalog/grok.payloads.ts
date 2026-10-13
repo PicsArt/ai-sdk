@@ -14,6 +14,10 @@
  * `WorkflowTypes['x-ai/v1/images/generations']['params']` would type against
  * the stale shape. Follow-up: bump and add the typed returns once republished.
  *
+ * Same gap for video (checked 1.1.170): the x-ai videos `model` enum stops at
+ * `grok-imagine-video-1.5` — no `grok-imagine-video-1.5-lite` yet — so the
+ * lite builders' returns stay inferred too.
+ *
  * The older Grok entries in `grok.ts` still use inline `GenerationContext`
  * builders — migrated separately, not here.
  */
@@ -50,10 +54,33 @@ const buildGrokImage2EditPayload = (input: GrokImage2Input) => {
   };
 };
 
+type GrokVideo15LiteInput = ModelInput<'grok-imagine-video-1.5-lite'>;
+
+/** Grok 1.5 Lite T2V (x-ai/v1/videos/generations). */
+const buildGrokVideo15LitePayload = (input: GrokVideo15LiteInput) => ({
+  model: 'grok-imagine-video-1.5-lite',
+  prompt: input.prompt,
+  duration: input.duration ?? 8,
+  ...(input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {}),
+  ...(input.resolution ? { resolution: input.resolution } : {}),
+  ...(input.imageUrls?.[0] ? { image: { url: input.imageUrls[0] } } : {}),
+});
+
+/** Grok 1.5 Lite I2V — same workflow with required image. */
+const buildGrokVideo15LiteEditPayload = (input: GrokVideo15LiteInput) => ({
+  model: 'grok-imagine-video-1.5-lite',
+  prompt: input.prompt,
+  ...(input.imageUrls?.[0] ? { image: { url: input.imageUrls[0] } } : {}),
+  duration: input.duration ?? 8,
+  ...(input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {}),
+});
+
 registerPayloads(MODELS, {
   'grok-imagine-image-2.0': buildGrokImage2Payload,
+  'grok-imagine-video-1.5-lite': buildGrokVideo15LitePayload,
 });
 
 registerEditPayloads(MODELS, {
   'grok-imagine-image-2.0': buildGrokImage2EditPayload,
+  'grok-imagine-video-1.5-lite': buildGrokVideo15LiteEditPayload,
 });

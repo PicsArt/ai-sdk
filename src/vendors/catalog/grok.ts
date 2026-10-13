@@ -159,6 +159,22 @@ export const { MODELS } = defineModels('grok', [
     },
   },
   {
+    id: 'grok-imagine-video-1.5-lite', name: 'Grok Imagine 1.5 Lite',
+    addedAt: '2026-10-13',
+    workflow: 'x-ai/v1/videos/generations', editWorkflow: 'x-ai/v1/videos/generations',
+    estimatedTime: 20,
+    mode: 'video', inputType: 't2v',
+    description: 'Lightweight Grok 1.5 tier — faster, lower-cost video with audio, up to 15s.',
+    features: [feat('Image Input', 'input'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('15 sec', 'duration')],
+    paramConfig: {
+      ...params.prompt({ maxLength: GROK_VIDEO_PROMPT_MAX }),
+      ...params.aspectRatio(GROK_VIDEO_AR),
+      ...params.resolution(GROK_VIDEO_RESOLUTIONS_15, '720p'),
+      ...params.duration(GROK_DURATIONS, 8),
+      ...params.imageInput(1, 'Input Image', false),
+    },
+  },
+  {
     id: 'grok-edit-video', name: 'Grok Edit Video', modelId: 'grok-imagine-video',
     addedAt: '2026-02-06',
     workflow: 'x-ai/v1/videos/edits', buildPayload: buildGrokEditVideoPayload,

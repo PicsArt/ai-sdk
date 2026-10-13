@@ -5585,6 +5585,25 @@ var { MODELS: MODELS17 } = defineModels("grok", [
     }
   },
   {
+    id: "grok-imagine-video-1.5-lite",
+    name: "Grok Imagine 1.5 Lite",
+    addedAt: "2026-10-13",
+    workflow: "x-ai/v1/videos/generations",
+    editWorkflow: "x-ai/v1/videos/generations",
+    estimatedTime: 20,
+    mode: "video",
+    inputType: "t2v",
+    description: "Lightweight Grok 1.5 tier \u2014 faster, lower-cost video with audio, up to 15s.",
+    features: [feat("Image Input", "input"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("15 sec", "duration")],
+    paramConfig: {
+      ...params.prompt({ maxLength: GROK_VIDEO_PROMPT_MAX }),
+      ...params.aspectRatio(GROK_VIDEO_AR),
+      ...params.resolution(GROK_VIDEO_RESOLUTIONS_15, "720p"),
+      ...params.duration(GROK_DURATIONS, 8),
+      ...params.imageInput(1, "Input Image", false)
+    }
+  },
+  {
     id: "grok-edit-video",
     name: "Grok Edit Video",
     modelId: "grok-imagine-video",
@@ -5727,11 +5746,28 @@ var buildGrokImage2EditPayload = (input) => {
     ...imagePart2
   };
 };
+var buildGrokVideo15LitePayload = (input) => ({
+  model: "grok-imagine-video-1.5-lite",
+  prompt: input.prompt,
+  duration: input.duration ?? 8,
+  ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
+  ...input.resolution ? { resolution: input.resolution } : {},
+  ...input.imageUrls?.[0] ? { image: { url: input.imageUrls[0] } } : {}
+});
+var buildGrokVideo15LiteEditPayload = (input) => ({
+  model: "grok-imagine-video-1.5-lite",
+  prompt: input.prompt,
+  ...input.imageUrls?.[0] ? { image: { url: input.imageUrls[0] } } : {},
+  duration: input.duration ?? 8,
+  ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {}
+});
 registerPayloads(MODELS17, {
-  "grok-imagine-image-2.0": buildGrokImage2Payload
+  "grok-imagine-image-2.0": buildGrokImage2Payload,
+  "grok-imagine-video-1.5-lite": buildGrokVideo15LitePayload
 });
 registerEditPayloads(MODELS17, {
-  "grok-imagine-image-2.0": buildGrokImage2EditPayload
+  "grok-imagine-image-2.0": buildGrokImage2EditPayload,
+  "grok-imagine-video-1.5-lite": buildGrokVideo15LiteEditPayload
 });
 
 // src/vendors/catalog/pika.ts
@@ -14649,6 +14685,7 @@ var GrokImagineImage20 = "grok-imagine-image-2.0";
 var GrokImagineImageQuality = "grok-imagine-image-quality";
 var GrokImagineVideo = "grok-imagine-video";
 var GrokImagineVideo15 = "grok-imagine-video-1.5";
+var GrokImagineVideo15Lite = "grok-imagine-video-1.5-lite";
 var GrokTts = "grok-tts";
 var Hailuo23 = "hailuo-2.3";
 var Hailuo23Fast = "hailuo-2.3-fast";
@@ -14910,6 +14947,7 @@ var Models = {
   GrokImagineImageQuality,
   GrokImagineVideo,
   GrokImagineVideo15,
+  GrokImagineVideo15Lite,
   GrokTts,
   Hailuo23,
   Hailuo23Fast,

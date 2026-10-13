@@ -704,6 +704,13 @@ type ModelInputById = {
         duration?: 3 | 5 | 6 | 8 | 10 | 12 | 15;
         imageUrls?: string[];
     };
+    "grok-imagine-video-1.5-lite": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3";
+        resolution?: "480p" | "720p" | "1080p";
+        duration?: 3 | 5 | 6 | 8 | 10 | 12 | 15;
+        imageUrls?: string[];
+    };
     "grok-tts": {
         language?: string;
         accent?: string;
@@ -3528,6 +3535,7 @@ declare const Models: {
     readonly GrokImagineImageQuality: "grok-imagine-image-quality";
     readonly GrokImagineVideo: "grok-imagine-video";
     readonly GrokImagineVideo15: "grok-imagine-video-1.5";
+    readonly GrokImagineVideo15Lite: "grok-imagine-video-1.5-lite";
     readonly GrokTts: "grok-tts";
     readonly Hailuo23: "hailuo-2.3";
     readonly Hailuo23Fast: "hailuo-2.3-fast";

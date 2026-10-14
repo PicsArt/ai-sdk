@@ -108,7 +108,44 @@ const buildGeminiPayload = (modelId: GeminiModel) => (input: GeminiInput): Gemin
   };
 };
 
+// ── MiniMax H3 Context IR (minimax/v2/h3-context-ir) ─────────────────
+// Prompt enhancer: text + optional frame/reference media → enhanced prompt.
+// The wire `content[]` carries a text item plus media items tagged with a
+// `role`. Frame roles (first/last) and reference roles are mutually exclusive
+// (enforced by the model's constraints), so both sets are assembled here and
+// the UI/constraints keep only one populated.
+type MinimaxH3Input = ModelInput<'minimax-h3-context-ir'>;
+
+type MinimaxContentItem = {
+  type: 'text' | 'image_url' | 'video_url' | 'audio_url';
+  text?: string;
+  image_url?: { url: string };
+  video_url?: { url: string };
+  audio_url?: { url: string };
+  role?: 'first_frame' | 'last_frame' | 'reference_image' | 'reference_video' | 'reference_audio';
+};
+
+const buildMinimaxH3ContextIrPayload = (input: MinimaxH3Input) => {
+  const content: MinimaxContentItem[] = [{ type: 'text', text: input.prompt }];
+  if (input.startFrame) content.push({ type: 'image_url', image_url: { url: input.startFrame }, role: 'first_frame' });
+  if (input.endFrame) content.push({ type: 'image_url', image_url: { url: input.endFrame }, role: 'last_frame' });
+  for (const url of input.imageUrls ?? []) content.push({ type: 'image_url', image_url: { url }, role: 'reference_image' });
+  for (const url of input.videoUrls ?? []) content.push({ type: 'video_url', video_url: { url }, role: 'reference_video' });
+  for (const url of input.audioUrls ?? []) content.push({ type: 'audio_url', audio_url: { url }, role: 'reference_audio' });
+  // `model` is a single-value identity enum (MiniMax-H3) — hardcoded, not a knob.
+  // Return left inferred: `minimax/v2/h3-context-ir` isn't in the installed
+  // @picsart/workflows-types@1.1.156 yet (new workflow). Annotate with
+  // WorkflowTypes['minimax/v2/h3-context-ir']['params'] once it publishes.
+  return {
+    model: 'MiniMax-H3' as const,
+    content,
+    duration: input.duration ?? 5,
+    ...(input.aspectRatio ? { ratio: input.aspectRatio } : {}),
+  };
+};
+
 registerPayloads(MODELS, {
+  'minimax-h3-context-ir': buildMinimaxH3ContextIrPayload,
   'claude-fable-5-1': buildClaudePayload('claude-fable-5-1'),
   'claude-fable-5': buildClaudePayload('claude-fable-5'),
   'claude-opus-5': buildClaudePayload('claude-opus-5'),

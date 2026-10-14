@@ -1189,6 +1189,16 @@ type ModelInputById = {
         duration?: number;
         aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
     };
+    "minimax-h3-context-ir": {
+        prompt: string;
+        startFrame?: string;
+        endFrame?: string;
+        imageUrls?: string[];
+        videoUrls?: string[];
+        audioUrls?: string[];
+        duration?: number;
+        aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
+    };
     "minimax-h3-max": {
         prompt: string;
         startFrame?: string;
@@ -2104,7 +2114,7 @@ type ModelInputById = {
 type TypedModelId = keyof ModelInputById;
 type ModelInput<M extends TypedModelId> = ModelInputById[M];
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gemini-4-argon" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol" | "grok-4.7" | "kimi-k3";
+type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gemini-4-argon" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol" | "grok-4.7" | "kimi-k3" | "minimax-h3-context-ir";
 type TextModelInputById = Pick<ModelInputById, TextModelId>;
 /** IDs of structured-output (json-mode) models — narrows run()'s result type. */
 type JsonModelId = "typesafe-evaluate";
@@ -3612,6 +3622,7 @@ declare const Models: {
     readonly Lyria3Pro: "lyria-3-pro";
     readonly Lyria35: "lyria-3.5";
     readonly MinimaxH3: "minimax-h3";
+    readonly MinimaxH3ContextIr: "minimax-h3-context-ir";
     readonly MinimaxH3Max: "minimax-h3-max";
     readonly MinimaxH3MaxCameraControls: "minimax-h3-max-camera-controls";
     readonly MinimaxH3MaxExtend: "minimax-h3-max-extend";

@@ -312,6 +312,8 @@ export const Lyria3Pro = 'lyria-3-pro' as const;
 export const Lyria35 = 'lyria-3.5' as const;
 /** MiniMax H3 — minimax (video) */
 export const MinimaxH3 = 'minimax-h3' as const;
+/** MiniMax H3 Context IR — minimax (text) */
+export const MinimaxH3ContextIr = 'minimax-h3-context-ir' as const;
 /** MiniMax H3 Max — minimax (video) */
 export const MinimaxH3Max = 'minimax-h3-max' as const;
 /** MiniMax H3 Max Camera Controls — minimax (video) */
@@ -710,6 +712,7 @@ export const Models = {
   Lyria3Pro,
   Lyria35,
   MinimaxH3,
+  MinimaxH3ContextIr,
   MinimaxH3Max,
   MinimaxH3MaxCameraControls,
   MinimaxH3MaxExtend,

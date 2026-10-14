@@ -10664,7 +10664,56 @@ var { MODELS: GROK_LLM } = defineModels("grok", [
     }
   }
 ]);
-var MODELS35 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM, ...GROK_LLM];
+var H3_FRAME_REF_EXCLUSIVE = "References and start/end frames cannot be combined.";
+var H3_FRAME_EXCLUDES_REFERENCES = {
+  imageUrls: { disabled: true, reason: H3_FRAME_REF_EXCLUSIVE },
+  videoUrls: { disabled: true, reason: H3_FRAME_REF_EXCLUSIVE },
+  audioUrls: { disabled: true, reason: H3_FRAME_REF_EXCLUSIVE }
+};
+var H3_REFERENCE_EXCLUDES_FRAMES = {
+  startFrame: { disabled: true, reason: H3_FRAME_REF_EXCLUSIVE },
+  endFrame: { disabled: true, reason: H3_FRAME_REF_EXCLUSIVE }
+};
+var h3ContextIrConstraints = [
+  { when: { startFrame: { exists: true } }, then: H3_FRAME_EXCLUDES_REFERENCES },
+  { when: { endFrame: { exists: true } }, then: H3_FRAME_EXCLUDES_REFERENCES },
+  { when: { imageUrls: { exists: true } }, then: H3_REFERENCE_EXCLUDES_FRAMES },
+  { when: { videoUrls: { exists: true } }, then: H3_REFERENCE_EXCLUDES_FRAMES },
+  { when: { audioUrls: { exists: true } }, then: H3_REFERENCE_EXCLUDES_FRAMES }
+];
+var { MODELS: MINIMAX_LLM } = defineModels("minimax", [
+  {
+    id: "minimax-h3-context-ir",
+    name: "MiniMax H3 Context IR",
+    workflow: "minimax/v2/h3-context-ir",
+    addedAt: "2026-10-14",
+    estimatedTime: 8,
+    mode: "text",
+    inputType: "v2t",
+    badge: ["new"],
+    description: "MiniMax H3 Context IR \u2014 enhances a video prompt from text plus optional first/last frame, reference images, videos, and audio. Returns an enhanced prompt, not a video.",
+    features: [
+      feat("Vision", "input"),
+      feat("Video Input", "input"),
+      feat("Audio Input", "input"),
+      feat("Start/End Frame", "frame")
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.startFrame("Start Frame", false),
+      ...params.endFrame("End Frame"),
+      ...params.imageInput(9, "Reference Images", false, "reference"),
+      ...params.videoInputs(3, "Reference Videos", false),
+      ...params.audioInputs(3, "Reference Audios", false),
+      // Target video shape the enhancement is written towards (4-15s; the
+      // ratio defaults to 'adaptive' — follow the references).
+      ...params.durationRange(4, 15, 5),
+      ...params.aspectRatio(["adaptive", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], "adaptive")
+    },
+    constraints: h3ContextIrConstraints
+  }
+]);
+var MODELS35 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM, ...GROK_LLM, ...MINIMAX_LLM];
 
 // src/vendors/catalog/llm.payloads.ts
 var CLAUDE_MAX_TOKENS = 8192;
@@ -10715,7 +10764,22 @@ var buildGeminiPayload = (modelId) => (input) => {
     ...level ? { generationConfig: { thinkingConfig: { thinkingLevel: level } } } : {}
   };
 };
+var buildMinimaxH3ContextIrPayload = (input) => {
+  const content = [{ type: "text", text: input.prompt }];
+  if (input.startFrame) content.push({ type: "image_url", image_url: { url: input.startFrame }, role: "first_frame" });
+  if (input.endFrame) content.push({ type: "image_url", image_url: { url: input.endFrame }, role: "last_frame" });
+  for (const url of input.imageUrls ?? []) content.push({ type: "image_url", image_url: { url }, role: "reference_image" });
+  for (const url of input.videoUrls ?? []) content.push({ type: "video_url", video_url: { url }, role: "reference_video" });
+  for (const url of input.audioUrls ?? []) content.push({ type: "audio_url", audio_url: { url }, role: "reference_audio" });
+  return {
+    model: "MiniMax-H3",
+    content,
+    duration: input.duration ?? 5,
+    ...input.aspectRatio ? { ratio: input.aspectRatio } : {}
+  };
+};
 registerPayloads(MODELS35, {
+  "minimax-h3-context-ir": buildMinimaxH3ContextIrPayload,
   "claude-fable-5-1": buildClaudePayload("claude-fable-5-1"),
   "claude-fable-5": buildClaudePayload("claude-fable-5"),
   "claude-opus-5": buildClaudePayload("claude-opus-5"),
@@ -14863,6 +14927,7 @@ var Lyria3Clip = "lyria-3-clip";
 var Lyria3Pro = "lyria-3-pro";
 var Lyria35 = "lyria-3.5";
 var MinimaxH3 = "minimax-h3";
+var MinimaxH3ContextIr = "minimax-h3-context-ir";
 var MinimaxH3Max = "minimax-h3-max";
 var MinimaxH3MaxCameraControls = "minimax-h3-max-camera-controls";
 var MinimaxH3MaxExtend = "minimax-h3-max-extend";
@@ -15128,6 +15193,7 @@ var Models = {
   Lyria3Pro,
   Lyria35,
   MinimaxH3,
+  MinimaxH3ContextIr,
   MinimaxH3Max,
   MinimaxH3MaxCameraControls,
   MinimaxH3MaxExtend,

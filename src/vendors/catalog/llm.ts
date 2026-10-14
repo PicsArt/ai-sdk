@@ -17,7 +17,7 @@
  * Responses differ per worker (choices / content / candidates, with varied
  * envelopes); parseTextResult()'s extractText() walks all of them.
  */
-import type { ModelDefinition } from '../../core/types.ts';
+import type { Constraint, ModelDefinition, Restriction } from '../../core/types.ts';
 import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 
@@ -410,4 +410,54 @@ const { MODELS: GROK_LLM } = defineModels('grok', [
   },
 ]);
 
-export const MODELS: ModelDefinition[] = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM, ...GROK_LLM];
+// MiniMax H3 Context IR is a multimodal *prompt enhancer*, not a chat model: it
+// takes text plus optional frame/reference media and returns an enhanced video
+// prompt. It uses MiniMax's native `minimax/v2/h3-context-ir` workflow, whose
+// `content[]` array carries the text and media items — see llm.payloads.ts.
+// Frame roles (first/last frame) and reference roles are mutually exclusive, so
+// the inputs pick exactly one mode (same rule as the H3 Max video family).
+const H3_FRAME_REF_EXCLUSIVE = 'References and start/end frames cannot be combined.';
+const H3_FRAME_EXCLUDES_REFERENCES = {
+  imageUrls: { disabled: true, reason: H3_FRAME_REF_EXCLUSIVE },
+  videoUrls: { disabled: true, reason: H3_FRAME_REF_EXCLUSIVE },
+  audioUrls: { disabled: true, reason: H3_FRAME_REF_EXCLUSIVE },
+} as const satisfies Record<string, Restriction>;
+const H3_REFERENCE_EXCLUDES_FRAMES = {
+  startFrame: { disabled: true, reason: H3_FRAME_REF_EXCLUSIVE },
+  endFrame: { disabled: true, reason: H3_FRAME_REF_EXCLUSIVE },
+} as const satisfies Record<string, Restriction>;
+const h3ContextIrConstraints: Constraint[] = [
+  { when: { startFrame: { exists: true } }, then: H3_FRAME_EXCLUDES_REFERENCES },
+  { when: { endFrame: { exists: true } }, then: H3_FRAME_EXCLUDES_REFERENCES },
+  { when: { imageUrls: { exists: true } }, then: H3_REFERENCE_EXCLUDES_FRAMES },
+  { when: { videoUrls: { exists: true } }, then: H3_REFERENCE_EXCLUDES_FRAMES },
+  { when: { audioUrls: { exists: true } }, then: H3_REFERENCE_EXCLUDES_FRAMES },
+];
+
+const { MODELS: MINIMAX_LLM } = defineModels('minimax', [
+  {
+    id: 'minimax-h3-context-ir', name: 'MiniMax H3 Context IR',
+    workflow: 'minimax/v2/h3-context-ir', addedAt: '2026-10-14', estimatedTime: 8,
+    mode: 'text', inputType: 'v2t', badge: ['new'],
+    description: 'MiniMax H3 Context IR — enhances a video prompt from text plus optional first/last frame, reference images, videos, and audio. Returns an enhanced prompt, not a video.',
+    features: [
+      feat('Vision', 'input'), feat('Video Input', 'input'),
+      feat('Audio Input', 'input'), feat('Start/End Frame', 'frame'),
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.startFrame('Start Frame', false),
+      ...params.endFrame('End Frame'),
+      ...params.imageInput(9, 'Reference Images', false, 'reference'),
+      ...params.videoInputs(3, 'Reference Videos', false),
+      ...params.audioInputs(3, 'Reference Audios', false),
+      // Target video shape the enhancement is written towards (4-15s; the
+      // ratio defaults to 'adaptive' — follow the references).
+      ...params.durationRange(4, 15, 5),
+      ...params.aspectRatio(['adaptive', '21:9', '16:9', '4:3', '1:1', '3:4', '9:16'], 'adaptive'),
+    },
+    constraints: h3ContextIrConstraints,
+  },
+]);
+
+export const MODELS: ModelDefinition[] = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM, ...GROK_LLM, ...MINIMAX_LLM];

@@ -123,31 +123,55 @@ const buildLtx23ReframePayload = (input: Ltx23ReframeInput) => ({
 
 type Ltx23OutpaintInput = ModelInput<'ltx-v2.3-outpaint'>;
 
+/** The wire counts frames (num_frames, bounded 9–481 at the vendor). */
+const OUTPAINT_NUM_FRAMES_MIN = 9;
+const OUTPAINT_NUM_FRAMES_MAX = 481;
+
 /** Outpaint keeps the source inside a wider canvas and generates the surround.
  *  The unified `resolution` names the canvas tier, which the wire calls
  *  `output_resolution` — the wire's own `resolution` field is a superseded
  *  exact-canvas escape hatch and is deliberately not offered. Nor is
  *  `sync_mode`: it returns the media as an inline data URI, which would bypass
- *  the worker's CDN copy. */
-const buildLtx23OutpaintPayload = (input: Ltx23OutpaintInput) => ({
-  prompt: input.prompt,
-  video_url: input.videoUrl,
-  ...(input.negativePrompt ? { negative_prompt: input.negativePrompt } : {}),
-  ...(input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {}),
-  ...(input.resolution ? { output_resolution: input.resolution } : {}),
-  ...(input.numFrames != null ? { num_frames: input.numFrames } : {}),
-  ...(input.fps != null ? { frames_per_second: input.fps } : {}),
-  ...(input.sourceScale != null ? { source_scale: input.sourceScale } : {}),
-  ...(input.videoStrength != null ? { video_strength: input.videoStrength } : {}),
-  ...(input.cfgScale != null ? { guidance_scale: input.cfgScale } : {}),
-  ...(input.numInferenceSteps != null ? { num_inference_steps: input.numInferenceSteps } : {}),
-  ...(input.videoQuality ? { video_quality: input.videoQuality } : {}),
-  ...(input.videoWriteMode ? { video_write_mode: input.videoWriteMode } : {}),
-  ...(input.seed != null ? { seed: input.seed } : {}),
-  enable_prompt_expansion: input.enhancePrompt ?? true,
-  generate_audio: input.generateAudio ?? true,
-  enable_safety_checker: input.enableSafetyChecker ?? true,
-});
+ *  the worker's CDN copy.
+ *
+ *  The wire takes a frame count, not a duration: `num_frames` is derived from
+ *  the user-facing duration and fps (num_frames = duration × fps), then clamped
+ *  to the vendor's window. fps falls back to the param default (24) so the count
+ *  still resolves when only a duration is given.
+ *
+ *  The clamp is load-bearing, not belt-and-suspenders — keep it. The per-fps
+ *  duration constraints in `ltx.ts` fence both ends of the 9–481 frame window,
+ *  but only in the UI: `allowed` is never enforced by `validate()`, so a
+ *  programmatic caller can still pass a duration × fps that lands outside it.
+ *  This clamp is the only guarantee the vendor's frame bounds actually hold. */
+const buildLtx23OutpaintPayload = (input: Ltx23OutpaintInput) => {
+  const fps = input.fps ?? 24;
+  const numFrames = input.duration != null
+    ? Math.min(
+        OUTPAINT_NUM_FRAMES_MAX,
+        Math.max(OUTPAINT_NUM_FRAMES_MIN, Math.round(input.duration * fps)),
+      )
+    : undefined;
+  return {
+    prompt: input.prompt,
+    video_url: input.videoUrl,
+    ...(input.negativePrompt ? { negative_prompt: input.negativePrompt } : {}),
+    ...(input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {}),
+    ...(input.resolution ? { output_resolution: input.resolution } : {}),
+    ...(numFrames != null ? { num_frames: numFrames } : {}),
+    ...(input.fps != null ? { frames_per_second: input.fps } : {}),
+    ...(input.sourceScale != null ? { source_scale: input.sourceScale } : {}),
+    ...(input.videoStrength != null ? { video_strength: input.videoStrength } : {}),
+    ...(input.cfgScale != null ? { guidance_scale: input.cfgScale } : {}),
+    ...(input.numInferenceSteps != null ? { num_inference_steps: input.numInferenceSteps } : {}),
+    ...(input.videoQuality ? { video_quality: input.videoQuality } : {}),
+    ...(input.videoWriteMode ? { video_write_mode: input.videoWriteMode } : {}),
+    ...(input.seed != null ? { seed: input.seed } : {}),
+    enable_prompt_expansion: input.enhancePrompt ?? true,
+    generate_audio: input.generateAudio ?? true,
+    enable_safety_checker: input.enableSafetyChecker ?? true,
+  };
+};
 
 registerPayloads(MODELS, {
   'ltx-v2.5-pro': buildLtx25ProT2VPayload,

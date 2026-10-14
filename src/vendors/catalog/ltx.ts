@@ -37,6 +37,36 @@ const LTX_23_REFRAME_RESOLUTIONS = ['720p', '1080p'];
 const LTX_23_REFRAME_AR = ['16:9', '9:16', '1:1', '4:5', '5:4'];
 const LTX_23_OUTPAINT_RESOLUTIONS = ['480p', '720p', '1080p'];
 const LTX_23_OUTPAINT_AR = ['21:9', '16:9', '4:3', '1:1', '3:4', '9:16', '9:21'];
+// Outpaint's wire counts frames (num_frames, bounded 9–481 at the vendor); the
+// user picks duration × fps and the payload builder derives the frame count.
+// Duration is an enum, fps stays a continuous (integer-stepped) slider. Since
+// `allowed` only narrows enums and `when` matches discrete values, one rule per
+// integer fps greys out the durations whose frame count falls outside the window —
+// the ceiling bites at high fps (≥25), the 9-frame floor at low fps (≤8). A rule
+// is emitted only where some option is actually excluded; mid-range fps fits all.
+const LTX_23_OUTPAINT_DURATIONS = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+];
+const LTX_23_OUTPAINT_MIN_FRAMES = 9;
+const LTX_23_OUTPAINT_MAX_FRAMES = 481;
+const LTX_23_OUTPAINT_FPS_MAX = 60;
+const ltxOutpaintDurationConstraints: Constraint[] = [];
+for (let fps = 1; fps <= LTX_23_OUTPAINT_FPS_MAX; fps++) {
+  const allowed = LTX_23_OUTPAINT_DURATIONS.filter(
+    (d) => d * fps >= LTX_23_OUTPAINT_MIN_FRAMES && d * fps <= LTX_23_OUTPAINT_MAX_FRAMES,
+  );
+  if (allowed.length === LTX_23_OUTPAINT_DURATIONS.length) continue;
+  ltxOutpaintDurationConstraints.push({
+    when: { fps: { is: fps } },
+    then: {
+      duration: {
+        allowed,
+        reason: `At ${fps} fps the clip must run ${allowed[0]}–${allowed[allowed.length - 1]}s `
+          + `(the ${LTX_23_OUTPAINT_MIN_FRAMES}–${LTX_23_OUTPAINT_MAX_FRAMES}-frame window).`,
+      },
+    },
+  });
+}
 
 // ── LTX 2.5 ──
 // Pro caps at 1080p / 10s; Fast reaches 2160p and 20s. Durations are the same
@@ -382,8 +412,11 @@ export const { MODELS } = defineModels('ltx', [
       ...params.negativePrompt(),
       ...params.aspectRatio(LTX_23_OUTPAINT_AR),
       ...params.resolution(LTX_23_OUTPAINT_RESOLUTIONS, '720p'),
-      ...p.range('numFrames', 9, 481, 121, { label: 'Frames' }),
-      ...p.range('fps', 1, 60, 24, { label: 'FPS' }),
+      // Duration is an enum; fps stays a slider. The per-fps constraint below
+      // trims the duration options, and the builder derives the wire's num_frames
+      // (clamped) from duration × fps.
+      ...params.duration(LTX_23_OUTPAINT_DURATIONS, 6),
+      ...p.range('fps', 1, 60, 24, { step: 1, label: 'FPS' }),
       // 1.0 fits the source as large as the canvas allows; lower values zoom it
       // out and leave a wider generated border, which the vendor calls less stable.
       ...p.range('sourceScale', 0.25, 1, 1, { step: 0.05, label: 'Source Scale' }),
@@ -399,6 +432,9 @@ export const { MODELS } = defineModels('ltx', [
       // Default-less on purpose: unset means the vendor picks a random seed.
       ...params.seed(),
     },
+    // Raising fps packs more frames per second, so it shortens the longest clip
+    // that fits the vendor's 481-frame ceiling — hence the duration options trim.
+    constraints: ltxOutpaintDurationConstraints,
   },
 
   // ── LTX 2.5 ──────────────────────────────────────────────────────

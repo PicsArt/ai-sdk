@@ -1065,7 +1065,7 @@ type ModelInputById = {
         negativePrompt?: string;
         aspectRatio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "9:21";
         resolution?: "480p" | "720p" | "1080p";
-        numFrames?: number;
+        duration?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
         fps?: number;
         sourceScale?: number;
         videoStrength?: number;

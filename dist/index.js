@@ -2198,6 +2198,47 @@ var LTX_23_REFRAME_RESOLUTIONS = ["720p", "1080p"];
 var LTX_23_REFRAME_AR = ["16:9", "9:16", "1:1", "4:5", "5:4"];
 var LTX_23_OUTPAINT_RESOLUTIONS = ["480p", "720p", "1080p"];
 var LTX_23_OUTPAINT_AR = ["21:9", "16:9", "4:3", "1:1", "3:4", "9:16", "9:21"];
+var LTX_23_OUTPAINT_DURATIONS = [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20
+];
+var LTX_23_OUTPAINT_MIN_FRAMES = 9;
+var LTX_23_OUTPAINT_MAX_FRAMES = 481;
+var LTX_23_OUTPAINT_FPS_MAX = 60;
+var ltxOutpaintDurationConstraints = [];
+for (let fps = 1; fps <= LTX_23_OUTPAINT_FPS_MAX; fps++) {
+  const allowed = LTX_23_OUTPAINT_DURATIONS.filter(
+    (d) => d * fps >= LTX_23_OUTPAINT_MIN_FRAMES && d * fps <= LTX_23_OUTPAINT_MAX_FRAMES
+  );
+  if (allowed.length === LTX_23_OUTPAINT_DURATIONS.length) continue;
+  ltxOutpaintDurationConstraints.push({
+    when: { fps: { is: fps } },
+    then: {
+      duration: {
+        allowed,
+        reason: `At ${fps} fps the clip must run ${allowed[0]}\u2013${allowed[allowed.length - 1]}s (the ${LTX_23_OUTPAINT_MIN_FRAMES}\u2013${LTX_23_OUTPAINT_MAX_FRAMES}-frame window).`
+      }
+    }
+  });
+}
 var LTX_25_AR = ["16:9", "9:16"];
 var LTX_25_PRO_RESOLUTIONS = ["720p", "1080p"];
 var LTX_25_FAST_RESOLUTIONS = ["720p", "1080p", "1440p", "2160p"];
@@ -2543,8 +2584,11 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
       ...params.negativePrompt(),
       ...params.aspectRatio(LTX_23_OUTPAINT_AR),
       ...params.resolution(LTX_23_OUTPAINT_RESOLUTIONS, "720p"),
-      ...p.range("numFrames", 9, 481, 121, { label: "Frames" }),
-      ...p.range("fps", 1, 60, 24, { label: "FPS" }),
+      // Duration is an enum; fps stays a slider. The per-fps constraint below
+      // trims the duration options, and the builder derives the wire's num_frames
+      // (clamped) from duration × fps.
+      ...params.duration(LTX_23_OUTPAINT_DURATIONS, 6),
+      ...p.range("fps", 1, 60, 24, { step: 1, label: "FPS" }),
       // 1.0 fits the source as large as the canvas allows; lower values zoom it
       // out and leave a wider generated border, which the vendor calls less stable.
       ...p.range("sourceScale", 0.25, 1, 1, { step: 0.05, label: "Source Scale" }),
@@ -2559,7 +2603,10 @@ var { MODELS: MODELS2 } = defineModels("ltx", [
       ...p.boolean("enableSafetyChecker", true, "Safety Checker"),
       // Default-less on purpose: unset means the vendor picks a random seed.
       ...params.seed()
-    }
+    },
+    // Raising fps packs more frames per second, so it shortens the longest clip
+    // that fits the vendor's 481-frame ceiling — hence the duration options trim.
+    constraints: ltxOutpaintDurationConstraints
   },
   // ── LTX 2.5 ──────────────────────────────────────────────────────
   // One entry per tier: text-to-video on `workflow`, image-to-video on
@@ -11043,25 +11090,34 @@ var buildLtx23ReframePayload = (input) => ({
   ...input.resolution ? { resolution: input.resolution } : {},
   ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {}
 });
-var buildLtx23OutpaintPayload = (input) => ({
-  prompt: input.prompt,
-  video_url: input.videoUrl,
-  ...input.negativePrompt ? { negative_prompt: input.negativePrompt } : {},
-  ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
-  ...input.resolution ? { output_resolution: input.resolution } : {},
-  ...input.numFrames != null ? { num_frames: input.numFrames } : {},
-  ...input.fps != null ? { frames_per_second: input.fps } : {},
-  ...input.sourceScale != null ? { source_scale: input.sourceScale } : {},
-  ...input.videoStrength != null ? { video_strength: input.videoStrength } : {},
-  ...input.cfgScale != null ? { guidance_scale: input.cfgScale } : {},
-  ...input.numInferenceSteps != null ? { num_inference_steps: input.numInferenceSteps } : {},
-  ...input.videoQuality ? { video_quality: input.videoQuality } : {},
-  ...input.videoWriteMode ? { video_write_mode: input.videoWriteMode } : {},
-  ...input.seed != null ? { seed: input.seed } : {},
-  enable_prompt_expansion: input.enhancePrompt ?? true,
-  generate_audio: input.generateAudio ?? true,
-  enable_safety_checker: input.enableSafetyChecker ?? true
-});
+var OUTPAINT_NUM_FRAMES_MIN = 9;
+var OUTPAINT_NUM_FRAMES_MAX = 481;
+var buildLtx23OutpaintPayload = (input) => {
+  const fps = input.fps ?? 24;
+  const numFrames = input.duration != null ? Math.min(
+    OUTPAINT_NUM_FRAMES_MAX,
+    Math.max(OUTPAINT_NUM_FRAMES_MIN, Math.round(input.duration * fps))
+  ) : void 0;
+  return {
+    prompt: input.prompt,
+    video_url: input.videoUrl,
+    ...input.negativePrompt ? { negative_prompt: input.negativePrompt } : {},
+    ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
+    ...input.resolution ? { output_resolution: input.resolution } : {},
+    ...numFrames != null ? { num_frames: numFrames } : {},
+    ...input.fps != null ? { frames_per_second: input.fps } : {},
+    ...input.sourceScale != null ? { source_scale: input.sourceScale } : {},
+    ...input.videoStrength != null ? { video_strength: input.videoStrength } : {},
+    ...input.cfgScale != null ? { guidance_scale: input.cfgScale } : {},
+    ...input.numInferenceSteps != null ? { num_inference_steps: input.numInferenceSteps } : {},
+    ...input.videoQuality ? { video_quality: input.videoQuality } : {},
+    ...input.videoWriteMode ? { video_write_mode: input.videoWriteMode } : {},
+    ...input.seed != null ? { seed: input.seed } : {},
+    enable_prompt_expansion: input.enhancePrompt ?? true,
+    generate_audio: input.generateAudio ?? true,
+    enable_safety_checker: input.enableSafetyChecker ?? true
+  };
+};
 registerPayloads(MODELS2, {
   "ltx-v2.5-pro": buildLtx25ProT2VPayload,
   "ltx-v2.5-fast": buildLtx25FastT2VPayload,

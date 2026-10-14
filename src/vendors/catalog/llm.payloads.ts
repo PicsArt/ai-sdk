@@ -82,7 +82,14 @@ const buildClaudePayload = (modelId: ClaudeModel) => (input: ClaudeInput): Claud
 // ── Gemini (gemini) — text, image, and video input ──────────────────
 type GeminiInput = ModelInput<'gemini-3-pro'>;
 
-const buildGeminiPayload = (modelId: GeminiParams['model']) => (input: GeminiInput): GeminiParams => {
+// Upstream gap: @picsart/workflows-types@1.1.170 `GeminiModel` ships up to
+// gemini-3.8-flash but not gemini-4-argon yet (the deployed worker's enum
+// has it). Widen the wire `model` locally until the published union catches
+// up, then drop this.
+type GeminiModel = GeminiParams['model'] | 'gemini-4-argon';
+type GeminiParamsWide = Omit<GeminiParams, 'model'> & { model: GeminiModel };
+
+const buildGeminiPayload = (modelId: GeminiModel) => (input: GeminiInput): GeminiParamsWide => {
   const parts: GeminiParams['contents'][number]['parts'] = [{ text: input.prompt }];
   for (const url of input.imageUrls ?? []) {
     // `type: 'IMAGE'` is required: the gemini worker inlines a part to base64
@@ -126,6 +133,7 @@ registerPayloads(MODELS, {
   'gpt-4o-mini': buildOpenAiPayload('gpt-4o-mini'),
   'gpt-4.1-mini': buildOpenAiPayload('gpt-4.1-mini'),
   'gpt-4.1-nano': buildOpenAiPayload('gpt-4.1-nano'),
+  'gemini-4-argon': buildGeminiPayload('gemini-4-argon'),
   'gemini-3-pro': buildGeminiPayload('gemini-3-pro-preview'),
   // Flash models route through chat-completions (OpenAI-shaped), not the
   // native `gemini` workflow.

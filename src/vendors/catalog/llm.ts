@@ -281,6 +281,19 @@ const { MODELS: OPENAI_LLM } = defineModels('openai', [
 // workflow (messages[]/image_url/reasoning_effort) — see buildOpenAiPayload.
 const { MODELS: GEMINI_LLM } = defineModels('google', [
   {
+    id: 'gemini-4-argon', name: 'Gemini 4 Argon',
+    workflow: 'gemini', addedAt: '2026-10-14', estimatedTime: 8,
+    mode: 'text', inputType: 'v2t', badge: ['premium'],
+    description: 'Google’s flagship Gemini 4 reasoning model — text, image, and video with deep reasoning and 1M-token context.',
+    features: [feat('Vision', 'input'), feat('Video Input', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...params.videoInput('Video', 'reference', false),
+      ...thinkingParam(['low', 'high']),
+    },
+  },
+  {
     id: 'gemini-3-pro', name: 'Gemini 3 Pro', modelId: 'gemini-3-pro-preview',
     workflow: 'gemini', addedAt: ADDED, estimatedTime: 8,
     mode: 'text', inputType: 'v2t', badge: ['premium'],

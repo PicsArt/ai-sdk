@@ -10503,6 +10503,24 @@ var { MODELS: OPENAI_LLM } = defineModels("openai", [
 ]);
 var { MODELS: GEMINI_LLM } = defineModels("google", [
   {
+    id: "gemini-4-argon",
+    name: "Gemini 4 Argon",
+    workflow: "gemini",
+    addedAt: "2026-10-14",
+    estimatedTime: 8,
+    mode: "text",
+    inputType: "v2t",
+    badge: ["premium"],
+    description: "Google\u2019s flagship Gemini 4 reasoning model \u2014 text, image, and video with deep reasoning and 1M-token context.",
+    features: [feat("Vision", "input"), feat("Video Input", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...params.videoInput("Video", "reference", false),
+      ...thinkingParam(["low", "high"])
+    }
+  },
+  {
     id: "gemini-3-pro",
     name: "Gemini 3 Pro",
     modelId: "gemini-3-pro-preview",
@@ -10722,6 +10740,7 @@ registerPayloads(MODELS35, {
   "gpt-4o-mini": buildOpenAiPayload("gpt-4o-mini"),
   "gpt-4.1-mini": buildOpenAiPayload("gpt-4.1-mini"),
   "gpt-4.1-nano": buildOpenAiPayload("gpt-4.1-nano"),
+  "gemini-4-argon": buildGeminiPayload("gemini-4-argon"),
   "gemini-3-pro": buildGeminiPayload("gemini-3-pro-preview"),
   // Flash models route through chat-completions (OpenAI-shaped), not the
   // native `gemini` workflow.
@@ -14753,6 +14772,7 @@ var Gemini37Flash = "gemini-3.7-flash";
 var Gemini38Flash = "gemini-3.8-flash";
 var Gemini38FlashLiteTts = "gemini-3.8-flash-lite-tts";
 var Gemini38FlashTts = "gemini-3.8-flash-tts";
+var Gemini4Argon = "gemini-4-argon";
 var GeminiNanoBanana21 = "gemini-nano-banana-2.1";
 var GeminiOmni11FlashPreview = "gemini-omni-1.1-flash-preview";
 var GeminiOmniFlashPreview = "gemini-omni-flash-preview";
@@ -15017,6 +15037,7 @@ var Models = {
   Gemini38Flash,
   Gemini38FlashLiteTts,
   Gemini38FlashTts,
+  Gemini4Argon,
   GeminiNanoBanana21,
   GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,

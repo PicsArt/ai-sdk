@@ -124,6 +124,8 @@ export const Gemini38Flash = 'gemini-3.8-flash' as const;
 export const Gemini38FlashLiteTts = 'gemini-3.8-flash-lite-tts' as const;
 /** Gemini 3.8 Flash TTS — google (audio) */
 export const Gemini38FlashTts = 'gemini-3.8-flash-tts' as const;
+/** Gemini 4 Argon — google (text) */
+export const Gemini4Argon = 'gemini-4-argon' as const;
 /** Nano Banana 2.1 — google (image) */
 export const GeminiNanoBanana21 = 'gemini-nano-banana-2.1' as const;
 /** Gemini Omni 1.1 Flash — google (video) */
@@ -617,6 +619,7 @@ export const Models = {
   Gemini38Flash,
   Gemini38FlashLiteTts,
   Gemini38FlashTts,
+  Gemini4Argon,
   GeminiNanoBanana21,
   GeminiOmni11FlashPreview,
   GeminiOmniFlashPreview,

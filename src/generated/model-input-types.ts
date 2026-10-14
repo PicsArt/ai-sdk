@@ -63,6 +63,7 @@ export type ModelInputById = {
   "gemini-3.8-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-3.8-flash-lite-tts": { language?: string; accent?: string; prompt?: string; voiceId?: string; style?: string; parts?: Array<{ text: string; speaker?: string; style?: string }>; multiSpeakerVoiceConfigs?: Array<{ speaker: string; voiceName: string }>; };
   "gemini-3.8-flash-tts": { language?: string; accent?: string; prompt?: string; voiceId?: string; style?: string; parts?: Array<{ text: string; speaker?: string; style?: string }>; multiSpeakerVoiceConfigs?: Array<{ speaker: string; voiceName: string }>; };
+  "gemini-4-argon": { prompt: string; imageUrls?: string[]; videoUrl?: string; thinking?: "off" | "low" | "high"; };
   "gemini-nano-banana-2.1": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto"; resolution?: "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; seed?: number; thinkingLevel?: "minimal" | "medium" | "high"; imageUrls?: string[]; };
   "gemini-omni-1.1-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; resolution?: "360p" | "720p" | "1080p" | "4k"; duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrl?: string; videoUrls?: string[]; };
   "gemini-omni-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; duration?: 3 | 5 | 6 | 8 | 10; imageUrls?: string[]; videoUrl?: string; };
@@ -274,7 +275,7 @@ export type TypedModelId = keyof ModelInputById;
 export type ModelInput<M extends TypedModelId> = ModelInputById[M];
 
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol" | "grok-4.7" | "kimi-k3";
+export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gemini-4-argon" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol" | "grok-4.7" | "kimi-k3";
 export type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /** IDs of structured-output (json-mode) models — narrows run()'s result type. */

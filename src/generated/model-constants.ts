@@ -227,6 +227,8 @@ export const IdeogramPImage = 'ideogram-p-image' as const;
 export const IdeogramV3 = 'ideogram-v3' as const;
 /** Ideogram 4.0 — ideogram (image) */
 export const IdeogramV4 = 'ideogram-v4' as const;
+/** Kimi K3 — kimi (text) */
+export const KimiK3 = 'kimi-k3' as const;
 /** Kling 3.0 Image — kling (image) */
 export const Kling30Image = 'kling-3.0-image' as const;
 /** Kling Avatar — kling (video) */
@@ -664,6 +666,7 @@ export const Models = {
   IdeogramPImage,
   IdeogramV3,
   IdeogramV4,
+  KimiK3,
   Kling30Image,
   KlingAvatar,
   KlingElements,

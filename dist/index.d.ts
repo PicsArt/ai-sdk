@@ -866,6 +866,11 @@ type ModelInputById = {
         imageUrls?: string[];
         imageWeight?: number;
     };
+    "kimi-k3": {
+        prompt: string;
+        imageUrls?: string[];
+        thinking?: "low" | "high";
+    };
     "kling-3.0-image": {
         prompt: string;
         aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4";
@@ -2088,7 +2093,7 @@ type ModelInputById = {
 type TypedModelId = keyof ModelInputById;
 type ModelInput<M extends TypedModelId> = ModelInputById[M];
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol";
+type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol" | "kimi-k3";
 type TextModelInputById = Pick<ModelInputById, TextModelId>;
 /** IDs of structured-output (json-mode) models — narrows run()'s result type. */
 type JsonModelId = "typesafe-evaluate";
@@ -2493,7 +2498,7 @@ interface ModelFilter {
     release?: ReleaseTag[];
 }
 
-type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async' | 'captionsai' | 'meta' | 'typesafe' | 'depth-anything';
+type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async' | 'captionsai' | 'meta' | 'typesafe' | 'depth-anything' | 'kimi';
 /** Provider used by model definitions. */
 type Provider = AppProvider;
 /** App generation modes. `json` marks structured-output models (judges,
@@ -3556,6 +3561,7 @@ declare const Models: {
     readonly IdeogramPImage: "ideogram-p-image";
     readonly IdeogramV3: "ideogram-v3";
     readonly IdeogramV4: "ideogram-v4";
+    readonly KimiK3: "kimi-k3";
     readonly Kling30Image: "kling-3.0-image";
     readonly KlingAvatar: "kling-avatar";
     readonly KlingElements: "kling-elements";

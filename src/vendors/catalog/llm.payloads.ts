@@ -35,9 +35,13 @@ function geminiThinkingLevel(thinking?: string): 'LOW' | 'HIGH' | undefined {
 type OpenAiInput = ModelInput<'gpt-5.5'>;
 
 // Upstream gap: @picsart/workflows-types@1.1.150 `ChatCompletionModels` ships
-// gpt-6-astra but not the gpt-6 sol/luna tiers yet. Widen the wire `model`
-// locally until the published union catches up, then drop this.
-type ChatModel = ChatParams['model'] | 'gpt-6-sol' | 'gpt-6-luna';
+// gpt-6-astra but not the gpt-6 sol/luna tiers or Kimi K3 yet. Widen
+// the wire `model` locally until the published union catches up, then drop this.
+type ChatModel =
+  | ChatParams['model']
+  | 'gpt-6-sol'
+  | 'gpt-6-luna'
+  | 'kimi-k3';
 type ChatParamsWide = Omit<ChatParams, 'model'> & { model: ChatModel };
 
 const buildOpenAiPayload = (modelId: ChatModel) => (input: OpenAiInput): ChatParamsWide => {
@@ -129,4 +133,5 @@ registerPayloads(MODELS, {
   'gemini-3.6-flash': buildOpenAiPayload('gemini-3.6-flash'),
   'gemini-3.5-flash-lite': buildOpenAiPayload('gemini-3.5-flash-lite'),
   'gemini-2.5-flash': buildOpenAiPayload('gemini-2.5-flash'),
+  'kimi-k3': buildOpenAiPayload('kimi-k3'),
 });

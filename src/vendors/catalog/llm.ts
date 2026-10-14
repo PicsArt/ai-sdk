@@ -9,6 +9,7 @@
  *  - OpenAI  → `chat-completions`     (reasoning_effort thinking; no native alt)
  *  - Claude  → `claude/v1/messages`   (Anthropic-native; image + system; no thinking knob)
  *  - Gemini  → `gemini`               (text/image/VIDEO input; thinkingLevel)
+ *  - Kimi    → `chat-completions`     (Moonshot; always thinks — reasoning_effort low/high, no `off`)
  *
  * Each model declares its own thinking param inline (vendors differ) — there is
  * no shared `thinking` preset or GenerationContext field.
@@ -353,4 +354,26 @@ const { MODELS: GEMINI_LLM } = defineModels('google', [
   },
 ]);
 
-export const MODELS: ModelDefinition[] = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM];
+// Kimi K3 thinks on every request (Moonshot's default), so its thinking param
+// has no `off`: it sets the reasoning effort, limited to the levels Moonshot
+// documents for K3 that the worker accepts (low/high). The worker inlines
+// images as base64, the only form Moonshot reads.
+const kimiThinkingParam = () =>
+  p.enum('thinking', ['low', 'high'], 'high', { label: 'Thinking' });
+
+const { MODELS: KIMI_LLM } = defineModels('kimi', [
+  {
+    id: 'kimi-k3', name: 'Kimi K3',
+    workflow: 'chat-completions', addedAt: '2026-10-13', estimatedTime: 10,
+    mode: 'text', inputType: 'i2t', badge: ['new'],
+    description: 'Moonshot’s flagship Kimi model — deep reasoning with a 1M-token context.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...kimiThinkingParam(),
+    },
+  },
+]);
+
+export const MODELS: ModelDefinition[] = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM];

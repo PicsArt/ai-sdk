@@ -796,7 +796,8 @@ var providers = {
   captionsai: { color: "#1D1F20", label: "MR", name: "Mirage" },
   meta: { color: "#0081FB", label: "MT", name: "Meta" },
   typesafe: { color: "#3E6B8F", label: "TS", name: "TypeSafe" },
-  "depth-anything": { color: "#0EA5E9", label: "DA", name: "Depth Anything" }
+  "depth-anything": { color: "#0EA5E9", label: "DA", name: "Depth Anything" },
+  kimi: { color: "#1A1A2E", label: "KM", name: "Kimi" }
 };
 
 // src/core/descriptors/presets.ts
@@ -10558,7 +10559,27 @@ var { MODELS: GEMINI_LLM } = defineModels("google", [
     }
   }
 ]);
-var MODELS35 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM];
+var kimiThinkingParam = () => p.enum("thinking", ["low", "high"], "high", { label: "Thinking" });
+var { MODELS: KIMI_LLM } = defineModels("kimi", [
+  {
+    id: "kimi-k3",
+    name: "Kimi K3",
+    workflow: "chat-completions",
+    addedAt: "2026-10-13",
+    estimatedTime: 10,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["new"],
+    description: "Moonshot\u2019s flagship Kimi model \u2014 deep reasoning with a 1M-token context.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...kimiThinkingParam()
+    }
+  }
+]);
+var MODELS35 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM];
 
 // src/vendors/catalog/llm.payloads.ts
 var CLAUDE_MAX_TOKENS = 8192;
@@ -10641,7 +10662,8 @@ registerPayloads(MODELS35, {
   "gemini-3.7-flash": buildOpenAiPayload("gemini-3.7-flash"),
   "gemini-3.6-flash": buildOpenAiPayload("gemini-3.6-flash"),
   "gemini-3.5-flash-lite": buildOpenAiPayload("gemini-3.5-flash-lite"),
-  "gemini-2.5-flash": buildOpenAiPayload("gemini-2.5-flash")
+  "gemini-2.5-flash": buildOpenAiPayload("gemini-2.5-flash"),
+  "kimi-k3": buildOpenAiPayload("kimi-k3")
 });
 
 // src/vendors/catalog/captionsai.ts
@@ -14705,6 +14727,7 @@ var IdeogramCharacter = "ideogram-character";
 var IdeogramPImage = "ideogram-p-image";
 var IdeogramV3 = "ideogram-v3";
 var IdeogramV4 = "ideogram-v4";
+var KimiK3 = "kimi-k3";
 var Kling30Image = "kling-3.0-image";
 var KlingAvatar = "kling-avatar";
 var KlingElements = "kling-elements";
@@ -14967,6 +14990,7 @@ var Models = {
   IdeogramPImage,
   IdeogramV3,
   IdeogramV4,
+  KimiK3,
   Kling30Image,
   KlingAvatar,
   KlingElements,

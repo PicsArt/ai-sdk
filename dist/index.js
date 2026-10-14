@@ -10579,7 +10579,27 @@ var { MODELS: KIMI_LLM } = defineModels("kimi", [
     }
   }
 ]);
-var MODELS35 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM];
+var grokThinkingParam = () => p.enum("thinking", ["low", "medium", "high"], "high", { label: "Thinking" });
+var { MODELS: GROK_LLM } = defineModels("grok", [
+  {
+    id: "grok-4.7",
+    name: "Grok 4.7",
+    workflow: "chat-completions",
+    addedAt: "2026-10-14",
+    estimatedTime: 10,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["new"],
+    description: "xAI\u2019s flagship Grok model \u2014 always-on reasoning with a 500K-token context.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...grokThinkingParam()
+    }
+  }
+]);
+var MODELS35 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM, ...GROK_LLM];
 
 // src/vendors/catalog/llm.payloads.ts
 var CLAUDE_MAX_TOKENS = 8192;
@@ -10663,7 +10683,8 @@ registerPayloads(MODELS35, {
   "gemini-3.6-flash": buildOpenAiPayload("gemini-3.6-flash"),
   "gemini-3.5-flash-lite": buildOpenAiPayload("gemini-3.5-flash-lite"),
   "gemini-2.5-flash": buildOpenAiPayload("gemini-2.5-flash"),
-  "kimi-k3": buildOpenAiPayload("kimi-k3")
+  "kimi-k3": buildOpenAiPayload("kimi-k3"),
+  "grok-4.7": buildOpenAiPayload("grok-4.7")
 });
 
 // src/vendors/catalog/captionsai.ts
@@ -14699,6 +14720,7 @@ var GptImage15 = "gpt-image-1.5";
 var GptImage2 = "gpt-image-2";
 var GptImage25Flare = "gpt-image-2.5-flare";
 var GptImage25Sunburst = "gpt-image-2.5-sunburst";
+var Grok47 = "grok-4.7";
 var GrokEditVideo = "grok-edit-video";
 var GrokExtendVideo = "grok-extend-video";
 var GrokImagineImage = "grok-imagine-image";
@@ -14962,6 +14984,7 @@ var Models = {
   GptImage2,
   GptImage25Flare,
   GptImage25Sunburst,
+  Grok47,
   GrokEditVideo,
   GrokExtendVideo,
   GrokImagineImage,

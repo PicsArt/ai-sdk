@@ -41,7 +41,8 @@ type ChatModel =
   | ChatParams['model']
   | 'gpt-6-sol'
   | 'gpt-6-luna'
-  | 'kimi-k3';
+  | 'kimi-k3'
+  | 'grok-4.7';
 type ChatParamsWide = Omit<ChatParams, 'model'> & { model: ChatModel };
 
 const buildOpenAiPayload = (modelId: ChatModel) => (input: OpenAiInput): ChatParamsWide => {
@@ -134,4 +135,5 @@ registerPayloads(MODELS, {
   'gemini-3.5-flash-lite': buildOpenAiPayload('gemini-3.5-flash-lite'),
   'gemini-2.5-flash': buildOpenAiPayload('gemini-2.5-flash'),
   'kimi-k3': buildOpenAiPayload('kimi-k3'),
+  'grok-4.7': buildOpenAiPayload('grok-4.7'),
 });

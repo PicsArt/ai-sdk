@@ -171,6 +171,8 @@ export const GptImage2 = 'gpt-image-2' as const;
 export const GptImage25Flare = 'gpt-image-2.5-flare' as const;
 /** GPT Image 2.5 Sunburst — openai (image) */
 export const GptImage25Sunburst = 'gpt-image-2.5-sunburst' as const;
+/** Grok 4.7 — grok (text) */
+export const Grok47 = 'grok-4.7' as const;
 /** Grok Edit Video — grok (video) */
 export const GrokEditVideo = 'grok-edit-video' as const;
 /** Grok Extend Video — grok (video) */
@@ -638,6 +640,7 @@ export const Models = {
   GptImage2,
   GptImage25Flare,
   GptImage25Sunburst,
+  Grok47,
   GrokEditVideo,
   GrokExtendVideo,
   GrokImagineImage,

@@ -86,6 +86,7 @@ export type ModelInputById = {
   "gpt-image-2": { prompt: string; aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto"; quality?: "high" | "medium" | "low"; outputFormat?: "png" | "jpeg" | "webp"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "gpt-image-2.5-flare": { prompt: string; aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto"; quality?: "max" | "xhigh" | "high" | "medium" | "low"; background?: "opaque" | "transparent"; outputFormat?: "png" | "jpeg" | "webp"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "gpt-image-2.5-sunburst": { prompt: string; aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto"; quality?: "max" | "xhigh" | "high" | "medium" | "low"; background?: "opaque" | "transparent"; outputFormat?: "png" | "jpeg" | "webp"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
+  "grok-4.7": { prompt: string; imageUrls?: string[]; thinking?: "low" | "medium" | "high"; };
   "grok-edit-video": { prompt: string; videoUrl: string; };
   "grok-extend-video": { prompt: string; duration?: 3 | 5 | 6 | 8 | 10; videoUrl: string; };
   "grok-imagine-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "3:2" | "2:3" | "2:1" | "1:2" | "19.5:9" | "9:19.5" | "20:9" | "9:20"; resolution?: "1k" | "2k"; count?: 1 | 2 | 4; imageUrls?: string[]; };
@@ -273,7 +274,7 @@ export type TypedModelId = keyof ModelInputById;
 export type ModelInput<M extends TypedModelId> = ModelInputById[M];
 
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol" | "kimi-k3";
+export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol" | "grok-4.7" | "kimi-k3";
 export type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /** IDs of structured-output (json-mode) models — narrows run()'s result type. */

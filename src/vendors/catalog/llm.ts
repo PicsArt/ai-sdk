@@ -376,4 +376,25 @@ const { MODELS: KIMI_LLM } = defineModels('kimi', [
   },
 ]);
 
-export const MODELS: ModelDefinition[] = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM];
+// Grok 4.7 always reasons (high by default), so its thinking param has no
+// `off`: it sets the reasoning effort, limited to the levels the worker accepts.
+// xAI reads image URLs directly.
+const grokThinkingParam = () =>
+  p.enum('thinking', ['low', 'medium', 'high'], 'high', { label: 'Thinking' });
+
+const { MODELS: GROK_LLM } = defineModels('grok', [
+  {
+    id: 'grok-4.7', name: 'Grok 4.7',
+    workflow: 'chat-completions', addedAt: '2026-10-14', estimatedTime: 10,
+    mode: 'text', inputType: 'i2t', badge: ['new'],
+    description: 'xAI’s flagship Grok model — always-on reasoning with a 500K-token context.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...grokThinkingParam(),
+    },
+  },
+]);
+
+export const MODELS: ModelDefinition[] = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM, ...GROK_LLM];

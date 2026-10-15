@@ -90,12 +90,74 @@ const minimaxH3Constraints: Constraint[] = [
   } },
 ];
 
+// MiniMax-Hailuo-02 rules, mirrored from the worker (and the vendor docs):
+//   - 1080P is 6s-only;
+//   - 512P is image-to-video only and has no last frame;
+//   - a last frame needs a start frame (end_image_url rides with image_url).
+// The start frame arrives as `startFrame` or `imageUrls[0]` (one or the other).
+const HAILUO_02_1080P_6S = '1080P supports a 6s duration only.';
+const HAILUO_02_512P_I2V = '512P needs a start frame and has no end frame.';
+const HAILUO_02_ONE_SOURCE = 'Use either the start frame or the start image.';
+
+const hailuo02Constraints: Constraint[] = [
+  { when: { resolution: { is: '1080P' } }, then: {
+    duration: { allowed: [6], reason: HAILUO_02_1080P_6S },
+  } },
+  { when: { duration: { is: 10 } }, then: {
+    resolution: { allowed: ['512P', '768P'], reason: HAILUO_02_1080P_6S },
+  } },
+  { when: { startFrame: { exists: false }, imageUrls: { exists: false } }, then: {
+    endFrame: { disabled: true, reason: LAST_NEEDS_FIRST },
+    resolution: { allowed: ['768P', '1080P'], reason: HAILUO_02_512P_I2V },
+  } },
+  { when: { startFrame: { exists: true } }, then: {
+    imageUrls: { disabled: true, reason: HAILUO_02_ONE_SOURCE },
+  } },
+  { when: { imageUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: HAILUO_02_ONE_SOURCE },
+  } },
+  { when: { endFrame: { exists: true } }, then: {
+    resolution: { allowed: ['768P', '1080P'], reason: HAILUO_02_512P_I2V },
+  } },
+  { when: { resolution: { is: '512P' } }, then: {
+    endFrame: { disabled: true, reason: HAILUO_02_512P_I2V },
+  } },
+];
+
 /** Shared base (mode + common params). Workflow set per-model. */
 const base = {
   mode: 'video' as const,
 } as const;
 
 export const { MODELS } = defineModels('minimax', [
+  {
+    // Builder lives in hailuo.payloads.ts. One task for every mode and
+    // resolution — the worker picks text- or image-to-video from image_url
+    // and resolves pricing per mode and resolution.
+    // Preview until minimax/hailuo-02/video-generation is deployed.
+    ...base, id: 'hailuo-02', name: 'Hailuo 02', modelId: 'minimax-hailuo-02',
+    addedAt: '2026-08-15',
+    release: 'preview',
+    inputType: 't2v' as const,
+    workflow: 'minimax/hailuo-02/video-generation',
+    estimatedTime: 300,
+    description: 'Up to 1080p video from text or a start/end frame, with strong physics and instruction following.',
+    features: [
+      feat('Start Frame', 'frame'), feat('End Frame', 'frame'),
+      feat('1080p', 'resolution'), feat('10 sec', 'duration'),
+    ],
+    paramConfig: {
+      ...params.prompt({ maxLength: 2000 }),
+      ...params.enhancePrompt(),
+      ...params.resolution(['512P', '768P', '1080P'], '768P'),
+      ...params.duration([6, 10]),
+      ...params.startFrame(),
+      ...params.endFrame(),
+      // Same first frame for callers that send images as imageUrls.
+      ...params.imageInput(1, 'Start Image'),
+    },
+    constraints: hailuo02Constraints,
+  },
   {
     ...base, id: 'hailuo-2.3', name: 'Hailuo 2.3', modelId: 'hailuo-2.3',
     addedAt: '2026-02-06',

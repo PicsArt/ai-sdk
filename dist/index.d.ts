@@ -728,6 +728,15 @@ type ModelInputById = {
         prompt: string;
         voiceId?: string;
     };
+    "hailuo-02": {
+        prompt: string;
+        enhancePrompt?: boolean;
+        resolution?: "512P" | "768P" | "1080P";
+        duration?: 6 | 10;
+        startFrame?: string;
+        endFrame?: string;
+        imageUrls?: string[];
+    };
     "hailuo-2.3": {
         prompt: string;
         enhancePrompt?: boolean;
@@ -3565,6 +3574,7 @@ declare const Models: {
     readonly GrokImagineVideo15: "grok-imagine-video-1.5";
     readonly GrokImagineVideo15Lite: "grok-imagine-video-1.5-lite";
     readonly GrokTts: "grok-tts";
+    readonly Hailuo02: "hailuo-02";
     readonly Hailuo23: "hailuo-2.3";
     readonly Hailuo23Fast: "hailuo-2.3-fast";
     readonly Hailuo23FastPro: "hailuo-2.3-fast-pro";

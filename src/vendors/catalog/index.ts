@@ -12,6 +12,7 @@ import './bytedance.payloads.ts'; // registers the video-enhance payload builder
 import { MODELS as videographyMODELS } from './videography.ts';
 import { MODELS as hunyuanMODELS } from './hunyuan.ts';
 import { MODELS as hailuoMODELS } from './hailuo.ts';
+import './hailuo.payloads.ts'; // registers the Hailuo 02 payload builders after model definitions
 import { MODELS as wanMODELS } from './wan.ts';
 import './wan.payloads.ts'; // registers the Wan 3.0 payload builder after model definitions
 import { MODELS as lumaMODELS } from './luma.ts';

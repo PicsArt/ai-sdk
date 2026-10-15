@@ -3437,10 +3437,70 @@ var minimaxH3Constraints = [
     audioUrls: { disabled: true, reason: AUDIO_NEEDS_VISUAL2 }
   } }
 ];
+var HAILUO_02_1080P_6S = "1080P supports a 6s duration only.";
+var HAILUO_02_512P_I2V = "512P needs a start frame and has no end frame.";
+var HAILUO_02_ONE_SOURCE = "Use either the start frame or the start image.";
+var hailuo02Constraints = [
+  { when: { resolution: { is: "1080P" } }, then: {
+    duration: { allowed: [6], reason: HAILUO_02_1080P_6S }
+  } },
+  { when: { duration: { is: 10 } }, then: {
+    resolution: { allowed: ["512P", "768P"], reason: HAILUO_02_1080P_6S }
+  } },
+  { when: { startFrame: { exists: false }, imageUrls: { exists: false } }, then: {
+    endFrame: { disabled: true, reason: LAST_NEEDS_FIRST },
+    resolution: { allowed: ["768P", "1080P"], reason: HAILUO_02_512P_I2V }
+  } },
+  { when: { startFrame: { exists: true } }, then: {
+    imageUrls: { disabled: true, reason: HAILUO_02_ONE_SOURCE }
+  } },
+  { when: { imageUrls: { exists: true } }, then: {
+    startFrame: { disabled: true, reason: HAILUO_02_ONE_SOURCE }
+  } },
+  { when: { endFrame: { exists: true } }, then: {
+    resolution: { allowed: ["768P", "1080P"], reason: HAILUO_02_512P_I2V }
+  } },
+  { when: { resolution: { is: "512P" } }, then: {
+    endFrame: { disabled: true, reason: HAILUO_02_512P_I2V }
+  } }
+];
 var base = {
   mode: "video"
 };
 var { MODELS: MODELS10 } = defineModels("minimax", [
+  {
+    // Builder lives in hailuo.payloads.ts. One task for every mode and
+    // resolution — the worker picks text- or image-to-video from image_url
+    // and resolves pricing per mode and resolution.
+    // Preview until minimax/hailuo-02/video-generation is deployed.
+    ...base,
+    id: "hailuo-02",
+    name: "Hailuo 02",
+    modelId: "minimax-hailuo-02",
+    addedAt: "2026-08-15",
+    release: "preview",
+    inputType: "t2v",
+    workflow: "minimax/hailuo-02/video-generation",
+    estimatedTime: 300,
+    description: "Up to 1080p video from text or a start/end frame, with strong physics and instruction following.",
+    features: [
+      feat("Start Frame", "frame"),
+      feat("End Frame", "frame"),
+      feat("1080p", "resolution"),
+      feat("10 sec", "duration")
+    ],
+    paramConfig: {
+      ...params.prompt({ maxLength: 2e3 }),
+      ...params.enhancePrompt(),
+      ...params.resolution(["512P", "768P", "1080P"], "768P"),
+      ...params.duration([6, 10]),
+      ...params.startFrame(),
+      ...params.endFrame(),
+      // Same first frame for callers that send images as imageUrls.
+      ...params.imageInput(1, "Start Image")
+    },
+    constraints: hailuo02Constraints
+  },
   {
     ...base,
     id: "hailuo-2.3",
@@ -3555,6 +3615,25 @@ var { MODELS: MODELS10 } = defineModels("minimax", [
     constraints: minimaxH3Constraints
   }
 ]);
+
+// src/vendors/catalog/hailuo.payloads.ts
+var buildHailuo02Payload = (input) => {
+  const startFrame = input.startFrame || input.imageUrls?.[0];
+  if (input.endFrame && !startFrame) {
+    throw new ApiError("Hailuo 02: an end frame requires a start frame.", { status: 400, code: "validation_error" });
+  }
+  return {
+    prompt: input.prompt,
+    ...input.enhancePrompt !== void 0 ? { prompt_optimizer: input.enhancePrompt } : {},
+    ...input.resolution ? { resolution: input.resolution } : {},
+    ...input.duration ? { duration: input.duration } : {},
+    ...startFrame ? { image_url: startFrame } : {},
+    ...input.endFrame ? { end_image_url: input.endFrame } : {}
+  };
+};
+registerPayloads(MODELS10, {
+  "hailuo-02": buildHailuo02Payload
+});
 
 // src/vendors/catalog/wan.ts
 var buildWanT2VPayload = (ctx) => ({
@@ -14870,6 +14949,7 @@ var GrokImagineVideo = "grok-imagine-video";
 var GrokImagineVideo15 = "grok-imagine-video-1.5";
 var GrokImagineVideo15Lite = "grok-imagine-video-1.5-lite";
 var GrokTts = "grok-tts";
+var Hailuo02 = "hailuo-02";
 var Hailuo23 = "hailuo-2.3";
 var Hailuo23Fast = "hailuo-2.3-fast";
 var Hailuo23FastPro = "hailuo-2.3-fast-pro";
@@ -15136,6 +15216,7 @@ var Models = {
   GrokImagineVideo15,
   GrokImagineVideo15Lite,
   GrokTts,
+  Hailuo02,
   Hailuo23,
   Hailuo23Fast,
   Hailuo23FastPro,

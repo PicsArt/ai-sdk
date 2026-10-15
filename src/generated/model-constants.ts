@@ -193,6 +193,8 @@ export const GrokImagineVideo15 = 'grok-imagine-video-1.5' as const;
 export const GrokImagineVideo15Lite = 'grok-imagine-video-1.5-lite' as const;
 /** Grok TTS — grok (audio) */
 export const GrokTts = 'grok-tts' as const;
+/** Hailuo 02 — minimax (video) */
+export const Hailuo02 = 'hailuo-02' as const;
 /** Hailuo 2.3 — minimax (video) */
 export const Hailuo23 = 'hailuo-2.3' as const;
 /** Hailuo 2.3 Fast — minimax (video) */
@@ -655,6 +657,7 @@ export const Models = {
   GrokImagineVideo15,
   GrokImagineVideo15Lite,
   GrokTts,
+  Hailuo02,
   Hailuo23,
   Hailuo23Fast,
   Hailuo23FastPro,

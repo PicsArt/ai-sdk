@@ -97,6 +97,7 @@ export type ModelInputById = {
   "grok-imagine-video-1.5": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3"; resolution?: "480p" | "720p" | "1080p"; duration?: 3 | 5 | 6 | 8 | 10 | 12 | 15; imageUrls?: string[]; };
   "grok-imagine-video-1.5-lite": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3"; resolution?: "480p" | "720p" | "1080p"; duration?: 3 | 5 | 6 | 8 | 10 | 12 | 15; imageUrls?: string[]; };
   "grok-tts": { language?: string; accent?: string; prompt: string; voiceId?: string; };
+  "hailuo-02": { prompt: string; enhancePrompt?: boolean; resolution?: "512P" | "768P" | "1080P"; duration?: 6 | 10; startFrame?: string; endFrame?: string; imageUrls?: string[]; };
   "hailuo-2.3": { prompt: string; enhancePrompt?: boolean; duration?: 6 | 10; imageUrls?: string[]; };
   "hailuo-2.3-fast": { prompt: string; enhancePrompt?: boolean; duration?: 6 | 10; imageUrls: [string, ...string[]]; };
   "hailuo-2.3-fast-pro": { prompt: string; enhancePrompt?: boolean; imageUrls: [string, ...string[]]; };

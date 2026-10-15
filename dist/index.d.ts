@@ -1297,6 +1297,35 @@ type ModelInputById = {
         bitrate?: 32000 | 64000 | 128000 | 256000;
         format?: "mp3" | "wav" | "pcm";
     };
+    "mirelo-sfx-2.0-text-to-audio": {
+        prompt: string;
+        negativePrompt?: string;
+        duration?: number;
+        count?: 1 | 2 | 3 | 4;
+        format?: "wav" | "mp3" | "aac" | "flac";
+        bitrateKbps?: number;
+        seed?: number;
+    };
+    "mirelo-sfx-2.0-video-to-audio": {
+        videoUrl: string;
+        prompt?: string;
+        negativePrompt?: string;
+        preserveSpeech?: boolean;
+        duration?: number;
+        count?: 1 | 2 | 3 | 4;
+        format?: "wav" | "mp3" | "aac" | "flac";
+        bitrateKbps?: number;
+        seed?: number;
+    };
+    "mirelo-sfx-2.0-video-to-video": {
+        videoUrl: string;
+        prompt?: string;
+        negativePrompt?: string;
+        preserveSpeech?: boolean;
+        duration?: number;
+        count?: 1 | 2 | 3 | 4;
+        seed?: number;
+    };
     "muse-image-1.0": {
         prompt: string;
         aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4";
@@ -2532,7 +2561,7 @@ interface ModelFilter {
     release?: ReleaseTag[];
 }
 
-type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async' | 'captionsai' | 'meta' | 'typesafe' | 'depth-anything' | 'kimi';
+type AppProvider = 'picsart' | 'google' | 'kling' | 'grok' | 'openai' | 'flux' | 'ideogram' | 'elevenlabs' | 'minimax' | 'wan' | 'seedance' | 'ltx' | 'seedream' | 'seedaudio' | 'hunyuan' | 'pika' | 'runway' | 'luma' | 'ovi' | 'creatify' | 'veed' | 'bytedance' | 'qwen' | 'reve' | 'recraft' | 'videography' | 'topaz' | 'heygen' | 'happyhorse' | 'pixverse' | 'anthropic' | 'async' | 'captionsai' | 'meta' | 'typesafe' | 'depth-anything' | 'kimi' | 'mirelo';
 /** Provider used by model definitions. */
 type Provider = AppProvider;
 /** App generation modes. `json` marks structured-output models (judges,
@@ -3654,6 +3683,9 @@ declare const Models: {
     readonly MinimaxH3MaxTurbo: "minimax-h3-max-turbo";
     readonly MinimaxMusicV2: "minimax-music-v2";
     readonly MinimaxMusicV3: "minimax-music-v3";
+    readonly MireloSfx20TextToAudio: "mirelo-sfx-2.0-text-to-audio";
+    readonly MireloSfx20VideoToAudio: "mirelo-sfx-2.0-video-to-audio";
+    readonly MireloSfx20VideoToVideo: "mirelo-sfx-2.0-video-to-video";
     readonly MuseImage10: "muse-image-1.0";
     readonly Ovi: "ovi";
     readonly PicsartChangeBg: "picsart-change-bg";

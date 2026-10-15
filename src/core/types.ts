@@ -36,6 +36,7 @@ type AppProvider =
   | 'typesafe'
   | 'depth-anything'
   | 'kimi'
+  | 'mirelo'
 
 
 /** Provider used by model definitions. */

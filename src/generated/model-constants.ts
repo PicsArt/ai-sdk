@@ -332,6 +332,12 @@ export const MinimaxH3MaxTurbo = 'minimax-h3-max-turbo' as const;
 export const MinimaxMusicV2 = 'minimax-music-v2' as const;
 /** MiniMax Music v3 — minimax (audio) */
 export const MinimaxMusicV3 = 'minimax-music-v3' as const;
+/** Mirelo SFX 2.0 (Text to Audio) — mirelo (audio) */
+export const MireloSfx20TextToAudio = 'mirelo-sfx-2.0-text-to-audio' as const;
+/** Mirelo SFX 2.0 (Video to Audio) — mirelo (audio) */
+export const MireloSfx20VideoToAudio = 'mirelo-sfx-2.0-video-to-audio' as const;
+/** Mirelo SFX 2.0 (Video to Video) — mirelo (video) */
+export const MireloSfx20VideoToVideo = 'mirelo-sfx-2.0-video-to-video' as const;
 /** Muse Image 1.0 — meta (image) */
 export const MuseImage10 = 'muse-image-1.0' as const;
 /** OVI — ovi (video) */
@@ -724,6 +730,9 @@ export const Models = {
   MinimaxH3MaxTurbo,
   MinimaxMusicV2,
   MinimaxMusicV3,
+  MireloSfx20TextToAudio,
+  MireloSfx20VideoToAudio,
+  MireloSfx20VideoToVideo,
   MuseImage10,
   Ovi,
   PicsartChangeBg,

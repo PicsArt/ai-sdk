@@ -798,7 +798,8 @@ var providers = {
   meta: { color: "#0081FB", label: "MT", name: "Meta" },
   typesafe: { color: "#3E6B8F", label: "TS", name: "TypeSafe" },
   "depth-anything": { color: "#0EA5E9", label: "DA", name: "Depth Anything" },
-  kimi: { color: "#1A1A2E", label: "KM", name: "Kimi" }
+  kimi: { color: "#1A1A2E", label: "KM", name: "Kimi" },
+  mirelo: { color: "#5C3DF5", label: "ML", name: "Mirelo" }
 };
 
 // src/core/descriptors/presets.ts
@@ -1176,7 +1177,7 @@ var passthroughPayload = (paramConfig) => (ctx) => {
   return payload;
 };
 function defineModels(provider, configs) {
-  const MODELS40 = [];
+  const MODELS41 = [];
   for (const c of configs) {
     const prov = c.provider ?? provider;
     const resolvedPayload = c.buildPayload ?? passthroughPayload(c.paramConfig);
@@ -1213,19 +1214,19 @@ function defineModels(provider, configs) {
     if (c.validateInput !== void 0) model.validateInput = c.validateInput;
     const contract = createModelContract(model);
     model.outputSchema = c.outputSchema ?? contract.output;
-    MODELS40.push(model);
+    MODELS41.push(model);
   }
-  return { MODELS: MODELS40 };
+  return { MODELS: MODELS41 };
 }
-function registerPayloads(MODELS40, payloads) {
+function registerPayloads(MODELS41, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS40.find((m) => m.id === id);
+    const model = MODELS41.find((m) => m.id === id);
     if (model) model.buildPayload = builder;
   }
 }
-function registerEditPayloads(MODELS40, payloads) {
+function registerEditPayloads(MODELS41, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS40.find((m) => m.id === id);
+    const model = MODELS41.find((m) => m.id === id);
     if (model) model.buildEditPayload = builder;
   }
 }
@@ -11247,6 +11248,116 @@ registerPayloads(MODELS39, {
   "depth-anything-video": buildDepthAnythingVideoPayload
 });
 
+// src/vendors/catalog/mirelo.ts
+var FORMAT_OPTIONS = ["wav", "mp3", "aac", "flac"];
+var SAMPLE_OPTIONS = [1, 2, 3, 4];
+var bitrateKbps = {
+  bitrateKbps: {
+    label: "Audio Bitrate (kbps)",
+    descriptor: { kind: "range", min: 32, max: 320, step: 1 }
+  }
+};
+var { MODELS: MODELS40 } = defineModels("mirelo", [
+  {
+    id: "mirelo-sfx-2.0-text-to-audio",
+    name: "Mirelo SFX 2.0 (Text to Audio)",
+    addedAt: "2026-10-15",
+    workflow: "mirelo-ai/sfx2.0/text-to-audio",
+    estimatedTime: 15,
+    mode: "audio",
+    inputType: "t2a",
+    description: "Generate sound effects and soundscapes from a text prompt with Mirelo SFX 2.0.",
+    features: [feat("Text to Audio", "characteristic"), feat("Sound Effects", "audio")],
+    paramConfig: {
+      ...params.prompt({ maxLength: 2e3 }),
+      ...params.negativePrompt(void 0, 1e3),
+      ...params.durationRange(1, 600, 30),
+      ...params.count(SAMPLE_OPTIONS, 2),
+      ...p.enum("format", [...FORMAT_OPTIONS], "wav", { label: "Format" }),
+      ...bitrateKbps,
+      ...params.seed()
+    }
+  },
+  {
+    id: "mirelo-sfx-2.0-video-to-audio",
+    name: "Mirelo SFX 2.0 (Video to Audio)",
+    addedAt: "2026-10-15",
+    workflow: "mirelo-ai/sfx2.0/video-to-audio",
+    estimatedTime: 20,
+    mode: "audio",
+    inputType: "v2a",
+    description: "Generate a soundtrack synced to your video with Mirelo SFX 2.0 \u2014 returns the audio track.",
+    features: [feat("Video to Audio", "characteristic"), feat("Video Required", "input"), feat("Sound Effects", "audio")],
+    paramConfig: {
+      ...params.videoInput("Source Video", "asset", true),
+      ...params.prompt({ required: false, maxLength: 2e3 }),
+      ...params.negativePrompt(void 0, 1e3),
+      ...p.boolean("preserveSpeech", true, "Preserve Speech"),
+      ...params.durationRange(1, 600, 10),
+      ...params.count(SAMPLE_OPTIONS, 2),
+      ...p.enum("format", [...FORMAT_OPTIONS], "wav", { label: "Format" }),
+      ...bitrateKbps,
+      ...params.seed()
+    }
+  },
+  {
+    id: "mirelo-sfx-2.0-video-to-video",
+    name: "Mirelo SFX 2.0 (Video to Video)",
+    addedAt: "2026-10-15",
+    workflow: "mirelo-ai/sfx2.0/video-to-video",
+    estimatedTime: 30,
+    mode: "video",
+    inputType: "v2v",
+    description: "Add a synced soundtrack to your video with Mirelo SFX 2.0 \u2014 returns the video with its new audio.",
+    features: [feat("Video to Video", "characteristic"), feat("Video Required", "input"), feat("Synced Soundtrack", "audio")],
+    paramConfig: {
+      ...params.videoInput("Source Video", "asset", true),
+      ...params.prompt({ required: false, maxLength: 2e3 }),
+      ...params.negativePrompt(void 0, 1e3),
+      ...p.boolean("preserveSpeech", true, "Preserve Speech"),
+      ...params.durationRange(1, 600, 10),
+      ...params.count(SAMPLE_OPTIONS, 2),
+      ...params.seed()
+    }
+  }
+]);
+
+// src/vendors/catalog/mirelo.payloads.ts
+var buildTextToAudioPayload = (input) => ({
+  prompt: input.prompt,
+  duration: input.duration ?? 30,
+  num_samples: input.count ?? 2,
+  upload_audio_format: input.format ?? "wav",
+  ...input.negativePrompt != null ? { negative_prompt: input.negativePrompt } : {},
+  ...input.bitrateKbps != null ? { upload_audio_bitrate_kbps: input.bitrateKbps } : {},
+  ...input.seed != null ? { seed: input.seed } : {}
+});
+var buildVideoToAudioPayload = (input) => ({
+  video_url: input.videoUrl,
+  preserve_speech: input.preserveSpeech ?? true,
+  duration: input.duration ?? 10,
+  num_samples: input.count ?? 2,
+  upload_audio_format: input.format ?? "wav",
+  ...input.prompt != null ? { text_prompt: input.prompt } : {},
+  ...input.negativePrompt != null ? { negative_prompt: input.negativePrompt } : {},
+  ...input.bitrateKbps != null ? { upload_audio_bitrate_kbps: input.bitrateKbps } : {},
+  ...input.seed != null ? { seed: input.seed } : {}
+});
+var buildVideoToVideoPayload = (input) => ({
+  video_url: input.videoUrl,
+  preserve_speech: input.preserveSpeech ?? true,
+  duration: input.duration ?? 10,
+  num_samples: input.count ?? 2,
+  ...input.prompt != null ? { text_prompt: input.prompt } : {},
+  ...input.negativePrompt != null ? { negative_prompt: input.negativePrompt } : {},
+  ...input.seed != null ? { seed: input.seed } : {}
+});
+registerPayloads(MODELS40, {
+  "mirelo-sfx-2.0-text-to-audio": buildTextToAudioPayload,
+  "mirelo-sfx-2.0-video-to-audio": buildVideoToAudioPayload,
+  "mirelo-sfx-2.0-video-to-video": buildVideoToVideoPayload
+});
+
 // src/vendors/catalog/creatify.payloads.ts
 var buildCreatifyBorealPayload = (input) => ({
   prompt: input.prompt,
@@ -11412,7 +11523,8 @@ var ALL_MODELS = [
   ...MODELS36,
   ...MODELS37,
   ...MODELS38,
-  ...MODELS39
+  ...MODELS39,
+  ...MODELS40
 ];
 var getModelsByMode = (mode, includeHidden = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeHidden || isVisibleForReleases(m)));
 
@@ -15097,6 +15209,9 @@ var MinimaxH3MaxRelight = "minimax-h3-max-relight";
 var MinimaxH3MaxTurbo = "minimax-h3-max-turbo";
 var MinimaxMusicV2 = "minimax-music-v2";
 var MinimaxMusicV3 = "minimax-music-v3";
+var MireloSfx20TextToAudio = "mirelo-sfx-2.0-text-to-audio";
+var MireloSfx20VideoToAudio = "mirelo-sfx-2.0-video-to-audio";
+var MireloSfx20VideoToVideo = "mirelo-sfx-2.0-video-to-video";
 var MuseImage10 = "muse-image-1.0";
 var Ovi = "ovi";
 var PicsartChangeBg = "picsart-change-bg";
@@ -15364,6 +15479,9 @@ var Models = {
   MinimaxH3MaxTurbo,
   MinimaxMusicV2,
   MinimaxMusicV3,
+  MireloSfx20TextToAudio,
+  MireloSfx20VideoToAudio,
+  MireloSfx20VideoToVideo,
   MuseImage10,
   Ovi,
   PicsartChangeBg,

@@ -62,6 +62,8 @@ import { MODELS as typesafeMODELS } from './typesafe.ts';
 import './typesafe.payloads.ts'; // registers the evaluate payload builder after model definitions
 import { MODELS as depthAnythingMODELS } from './depth-anything.ts';
 import './depth-anything.payloads.ts'; // registers the depth-anything-video payload builder after model definitions
+import { MODELS as mireloMODELS } from './mirelo.ts';
+import './mirelo.payloads.ts'; // registers the Mirelo SFX 2.0 payload builders after model definitions
 import './creatify.payloads.ts'; // registers the Creatify Boreal payload builder after model definitions
 import './ltx.payloads.ts'; // registers the LTX 2.5 payload builders after model definitions
 
@@ -110,6 +112,7 @@ export const ALL_MODELS: ModelDefinition[] = [
   ...metaMODELS,
   ...typesafeMODELS,
   ...depthAnythingMODELS,
+  ...mireloMODELS,
 ];
 
 /**

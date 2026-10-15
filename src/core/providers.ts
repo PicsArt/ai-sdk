@@ -44,6 +44,7 @@ export const providers: Record<Provider, ProviderMeta> = {
   typesafe: { color: '#3E6B8F', label: 'TS', name: 'TypeSafe' },
   'depth-anything': { color: '#0EA5E9', label: 'DA', name: 'Depth Anything' },
   kimi: { color: '#1A1A2E', label: 'KM', name: 'Kimi' },
+  mirelo: { color: '#5C3DF5', label: 'ML', name: 'Mirelo' },
 };
 
 export const getProviderColor = (provider: Provider): string =>

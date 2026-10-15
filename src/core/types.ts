@@ -193,6 +193,9 @@ export interface GenerationContext {
   enableThinking?: boolean;
 }
 
+/** See `ModelDefinition.validateInput`. */
+export type InputValidator = (input: Record<string, unknown>) => void;
+
 export type PayloadBuilder<TContext extends GenerationContext = GenerationContext> =
   (ctx: TContext) => object;
 
@@ -285,6 +288,13 @@ export interface ModelDefinition {
   paramConfig: import('./descriptors/types.ts').ModelParams;
   /** Declarative inter-parameter constraints (e.g. "1080p requires 8s duration"). */
   constraints?: Constraint[];
+  /**
+   * Model-specific input check that the declarative layer cannot express —
+   * a value format, or a "this OR those, never both" rule. Runs after the
+   * per-param and constraint validation, on the raw input (no defaults
+   * merged), and throws an `Error` whose message names the offending param.
+   */
+  validateInput?: InputValidator;
   /** Payload builder. Optional — omit for pass-through (param values sent as-is). */
   buildPayload?: PayloadBuilder;
   /** I2V/edit payload builder when different from buildPayload. */

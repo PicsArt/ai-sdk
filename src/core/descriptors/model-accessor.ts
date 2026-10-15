@@ -333,7 +333,7 @@ class ModelDescriptorImpl implements ModelDescriptor {
       return { valid: false, errors: [`Invalid input for model "${this.def.id}"`] };
     }
     try {
-      validateAll(this.def.paramConfig, input as Record<string, unknown>, this.def.constraints);
+      validateAll(this.def.paramConfig, input as Record<string, unknown>, this.def.constraints, this.def.validateInput);
       return { valid: true };
     } catch (err: unknown) {
       return { valid: false, errors: [err instanceof Error ? err.message : String(err)] };

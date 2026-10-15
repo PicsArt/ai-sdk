@@ -8,7 +8,7 @@
  */
 import type {
   GenerationMode, InputType, ModelDefinition, ModelFeature, BadgeType,
-  PayloadBuilder, Provider, RuntimeSchema, Constraint, ReleaseTag,
+  PayloadBuilder, Provider, RuntimeSchema, Constraint, ReleaseTag, InputValidator,
 } from '../core/types.ts';
 import { createModelContract } from '../core/contracts.ts';
 import { providers } from '../core/providers.ts';
@@ -50,6 +50,8 @@ interface AppModelFields {
   paramConfig: ModelParams;
   /** Declarative inter-parameter constraints. */
   constraints?: Constraint[];
+  /** Model-specific input check — see ModelDefinition.validateInput. */
+  validateInput?: InputValidator;
   badge?: BadgeType[];
   /**
    * Release / availability tier. Absent ⇒ `'production'`. Set
@@ -135,6 +137,7 @@ export function defineModels(
     if (c.release !== undefined) model.release = c.release;
     if (c.modelId !== undefined) model.modelId = c.modelId;
     if (c.constraints !== undefined) model.constraints = c.constraints;
+    if (c.validateInput !== undefined) model.validateInput = c.validateInput;
 
     const contract = createModelContract(model);
     model.outputSchema = c.outputSchema ?? contract.output;

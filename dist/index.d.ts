@@ -650,6 +650,8 @@ type ModelInputById = {
     "gpt-image-2.5-flare": {
         prompt: string;
         aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto";
+        resolution?: "1K" | "2K" | "4K";
+        size?: string;
         quality?: "max" | "xhigh" | "high" | "medium" | "low";
         background?: "opaque" | "transparent";
         outputFormat?: "png" | "jpeg" | "webp";
@@ -659,6 +661,8 @@ type ModelInputById = {
     "gpt-image-2.5-sunburst": {
         prompt: string;
         aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto";
+        resolution?: "1K" | "2K" | "4K";
+        size?: string;
         quality?: "max" | "xhigh" | "high" | "medium" | "low";
         background?: "opaque" | "transparent";
         outputFormat?: "png" | "jpeg" | "webp";
@@ -2646,6 +2650,8 @@ interface GenerationContext {
     /** Qwen 3.0 family — thinking mode (requires prompt_extend), sent as `enable_thinking`. */
     enableThinking?: boolean;
 }
+/** See `ModelDefinition.validateInput`. */
+type InputValidator = (input: Record<string, unknown>) => void;
 type PayloadBuilder<TContext extends GenerationContext = GenerationContext> = (ctx: TContext) => object;
 /** Lightweight runtime schema contract used by SDK integrations. */
 interface RuntimeSchema<T = unknown> {
@@ -2736,6 +2742,13 @@ interface ModelDefinition {
     paramConfig: ModelParams;
     /** Declarative inter-parameter constraints (e.g. "1080p requires 8s duration"). */
     constraints?: Constraint[];
+    /**
+     * Model-specific input check that the declarative layer cannot express —
+     * a value format, or a "this OR those, never both" rule. Runs after the
+     * per-param and constraint validation, on the raw input (no defaults
+     * merged), and throws an `Error` whose message names the offending param.
+     */
+    validateInput?: InputValidator;
     /** Payload builder. Optional — omit for pass-through (param values sent as-is). */
     buildPayload?: PayloadBuilder;
     /** I2V/edit payload builder when different from buildPayload. */

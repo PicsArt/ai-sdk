@@ -591,7 +591,7 @@ function validateDescriptor(key, d, val, required) {
 function isAbsent(val) {
   return val == null || typeof val === "string" && val.trim().length === 0 || Array.isArray(val) && val.length === 0;
 }
-function validateAll(params2, input, constraints) {
+function validateAll(params2, input, constraints, validateInput) {
   for (const [key, entry] of Object.entries(params2)) {
     validateDescriptor(key, entry.descriptor, input[key], entry.required);
   }
@@ -600,6 +600,7 @@ function validateAll(params2, input, constraints) {
       throw new Error(requirement.reason ? `"${key}" is required: ${requirement.reason}` : `"${key}" is required`);
     }
   }
+  validateInput?.(input);
 }
 function descriptorsToSchema(params2) {
   const schema = {};
@@ -1209,6 +1210,7 @@ function defineModels(provider, configs) {
     if (c.release !== void 0) model.release = c.release;
     if (c.modelId !== void 0) model.modelId = c.modelId;
     if (c.constraints !== void 0) model.constraints = c.constraints;
+    if (c.validateInput !== void 0) model.validateInput = c.validateInput;
     const contract = createModelContract(model);
     model.outputSchema = c.outputSchema ?? contract.output;
     MODELS40.push(model);
@@ -7155,6 +7157,54 @@ var GPT_IMAGE_2_AR_TO_SIZE = {
   "4:3": "1360x1024",
   "3:4": "1024x1360"
 };
+var GPT_IMAGE_25_SIZES = {
+  "1K": GPT_IMAGE_2_AR_TO_SIZE,
+  "2K": {
+    "1:1": "2048x2048",
+    "3:2": "2496x1664",
+    "2:3": "1664x2496",
+    "16:9": "2560x1440",
+    "9:16": "1440x2560",
+    "4:3": "2304x1728",
+    "3:4": "1728x2304"
+  },
+  "4K": {
+    "1:1": "2880x2880",
+    "3:2": "3504x2336",
+    "2:3": "2336x3504",
+    "16:9": "3840x2160",
+    "9:16": "2160x3840",
+    "4:3": "3264x2448",
+    "3:4": "2448x3264"
+  }
+};
+var GPT_IMAGE_SIZE_PATTERN = /^([1-9]\d*)x([1-9]\d*)$/;
+var GPT_IMAGE_SIZE_GRID = 16;
+var GPT_IMAGE_MAX_ASPECT_RATIO = 3;
+var GPT_IMAGE_MAX_EDGE = 3840;
+var GPT_IMAGE_MIN_PIXELS = 655360;
+var GPT_IMAGE_MAX_PIXELS = 8294400;
+function gptImageSizeViolation(size) {
+  const match = GPT_IMAGE_SIZE_PATTERN.exec(size);
+  if (!match) return "must be WIDTHxHEIGHT, e.g. 2048x1152";
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  if (width % GPT_IMAGE_SIZE_GRID !== 0 || height % GPT_IMAGE_SIZE_GRID !== 0) {
+    return `both dimensions must be divisible by ${GPT_IMAGE_SIZE_GRID}`;
+  }
+  const ratio = width / height;
+  if (ratio > GPT_IMAGE_MAX_ASPECT_RATIO || ratio < 1 / GPT_IMAGE_MAX_ASPECT_RATIO) {
+    return "the aspect ratio must be between 1:3 and 3:1";
+  }
+  if (Math.max(width, height) > GPT_IMAGE_MAX_EDGE) {
+    return `the longest edge must be at most ${GPT_IMAGE_MAX_EDGE}`;
+  }
+  const pixels = width * height;
+  if (pixels < GPT_IMAGE_MIN_PIXELS || pixels > GPT_IMAGE_MAX_PIXELS) {
+    return `the total pixel count must be between ${GPT_IMAGE_MIN_PIXELS} and ${GPT_IMAGE_MAX_PIXELS}`;
+  }
+  return null;
+}
 var buildGptImage1Payload = (ctx) => ({
   prompt: ctx.prompt,
   model: "gpt-image-1",
@@ -7219,6 +7269,7 @@ var buildGptImage2EditPayload = (ctx) => ({
 var GPT_IMAGE_PROMPT_MAX = 32e3;
 var GPT_IMAGE_25_QUALITIES = ["max", "xhigh", "high", "medium", "low"];
 var GPT_IMAGE_25_ASPECT_RATIOS = ["1:1", "3:2", "2:3", "16:9", "9:16", "4:3", "3:4", "auto"];
+var GPT_IMAGE_25_RESOLUTIONS = Object.keys(GPT_IMAGE_25_SIZES);
 var GPT_IMAGE_25_MAX_INPUT_IMAGES = 16;
 var gptImage2Constraints = [
   {
@@ -7236,6 +7287,25 @@ var gptImageBgConstraints = [
     then: { outputFormat: { allowed: ["png", "webp"], reason: "Transparent background needs PNG or WEBP \u2014 JPEG has no alpha channel." } }
   }
 ];
+var gptImage25SizeConstraints = [
+  {
+    when: { size: { exists: true } },
+    then: {
+      aspectRatio: { disabled: true, reason: "A custom size sets the output size." },
+      resolution: { disabled: true, reason: "A custom size sets the output size." }
+    }
+  },
+  {
+    when: { aspectRatio: { is: "auto" } },
+    then: { resolution: { disabled: true, reason: "Auto lets the model pick the size." } }
+  }
+];
+var isGiven = (value) => value != null && !(typeof value === "string" && value.trim().length === 0);
+var validateGptImage25Input = (input) => {
+  if (!isGiven(input.size)) return;
+  const violation = gptImageSizeViolation(String(input.size).trim());
+  if (violation) throw new Error(`"size" ${violation}`);
+};
 var { MODELS: MODELS23 } = defineModels("openai", [
   // ── Image ─────────────────────────────────────────
   {
@@ -7252,13 +7322,16 @@ var { MODELS: MODELS23 } = defineModels("openai", [
     paramConfig: {
       ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(GPT_IMAGE_25_ASPECT_RATIOS, "1:1"),
+      ...params.resolution(GPT_IMAGE_25_RESOLUTIONS, "1K"),
+      ...p.text("size", { label: "Custom Size", placeholder: "WIDTHxHEIGHT, e.g. 2048x1152" }),
       ...p.quality(GPT_IMAGE_25_QUALITIES, "high"),
       ...p.enum("background", ["opaque", "transparent"], "opaque", { label: "Background" }),
       ...p.enum("outputFormat", ["png", "jpeg", "webp"], "png", { label: "Format" }),
       ...params.count(),
       ...params.imageInput(GPT_IMAGE_25_MAX_INPUT_IMAGES, "Source Images")
     },
-    constraints: gptImageBgConstraints
+    constraints: [...gptImageBgConstraints, ...gptImage25SizeConstraints],
+    validateInput: validateGptImage25Input
   },
   {
     id: "gpt-image-2.5-flare",
@@ -7274,13 +7347,16 @@ var { MODELS: MODELS23 } = defineModels("openai", [
     paramConfig: {
       ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
       ...params.aspectRatio(GPT_IMAGE_25_ASPECT_RATIOS, "1:1"),
+      ...params.resolution(GPT_IMAGE_25_RESOLUTIONS, "1K"),
+      ...p.text("size", { label: "Custom Size", placeholder: "WIDTHxHEIGHT, e.g. 2048x1152" }),
       ...p.quality(GPT_IMAGE_25_QUALITIES, "high"),
       ...p.enum("background", ["opaque", "transparent"], "opaque", { label: "Background" }),
       ...p.enum("outputFormat", ["png", "jpeg", "webp"], "png", { label: "Format" }),
       ...params.count(),
       ...params.imageInput(GPT_IMAGE_25_MAX_INPUT_IMAGES, "Source Images")
     },
-    constraints: gptImageBgConstraints
+    constraints: [...gptImageBgConstraints, ...gptImage25SizeConstraints],
+    validateInput: validateGptImage25Input
   },
   {
     id: "gpt-image-2",
@@ -7363,12 +7439,17 @@ var { MODELS: MODELS23 } = defineModels("openai", [
 ]);
 
 // src/vendors/catalog/openai.payloads.ts
-var resolveSize = (aspectRatio, fallback) => aspectRatio === "auto" ? "auto" : GPT_IMAGE_2_AR_TO_SIZE[aspectRatio ?? ""] ?? fallback;
+var resolveSize = (input, defaultAspectRatio) => {
+  if (input.size?.trim()) return input.size.trim();
+  const aspectRatio = input.aspectRatio ?? defaultAspectRatio;
+  if (aspectRatio === "auto") return "auto";
+  return GPT_IMAGE_25_SIZES[input.resolution ?? "1K"]?.[aspectRatio] ?? "1024x1024";
+};
 var generateFor = (model) => (input) => ({
   prompt: input.prompt,
   model,
   n: input.count ?? 1,
-  size: resolveSize(input.aspectRatio, "1024x1024"),
+  size: resolveSize(input, "1:1"),
   quality: input.quality ?? "high",
   ...input.background ? { background: input.background } : {},
   ...input.outputFormat ? { output_format: input.outputFormat } : {}
@@ -7378,7 +7459,7 @@ var editFor = (model) => (input) => ({
   model,
   images: input.imageUrls ?? [],
   n: input.count ?? 1,
-  size: resolveSize(input.aspectRatio, "auto"),
+  size: resolveSize(input, "auto"),
   quality: input.quality ?? "high",
   ...input.background ? { background: input.background } : {},
   ...input.outputFormat ? { output_format: input.outputFormat } : {}
@@ -11375,7 +11456,7 @@ function buildInputSchema(model) {
     parse(input) {
       requireObject(input, `Invalid input for model "${model.id}"`);
       try {
-        validateAll(model.paramConfig, input, model.constraints);
+        validateAll(model.paramConfig, input, model.constraints, model.validateInput);
       } catch (err) {
         if (err instanceof ApiError) throw err;
         throw new ApiError(err instanceof Error ? err.message : String(err), {
@@ -12153,7 +12234,7 @@ var ModelDescriptorImpl = class {
       return { valid: false, errors: [`Invalid input for model "${this.def.id}"`] };
     }
     try {
-      validateAll(this.def.paramConfig, input, this.def.constraints);
+      validateAll(this.def.paramConfig, input, this.def.constraints, this.def.validateInput);
       return { valid: true };
     } catch (err) {
       return { valid: false, errors: [err instanceof Error ? err.message : String(err)] };

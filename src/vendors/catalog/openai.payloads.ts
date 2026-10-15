@@ -11,7 +11,7 @@
 import type { WorkflowTypes } from '@picsart/workflows-types';
 import type { ModelInput } from '../../generated/model-input-types.ts';
 import { registerEditPayloads, registerPayloads } from '../define.ts';
-import { GPT_IMAGE_2_AR_TO_SIZE, MODELS } from './openai.ts';
+import { GPT_IMAGE_25_SIZES, MODELS } from './openai.ts';
 
 type GptImage25Model = 'gpt-image-2.5-flare' | 'gpt-image-2.5-sunburst';
 
@@ -24,31 +24,40 @@ type GptImage25Payload = WorkflowTypes['openai-images-generate']['params'];
 // so it takes the 2.5 values as-is.
 type GptImage25EditPayload = WorkflowTypes['openai-image-editing']['params'];
 
-/** 'auto' lets the model pick on t2i and mirrors the input's size on edits;
- *  every other ratio maps onto the 16px grid both routes require. */
-const resolveSize = (aspectRatio: string | undefined, fallback: string): string =>
-  aspectRatio === 'auto' ? 'auto' : GPT_IMAGE_2_AR_TO_SIZE[aspectRatio ?? ''] ?? fallback;
+/**
+ * The wire `size`, in order of precedence: an exact `size` as given, which
+ * overrides `aspectRatio` and `resolution`; `auto`, which
+ * lets the model pick on t2i and mirrors the input's size on edits; otherwise
+ * the ratio at the resolution tier (`1K` when unset), all on the 16px grid both
+ * routes require. With no ratio the route's own default ratio applies.
+ */
+const resolveSize = (input: GptImage25Input, defaultAspectRatio: string): string => {
+  if (input.size?.trim()) return input.size.trim();
+  const aspectRatio = input.aspectRatio ?? defaultAspectRatio;
+  if (aspectRatio === 'auto') return 'auto';
+  return GPT_IMAGE_25_SIZES[input.resolution ?? '1K']?.[aspectRatio] ?? '1024x1024';
+};
 
 const generateFor = (model: GptImage25Model) =>
   (input: GptImage25Input): GptImage25Payload => ({
     prompt: input.prompt,
     model,
     n: input.count ?? 1,
-    size: resolveSize(input.aspectRatio, '1024x1024'),
+    size: resolveSize(input, '1:1'),
     quality: input.quality ?? 'high',
     ...(input.background ? { background: input.background } : {}),
     ...(input.outputFormat ? { output_format: input.outputFormat } : {}),
   });
 
-/** Edits default to `size: 'auto'` — the endpoint then returns the source
- *  image's own dimensions instead of snapping it to a square. */
+/** Edits default to `auto` — the endpoint then returns the source image's
+ *  own dimensions instead of snapping it to a square. */
 const editFor = (model: GptImage25Model) =>
   (input: GptImage25Input): GptImage25EditPayload => ({
     prompt: input.prompt,
     model,
     images: input.imageUrls ?? [],
     n: input.count ?? 1,
-    size: resolveSize(input.aspectRatio, 'auto'),
+    size: resolveSize(input, 'auto'),
     quality: input.quality ?? 'high',
     ...(input.background ? { background: input.background } : {}),
     ...(input.outputFormat ? { output_format: input.outputFormat } : {}),

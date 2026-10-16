@@ -267,6 +267,10 @@ export const KlingV3 = 'kling-v3' as const;
 export const KlingV3Omni = 'kling-v3-omni' as const;
 /** Kling V3 Turbo — kling (video) */
 export const KlingV3Turbo = 'kling-v3-turbo' as const;
+/** Kling 4.0 — kling (video) */
+export const KlingV4 = 'kling-v4' as const;
+/** Kling 4.0 Omni — kling (video) */
+export const KlingV4Omni = 'kling-v4-omni' as const;
 /** Kling Video Effects — kling (video) */
 export const KlingVideoEffects = 'kling-video-effects' as const;
 /** Kling Video O1 — kling (video) */
@@ -701,6 +705,8 @@ export const Models = {
   KlingV3,
   KlingV3Omni,
   KlingV3Turbo,
+  KlingV4,
+  KlingV4Omni,
   KlingVideoEffects,
   KlingVideoO1,
   Ltx23A2v,

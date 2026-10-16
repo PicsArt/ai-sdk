@@ -12,6 +12,7 @@ import {
   klingOmniAdvancedParams,
   klingOmniReferType,
   klingV3AdvancedParams,
+  klingV4OmniElementList,
 } from './params.ts';
 
 // ── Effect templates (kling/v1/video-effects) ───────────────────────
@@ -25,6 +26,13 @@ import {
 /** V3 accepts any whole second in 3-15s, so it is a range, not an option list. */
 const V3_DURATION = { min: 3, max: 15 } as const;
 const V26_DURATIONS = [5, 10];
+/** Kling 4.0 accepts any whole second in 3-30s. */
+const V4_DURATION = { min: 3, max: 30 } as const;
+/** Kling 4.0 prompt cap: English-only up to 26,000 chars (non-English-only up
+ *  to 11,000, mixed E/26000 + N/11000 <= 1 — the worker enforces the mix). */
+const V4_PROMPT_MAX = 26000;
+/** Kling 4.0 keyframes: start + middle + end frame images, at most 10 in total. */
+const V4_MAX_MIDDLE_FRAMES = 8;
 const KLING_IMAGE_AR = ['16:9', '9:16', '1:1', '21:9', '4:3', '3:2', '2:3', '3:4'];
 
 // ── Shared model-entry bases ────────────────────────────────────────
@@ -80,6 +88,34 @@ const klingV3TurboVideoBase = {
   },
 };
 
+// Kling 4.0 — shares the kling-text/image-to-video workflows; the worker routes
+// kling-v4 to the dedicated /…/kling-4.0 tasks API. Quality is `resolution`
+// (720p/1080p), not `mode`; 3-30s; 21:9 on top of the usual ratios. I2V takes
+// keyframes: the start frame, up to 8 middle frames (`imageUrls` → `image_middle`)
+// and an end frame. The worker rejects sound / negative_prompt / cfg_scale /
+// multi-shot / voice / element lists for kling-v4, so they are not declared.
+const klingV4VideoBase = {
+  workflow: 'kling-text-to-video' as const,
+  editWorkflow: 'kling-image-to-video' as const,
+  mode: 'video' as const,
+  inputType: 't2v' as const,
+  features: [
+    feat('Image Input', 'input'),
+    feat('Start/Middle/End Frames', 'frame'),
+    feat('1080p', 'resolution'),
+    feat('30 sec', 'duration'),
+  ],
+  paramConfig: {
+    ...params.prompt({ maxLength: V4_PROMPT_MAX }),
+    ...params.aspectRatio(['16:9', '9:16', '1:1', '21:9']),
+    ...params.durationRange(V4_DURATION.min, V4_DURATION.max, 5),
+    ...params.resolution(['720p', '1080p'], '720p'),
+    ...params.startFrame('Start Frame'),
+    ...params.imageInput(V4_MAX_MIDDLE_FRAMES, 'Middle Frames', false, 'asset'),
+    ...params.endFrame('End Frame'),
+  },
+};
+
 const klingV26VideoBase = {
   ...klingV3ProVideoBase,
   features: [
@@ -129,6 +165,25 @@ export const { MODELS } = defineModels('kling', [
     estimatedTime: 55, editEstimatedTime: 55,
     badge: ['new'] as const,
     description: 'Faster V3 variant — long-form video up to 15s with native audio, start/end frame control, and 720p/1080p output.',
+  },
+  // ── Video: Kling 4.0 (resolution-tiered T2V + keyframe I2V) ───────
+  {
+    ...klingV4VideoBase,
+    id: 'kling-v4', name: 'Kling 4.0', modelId: 'kling-v4',
+    addedAt: '2026-10-16',
+    // Observed on the vendor (2026-10-16): ~3-5 min for 5s, ~7 min for 30s.
+    estimatedTime: 240, editEstimatedTime: 240,
+    badge: ['new'] as const,
+    description: 'Kling 4.0 — video up to 30s at 720p or 1080p, with start, middle and end keyframes.',
+    constraints: [
+      // Worker: image-to-video needs the start frame (`image`); middle and
+      // end frames are added around it. (Raw API callers may instead pass the
+      // start frame as imageUrls[0] — the builder handles that.)
+      { when: { startFrame: { exists: false } }, then: {
+        imageUrls: { disabled: true, reason: 'Middle frames require a start frame.' },
+        endFrame: { disabled: true, reason: 'End frame requires a start frame.' },
+      } },
+    ],
   },
   // ── Video: Kling V2.6 (consolidated: std/pro via renderingSpeed) ──
   {
@@ -186,6 +241,34 @@ export const { MODELS } = defineModels('kling', [
         multiPrompt: { disabled: true, reason: 'Base video editing does not support multi-shot.' },
       } },
     ],
+  },
+  // ── Video: Kling 4.0 Omni (dedicated /omni-video/kling-4.0 tasks API) ──
+  {
+    id: 'kling-v4-omni', name: 'Kling 4.0 Omni', modelId: 'kling-v4-omni',
+    addedAt: '2026-10-16',
+    workflow: 'kling-omni-video',
+    // Observed on the vendor (2026-10-16): ~2.5-5.5 min for 5s.
+    estimatedTime: 240,
+    mode: 'video', inputType: 't2v',
+    badge: ['new'] as const,
+    description: 'Kling 4.0 Omni — up to 30s at 720p or 1080p from text, frames, reference images, a reference or base video, and elements.',
+    features: [feat('Image + Video Input', 'input'), feat('1080p', 'resolution'), feat('30 sec', 'duration')],
+    // Same slot layout as kling-v3-omni (payloads.ts folds them into
+    // image_list / video_list), minus what the 4.0 API dropped: no audio,
+    // mode tiers, multi-shot or keep_original_sound.
+    paramConfig: {
+      ...params.prompt({ maxLength: V4_PROMPT_MAX }),
+      ...params.aspectRatio(['16:9', '9:16', '1:1', '21:9', 'adaptive']),
+      ...params.durationRange(V4_DURATION.min, V4_DURATION.max, 5),
+      ...params.resolution(['720p', '1080p'], '720p'),
+      ...params.startFrame('First Frame'),
+      ...params.endFrame('End Frame'),
+      // Vendor cap: 10 images in total — 2 frame slots + 8 reference images.
+      ...params.imageInput(8, 'Reference Images'),
+      ...params.videoInput('Reference Video', 'reference', false),
+      ...klingOmniReferType,
+      ...klingV4OmniElementList,
+    },
   },
   {
     id: 'kling-video-o1', name: 'Kling Video O1', modelId: 'kling-video-o1',

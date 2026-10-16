@@ -1425,10 +1425,25 @@ var klingOmniAdvancedParams = {
     }
   }
 };
+var klingV4OmniElementList = {
+  elementList: {
+    label: "Element References",
+    descriptor: {
+      kind: "object",
+      array: { max: 7 },
+      fields: {
+        element_id: { kind: "text" }
+      }
+    }
+  }
+};
 
 // src/vendors/catalog/kling/index.ts
 var V3_DURATION = { min: 3, max: 15 };
 var V26_DURATIONS = [5, 10];
+var V4_DURATION = { min: 3, max: 30 };
+var V4_PROMPT_MAX = 26e3;
+var V4_MAX_MIDDLE_FRAMES = 8;
 var KLING_IMAGE_AR = ["16:9", "9:16", "1:1", "21:9", "4:3", "3:2", "2:3", "3:4"];
 var klingV3ProVideoBase = {
   workflow: "kling-text-to-video",
@@ -1468,6 +1483,27 @@ var klingV3TurboVideoBase = {
     ...params.negativePrompt(),
     ...params.resolution(["720p", "1080p"], "720p"),
     ...params.startFrame("Start Frame")
+  }
+};
+var klingV4VideoBase = {
+  workflow: "kling-text-to-video",
+  editWorkflow: "kling-image-to-video",
+  mode: "video",
+  inputType: "t2v",
+  features: [
+    feat("Image Input", "input"),
+    feat("Start/Middle/End Frames", "frame"),
+    feat("1080p", "resolution"),
+    feat("30 sec", "duration")
+  ],
+  paramConfig: {
+    ...params.prompt({ maxLength: V4_PROMPT_MAX }),
+    ...params.aspectRatio(["16:9", "9:16", "1:1", "21:9"]),
+    ...params.durationRange(V4_DURATION.min, V4_DURATION.max, 5),
+    ...params.resolution(["720p", "1080p"], "720p"),
+    ...params.startFrame("Start Frame"),
+    ...params.imageInput(V4_MAX_MIDDLE_FRAMES, "Middle Frames", false, "asset"),
+    ...params.endFrame("End Frame")
   }
 };
 var klingV26VideoBase = {
@@ -1522,6 +1558,28 @@ var { MODELS } = defineModels("kling", [
     editEstimatedTime: 55,
     badge: ["new"],
     description: "Faster V3 variant \u2014 long-form video up to 15s with native audio, start/end frame control, and 720p/1080p output."
+  },
+  // ── Video: Kling 4.0 (resolution-tiered T2V + keyframe I2V) ───────
+  {
+    ...klingV4VideoBase,
+    id: "kling-v4",
+    name: "Kling 4.0",
+    modelId: "kling-v4",
+    addedAt: "2026-10-16",
+    // Observed on the vendor (2026-10-16): ~3-5 min for 5s, ~7 min for 30s.
+    estimatedTime: 240,
+    editEstimatedTime: 240,
+    badge: ["new"],
+    description: "Kling 4.0 \u2014 video up to 30s at 720p or 1080p, with start, middle and end keyframes.",
+    constraints: [
+      // Worker: image-to-video needs the start frame (`image`); middle and
+      // end frames are added around it. (Raw API callers may instead pass the
+      // start frame as imageUrls[0] — the builder handles that.)
+      { when: { startFrame: { exists: false } }, then: {
+        imageUrls: { disabled: true, reason: "Middle frames require a start frame." },
+        endFrame: { disabled: true, reason: "End frame requires a start frame." }
+      } }
+    ]
   },
   // ── Video: Kling V2.6 (consolidated: std/pro via renderingSpeed) ──
   {
@@ -1584,6 +1642,37 @@ var { MODELS } = defineModels("kling", [
         multiPrompt: { disabled: true, reason: "Base video editing does not support multi-shot." }
       } }
     ]
+  },
+  // ── Video: Kling 4.0 Omni (dedicated /omni-video/kling-4.0 tasks API) ──
+  {
+    id: "kling-v4-omni",
+    name: "Kling 4.0 Omni",
+    modelId: "kling-v4-omni",
+    addedAt: "2026-10-16",
+    workflow: "kling-omni-video",
+    // Observed on the vendor (2026-10-16): ~2.5-5.5 min for 5s.
+    estimatedTime: 240,
+    mode: "video",
+    inputType: "t2v",
+    badge: ["new"],
+    description: "Kling 4.0 Omni \u2014 up to 30s at 720p or 1080p from text, frames, reference images, a reference or base video, and elements.",
+    features: [feat("Image + Video Input", "input"), feat("1080p", "resolution"), feat("30 sec", "duration")],
+    // Same slot layout as kling-v3-omni (payloads.ts folds them into
+    // image_list / video_list), minus what the 4.0 API dropped: no audio,
+    // mode tiers, multi-shot or keep_original_sound.
+    paramConfig: {
+      ...params.prompt({ maxLength: V4_PROMPT_MAX }),
+      ...params.aspectRatio(["16:9", "9:16", "1:1", "21:9", "adaptive"]),
+      ...params.durationRange(V4_DURATION.min, V4_DURATION.max, 5),
+      ...params.resolution(["720p", "1080p"], "720p"),
+      ...params.startFrame("First Frame"),
+      ...params.endFrame("End Frame"),
+      // Vendor cap: 10 images in total — 2 frame slots + 8 reference images.
+      ...params.imageInput(8, "Reference Images"),
+      ...params.videoInput("Reference Video", "reference", false),
+      ...klingOmniReferType,
+      ...klingV4OmniElementList
+    }
   },
   {
     id: "kling-video-o1",
@@ -1990,6 +2079,23 @@ var buildKlingV3TurboPayload = (input) => ({
   resolution: input.resolution ?? "720p",
   ...input.startFrame ? { image: input.startFrame } : {}
 });
+var buildKlingV4Payload = (input) => {
+  const startFrame = input.startFrame || input.imageUrls?.[0];
+  const middleFrames = (input.startFrame ? input.imageUrls : input.imageUrls?.slice(1)) ?? [];
+  if (input.endFrame && !startFrame) {
+    throw new ApiError("Kling 4.0: an end frame requires a start frame.", { status: 400, code: "validation_error" });
+  }
+  return {
+    prompt: input.prompt,
+    aspect_ratio: input.aspectRatio ?? "16:9",
+    duration: String(input.duration ?? 5),
+    model_name: "kling-v4",
+    resolution: input.resolution ?? "720p",
+    ...startFrame ? { image: startFrame } : {},
+    ...middleFrames.length > 0 ? { image_middle: middleFrames } : {},
+    ...input.endFrame ? { image_tail: input.endFrame } : {}
+  };
+};
 var buildKlingV26Payload = (input) => {
   const hasEndFrame = !!(input.startFrame && input.endFrame);
   const hasSound = (input.generateAudio ?? true) && !hasEndFrame;
@@ -2039,6 +2145,24 @@ var buildOmniV3 = (input) => {
     ...videoList.length ? { video_list: videoList } : {},
     ...stringElementList(input.elementList),
     ...hasSound ? { sound: "on" } : {}
+  };
+};
+var buildOmniV4 = (input) => {
+  const imageList = [
+    ...input.startFrame ? [{ image_url: input.startFrame, type: "first_frame" }] : [],
+    ...input.endFrame ? [{ image_url: input.endFrame, type: "end_frame" }] : [],
+    ...(input.imageUrls ?? []).map((image_url) => ({ image_url }))
+  ];
+  const videoList = input.videoUrl ? [{ video_url: input.videoUrl, refer_type: input.referType ?? "feature" }] : [];
+  return {
+    prompt: input.prompt,
+    model_name: "kling-v4-omni",
+    aspect_ratio: input.aspectRatio ?? "16:9",
+    duration: String(input.duration ?? 5),
+    resolution: input.resolution ?? "720p",
+    ...imageList.length ? { image_list: imageList } : {},
+    ...videoList.length ? { video_list: videoList } : {},
+    ...stringElementList(input.elementList)
   };
 };
 var buildVideoO1 = (input) => {
@@ -2160,9 +2284,11 @@ registerPayloads(MODELS, {
   // Combined-entry video — primary slot
   "kling-v3": klingV3Builder,
   "kling-v3-turbo": buildKlingV3TurboPayload,
+  "kling-v4": buildKlingV4Payload,
   "kling-v2-6": buildKlingV26Payload,
   // Omni video
   "kling-v3-omni": buildOmniV3,
+  "kling-v4-omni": buildOmniV4,
   "kling-video-o1": buildVideoO1,
   // Motion control
   "kling-motion-control-v3": buildMotionControl("kling-v3"),
@@ -2187,6 +2313,7 @@ registerPayloads(MODELS, {
 registerEditPayloads(MODELS, {
   "kling-v3": klingV3Builder,
   "kling-v3-turbo": buildKlingV3TurboPayload,
+  "kling-v4": buildKlingV4Payload,
   "kling-v2-6": buildKlingV26Payload
 });
 
@@ -15221,6 +15348,8 @@ var KlingV2a = "kling-v2a";
 var KlingV3 = "kling-v3";
 var KlingV3Omni = "kling-v3-omni";
 var KlingV3Turbo = "kling-v3-turbo";
+var KlingV4 = "kling-v4";
+var KlingV4Omni = "kling-v4-omni";
 var KlingVideoEffects = "kling-video-effects";
 var KlingVideoO1 = "kling-video-o1";
 var Ltx23A2v = "ltx-2.3-a2v";
@@ -15492,6 +15621,8 @@ var Models = {
   KlingV3,
   KlingV3Omni,
   KlingV3Turbo,
+  KlingV4,
+  KlingV4Omni,
   KlingVideoEffects,
   KlingVideoO1,
   Ltx23A2v,

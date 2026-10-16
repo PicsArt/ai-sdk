@@ -237,6 +237,8 @@ for (const [modelId, expected] of [
   ['kling-v3', { min: 3, max: 15, step: 1 }],
   ['kling-v3-omni', { min: 3, max: 15, step: 1 }],
   ['kling-v3-turbo', { min: 3, max: 15, step: 1 }],
+  ['kling-v4', { min: 3, max: 30, step: 1 }],
+  ['kling-v4-omni', { min: 3, max: 30, step: 1 }],
   ['pixverse-v6', { min: 5, max: 15, step: 1 }],
   ['pixverse-c1', { min: 5, max: 15, step: 1 }],
 ] as const) {

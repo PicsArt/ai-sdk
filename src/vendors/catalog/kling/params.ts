@@ -159,3 +159,19 @@ export const klingOmniAdvancedParams: ModelParams = {
     },
   },
 };
+
+/** Kling 4.0 Omni element references — up to 7 per request (vendor also caps
+ *  video-character elements at 3 and images + videos + elements at 15; those
+ *  depend on the element type and stay vendor/worker-side). */
+export const klingV4OmniElementList: ModelParams = {
+  elementList: {
+    label: 'Element References',
+    descriptor: {
+      kind: 'object',
+      array: { max: 7 },
+      fields: {
+        element_id: { kind: 'text' },
+      },
+    },
+  },
+};

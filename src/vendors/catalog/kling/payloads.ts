@@ -20,8 +20,10 @@ import { MODELS } from './index.ts';
 
 type KlingV3Input = ModelInput<'kling-v3'>;
 type KlingV3TurboInput = ModelInput<'kling-v3-turbo'>;
+type KlingV4Input = ModelInput<'kling-v4'>;
 type KlingV26Input = ModelInput<'kling-v2-6'>;
 type KlingOmniV3Input = ModelInput<'kling-v3-omni'>;
+type KlingOmniV4Input = ModelInput<'kling-v4-omni'>;
 type KlingVideoO1Input = ModelInput<'kling-video-o1'>;
 type KlingMotionControlInput = ModelInput<'kling-motion-control-v3'>;
 type KlingAvatarInput = ModelInput<'kling-avatar'>;
@@ -142,6 +144,38 @@ export const buildKlingV3TurboPayload = (input: KlingV3TurboInput): KlingVideoPa
   ...(input.startFrame ? { image: input.startFrame } : {}),
 });
 
+// ── Combined T2V/I2V: kling-v4 ──────────────────────────────────────
+
+/** Kling 4.0 — used for both T2V (primary) and I2V (edit) routes.
+ *  - resolution (720p/1080p) instead of a `mode` tier; always sent, because
+ *    the vendor defaults to 1080p while pricing falls back to 720p.
+ *  - I2V keyframes: startFrame → `image`, imageUrls → `image_middle` (in
+ *    order), endFrame → `image_tail`. Without startFrame, imageUrls[0] is the
+ *    start frame (as on the other combined entries) and the rest are middle
+ *    frames. An end frame alone needs a start frame.
+ *  - duration MUST be string (3-30).
+ *  TODO: kling-v4, `image_middle`, 21:9 and 16-30s are not in
+ *  @picsart/workflows-types yet (checked 1.1.170) — the return stays inferred;
+ *  annotate it with WorkflowTypes['kling-image-to-video']['params'] once published. */
+export const buildKlingV4Payload = (input: KlingV4Input) => {
+  // `||`, not `??`: a cleared (empty) startFrame must fall back to imageUrls.
+  const startFrame = input.startFrame || input.imageUrls?.[0];
+  const middleFrames = (input.startFrame ? input.imageUrls : input.imageUrls?.slice(1)) ?? [];
+  if (input.endFrame && !startFrame) {
+    throw new ApiError('Kling 4.0: an end frame requires a start frame.', { status: 400, code: 'validation_error' });
+  }
+  return {
+    prompt: input.prompt,
+    aspect_ratio: input.aspectRatio ?? '16:9',
+    duration: String(input.duration ?? 5),
+    model_name: 'kling-v4',
+    resolution: input.resolution ?? '720p',
+    ...(startFrame ? { image: startFrame } : {}),
+    ...(middleFrames.length > 0 ? { image_middle: middleFrames } : {}),
+    ...(input.endFrame ? { image_tail: input.endFrame } : {}),
+  };
+};
+
 // ── Combined T2V/I2V: kling-v2-6 ────────────────────────────────────
 
 /** Kling V2.6 — used for both T2V and I2V.
@@ -224,6 +258,34 @@ const buildOmniV3 = (input: KlingOmniV3Input): KlingOmniVideoPayload => {
     ...(videoList.length ? { video_list: videoList } : {}),
     ...stringElementList(input.elementList),
     ...(hasSound ? { sound: 'on' } : {}),
+  };
+};
+
+/** Kling 4.0 Omni — same media assembly as V3 Omni (startFrame / endFrame /
+ *  imageUrls / videoUrl + referType folded into image_list / video_list), on
+ *  the reduced 4.0 surface: no sound, mode tiers, multi-shot or
+ *  keep_original_sound; `resolution` is sent as-is (always, see kling-v4).
+ *  TODO: kling-v4-omni, `resolution`, 21:9 / adaptive and 16-30s are not in
+ *  @picsart/workflows-types yet (checked 1.1.170) — the return stays inferred;
+ *  annotate it with WorkflowTypes['kling-omni-video']['params'] once published. */
+const buildOmniV4 = (input: KlingOmniV4Input) => {
+  const imageList = [
+    ...(input.startFrame ? [{ image_url: input.startFrame, type: 'first_frame' as const }] : []),
+    ...(input.endFrame ? [{ image_url: input.endFrame, type: 'end_frame' as const }] : []),
+    ...(input.imageUrls ?? []).map(image_url => ({ image_url })),
+  ];
+  const videoList = input.videoUrl
+    ? [{ video_url: input.videoUrl, refer_type: input.referType ?? 'feature' }]
+    : [];
+  return {
+    prompt: input.prompt,
+    model_name: 'kling-v4-omni',
+    aspect_ratio: input.aspectRatio ?? '16:9',
+    duration: String(input.duration ?? 5),
+    resolution: input.resolution ?? '720p',
+    ...(imageList.length ? { image_list: imageList } : {}),
+    ...(videoList.length ? { video_list: videoList } : {}),
+    ...stringElementList(input.elementList),
   };
 };
 
@@ -404,9 +466,11 @@ registerPayloads(MODELS, {
   // Combined-entry video — primary slot
   'kling-v3': klingV3Builder,
   'kling-v3-turbo': buildKlingV3TurboPayload,
+  'kling-v4': buildKlingV4Payload,
   'kling-v2-6': buildKlingV26Payload,
   // Omni video
   'kling-v3-omni': buildOmniV3,
+  'kling-v4-omni': buildOmniV4,
   'kling-video-o1': buildVideoO1,
   // Motion control
   'kling-motion-control-v3': buildMotionControl('kling-v3'),
@@ -433,5 +497,6 @@ registerPayloads(MODELS, {
 registerEditPayloads(MODELS, {
   'kling-v3': klingV3Builder,
   'kling-v3-turbo': buildKlingV3TurboPayload,
+  'kling-v4': buildKlingV4Payload,
   'kling-v2-6': buildKlingV26Payload,
 });

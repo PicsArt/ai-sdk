@@ -1034,6 +1034,29 @@ type ModelInputById = {
         resolution?: "720p" | "1080p";
         startFrame?: string;
     };
+    "kling-v4": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9";
+        duration?: number;
+        resolution?: "720p" | "1080p";
+        startFrame?: string;
+        imageUrls?: string[];
+        endFrame?: string;
+    };
+    "kling-v4-omni": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "adaptive";
+        duration?: number;
+        resolution?: "720p" | "1080p";
+        startFrame?: string;
+        endFrame?: string;
+        imageUrls?: string[];
+        videoUrl?: string;
+        referType?: "feature" | "base";
+        elementList?: Array<{
+            element_id: string;
+        }>;
+    };
     "kling-video-effects": {
         templateId?: string;
         imageUrls: [string, ...string[]];
@@ -3661,6 +3684,8 @@ declare const Models: {
     readonly KlingV3: "kling-v3";
     readonly KlingV3Omni: "kling-v3-omni";
     readonly KlingV3Turbo: "kling-v3-turbo";
+    readonly KlingV4: "kling-v4";
+    readonly KlingV4Omni: "kling-v4-omni";
     readonly KlingVideoEffects: "kling-video-effects";
     readonly KlingVideoO1: "kling-video-o1";
     readonly Ltx23A2v: "ltx-2.3-a2v";

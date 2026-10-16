@@ -283,8 +283,13 @@ export const params = {
       ...bounds,
     }),
   /** Single driving / sync-audio slot. Writes to `audioUrl`. */
-  audioInput: (label = 'Audio Track', required = false, category: 'asset' | 'reference' = 'asset'): ModelParams =>
-    p.file('audioUrl', 'audio', { label, required, category }),
+  audioInput: (
+    label = 'Audio Track',
+    required = false,
+    category: 'asset' | 'reference' = 'asset',
+    bounds?: AudioBounds,
+  ): ModelParams =>
+    p.file('audioUrl', 'audio', { label, required, category, ...bounds }),
   /** Array of reference videos (writes to `videoUrls`). `bounds` is checked per
    *  clip. The backend also caps the COMBINED length of the array per model,
    *  which no descriptor field expresses yet; declaring the per-clip bounds

@@ -1270,7 +1270,7 @@ var params = {
     ...bounds
   }),
   /** Single driving / sync-audio slot. Writes to `audioUrl`. */
-  audioInput: (label = "Audio Track", required = false, category = "asset") => p.file("audioUrl", "audio", { label, required, category }),
+  audioInput: (label = "Audio Track", required = false, category = "asset", bounds) => p.file("audioUrl", "audio", { label, required, category, ...bounds }),
   /** Array of reference videos (writes to `videoUrls`). `bounds` is checked per
    *  clip. The backend also caps the COMBINED length of the array per model,
    *  which no descriptor field expresses yet; declaring the per-clip bounds
@@ -1445,6 +1445,27 @@ var V4_DURATION = { min: 3, max: 30 };
 var V4_PROMPT_MAX = 26e3;
 var V4_MAX_MIDDLE_FRAMES = 8;
 var KLING_IMAGE_AR = ["16:9", "9:16", "1:1", "21:9", "4:3", "3:2", "2:3", "3:4"];
+var KLING_V3_OMNI_REFERENCE_VIDEO_BOUNDS = {
+  minDurationSec: 3,
+  maxDurationSec: 15.5,
+  minSidePixels: 700,
+  maxSidePixels: 4553
+};
+var KLING_MOTION_IMAGE_BOUNDS = {
+  minSidePixels: 300,
+  maxSidePixels: 65536,
+  minAspectRatio: 1 / 2.5,
+  maxAspectRatio: 2.5,
+  maxBytes: 10 * 1024 * 1024
+};
+var KLING_MOTION_VIDEO_BOUNDS = {
+  minDurationSec: 3,
+  maxDurationSec: 30,
+  minSidePixels: 340,
+  maxSidePixels: 3850,
+  maxBytes: 100 * 1024 * 1024
+};
+var KLING_AVATAR_AUDIO_BOUNDS = { maxDurationSec: 300 };
 var klingV3ProVideoBase = {
   workflow: "kling-text-to-video",
   editWorkflow: "kling-image-to-video",
@@ -1620,7 +1641,7 @@ var { MODELS } = defineModels("kling", [
       // Vendor cap: reference images + frames + multi-image elements ≤ 7
       // (4 when a reference video is supplied).
       ...params.imageInput(7, "Reference Images"),
-      ...params.videoInput("Reference Video", "reference", false),
+      ...params.videoInput("Reference Video", "reference", false, void 0, void 0, void 0, KLING_V3_OMNI_REFERENCE_VIDEO_BOUNDS),
       ...klingOmniReferType,
       ...klingKeepOriginalSound,
       ...klingOmniAdvancedParams
@@ -1717,8 +1738,8 @@ var { MODELS } = defineModels("kling", [
       ...params.renderingSpeed([{ id: "std", label: "Standard" }, { id: "pro", label: "Pro" }], "std"),
       ...klingCharacterOrientation,
       ...klingKeepOriginalSound,
-      ...params.imageInput(1, "Person Photo (upper body)", true),
-      ...params.videoInput("Motion Reference Video")
+      ...params.imageInput(1, "Person Photo (upper body)", true, "reference", KLING_MOTION_IMAGE_BOUNDS),
+      ...params.videoInput("Motion Reference Video", "reference", true, void 0, void 0, void 0, KLING_MOTION_VIDEO_BOUNDS)
     }
   },
   {
@@ -1737,8 +1758,8 @@ var { MODELS } = defineModels("kling", [
       ...params.renderingSpeed([{ id: "std", label: "Standard" }, { id: "pro", label: "Pro" }], "std"),
       ...klingCharacterOrientation,
       ...klingKeepOriginalSound,
-      ...params.imageInput(1, "Person Photo (upper body)", true),
-      ...params.videoInput("Motion Reference Video")
+      ...params.imageInput(1, "Person Photo (upper body)", true, "reference", KLING_MOTION_IMAGE_BOUNDS),
+      ...params.videoInput("Motion Reference Video", "reference", true, void 0, void 0, void 0, KLING_MOTION_VIDEO_BOUNDS)
     }
   },
   // ── Video: Avatar ─────────────────────────────────────────────────
@@ -1760,7 +1781,7 @@ var { MODELS } = defineModels("kling", [
       // audio file required; audio_id stays an additive alternative for raw
       // API callers. The builder never emits both keys (file wins) and the
       // worker enforces the XOR for un-typed callers.
-      ...params.audioInput("Speech Audio", true),
+      ...params.audioInput("Speech Audio", true, "asset", KLING_AVATAR_AUDIO_BOUNDS),
       audioId: {
         label: "TTS Audio ID",
         descriptor: { kind: "text", placeholder: "audio_id from Kling TTS API" }

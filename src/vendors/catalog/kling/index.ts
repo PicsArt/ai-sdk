@@ -35,6 +35,48 @@ const V4_PROMPT_MAX = 26000;
 const V4_MAX_MIDDLE_FRAMES = 8;
 const KLING_IMAGE_AR = ['16:9', '9:16', '1:1', '21:9', '4:3', '3:2', '2:3', '3:4'];
 
+// ── Input-media bounds ──────────────────────────────────────────────
+// Only limits with a written number behind them: the vendor's own rejection
+// text, or the worker's DTO for that workflow. Kling refuses images on the
+// omni and image routes too ("image aspect ratio is invalid", "image size is
+// too large") but never prints the threshold, so those slots stay bare until
+// one is measured (finding F55).
+
+/** kling-v3-omni reference clip. Vendor rejection text: "video duration can
+ *  not longer than 15.5s", a 3 s floor, and width / height outside 700-4553 px. */
+const KLING_V3_OMNI_REFERENCE_VIDEO_BOUNDS = {
+  minDurationSec: 3,
+  maxDurationSec: 15.5,
+  minSidePixels: 700,
+  maxSidePixels: 4553,
+} as const;
+
+/** Motion-control person photo, per pa-klingai-pluggable-worker
+ *  motion-control/model/command.model.ts: max 10 MB, 300-65536 px a side,
+ *  aspect ratio 1:2.5 to 2.5:1. */
+const KLING_MOTION_IMAGE_BOUNDS = {
+  minSidePixels: 300,
+  maxSidePixels: 65536,
+  minAspectRatio: 1 / 2.5,
+  maxAspectRatio: 2.5,
+  maxBytes: 10 * 1024 * 1024,
+} as const;
+
+/** Motion-control reference clip: 3-30 s and 340-3850 px a side are printed by
+ *  the vendor, 100 MB is the worker DTO's. The vendor caps the clip at 10 s
+ *  when `characterOrientation` is `image`; no descriptor field can make a
+ *  bound depend on another param, so that case stays with the vendor. */
+const KLING_MOTION_VIDEO_BOUNDS = {
+  minDurationSec: 3,
+  maxDurationSec: 30,
+  minSidePixels: 340,
+  maxSidePixels: 3850,
+  maxBytes: 100 * 1024 * 1024,
+} as const;
+
+/** kling-avatar speech track. Vendor rejection text: longer than 300 s. */
+const KLING_AVATAR_AUDIO_BOUNDS = { maxDurationSec: 300 } as const;
+
 // ── Shared model-entry bases ────────────────────────────────────────
 
 const klingV3ProVideoBase = {
@@ -219,7 +261,7 @@ export const { MODELS } = defineModels('kling', [
       // Vendor cap: reference images + frames + multi-image elements ≤ 7
       // (4 when a reference video is supplied).
       ...params.imageInput(7, 'Reference Images'),
-      ...params.videoInput('Reference Video', 'reference', false),
+      ...params.videoInput('Reference Video', 'reference', false, undefined, undefined, undefined, KLING_V3_OMNI_REFERENCE_VIDEO_BOUNDS),
       ...klingOmniReferType,
       ...klingKeepOriginalSound,
       ...klingOmniAdvancedParams,
@@ -308,8 +350,8 @@ export const { MODELS } = defineModels('kling', [
       ...params.renderingSpeed([{ id: 'std', label: 'Standard' }, { id: 'pro', label: 'Pro' }], 'std'),
       ...klingCharacterOrientation,
       ...klingKeepOriginalSound,
-      ...params.imageInput(1, 'Person Photo (upper body)', true),
-      ...params.videoInput('Motion Reference Video'),
+      ...params.imageInput(1, 'Person Photo (upper body)', true, 'reference', KLING_MOTION_IMAGE_BOUNDS),
+      ...params.videoInput('Motion Reference Video', 'reference', true, undefined, undefined, undefined, KLING_MOTION_VIDEO_BOUNDS),
     },
   },
   {
@@ -326,8 +368,8 @@ export const { MODELS } = defineModels('kling', [
       ...params.renderingSpeed([{ id: 'std', label: 'Standard' }, { id: 'pro', label: 'Pro' }], 'std'),
       ...klingCharacterOrientation,
       ...klingKeepOriginalSound,
-      ...params.imageInput(1, 'Person Photo (upper body)', true),
-      ...params.videoInput('Motion Reference Video'),
+      ...params.imageInput(1, 'Person Photo (upper body)', true, 'reference', KLING_MOTION_IMAGE_BOUNDS),
+      ...params.videoInput('Motion Reference Video', 'reference', true, undefined, undefined, undefined, KLING_MOTION_VIDEO_BOUNDS),
     },
   },
   // ── Video: Avatar ─────────────────────────────────────────────────
@@ -347,7 +389,7 @@ export const { MODELS } = defineModels('kling', [
       // audio file required; audio_id stays an additive alternative for raw
       // API callers. The builder never emits both keys (file wins) and the
       // worker enforces the XOR for un-typed callers.
-      ...params.audioInput('Speech Audio', true),
+      ...params.audioInput('Speech Audio', true, 'asset', KLING_AVATAR_AUDIO_BOUNDS),
       audioId: {
         label: 'TTS Audio ID',
         descriptor: { kind: 'text', placeholder: 'audio_id from Kling TTS API' },

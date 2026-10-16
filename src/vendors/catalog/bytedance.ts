@@ -106,7 +106,7 @@ export const { MODELS } = defineModels('bytedance', [
     // Output video length equals the driving audio (4..300s), so wall time scales
     // with the clip. Representative mid-length figure, mirroring v1.5 — not a ceiling.
     estimatedTime: 250,
-    mode: 'video', inputType: 'i2v', release: 'preview',
+    mode: 'video', inputType: 'i2v',
     description: 'Animate one or more subjects with realistic body movement driven by audio.',
     features: [
       feat('Image Input', 'input'),

@@ -3023,7 +3023,6 @@ var { MODELS: MODELS6 } = defineModels("bytedance", [
     estimatedTime: 250,
     mode: "video",
     inputType: "i2v",
-    release: "preview",
     description: "Animate one or more subjects with realistic body movement driven by audio.",
     features: [
       feat("Image Input", "input"),

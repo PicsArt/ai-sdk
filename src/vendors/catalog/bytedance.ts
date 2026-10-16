@@ -96,6 +96,34 @@ export const { MODELS } = defineModels('bytedance', [
     },
   },
   {
+    id: 'bytedance-omnihuman-v2.0', name: 'ByteDance OmniHuman 2.0',
+    addedAt: '2026-10-16',
+    workflow: 'bytedance/omnihuman/v2.0',
+    // Pricing key of the direct BytePlus Vision AI integration. The catalog `id`
+    // keeps its `v2.0` spelling for stability, so the backend key is spelled out.
+    // Priced per second of output video (equal to the driving audio length).
+    modelId: 'bytedance-omnihuman-2.0',
+    // Output video length equals the driving audio (4..300s), so wall time scales
+    // with the clip. Representative mid-length figure, mirroring v1.5 — not a ceiling.
+    estimatedTime: 250,
+    mode: 'video', inputType: 'i2v', release: 'preview',
+    description: 'Animate one or more subjects with realistic body movement driven by audio.',
+    features: [
+      feat('Image Input', 'input'),
+      feat('Audio Input', 'audio'),
+      feat('Multi-Subject', 'quality'),
+    ],
+    paramConfig: {
+      // Optional prompt steers scene/movement/camera, NOT lip-sync (the audio does).
+      ...params.prompt({ required: false }),
+      // v2.0 takes an array of source images (person, pet or character).
+      ...params.imageInput(4, 'Source Image(s)', true),
+      ...params.audioInput('Audio Track', true),
+      // Vendor default is watermark-on; pass false for an un-watermarked result.
+      ...p.boolean('enableWatermark', true, 'Watermark'),
+    },
+  },
+  {
     id: 'bytedance-video-enhance', name: 'ByteDance Video Enhance',
     addedAt: '2026-07-29',
     workflow: 'bytedance/video-enhance',

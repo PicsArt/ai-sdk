@@ -25,6 +25,7 @@ import { MODELS } from './bytedance.ts';
 
 type EnhanceInput = ModelInput<'bytedance-video-enhance'>;
 type OmniHumanInput = ModelInput<'bytedance-omnihuman-v1.5'>;
+type OmniHumanV2Input = ModelInput<'bytedance-omnihuman-v2.0'>;
 
 /**
  * `seed` reached the workflow with the direct BytePlus Vision AI integration
@@ -82,7 +83,28 @@ const buildBytedanceOmniHumanPayload = (input: OmniHumanInput): OmniHumanPayload
   ...(input.seed != null && input.seed !== -1 ? { seed: input.seed } : {}),
 });
 
+/**
+ * OmniHuman 2.0 animates one or more subjects from a driving audio track. The
+ * wire shape renames three fields, so it can't be a pass-through:
+ *   - `imageUrls` → the array `image_urls` the vendor takes (v2.0 is multi-subject);
+ *   - `audioUrl` → `audio_url`;
+ *   - `enableWatermark` → `enable_watermark`.
+ * `prompt` is forwarded only when set (it steers scene/camera, not lip-sync).
+ *
+ * TODO: annotate the return as `WorkflowTypes['bytedance/omnihuman/v2.0']['params']`
+ * once the workflow ships in `@picsart/workflows-types` — it is absent as of 1.1.172
+ * (only `bytedance/omnihuman/v1.5` is published), so the return stays inferred and
+ * drift against the backend `OmniHumanV2Command` is not compile-checked.
+ */
+const buildBytedanceOmniHumanV2Payload = (input: OmniHumanV2Input) => ({
+  image_urls: input.imageUrls,
+  audio_url: input.audioUrl,
+  enable_watermark: input.enableWatermark,
+  ...(input.prompt ? { prompt: input.prompt } : {}),
+});
+
 registerPayloads(MODELS, {
   'bytedance-video-enhance': buildBytedanceVideoEnhancePayload,
   'bytedance-omnihuman-v1.5': buildBytedanceOmniHumanPayload,
+  'bytedance-omnihuman-v2.0': buildBytedanceOmniHumanV2Payload,
 });

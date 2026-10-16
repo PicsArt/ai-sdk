@@ -11,6 +11,8 @@
 export const AsyncFlashV1 = 'async-flash-v1' as const;
 /** ByteDance OmniHuman — bytedance (video) */
 export const BytedanceOmnihumanV15 = 'bytedance-omnihuman-v1.5' as const;
+/** ByteDance OmniHuman 2.0 — bytedance (video) */
+export const BytedanceOmnihumanV20 = 'bytedance-omnihuman-v2.0' as const;
 /** ByteDance Video Enhance — bytedance (video) */
 export const BytedanceVideoEnhance = 'bytedance-video-enhance' as const;
 /** ByteDance Upscaler — bytedance (video) */
@@ -579,6 +581,7 @@ export const Wan30VideoPrime = 'wan-3.0-video-prime' as const;
 export const Models = {
   AsyncFlashV1,
   BytedanceOmnihumanV15,
+  BytedanceOmnihumanV20,
   BytedanceVideoEnhance,
   BytedanceVideoUpscaler,
   CaptionsaiVideoCaptions,

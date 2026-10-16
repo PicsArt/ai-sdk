@@ -141,6 +141,12 @@ type ModelInputById = {
         turboMode?: boolean;
         seed?: number;
     };
+    "bytedance-omnihuman-v2.0": {
+        prompt?: string;
+        imageUrls: [string, ...string[]];
+        audioUrl: string;
+        enableWatermark?: boolean;
+    };
     "bytedance-video-enhance": {
         videoUrl: string;
         quality?: "standard" | "professional";
@@ -3558,6 +3564,7 @@ declare function createClient(config: ClientConfig): AiClient;
 declare const Models: {
     readonly AsyncFlashV1: "async-flash-v1";
     readonly BytedanceOmnihumanV15: "bytedance-omnihuman-v1.5";
+    readonly BytedanceOmnihumanV20: "bytedance-omnihuman-v2.0";
     readonly BytedanceVideoEnhance: "bytedance-video-enhance";
     readonly BytedanceVideoUpscaler: "bytedance-video-upscaler";
     readonly CaptionsaiVideoCaptions: "captionsai-video-captions";

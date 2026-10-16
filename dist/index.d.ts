@@ -44,8 +44,9 @@ interface CreditUsage {
     balance?: number;
 }
 /**
- * What a model's `/options` endpoint answers for one request — today its price
- * and how it was derived (mirrors `WorkflowOptions` from `@picsart/workflows-client`).
+ * What a model's `/options` endpoint answers for one request — its price, how
+ * it was derived, and whether the caller is permitted to run it (mirrors `WorkflowOptions` from
+ * `@picsart/workflows-client`).
  */
 interface OptionsResult {
     /** Monetization tool the request is billed under. */
@@ -62,6 +63,10 @@ interface OptionsResult {
     unit?: string;
     /** Rate per `unit`. */
     price?: number;
+    /** False when the caller lacks a permission the request needs — see `missingPermissions`. */
+    hasPermission?: boolean;
+    /** Permissions the caller is missing for this request, when `hasPermission` is false. */
+    missingPermissions?: string[];
 }
 interface WorkflowPollOptions {
     intervalMs?: number;

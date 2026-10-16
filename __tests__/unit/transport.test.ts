@@ -153,7 +153,7 @@ function recordingTransport() {
 // ── options() may answer the full response ────────────────────────────
 
 {
-  const response = { credits: 40, originalCredits: 50, usageAmount: 5, unit: 'second', price: 8, estimated: true };
+  const response = { credits: 40, originalCredits: 50, usageAmount: 5, unit: 'second', price: 8, estimated: true, hasPermission: false, missingPermissions: ['video.4k'] };
   const ai = createClient({ transport: {
     async execute() { return { result: { url: 'https://cdn.test/x.png' } }; },
     async options() { return response; },

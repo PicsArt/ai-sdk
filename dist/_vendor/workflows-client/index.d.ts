@@ -48,6 +48,8 @@ interface WorkflowOptions {
     estimated?: boolean;
     unit?: string;
     price?: number;
+    hasPermission?: boolean;
+    missingPermissions?: string[];
 }
 type HistoryResponse<R> = PicsartResponse & {
     response: {

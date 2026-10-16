@@ -811,7 +811,8 @@ export function createClient(config: ClientConfig) {
 
     /**
      * Same /options call as getCredits(), returning the whole response:
-     * credits plus billable amount, unit, rate, and whether they are estimated.
+     * credits plus billable amount, unit, rate, whether they are estimated, and
+     * whether the caller has the permissions the request needs.
      */
     async options(
       model: string,

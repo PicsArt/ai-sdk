@@ -86,6 +86,8 @@ export const Flux2Max = 'flux-2-max' as const;
 export const Flux2Pro = 'flux-2-pro' as const;
 /** Flux 3 Image — flux (image) */
 export const Flux3Image = 'flux-3-image' as const;
+/** Flux 3 Image Klein — flux (image) */
+export const Flux3ImageKlein = 'flux-3-image-klein' as const;
 /** Flux 3 Video — flux (video) */
 export const Flux3Video = 'flux-3-video' as const;
 /** Flux Kontext Max — flux (image) */
@@ -94,7 +96,7 @@ export const FluxKontextMax = 'flux-kontext-max' as const;
 export const FluxKontextPro = 'flux-kontext-pro' as const;
 /** FLUX Video Edit — flux (video) */
 export const FluxVideoEdit = 'flux-video-edit' as const;
-/** Flux Video Upscale — flux (video) */
+/** Flux 3 Video Upscale — flux (video) */
 export const FluxVideoUpscale = 'flux-video-upscale' as const;
 /** Gemini 2.5 Flash — google (text) */
 export const Gemini25Flash = 'gemini-2.5-flash' as const;
@@ -610,6 +612,7 @@ export const Models = {
   Flux2Max,
   Flux2Pro,
   Flux3Image,
+  Flux3ImageKlein,
   Flux3Video,
   FluxKontextMax,
   FluxKontextPro,

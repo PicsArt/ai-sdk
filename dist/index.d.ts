@@ -359,6 +359,15 @@ type ModelInputById = {
         imageUrls?: string[];
         safetyTolerance?: number;
     };
+    "flux-3-image-klein": {
+        prompt: string;
+        aspectRatio?: "auto" | "21:9" | "2:1" | "16:9" | "3:2" | "7:5" | "4:3" | "5:4" | "1:1" | "4:5" | "3:4" | "5:7" | "2:3" | "9:16" | "9:21" | "1:2";
+        resolution?: "768sq" | "1k" | "1.5k" | "2k" | "4k";
+        count?: 1 | 2 | 4 | 6 | 8 | 10;
+        imageUrls?: string[];
+        steps?: number;
+        safetyTolerance?: number;
+    };
     "flux-3-video": {
         prompt: string;
         aspectRatio?: "auto" | "21:9" | "2:1" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
@@ -3563,6 +3572,7 @@ declare const Models: {
     readonly Flux2Max: "flux-2-max";
     readonly Flux2Pro: "flux-2-pro";
     readonly Flux3Image: "flux-3-image";
+    readonly Flux3ImageKlein: "flux-3-image-klein";
     readonly Flux3Video: "flux-3-video";
     readonly FluxKontextMax: "flux-kontext-max";
     readonly FluxKontextPro: "flux-kontext-pro";

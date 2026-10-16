@@ -250,6 +250,47 @@ export const { MODELS } = defineModels('flux', [
     },
   },
   {
+    // Distilled "Klein" tier of FLUX 3 Image. Same contract as flux-3-image —
+    // a pure pass-through, since every Command field already carries the SDK's
+    // unified name (prompt, imageUrls, aspectRatio, resolution, count,
+    // safetyTolerance) — with two deltas: a `steps` knob (1–16 denoising steps
+    // for the distilled model; fewer is faster and it does not affect cost) and
+    // a wider safetyTolerance range (0–7 vs the 0–4 of flux-3-image). As with
+    // flux-3-image, supplying imageUrls switches the vendor into editing mode
+    // (hence inputType 't2i'), `version` pins the endpoint contract and is not
+    // surfaced, and `options` is dropped.
+    id: 'flux-3-image-klein', name: 'Flux 3 Image Klein',
+    workflow: 'bfl/v1/flux-3-image-klein',
+    mode: 'image', inputType: 't2i',
+    addedAt: '2026-10-16',
+    badge: ['fast'] as const,
+    // Klein is the distilled/low-step tier, so it generates faster than
+    // flux-3-image. Reuse that model's per-tier map as a safe upper bound —
+    // over-estimating only finishes the bar early; tighten once stage
+    // measurements land.
+    estimatedTime: { '768sq': 110, '1k': 150, '1.5k': 195, '2k': 240, '4k': 360 },
+    description: 'Distilled, faster FLUX 3 Image — generate and edit with up to 10 references, with a steps control to trade speed for detail, natively up to 4K.',
+    features: [
+      feat('Multi-Image Input', 'input'),
+      feat('4K', 'resolution'),
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(flux3ImageAspectRatios, 'auto'),
+      ...params.resolution(flux3ImageResolutions, '1k'),
+      ...params.count(),
+      // Up to 10 references; the first one drives the output ratio while
+      // aspectRatio is 'auto'.
+      ...params.imageInput(10, 'Reference Images', false, 'reference'),
+      // Denoising steps for the distilled Klein model: 1 (fastest) … 16.
+      // Vendor default is 16; does not affect cost (priced per resolution tier).
+      ...p.range('steps', 1, 16, 16, { label: 'Steps' }),
+      // Moderation level: 0 (strict) … 7 (permissive). Wider than the 0–4 of
+      // flux-3-image.
+      ...p.range('safetyTolerance', 0, 7, 2, { label: 'Safety Tolerance' }),
+    },
+  },
+  {
     // Single workflow `flux/v1/video` derives its mode from the input it's
     // given: none → t2v, keyframe images → i2v, a start video → v2v. No
     // editWorkflow needed. Payload assembly lives in flux.payloads.ts.
@@ -288,12 +329,12 @@ export const { MODELS } = defineModels('flux', [
     // (videoUrl, upscaleFactor, creativity, prompt, safetyTolerance) — no
     // payload builder needed. webhookUrl is polling plumbing, not surfaced
     // (same as flux-3-video).
-    id: 'flux-video-upscale', name: 'Flux Video Upscale',
+    id: 'flux-video-upscale', name: 'Flux 3 Video Upscale',
     workflow: 'flux/v1/video-upscale',
     mode: 'video', inputType: 'v2v',
     addedAt: '2026-08-28',
     estimatedTime: 180,
-    description: 'Upscale videos toward 4K (1.5x–3x) in precise (source-faithful) or creative (detail-enhancing) mode. Source clips up to 20 seconds and 2K.',
+    description: 'FLUX 3 powered video upscale toward 4K (1.5x–3x) in precise (source-faithful) or creative (detail-enhancing) mode. Source clips up to 20 seconds and 2K.',
     features: [
       feat('Upscale', 'quality'),
       feat('Video Required', 'input'),

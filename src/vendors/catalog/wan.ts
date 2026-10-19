@@ -93,6 +93,14 @@ export const buildWan27VideoEditPayload: PayloadBuilder = (ctx) => {
 const WAN27_AR = ['16:9', '9:16', '1:1', '4:3', '3:4'];
 const WAN27_RES = ['720P', '1080P'];
 
+// ── Wan 3.0 input limits ─────────────────────────────────────────
+// Vendor-published limits, recovered from the vendor's own rejection text
+// (2026-09-18 to 2026-10-18; finding F95 on the ai-toolkit failure board).
+// The image floor is per side: 560x155 is refused although its area is above 240².
+const WAN_V3_IMAGE_BOUNDS = { minSidePixels: 240, maxBytes: 20 * 1024 * 1024 };
+const WAN_V3_VIDEO_BOUNDS = { minDurationSec: 1, maxDurationSec: 15, maxBytes: 100 * 1024 * 1024 };
+const WAN_V3_AUDIO_BOUNDS = { maxDurationSec: 15, maxBytes: 15 * 1024 * 1024 };
+
 // ── Wan 3.0 constraints ──────────────────────────────────────────
 // Schema: "Reference and frame types are mutually exclusive within one
 // request." Start/End frame slots (first_frame/last_frame) cannot be combined
@@ -131,6 +139,15 @@ const wanV3Constraints: Constraint[] = [
   }, then: {
     prompt: { required: true, reason: 'Add a prompt or at least one frame or reference.' },
   } },
+  // Vendor: input video duration + output duration must stay within 30 s.
+  // Reference videos are capped at 15 s in total, so only the 30 s option can break it.
+  { when: { videoUrls: { exists: true } }, then: {
+    duration: { allowed: [-1, 5, 10, 15], reason: 'With a reference video, the output can be at most 15 s.' },
+  } },
+  // Vendor: last_frame must be accompanied by first_frame.
+  { when: { startFrame: { exists: false } }, then: {
+    endFrame: { disabled: true, reason: 'End frame requires a start frame.' },
+  } },
 ];
 
 // Shared by wan-3.0-video and wan-3.0-video-prime — identical models, prime is faster.
@@ -152,11 +169,11 @@ const wanV3ParamConfig = {
   // Vendor default is 'adaptive' (model chooses from intent and input media).
   ...params.aspectRatio(['16:9', '9:16', '1:1', '4:3', '3:4', 'adaptive'], 'adaptive'),
   ...params.generateAudio(true),
-  ...params.startFrame(),
-  ...params.endFrame(),
-  ...params.imageInput(10, 'Reference Images'),
-  ...params.videoInputs(5, 'Reference Videos', false),
-  ...params.audioInputs(5, 'Reference Audios'),
+  ...params.startFrame('Start Frame', false, WAN_V3_IMAGE_BOUNDS),
+  ...params.endFrame('End Frame', WAN_V3_IMAGE_BOUNDS),
+  ...params.imageInput(10, 'Reference Images', false, 'reference', WAN_V3_IMAGE_BOUNDS),
+  ...params.videoInputs(5, 'Reference Videos', false, WAN_V3_VIDEO_BOUNDS),
+  ...params.audioInputs(5, 'Reference Audios', false, WAN_V3_AUDIO_BOUNDS),
   ...p.boolean('enableThinking', false, 'Deep Thinking'),
   ...p.boolean('watermark', false, 'Watermark'),
   // No default: a materialized seed would pin every generation to one value.

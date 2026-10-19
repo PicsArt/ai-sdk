@@ -40,13 +40,14 @@ export const extractUrl = (result: unknown): string | undefined => {
     if (typeof obj.url === 'string') return obj.url;
     if (typeof obj.videoUrl === 'string') return obj.videoUrl;
     if (typeof obj.video_url === 'string') return obj.video_url;
-    if (obj.video && typeof obj.video === 'object') {
-      const v = obj.video as Record<string, unknown>;
-      if (typeof v.url === 'string') return v.url;
-    }
-    if (obj.audio && typeof obj.audio === 'object') {
-      const a = obj.audio as Record<string, unknown>;
-      if (typeof a.url === 'string') return a.url;
+    // `video` / `audio` are a single file object, or an array of them when the
+    // model returns several samples (Mirelo SFX: `audio: [{ url }, ...]`).
+    for (const key of ['video', 'audio'] as const) {
+      const media = Array.isArray(obj[key]) ? (obj[key] as unknown[])[0] : obj[key];
+      if (media && typeof media === 'object') {
+        const m = media as Record<string, unknown>;
+        if (typeof m.url === 'string') return m.url;
+      }
     }
     if (obj.assets && typeof obj.assets === 'object') {
       const a = obj.assets as Record<string, unknown>;
@@ -195,14 +196,15 @@ export interface MultiResultItem {
 }
 
 /** Result-array keys the multi-result fan-out (and per-item metadata) knows. */
-const RESULT_ARRAY_KEYS = ['items', 'images', 'imageUrls', 'urls', 'data', 'previews'] as const;
+const RESULT_ARRAY_KEYS = ['items', 'images', 'imageUrls', 'urls', 'data', 'previews', 'audio', 'video'] as const;
 
 /**
  * Extract all result items from a multi-result API response.
  * Returns undefined if the response doesn't contain multiple items.
  * Supports the result-array shapes extractUrl already knows:
  * `items[]` (explore), `images[]` (fal-style), `imageUrls[]` (gemini),
- * `urls: string[]` (seedream) and `data[]` (OpenAI-style) — entries are
+ * `urls: string[]` (seedream), `data[]` (OpenAI-style) and `audio[]` /
+ * `video[]` (fal multi-sample media, e.g. Mirelo SFX) — entries are
  * URL strings or objects carrying a string `url`.
  */
 export const extractAllResults = (result: unknown): MultiResultItem[] | undefined => {

@@ -11878,13 +11878,12 @@ var extractUrl = (result) => {
     if (typeof obj.url === "string") return obj.url;
     if (typeof obj.videoUrl === "string") return obj.videoUrl;
     if (typeof obj.video_url === "string") return obj.video_url;
-    if (obj.video && typeof obj.video === "object") {
-      const v = obj.video;
-      if (typeof v.url === "string") return v.url;
-    }
-    if (obj.audio && typeof obj.audio === "object") {
-      const a = obj.audio;
-      if (typeof a.url === "string") return a.url;
+    for (const key of ["video", "audio"]) {
+      const media = Array.isArray(obj[key]) ? obj[key][0] : obj[key];
+      if (media && typeof media === "object") {
+        const m = media;
+        if (typeof m.url === "string") return m.url;
+      }
     }
     if (obj.assets && typeof obj.assets === "object") {
       const a = obj.assets;
@@ -11995,7 +11994,7 @@ var extractText = (result) => {
   }
   return void 0;
 };
-var RESULT_ARRAY_KEYS = ["items", "images", "imageUrls", "urls", "data", "previews"];
+var RESULT_ARRAY_KEYS = ["items", "images", "imageUrls", "urls", "data", "previews", "audio", "video"];
 var extractAllResults = (result) => {
   if (!result || typeof result !== "object") return void 0;
   const obj = result;
@@ -13836,7 +13835,7 @@ function parseResult(completed, model, contract) {
   }
   const obj = parsed && typeof parsed === "object" ? parsed : void 0;
   let source = parsed;
-  for (const key of ["images", "items", "imageUrls", "data", "previews"]) {
+  for (const key of ["images", "items", "imageUrls", "data", "previews", "audio", "video"]) {
     const arr = obj?.[key];
     if (Array.isArray(arr) && arr.length > 0) {
       source = arr[0];

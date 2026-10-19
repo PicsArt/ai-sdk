@@ -87,7 +87,7 @@ export function parseResult(
   // known result array when present, otherwise the result object itself.
   const obj = (parsed && typeof parsed === 'object') ? parsed as Record<string, unknown> : undefined;
   let source: unknown = parsed;
-  for (const key of ['images', 'items', 'imageUrls', 'data', 'previews'] as const) {
+  for (const key of ['images', 'items', 'imageUrls', 'data', 'previews', 'audio', 'video'] as const) {
     const arr = obj?.[key];
     if (Array.isArray(arr) && arr.length > 0) { source = arr[0]; break; }
   }

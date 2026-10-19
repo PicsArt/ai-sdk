@@ -320,6 +320,8 @@ export const Lyria3Clip = 'lyria-3-clip' as const;
 export const Lyria3Pro = 'lyria-3-pro' as const;
 /** Lyria 3.5 — google (audio) */
 export const Lyria35 = 'lyria-3.5' as const;
+/** Gemini Omni (Macaron) — google (video) */
+export const MacaronCookie = 'macaron-cookie' as const;
 /** MiniMax H3 — minimax (video) */
 export const MinimaxH3 = 'minimax-h3' as const;
 /** MiniMax H3 Context IR — minimax (text) */
@@ -732,6 +734,7 @@ export const Models = {
   Lyria3Clip,
   Lyria3Pro,
   Lyria35,
+  MacaronCookie,
   MinimaxH3,
   MinimaxH3ContextIr,
   MinimaxH3Max,

@@ -466,4 +466,38 @@ export const { MODELS } = defineModels('google', [
       ...params.videoInputs(3, 'Reference Videos'),
     },
   },
+  {
+    id: 'macaron-cookie',
+    name: 'Gemini Omni (Macaron)',
+    addedAt: '2026-10-19',
+    release: 'preview',
+    workflow: 'gemini-omni/video',
+    estimatedTime: { '360p': 30, '720p': 40, '1080p': 60, '4k': 90 },
+    mode: 'video', inputType: 't2v',
+    description: 'Gemini Omni (Macaron) — multimodal video with frame interpolation, extension, reference-guided generation, and up to 4K output.',
+    features: [feat('Start/End Frame', 'input'), feat('Reference Images & Videos', 'input'), feat('Video Extension', 'input'), feat('4K', 'resolution'), feat('3–10 sec', 'duration')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(['16:9', '9:16'], '16:9'),
+      ...params.resolution(['360p', '720p', '1080p', '4k'], '720p'),
+      ...params.duration([3, 4, 5, 6, 7, 8, 9, 10], 8),
+      ...params.startFrame('Start Frame'),
+      ...params.endFrame('End Frame'),
+      ...params.imageInput(5, 'Reference Images', false, 'reference'),
+      // Source video drives the edit/extend tasks; input must be under 30s.
+      ...params.videoInput('Source Video', 'asset', false, 30),
+      ...params.videoInputs(3, 'Reference Videos'),
+      // With a source video the worker auto-derives `extend`; this toggle lets
+      // the caller choose video editing instead. Only sent when a video is present.
+      ...p.enum('task', ['edit', 'extend'], 'edit', { label: 'Mode' }),
+    },
+    // edit/extend only apply to a source video — disable the toggle until one
+    // is provided (matches the payload builder, which omits `task` without it).
+    constraints: [
+      {
+        when: { videoUrl: { exists: false } },
+        then: { task: { disabled: true, reason: 'Add a source video to choose edit or extend.' } },
+      },
+    ],
+  },
 ]);

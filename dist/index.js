@@ -7252,6 +7252,41 @@ var { MODELS: MODELS22 } = defineModels("google", [
       ...params.videoInput("Source Video", "asset", false, 30),
       ...params.videoInputs(3, "Reference Videos")
     }
+  },
+  {
+    id: "macaron-cookie",
+    name: "Gemini Omni (Macaron)",
+    addedAt: "2026-10-19",
+    release: "preview",
+    workflow: "gemini-omni/video",
+    estimatedTime: { "360p": 30, "720p": 40, "1080p": 60, "4k": 90 },
+    mode: "video",
+    inputType: "t2v",
+    description: "Gemini Omni (Macaron) \u2014 multimodal video with frame interpolation, extension, reference-guided generation, and up to 4K output.",
+    features: [feat("Start/End Frame", "input"), feat("Reference Images & Videos", "input"), feat("Video Extension", "input"), feat("4K", "resolution"), feat("3\u201310 sec", "duration")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.aspectRatio(["16:9", "9:16"], "16:9"),
+      ...params.resolution(["360p", "720p", "1080p", "4k"], "720p"),
+      ...params.duration([3, 4, 5, 6, 7, 8, 9, 10], 8),
+      ...params.startFrame("Start Frame"),
+      ...params.endFrame("End Frame"),
+      ...params.imageInput(5, "Reference Images", false, "reference"),
+      // Source video drives the edit/extend tasks; input must be under 30s.
+      ...params.videoInput("Source Video", "asset", false, 30),
+      ...params.videoInputs(3, "Reference Videos"),
+      // With a source video the worker auto-derives `extend`; this toggle lets
+      // the caller choose video editing instead. Only sent when a video is present.
+      ...p.enum("task", ["edit", "extend"], "edit", { label: "Mode" })
+    },
+    // edit/extend only apply to a source video — disable the toggle until one
+    // is provided (matches the payload builder, which omits `task` without it).
+    constraints: [
+      {
+        when: { videoUrl: { exists: false } },
+        then: { task: { disabled: true, reason: "Add a source video to choose edit or extend." } }
+      }
+    ]
   }
 ]);
 
@@ -7272,6 +7307,21 @@ var buildOmniFlash11Payload = (input) => ({
   ...input.endFrame ? { lastFrame: toImage(input.endFrame) } : {},
   ...input.imageUrls?.length ? { referenceImages: input.imageUrls.map(toImage) } : {},
   ...input.videoUrl ? { video: { url: input.videoUrl } } : {},
+  ...input.videoUrls?.length ? { referenceVideos: input.videoUrls.map((url) => ({ url })) } : {}
+});
+var buildMacaronCookiePayload = (input) => ({
+  prompt: input.prompt,
+  model: "macaron-cookie",
+  aspectRatio: input.aspectRatio ?? "16:9",
+  durationSeconds: input.duration ?? 8,
+  resolution: input.resolution ?? "720p",
+  ...input.startFrame ? { image: toImage(input.startFrame) } : {},
+  ...input.endFrame ? { lastFrame: toImage(input.endFrame) } : {},
+  ...input.imageUrls?.length ? { referenceImages: input.imageUrls.map(toImage) } : {},
+  // A source video runs edit or extend; the worker auto-derives `extend`, so
+  // forward the explicit task (default 'edit') to pick editing. Omitted without
+  // a video so text/image/reference inputs keep their own derived tasks.
+  ...input.videoUrl ? { video: { url: input.videoUrl }, task: input.task ?? "edit" } : {},
   ...input.videoUrls?.length ? { referenceVideos: input.videoUrls.map((url) => ({ url })) } : {}
 });
 var STYLE_MAX = 500;
@@ -7359,6 +7409,7 @@ var buildTts38Payload = (model) => (input) => {
 };
 registerPayloads(MODELS22, {
   "gemini-omni-1.1-flash-preview": buildOmniFlash11Payload,
+  "macaron-cookie": buildMacaronCookiePayload,
   "gemini-2.5-flash-tts": buildTts25Payload("gemini-2.5-flash-tts"),
   "gemini-2.5-pro-tts": buildTts25Payload("gemini-2.5-pro-tts"),
   "gemini-3.8-flash-tts": buildTts38Payload("gemini-3.8-flash-tts"),
@@ -15431,6 +15482,7 @@ var LumaUni1Max = "luma-uni-1-max";
 var Lyria3Clip = "lyria-3-clip";
 var Lyria3Pro = "lyria-3-pro";
 var Lyria35 = "lyria-3.5";
+var MacaronCookie = "macaron-cookie";
 var MinimaxH3 = "minimax-h3";
 var MinimaxH3ContextIr = "minimax-h3-context-ir";
 var MinimaxH3Max = "minimax-h3-max";
@@ -15705,6 +15757,7 @@ var Models = {
   Lyria3Clip,
   Lyria3Pro,
   Lyria35,
+  MacaronCookie,
   MinimaxH3,
   MinimaxH3ContextIr,
   MinimaxH3Max,

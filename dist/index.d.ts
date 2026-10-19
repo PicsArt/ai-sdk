@@ -1234,6 +1234,18 @@ type ModelInputById = {
         prompt: string;
         imageUrls?: string[];
     };
+    "macaron-cookie": {
+        prompt: string;
+        aspectRatio?: "16:9" | "9:16";
+        resolution?: "360p" | "720p" | "1080p" | "4k";
+        duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+        startFrame?: string;
+        endFrame?: string;
+        imageUrls?: string[];
+        videoUrl?: string;
+        videoUrls?: string[];
+        task?: "edit" | "extend";
+    };
     "minimax-h3": {
         prompt: string;
         startFrame?: string;
@@ -3720,6 +3732,7 @@ declare const Models: {
     readonly Lyria3Clip: "lyria-3-clip";
     readonly Lyria3Pro: "lyria-3-pro";
     readonly Lyria35: "lyria-3.5";
+    readonly MacaronCookie: "macaron-cookie";
     readonly MinimaxH3: "minimax-h3";
     readonly MinimaxH3ContextIr: "minimax-h3-context-ir";
     readonly MinimaxH3Max: "minimax-h3-max";

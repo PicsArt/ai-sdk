@@ -49,6 +49,36 @@ const buildOmniFlash11Payload = (input: OmniFlash11Input) => ({
     : {}),
 });
 
+// Macaron Cookie shares the gemini-omni/video workflow and the full 1.1
+// feature set; only the pinned `model` string differs. Return is left
+// inferred: `macaron-cookie` is absent from
+// WorkflowTypes['gemini-omni/video']['params'].model as of 1.1.176, so a
+// typed return would reject the pinned value. Drop the cast once upstream
+// adds the enum member.
+type MacaronCookieInput = ModelInput<'macaron-cookie'>;
+
+const buildMacaronCookiePayload = (input: MacaronCookieInput) => ({
+  prompt: input.prompt,
+  model: 'macaron-cookie',
+  aspectRatio: input.aspectRatio ?? '16:9',
+  durationSeconds: input.duration ?? 8,
+  resolution: input.resolution ?? '720p',
+  ...(input.startFrame ? { image: toImage(input.startFrame) } : {}),
+  ...(input.endFrame ? { lastFrame: toImage(input.endFrame) } : {}),
+  ...(input.imageUrls?.length
+    ? { referenceImages: input.imageUrls.map(toImage) }
+    : {}),
+  // A source video runs edit or extend; the worker auto-derives `extend`, so
+  // forward the explicit task (default 'edit') to pick editing. Omitted without
+  // a video so text/image/reference inputs keep their own derived tasks.
+  ...(input.videoUrl
+    ? { video: { url: input.videoUrl }, task: input.task ?? 'edit' }
+    : {}),
+  ...(input.videoUrls?.length
+    ? { referenceVideos: input.videoUrls.map((url) => ({ url })) }
+    : {}),
+});
+
 // ── TTS (gemini/v1/audios) ──────────────────────────────────────────
 
 type Tts25Input = ModelInput<'gemini-2.5-flash-tts'>;
@@ -225,6 +255,7 @@ const buildTts38Payload = (model: GeminiTtsModel) => (input: Tts38Input): Gemini
 
 registerPayloads(MODELS, {
   'gemini-omni-1.1-flash-preview': buildOmniFlash11Payload,
+  'macaron-cookie': buildMacaronCookiePayload,
   'gemini-2.5-flash-tts': buildTts25Payload('gemini-2.5-flash-tts'),
   'gemini-2.5-pro-tts': buildTts25Payload('gemini-2.5-pro-tts'),
   'gemini-3.8-flash-tts': buildTts38Payload('gemini-3.8-flash-tts'),

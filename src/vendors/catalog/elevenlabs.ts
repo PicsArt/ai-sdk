@@ -212,6 +212,7 @@ export const { MODELS } = defineModels('elevenlabs', [
   {
     id: 'eleven-multilingual-v2', name: 'Eleven Multilingual v2', modelId: 'eleven_multilingual_v2',
     addedAt: '2026-02-06',
+    deprecated: true, // 2 generations behind: superseded by eleven-v3 / eleven-v4
     workflow: 'elevenlabs/v1/text-to-speech',
     estimatedTime: 9,
     mode: 'audio', inputType: 'tts',

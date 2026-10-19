@@ -19,10 +19,7 @@ const EXPECTED: Record<string, number> = {
   'gpt-image-1': 32_000,
   'gpt-image-1.5': 32_000,
   'gpt-image-2': 32_000,
-  // fal `ltx-2` / `ltx-2.3` schemas.
-  'ltx-pro-t2v': 5000,
-  'ltx-v2-fast': 5000,
-  'ltx-v2-retake': 5000,
+  // fal `ltx-2.3` schemas.
   'ltx-v2.3-pro': 5000,
   'ltx-v2.3-fast': 5000,
   'ltx-2.3-a2v': 5000,
@@ -35,8 +32,6 @@ const EXPECTED: Record<string, number> = {
   'luma-uni-1': 5000,
   'luma-uni-1-max': 5000,
   // pa-alibaba worker @MaxLength.
-  'wan-2.6-t2v': 5000,
-  'wan-2.6-r2v': 5000,
   'wan-2.6-image': 1500,
   // H3 Max schemas — a far longer prompt than MiniMax's own H3 endpoint,
   // which caps at 7,000.

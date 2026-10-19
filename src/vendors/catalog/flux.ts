@@ -180,6 +180,7 @@ export const { MODELS } = defineModels('flux', [
     ...fluxKontextBase,
     id: 'flux-kontext-max', name: 'Flux Kontext Max', modelId: 'flux-kontext-max',
     addedAt: '2026-02-06',
+    deprecated: true, // FLUX.1 Kontext is 2 generations behind: superseded by flux-2-* / flux-3-image
     buildPayload: buildFluxKontextPayload('flux-kontext-max'),
     estimatedTime: 15,
     description: 'Edit and compose from up to 4 reference images with context awareness.',
@@ -195,6 +196,7 @@ export const { MODELS } = defineModels('flux', [
     ...fluxKontextBase,
     id: 'flux-kontext-pro', name: 'Flux Kontext Pro', modelId: 'flux-kontext-pro',
     addedAt: '2026-02-06',
+    deprecated: true, // FLUX.1 Kontext is 2 generations behind: superseded by flux-2-* / flux-3-image
     buildPayload: buildFluxKontextPayload('flux-kontext-pro'),
     estimatedTime: 15,
     badge: ['fast'] as const,

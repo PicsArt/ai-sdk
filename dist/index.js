@@ -1177,7 +1177,7 @@ var passthroughPayload = (paramConfig) => (ctx) => {
   return payload;
 };
 function defineModels(provider, configs) {
-  const MODELS41 = [];
+  const MODELS40 = [];
   for (const c of configs) {
     const prov = c.provider ?? provider;
     const resolvedPayload = c.buildPayload ?? passthroughPayload(c.paramConfig);
@@ -1214,19 +1214,19 @@ function defineModels(provider, configs) {
     if (c.validateInput !== void 0) model.validateInput = c.validateInput;
     const contract = createModelContract(model);
     model.outputSchema = c.outputSchema ?? contract.output;
-    MODELS41.push(model);
+    MODELS40.push(model);
   }
-  return { MODELS: MODELS41 };
+  return { MODELS: MODELS40 };
 }
-function registerPayloads(MODELS41, payloads) {
+function registerPayloads(MODELS40, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS41.find((m) => m.id === id);
+    const model = MODELS40.find((m) => m.id === id);
     if (model) model.buildPayload = builder;
   }
 }
-function registerEditPayloads(MODELS41, payloads) {
+function registerEditPayloads(MODELS40, payloads) {
   for (const [id, builder] of Object.entries(payloads)) {
-    const model = MODELS41.find((m) => m.id === id);
+    const model = MODELS40.find((m) => m.id === id);
     if (model) model.buildEditPayload = builder;
   }
 }
@@ -1609,6 +1609,8 @@ var { MODELS } = defineModels("kling", [
     name: "Kling V2.6",
     modelId: "kling-v2-6",
     addedAt: "2026-02-11",
+    deprecated: true,
+    // 2 generations behind: superseded by kling-v3 / kling-v4
     estimatedTime: 60,
     description: "Mature pipeline with audio and pro-tier rendering."
   },
@@ -1700,6 +1702,8 @@ var { MODELS } = defineModels("kling", [
     name: "Kling Video O1",
     modelId: "kling-video-o1",
     addedAt: "2026-03-11",
+    deprecated: true,
+    // 2 generations behind: superseded by kling-v3-omni / kling-v4-omni
     workflow: "kling-omni-video",
     estimatedTime: 55,
     mode: "video",
@@ -2422,26 +2426,6 @@ var ltxFastLongConstraints = [12, 14, 16, 18, 20].map((d) => ({
     fps: { allowed: [25], reason: FAST_LONG }
   }
 }));
-var buildLtxT2VPayload = (ctx) => ({
-  prompt: ctx.prompt,
-  ...ctx.imageUrls?.[0] ? { image_url: ctx.imageUrls[0] } : {},
-  ...ctx.duration != null ? { duration: ctx.duration } : {},
-  ...ctx.resolution ? { resolution: ctx.resolution } : {},
-  generate_audio: ctx.generateAudio ?? true
-});
-var buildLtxI2VPayload = (ctx) => ({
-  prompt: ctx.prompt,
-  image_url: ctx.imageUrls?.[0],
-  ...ctx.duration != null ? { duration: ctx.duration } : {},
-  ...ctx.resolution ? { resolution: ctx.resolution } : {},
-  generate_audio: ctx.generateAudio ?? true
-});
-var buildLtxFastPayload = buildLtxT2VPayload;
-var buildLtxRetakePayload = (ctx) => ({
-  prompt: ctx.prompt,
-  video_url: ctx.videoUrl,
-  ...ctx.duration != null ? { duration: ctx.duration } : {}
-});
 var buildLtx23T2VPayload = (ctx) => ({
   prompt: ctx.prompt,
   ...ctx.imageUrls?.[0] ? { image_url: ctx.imageUrls[0] } : {},
@@ -2492,75 +2476,6 @@ var buildLtx23RetakePayload = (ctx) => ({
   ...ctx.startTime != null ? { start_time: ctx.startTime } : {}
 });
 var { MODELS: MODELS2 } = defineModels("ltx", [
-  // ── LTX 2.0 ──────────────────────────────────────────────────────
-  {
-    id: "ltx-pro-t2v",
-    name: "LTX Pro",
-    modelId: "ltx-v2-pro",
-    addedAt: "2026-02-06",
-    deprecated: true,
-    // superseded by ltx-2.3-pro-t2v
-    workflow: "ltxv-2/text-to-video",
-    editWorkflow: "ltxv-2/image-to-video",
-    buildPayload: buildLtxT2VPayload,
-    buildEditPayload: buildLtxI2VPayload,
-    estimatedTime: 75,
-    editEstimatedTime: 78,
-    mode: "video",
-    inputType: "t2v",
-    description: "4K output with audio \u2014 streamlined for fast, production-ready results.",
-    features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("Audio", "audio"), feat("4K", "resolution"), feat("6/8/10 sec", "duration")],
-    paramConfig: {
-      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
-      ...params.duration(PRO_DURATIONS, 6),
-      ...params.resolution([...LTX_RESOLUTIONS]),
-      ...params.generateAudio(),
-      ...params.imageInput()
-    }
-  },
-  {
-    id: "ltx-v2-fast",
-    name: "LTX Fast",
-    addedAt: "2026-02-06",
-    deprecated: true,
-    // superseded by ltx-2.3-fast-t2v
-    workflow: "ltxv-2/text-to-video/fast",
-    editWorkflow: "ltxv-2/image-to-video/fast",
-    buildPayload: buildLtxFastPayload,
-    buildEditPayload: buildLtxI2VPayload,
-    estimatedTime: 38,
-    editEstimatedTime: 40,
-    mode: "video",
-    inputType: "t2v",
-    description: "Fast with long video support \u2014 up to 20s at 1080p, ideal for drafts and extended scenes.",
-    features: [feat("Image Input", "input"), feat("Fast", "duration"), feat("Up to 20s", "duration"), feat("Audio", "audio"), feat("4K", "resolution")],
-    paramConfig: {
-      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
-      ...params.duration(FAST_DURATIONS, 6),
-      ...params.resolution([...LTX_RESOLUTIONS]),
-      ...params.generateAudio(),
-      ...params.imageInput()
-    }
-  },
-  {
-    id: "ltx-v2-retake",
-    name: "LTX Retake",
-    addedAt: "2026-02-06",
-    deprecated: true,
-    // superseded by ltx-2.3-retake
-    workflow: "ltx-2/retake-video",
-    buildPayload: buildLtxRetakePayload,
-    estimatedTime: 33,
-    mode: "video",
-    inputType: "v2v",
-    description: "Reinterpret existing footage with a new visual direction \u2014 up to 20s segments.",
-    features: [feat("Video Input", "input"), feat("Up to 20s", "duration")],
-    paramConfig: {
-      ...params.prompt({ maxLength: LTX_PROMPT_MAX }),
-      ...params.duration([5, 10, 15, 20], 5),
-      ...params.videoInput("Source Video")
-    }
-  },
   // ── LTX 2.3 ──────────────────────────────────────────────────────
   {
     id: "ltx-v2.3-pro",
@@ -3824,27 +3739,6 @@ registerPayloads(MODELS10, {
 });
 
 // src/vendors/catalog/wan.ts
-var buildWanT2VPayload = (ctx) => ({
-  prompt: ctx.prompt,
-  resolution: ctx.resolution ?? "720p",
-  duration: ctx.duration ?? 5,
-  ...ctx.startFrame ? { image_url: ctx.startFrame } : {},
-  ...ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {},
-  ...ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}
-});
-var buildWanI2VPayload = (ctx) => ({
-  prompt: ctx.prompt,
-  image_url: ctx.startFrame,
-  resolution: ctx.resolution === "1080p" ? "1080p" : "720p",
-  duration: String(ctx.duration ?? 5),
-  ...ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {}
-});
-var buildWanR2VPayload = (ctx) => ({
-  prompt: ctx.prompt,
-  video_urls: [ctx.videoUrl],
-  resolution: ctx.resolution === "1080p" ? "1080p" : "720p",
-  duration: String(ctx.duration ?? 5)
-});
 var buildWanImagePayload = (ctx) => ({
   prompt: ctx.prompt,
   model: "wan-2.6",
@@ -3987,54 +3881,6 @@ var wanV3ParamConfig = {
   ...params.seed()
 };
 var { MODELS: MODELS11 } = defineModels("wan", [
-  // ── Video ─────────────────────────────────────────
-  {
-    id: "wan-2.6-t2v",
-    name: "Wan 2.6",
-    modelId: "wan2.6-t2v",
-    addedAt: "2026-02-06",
-    deprecated: true,
-    // superseded by wan-2.7-t2v
-    workflow: "wan/v2.6/text-to-video",
-    editWorkflow: "wan/v2.6/image-to-video",
-    buildPayload: buildWanT2VPayload,
-    buildEditPayload: buildWanI2VPayload,
-    estimatedTime: { "480p": 40, "720p": 50, "1080p": 50 },
-    editEstimatedTime: 14,
-    mode: "video",
-    inputType: "t2v",
-    description: "Painterly artistic look with audio \u2014 up to 15s at 1080p.",
-    features: [feat("Image Input", "input"), feat("Start Frame", "frame"), feat("Audio", "audio"), feat("1080p", "resolution"), feat("5/10/15 sec", "duration")],
-    paramConfig: {
-      ...params.prompt({ maxLength: 5e3 }),
-      ...params.duration([5, 10, 15], 5),
-      ...params.resolution(["480p", "720p", "1080p"], "720p"),
-      ...params.aspectRatio(["16:9", "9:16", "1:1", "4:3", "3:4"]),
-      ...params.negativePrompt(),
-      ...params.startFrame()
-    }
-  },
-  {
-    id: "wan-2.6-r2v",
-    name: "Wan 2.6 Ref-to-Video",
-    modelId: "wan2.6-r2v",
-    addedAt: "2026-02-06",
-    deprecated: true,
-    // superseded by wan-2.7-r2v
-    workflow: "wan/v2.6/reference-to-video",
-    buildPayload: buildWanR2VPayload,
-    estimatedTime: 26,
-    mode: "video",
-    inputType: "v2v",
-    description: "Regenerate video from a reference clip with new stylistic direction.",
-    features: [feat("Video Input", "input"), feat("1080p", "resolution"), feat("5/10 sec", "duration")],
-    paramConfig: {
-      ...params.prompt({ maxLength: 5e3 }),
-      ...params.duration([5, 10], 5),
-      ...params.resolution(["720p", "1080p"], "720p"),
-      ...params.videoInput("Reference Video")
-    }
-  },
   // ── Image ─────────────────────────────────────────
   {
     id: "wan-2.6-image",
@@ -6085,105 +5931,6 @@ registerEditPayloads(MODELS17, {
   "grok-imagine-video-1.5-lite": buildGrokVideo15LiteEditPayload
 });
 
-// src/vendors/catalog/pika.ts
-var PIKA_RATIO_MAP = {
-  "16:9": 1.77,
-  "9:16": 0.56,
-  "1:1": 1,
-  "4:5": 0.8,
-  "5:4": 1.25,
-  "3:2": 1.5,
-  "2:3": 0.67
-};
-var buildPikaPayload = (ctx) => ({
-  prompt: ctx.prompt,
-  ...ctx.imageUrls?.[0] ? { image: ctx.imageUrls[0] } : {},
-  resolution: ctx.resolution ?? "720p",
-  duration: String(ctx.duration ?? 5),
-  ...!ctx.imageUrls?.[0] ? { aspectRatio: PIKA_RATIO_MAP[ctx.aspectRatio ?? "16:9"] ?? 1.77 } : {}
-});
-var buildPikaScenesPayload = (ctx) => ({
-  prompt: ctx.prompt,
-  images: ctx.imageUrls ?? [],
-  resolution: ctx.resolution ?? "720p",
-  duration: String(ctx.duration ?? 5),
-  aspectRatio: PIKA_RATIO_MAP[ctx.aspectRatio ?? "16:9"] ?? 1.77
-});
-var buildPikaFramesPayload = (ctx) => ({
-  prompt: ctx.prompt,
-  frames: ctx.imageUrls ?? [],
-  resolution: ctx.resolution ?? "720p",
-  duration: String(ctx.duration ?? 5),
-  aspectRatio: PIKA_RATIO_MAP[ctx.aspectRatio ?? "16:9"] ?? 1.77
-});
-var PIKA_DURATIONS = [5, 10];
-var PIKA_AR = ["16:9", "9:16", "1:1", "4:5", "5:4", "3:2", "2:3"];
-var PIKA_RESOLUTIONS = ["720p", "1080p"];
-var { MODELS: MODELS18 } = defineModels("pika", [
-  {
-    id: "pika-2.2",
-    name: "Pika",
-    addedAt: "2026-02-06",
-    deprecated: true,
-    workflow: "pika-text-to-video-v2-2",
-    editWorkflow: "pika-image-to-video-v2-2",
-    buildPayload: buildPikaPayload,
-    estimatedTime: 50,
-    editEstimatedTime: 50,
-    mode: "video",
-    inputType: "t2v",
-    description: "Expressive animation across many visual styles from text or image.",
-    features: [feat("Image Input", "input"), feat("Up to 1080p", "resolution"), feat("5/10 sec", "duration")],
-    paramConfig: {
-      ...params.prompt(),
-      ...params.duration(PIKA_DURATIONS, 5),
-      ...params.aspectRatio(PIKA_AR),
-      ...params.resolution(PIKA_RESOLUTIONS),
-      ...params.imageInput()
-    }
-  },
-  {
-    id: "pika-2.2-scenes",
-    name: "Pika Scenes",
-    addedAt: "2026-02-06",
-    deprecated: true,
-    workflow: "pika-scenes-v2-2",
-    buildPayload: buildPikaScenesPayload,
-    estimatedTime: 55,
-    mode: "video",
-    inputType: "i2v",
-    description: "Blend up to 4 images into a cohesive video with smooth transitions.",
-    features: [feat("Multi-Image Input", "input"), feat("Up to 1080p", "resolution"), feat("5/10 sec", "duration")],
-    paramConfig: {
-      ...params.prompt(),
-      ...params.duration(PIKA_DURATIONS, 5),
-      ...params.aspectRatio(PIKA_AR),
-      ...params.resolution(PIKA_RESOLUTIONS),
-      ...params.imageInput(4, "Scene Images", true)
-    }
-  },
-  {
-    id: "pika-2.2-frames",
-    name: "Pika Frames",
-    addedAt: "2026-02-06",
-    deprecated: true,
-    workflow: "pika-frames-v2-2",
-    buildPayload: buildPikaFramesPayload,
-    estimatedTime: 50,
-    mode: "video",
-    inputType: "i2v",
-    description: "Morph between two keyframes with controlled in-between motion.",
-    features: [feat("Multi-Image Input", "input"), feat("Up to 1080p", "resolution"), feat("5/10 sec", "duration")],
-    paramConfig: {
-      ...params.prompt(),
-      ...params.duration(PIKA_DURATIONS, 5),
-      ...params.resolution(PIKA_RESOLUTIONS),
-      // aspectRatio: vendor ignores it for Frames — output aspect depends on input frames
-      ...params.imageInput(2, "Start + End Frame", true)
-    }
-  }
-]);
-
 // src/vendors/catalog/veo.ts
 function inferMimeType(url) {
   return url.match(/\.png(\?|$)/i) ? "image/png" : "image/jpeg";
@@ -6248,7 +5995,7 @@ var veoLiteParamConfig = {
 var veoLiteConstraints = [
   { when: { resolution: { is: "1080p" } }, then: { duration: { allowed: [8], reason: "1080p supports 8s only" } } }
 ];
-var { MODELS: MODELS19 } = defineModels("google", [
+var { MODELS: MODELS18 } = defineModels("google", [
   {
     id: "veo-3.1",
     name: "Veo 3.1",
@@ -6384,7 +6131,7 @@ var buildRunwayGen3aTurboPayload = (ctx) => ({
   ratio: RUNWAY_GEN3A_RATIO_MAP[ctx.aspectRatio ?? "16:9"] ?? "1280:768",
   duration: ctx.duration ?? 5
 });
-var { MODELS: MODELS20 } = defineModels("runway", [
+var { MODELS: MODELS19 } = defineModels("runway", [
   {
     id: "runway-avatar-video",
     name: "Runway Avatar",
@@ -6580,7 +6327,7 @@ var flux3VideoConstraints = [
     resolution: { allowed: ["hd"], reason: "Draft mode only supports HD resolution." }
   } }
 ];
-var { MODELS: MODELS21 } = defineModels("flux", [
+var { MODELS: MODELS20 } = defineModels("flux", [
   {
     ...fluxV2Base,
     id: "flux-2-pro",
@@ -6641,6 +6388,8 @@ var { MODELS: MODELS21 } = defineModels("flux", [
     name: "Flux Kontext Max",
     modelId: "flux-kontext-max",
     addedAt: "2026-02-06",
+    deprecated: true,
+    // FLUX.1 Kontext is 2 generations behind: superseded by flux-2-* / flux-3-image
     buildPayload: buildFluxKontextPayload("flux-kontext-max"),
     estimatedTime: 15,
     description: "Edit and compose from up to 4 reference images with context awareness.",
@@ -6658,6 +6407,8 @@ var { MODELS: MODELS21 } = defineModels("flux", [
     name: "Flux Kontext Pro",
     modelId: "flux-kontext-pro",
     addedAt: "2026-02-06",
+    deprecated: true,
+    // FLUX.1 Kontext is 2 generations behind: superseded by flux-2-* / flux-3-image
     buildPayload: buildFluxKontextPayload("flux-kontext-pro"),
     estimatedTime: 15,
     badge: ["fast"],
@@ -6870,7 +6621,7 @@ var buildFlux3VideoPayload = (input) => {
     ...input.draft ? { draft: input.draft } : {}
   };
 };
-registerPayloads(MODELS21, {
+registerPayloads(MODELS20, {
   "flux-3-video": buildFlux3VideoPayload
 });
 
@@ -7022,7 +6773,7 @@ var nanoBanana21ThinkingParam = {
     }
   }
 };
-var { MODELS: MODELS22 } = defineModels("google", [
+var { MODELS: MODELS21 } = defineModels("google", [
   // ── Image ─────────────────────────────────────────────────────────
   {
     id: "gemini-nano-banana-2.1",
@@ -7407,7 +7158,7 @@ var buildTts38Payload = (model) => (input) => {
     ...voiceFields(input)
   };
 };
-registerPayloads(MODELS22, {
+registerPayloads(MODELS21, {
   "gemini-omni-1.1-flash-preview": buildOmniFlash11Payload,
   "macaron-cookie": buildMacaronCookiePayload,
   "gemini-2.5-flash-tts": buildTts25Payload("gemini-2.5-flash-tts"),
@@ -7586,7 +7337,7 @@ var validateGptImage25Input = (input) => {
   const violation = gptImageSizeViolation(String(input.size).trim());
   if (violation) throw new Error(`"size" ${violation}`);
 };
-var { MODELS: MODELS23 } = defineModels("openai", [
+var { MODELS: MODELS22 } = defineModels("openai", [
   // ── Image ─────────────────────────────────────────
   {
     id: "gpt-image-2.5-sunburst",
@@ -7744,11 +7495,11 @@ var editFor = (model) => (input) => ({
   ...input.background ? { background: input.background } : {},
   ...input.outputFormat ? { output_format: input.outputFormat } : {}
 });
-registerPayloads(MODELS23, {
+registerPayloads(MODELS22, {
   "gpt-image-2.5-flare": generateFor("gpt-image-2.5-flare"),
   "gpt-image-2.5-sunburst": generateFor("gpt-image-2.5-sunburst")
 });
-registerEditPayloads(MODELS23, {
+registerEditPayloads(MODELS22, {
   "gpt-image-2.5-flare": editFor("gpt-image-2.5-flare"),
   "gpt-image-2.5-sunburst": editFor("gpt-image-2.5-sunburst")
 });
@@ -7837,7 +7588,7 @@ var dialogueLinesParam = (maxLength) => ({
     }
   }
 });
-var { MODELS: MODELS24 } = defineModels("elevenlabs", [
+var { MODELS: MODELS23 } = defineModels("elevenlabs", [
   // ── TTS ───────────────────────────────────────────────────────────
   {
     id: "eleven-v4",
@@ -7888,6 +7639,8 @@ var { MODELS: MODELS24 } = defineModels("elevenlabs", [
     name: "Eleven Multilingual v2",
     modelId: "eleven_multilingual_v2",
     addedAt: "2026-02-06",
+    deprecated: true,
+    // 2 generations behind: superseded by eleven-v3 / eleven-v4
     workflow: "elevenlabs/v1/text-to-speech",
     estimatedTime: 9,
     mode: "audio",
@@ -8245,7 +7998,7 @@ var buildElevenLabsDialoguePayload = (catalogId, modelId) => (input) => {
   };
 };
 function dialogueCharacterCap(catalogId) {
-  const descriptor = MODELS24.find((m) => m.id === catalogId)?.paramConfig.dialogue?.descriptor;
+  const descriptor = MODELS23.find((m) => m.id === catalogId)?.paramConfig.dialogue?.descriptor;
   const text = descriptor?.kind === "object" ? descriptor.fields?.text : void 0;
   const cap = text && "maxLength" in text ? text.maxLength : void 0;
   if (typeof cap !== "number") {
@@ -8268,7 +8021,7 @@ var buildElevenLabsVideoToMusicPayload = (input) => ({
   video_urls: input.videoUrls,
   ...input.prompt ? { description: input.prompt } : {}
 });
-registerPayloads(MODELS24, {
+registerPayloads(MODELS23, {
   "elevenlabs-music-v2": buildElevenLabsMusicPayload,
   "eleven-v4": buildElevenLabsTTSPayload("eleven_v4"),
   "eleven-v4-turbo": buildElevenLabsTTSPayload("eleven_v4_turbo"),
@@ -8348,7 +8101,7 @@ var heygenVideo1Constraints = [
     aspectRatio: { allowed: [...VIDEO1_RATIOS], reason: VIDEO1_ADAPTIVE_NEEDS_REFS }
   } }
 ];
-var { MODELS: MODELS25 } = defineModels("heygen", [
+var { MODELS: MODELS24 } = defineModels("heygen", [
   // ── Photo Avatar (i2v) ────────────────────────────────────────────
   {
     id: "heygen-talking-photo",
@@ -8465,7 +8218,7 @@ var buildHeygenVideo1Payload = (input) => {
     ...input.seed != null ? { seed: input.seed } : {}
   };
 };
-registerPayloads(MODELS25, {
+registerPayloads(MODELS24, {
   "heygen-video-1": buildHeygenVideo1Payload
 });
 
@@ -8698,7 +8451,7 @@ var ideogram45Constraints = [
     resolution: { disabled: true, reason: "The output keeps the source image size." }
   } }
 ];
-var { MODELS: MODELS26 } = defineModels("ideogram", [
+var { MODELS: MODELS25 } = defineModels("ideogram", [
   {
     id: "ideogram-4-5",
     name: "Ideogram 4.5",
@@ -8997,7 +8750,7 @@ var buildIdeogram45PreciseEditPayload = (input) => {
     ...input.enableCopyrightDetection ? { enable_copyright_detection: true } : {}
   };
 };
-registerPayloads(MODELS26, {
+registerPayloads(MODELS25, {
   "ideogram-4-5": buildIdeogram45Payload,
   "ideogram-4-5-precise-edit": buildIdeogram45PreciseEditPayload
 });
@@ -9010,13 +8763,6 @@ var QWEN_V1_SIZES = [
   "2368x1728",
   "1728x2368"
 ];
-var buildQwenPayload = (ctx) => {
-  const hasImages = Array.isArray(ctx.imageUrls) && ctx.imageUrls.length > 0;
-  return {
-    prompt: ctx.prompt,
-    ...hasImages ? { image_url: ctx.imageUrls[0] } : {}
-  };
-};
 var buildQwen2Payload = (ctx) => {
   const hasImages = Array.isArray(ctx.imageUrls) && ctx.imageUrls.length > 0;
   return {
@@ -9061,26 +8807,7 @@ var qwenV1Params3 = {
   ...p.enum("promptExtendMode", ["direct", "agent"], "direct"),
   ...p.boolean("enableThinking", true, "Deep Thinking")
 };
-var { MODELS: MODELS27 } = defineModels("qwen", [
-  {
-    id: "qwen",
-    name: "Qwen",
-    addedAt: "2026-02-06",
-    deprecated: true,
-    // superseded by qwen-2 / qwen-2-pro / qwen-edit-plus
-    workflow: "qwen-image",
-    editWorkflow: "qwen-image/image-to-image",
-    buildPayload: buildQwenPayload,
-    estimatedTime: 12,
-    mode: "image",
-    inputType: "t2i",
-    description: "Clean 1K images from text or an image reference.",
-    features: [feat("Image Input", "input"), feat("1K", "resolution")],
-    paramConfig: {
-      ...params.prompt(),
-      ...params.imageInput(1, "Source Image")
-    }
-  },
+var { MODELS: MODELS26 } = defineModels("qwen", [
   {
     id: "qwen-image-2",
     name: "Qwen 2",
@@ -9231,7 +8958,7 @@ var v4StylesParams = p.file("imageUrls", "image", {
   category: "reference",
   maxBytes: 10 * 1024 * 1024
 });
-var { MODELS: MODELS28 } = defineModels("recraft", [
+var { MODELS: MODELS27 } = defineModels("recraft", [
   // ── V4.1 family (raster only — vector variants exist in API but not exposed here) ─
   {
     id: "recraftv4_1",
@@ -9455,32 +9182,6 @@ var { MODELS: MODELS28 } = defineModels("recraft", [
       ...params.imageWeight(0, 100, 80, 5)
     }
   },
-  {
-    id: "recraftv2",
-    name: "Recraft 20B",
-    addedAt: "2026-02-15",
-    deprecated: true,
-    // superseded by recraftv3 / recraftv4 / recraftv4_pro
-    workflow: "recraft/v1/images/generations",
-    buildPayload: buildRecraftLegacyPayload("recraftv2"),
-    estimatedTime: 7,
-    mode: "image",
-    inputType: "t2i",
-    description: "20B parameter model with icon, illustration, and vector modes.",
-    features: [feat("Styles", "style")],
-    paramConfig: {
-      ...params.prompt({ maxLength: 1e3 }),
-      ...params.style([
-        { id: "realistic_image", label: "Realistic" },
-        { id: "digital_illustration", label: "Illustration" },
-        { id: "vector_illustration", label: "Vector (SVG)" },
-        { id: "icon", label: "Icon" }
-      ], "realistic_image"),
-      ...params.aspectRatio(recraftAspectRatios, "1:1"),
-      ...params.count([1, 2, 4, 6]),
-      ...params.negativePrompt()
-    }
-  },
   // ── V4 Pro / Vector / V3 Vector variants ────────────────────────
   {
     id: "recraftv4_pro",
@@ -9635,27 +9336,6 @@ var { MODELS: MODELS28 } = defineModels("recraft", [
       ...params.negativePrompt()
     }
   },
-  // ── V2 Vector variant ──────────────────────────────────────────────
-  {
-    id: "recraftv2_vector",
-    name: "Recraft 20B Vector",
-    addedAt: "2026-03-13",
-    deprecated: true,
-    // superseded by recraftv3_vector / recraftv4_vector
-    workflow: "recraft/v1/images/generations",
-    buildPayload: buildRecraftLegacyPayload("recraftv2_vector"),
-    estimatedTime: 7,
-    mode: "image",
-    inputType: "t2i",
-    description: "Dedicated SVG vector output using the 20B parameter model.",
-    features: [feat("Vector/SVG", "characteristic")],
-    paramConfig: {
-      ...params.prompt({ maxLength: 1e3 }),
-      ...params.aspectRatio(recraftAspectRatios, "1:1"),
-      ...params.count([1, 2, 4, 6]),
-      ...params.negativePrompt()
-    }
-  },
   // ── Utility models ─────────────────────────────────────────────────
   {
     id: "recraft-vectorize",
@@ -9789,7 +9469,7 @@ var TOPAZ_VIDEO_MODEL_OPTIONS = [
   "Starlight Sharp",
   "Starlight Fast 2"
 ];
-var { MODELS: MODELS29 } = defineModels("topaz", [
+var { MODELS: MODELS28 } = defineModels("topaz", [
   {
     id: "topaz-upscale-image",
     name: "Topaz Image Upscale",
@@ -9840,7 +9520,7 @@ var buildTopazVideoPayload = (input) => ({
   upscale_factor: 2,
   H264_output: false
 });
-registerPayloads(MODELS29, {
+registerPayloads(MODELS28, {
   "topaz-upscale-image": buildTopazImagePayload,
   "topaz-upscale-video": buildTopazVideoPayload
 });
@@ -9924,7 +9604,7 @@ var buildPcpSanaSprintPayload = (ctx) => {
     height: h
   };
 };
-var { MODELS: MODELS30 } = defineModels("picsart", [
+var { MODELS: MODELS29 } = defineModels("picsart", [
   {
     id: "picsart-change-bg",
     name: "Picsart Change Background",
@@ -10117,7 +9797,7 @@ var buildLyria3Payload = (apiModelId) => (ctx) => ({
   ...(ctx.imageUrls?.length ?? 0) > 1 ? { images: ctx.imageUrls.slice(0, 10).map(imagePart) } : {}
 });
 var LYRIA_PROMPT_MAX = 5e3;
-var { MODELS: MODELS31 } = defineModels("google", [
+var { MODELS: MODELS30 } = defineModels("google", [
   {
     id: "lyria-3-clip",
     addedAt: "2026-03-26",
@@ -10255,7 +9935,7 @@ var buildHH11R2VPayload = (ctx) => {
 };
 var HH_AR = ["16:9", "9:16", "1:1", "4:3", "3:4"];
 var HH_RES = ["720P", "1080P"];
-var { MODELS: MODELS32 } = defineModels("happyhorse", [
+var { MODELS: MODELS31 } = defineModels("happyhorse", [
   {
     id: "happyhorse-1.0-t2v",
     name: "Happy Horse 1.0",
@@ -10409,7 +10089,7 @@ var baseFeatures = [
   feat("Up to 1080p", "resolution"),
   feat("5-15 sec", "duration")
 ];
-var { MODELS: MODELS33 } = defineModels("pixverse", [
+var { MODELS: MODELS32 } = defineModels("pixverse", [
   // ── V6 ─────────────────────────────────────────────────────────────
   {
     id: "pixverse-v6",
@@ -10527,7 +10207,7 @@ var buildReferenceToVideoPayload = (model) => (input) => ({
   aspect_ratio: input.aspectRatio ?? "16:9",
   image_references: (input.imageUrls ?? []).map((url) => ({ url }))
 });
-registerPayloads(MODELS33, {
+registerPayloads(MODELS32, {
   "pixverse-v6": buildTextToVideoPayload("v6"),
   "pixverse-v6-image": buildImageToVideoPayload("v6"),
   "pixverse-v6-fusion": buildReferenceToVideoPayload("v6"),
@@ -10537,7 +10217,7 @@ registerPayloads(MODELS33, {
 });
 
 // src/vendors/catalog/async-ai.ts
-var { MODELS: MODELS34 } = defineModels("async", [
+var { MODELS: MODELS33 } = defineModels("async", [
   {
     id: "async-flash-v1",
     name: "Async Flash v1.0",
@@ -10577,7 +10257,7 @@ var buildAsyncTtsPayload = (input) => {
     }
   };
 };
-registerPayloads(MODELS34, { "async-flash-v1": buildAsyncTtsPayload });
+registerPayloads(MODELS33, { "async-flash-v1": buildAsyncTtsPayload });
 
 // src/vendors/catalog/llm.ts
 var ADDED = "2026-06-16";
@@ -11153,7 +10833,7 @@ var { MODELS: MINIMAX_LLM } = defineModels("minimax", [
     constraints: h3ContextIrConstraints
   }
 ]);
-var MODELS35 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM, ...GROK_LLM, ...MINIMAX_LLM];
+var MODELS34 = [...ANTHROPIC, ...OPENAI_LLM, ...GEMINI_LLM, ...KIMI_LLM, ...GROK_LLM, ...MINIMAX_LLM];
 
 // src/vendors/catalog/llm.payloads.ts
 var CLAUDE_MAX_TOKENS = 8192;
@@ -11218,7 +10898,7 @@ var buildMinimaxH3ContextIrPayload = (input) => {
     ...input.aspectRatio ? { ratio: input.aspectRatio } : {}
   };
 };
-registerPayloads(MODELS35, {
+registerPayloads(MODELS34, {
   "minimax-h3-context-ir": buildMinimaxH3ContextIrPayload,
   "claude-fable-5-1": buildClaudePayload("claude-fable-5-1"),
   "claude-fable-5": buildClaudePayload("claude-fable-5"),
@@ -11261,7 +10941,7 @@ registerPayloads(MODELS35, {
 var CAPTIONS_MAX_DURATION_SEC = 300;
 var CAPTIONS_MAX_BYTES = 50 * 1024 * 1024;
 var DEFAULT_CAPTION_TEMPLATE_ID = "ctpl_DxflLOnuKkb198FNdI9E";
-var { MODELS: MODELS36 } = defineModels("captionsai", [
+var { MODELS: MODELS35 } = defineModels("captionsai", [
   {
     id: "captionsai-video-captions",
     name: "Captions",
@@ -11301,12 +10981,12 @@ var buildCaptionsPayload = (input) => ({
   video: { url: input.videoUrl },
   caption_template_id: input.templateId ?? DEFAULT_CAPTION_TEMPLATE_ID
 });
-registerPayloads(MODELS36, {
+registerPayloads(MODELS35, {
   "captionsai-video-captions": buildCaptionsPayload
 });
 
 // src/vendors/catalog/meta.ts
-var { MODELS: MODELS37 } = defineModels("meta", [
+var { MODELS: MODELS36 } = defineModels("meta", [
   // ── Image ─────────────────────────────────────────
   {
     id: "muse-image-1.0",
@@ -11401,11 +11081,11 @@ var buildSam3VideoPayload = (input) => ({
   apply_mask: input.applyMask ?? true,
   video_output_type: SAM3_OUTPUT_TYPE[input.outputFormat ?? "mp4"]
 });
-registerPayloads(MODELS37, {
+registerPayloads(MODELS36, {
   "muse-image-1.0": buildMuseImagePayload,
   "sam-3-video": buildSam3VideoPayload
 });
-registerEditPayloads(MODELS37, {
+registerEditPayloads(MODELS36, {
   "muse-image-1.0": buildMuseImageEditPayload
 });
 
@@ -11419,7 +11099,7 @@ var evaluateOutputSchema = {
     return output;
   }
 };
-var { MODELS: MODELS38 } = defineModels("typesafe", [
+var { MODELS: MODELS37 } = defineModels("typesafe", [
   {
     id: "typesafe-evaluate",
     name: "Jev",
@@ -11476,12 +11156,12 @@ var buildEvaluatePayload = (input) => ({
   model: "jev-latest",
   questions: input.questions
 });
-registerPayloads(MODELS38, {
+registerPayloads(MODELS37, {
   "typesafe-evaluate": buildEvaluatePayload
 });
 
 // src/vendors/catalog/depth-anything.ts
-var { MODELS: MODELS39 } = defineModels("depth-anything", [
+var { MODELS: MODELS38 } = defineModels("depth-anything", [
   {
     // Billed per second of the source clip at one flat rate, so none of the
     // knobs below changes the price. `max_frames` / `output_fps` are left to
@@ -11523,7 +11203,7 @@ var buildDepthAnythingVideoPayload = (input) => ({
   // The .npz export is a second, non-media output the SDK has no slot for.
   include_raw_depths: false
 });
-registerPayloads(MODELS39, {
+registerPayloads(MODELS38, {
   "depth-anything-video": buildDepthAnythingVideoPayload
 });
 
@@ -11536,7 +11216,7 @@ var bitrateKbps = {
     descriptor: { kind: "range", min: 32, max: 320, step: 1 }
   }
 };
-var { MODELS: MODELS40 } = defineModels("mirelo", [
+var { MODELS: MODELS39 } = defineModels("mirelo", [
   {
     id: "mirelo-sfx-2.0-text-to-audio",
     name: "Mirelo SFX 2.0 (Text to Audio)",
@@ -11631,7 +11311,7 @@ var buildVideoToVideoPayload = (input) => ({
   ...input.negativePrompt != null ? { negative_prompt: input.negativePrompt } : {},
   ...input.seed != null ? { seed: input.seed } : {}
 });
-registerPayloads(MODELS40, {
+registerPayloads(MODELS39, {
   "mirelo-sfx-2.0-text-to-audio": buildTextToAudioPayload,
   "mirelo-sfx-2.0-video-to-audio": buildVideoToAudioPayload,
   "mirelo-sfx-2.0-video-to-video": buildVideoToVideoPayload
@@ -11787,14 +11467,14 @@ var ALL_MODELS = [
   ...MODELS22,
   ...MODELS23,
   ...MODELS24,
-  ...MODELS25,
   ...MODELS9,
+  ...MODELS25,
+  ...MODELS30,
   ...MODELS26,
-  ...MODELS31,
   ...MODELS27,
   ...MODELS28,
   ...MODELS29,
-  ...MODELS30,
+  ...MODELS31,
   ...MODELS32,
   ...MODELS33,
   ...MODELS34,
@@ -11802,8 +11482,7 @@ var ALL_MODELS = [
   ...MODELS36,
   ...MODELS37,
   ...MODELS38,
-  ...MODELS39,
-  ...MODELS40
+  ...MODELS39
 ];
 var getModelsByMode = (mode, includeHidden = false) => ALL_MODELS.filter((m) => m.mode === mode && (includeHidden || isVisibleForReleases(m)));
 
@@ -15463,9 +15142,6 @@ var KlingV4Omni = "kling-v4-omni";
 var KlingVideoEffects = "kling-video-effects";
 var KlingVideoO1 = "kling-video-o1";
 var Ltx23A2v = "ltx-2.3-a2v";
-var LtxProT2v = "ltx-pro-t2v";
-var LtxV2Fast = "ltx-v2-fast";
-var LtxV2Retake = "ltx-v2-retake";
 var LtxV23Extend = "ltx-v2.3-extend";
 var LtxV23Fast = "ltx-v2.3-fast";
 var LtxV23Outpaint = "ltx-v2.3-outpaint";
@@ -15509,16 +15185,12 @@ var PicsartQwenMakeup = "picsart-qwen-makeup";
 var PicsartSanaSprintV1 = "picsart-sana-sprint-v1";
 var PicsartSodV82 = "picsart-sod-v8-2";
 var PicsartVideography = "picsart-videography";
-var Pika22 = "pika-2.2";
-var Pika22Frames = "pika-2.2-frames";
-var Pika22Scenes = "pika-2.2-scenes";
 var PixverseC1 = "pixverse-c1";
 var PixverseC1Fusion = "pixverse-c1-fusion";
 var PixverseC1Image = "pixverse-c1-image";
 var PixverseV6 = "pixverse-v6";
 var PixverseV6Fusion = "pixverse-v6-fusion";
 var PixverseV6Image = "pixverse-v6-image";
-var Qwen = "qwen";
 var QwenImage2 = "qwen-image-2";
 var QwenImage2Pro = "qwen-image-2-pro";
 var QwenImage30 = "qwen-image-3.0";
@@ -15528,8 +15200,6 @@ var RecraftCrispUpscale = "recraft-crisp-upscale";
 var RecraftExplore = "recraft-explore";
 var RecraftExploreSimilar = "recraft-explore-similar";
 var RecraftVectorize = "recraft-vectorize";
-var Recraftv2 = "recraftv2";
-var Recraftv2Vector = "recraftv2_vector";
 var Recraftv3 = "recraftv3";
 var Recraftv3Vector = "recraftv3_vector";
 var Recraftv3ReplaceBg = "recraftv3-replace-bg";
@@ -15595,8 +15265,6 @@ var Veo31 = "veo-3.1";
 var Veo31Fast = "veo-3.1-fast";
 var Veo31Lite = "veo-3.1-lite";
 var Wan26Image = "wan-2.6-image";
-var Wan26R2v = "wan-2.6-r2v";
-var Wan26T2v = "wan-2.6-t2v";
 var Wan27I2v = "wan-2.7-i2v";
 var Wan27R2v = "wan-2.7-r2v";
 var Wan27T2v = "wan-2.7-t2v";
@@ -15738,9 +15406,6 @@ var Models = {
   KlingVideoEffects,
   KlingVideoO1,
   Ltx23A2v,
-  LtxProT2v,
-  LtxV2Fast,
-  LtxV2Retake,
   LtxV23Extend,
   LtxV23Fast,
   LtxV23Outpaint,
@@ -15784,16 +15449,12 @@ var Models = {
   PicsartSanaSprintV1,
   PicsartSodV82,
   PicsartVideography,
-  Pika22,
-  Pika22Frames,
-  Pika22Scenes,
   PixverseC1,
   PixverseC1Fusion,
   PixverseC1Image,
   PixverseV6,
   PixverseV6Fusion,
   PixverseV6Image,
-  Qwen,
   QwenImage2,
   QwenImage2Pro,
   QwenImage30,
@@ -15803,8 +15464,6 @@ var Models = {
   RecraftExplore,
   RecraftExploreSimilar,
   RecraftVectorize,
-  Recraftv2,
-  Recraftv2Vector,
   Recraftv3,
   Recraftv3Vector,
   Recraftv3ReplaceBg,
@@ -15870,8 +15529,6 @@ var Models = {
   Veo31Fast,
   Veo31Lite,
   Wan26Image,
-  Wan26R2v,
-  Wan26T2v,
   Wan27I2v,
   Wan27R2v,
   Wan27T2v,

@@ -53,6 +53,7 @@ export const ElevenDubbing = 'eleven-dubbing' as const;
 /** Eleven Multilingual STS v2 — elevenlabs (audio) */
 export const ElevenMultilingualStsV2 = 'eleven-multilingual-sts-v2' as const;
 /** Eleven Multilingual v2 — elevenlabs (audio) */
+/** @deprecated This model is retired (deprecated). */
 export const ElevenMultilingualV2 = 'eleven-multilingual-v2' as const;
 /** Eleven Scribe v2 — elevenlabs (text) */
 export const ElevenSpeechToText = 'eleven-speech-to-text' as const;
@@ -93,8 +94,10 @@ export const Flux3ImageKlein = 'flux-3-image-klein' as const;
 /** Flux 3 Video — flux (video) */
 export const Flux3Video = 'flux-3-video' as const;
 /** Flux Kontext Max — flux (image) */
+/** @deprecated This model is retired (deprecated). */
 export const FluxKontextMax = 'flux-kontext-max' as const;
 /** Flux Kontext Pro — flux (image) */
+/** @deprecated This model is retired (deprecated). */
 export const FluxKontextPro = 'flux-kontext-pro' as const;
 /** FLUX Video Edit — flux (video) */
 export const FluxVideoEdit = 'flux-video-edit' as const;
@@ -260,6 +263,7 @@ export const KlingT2a = 'kling-t2a' as const;
 /** @deprecated This model is retired (deprecated). */
 export const KlingV21Image = 'kling-v2-1-image' as const;
 /** Kling V2.6 — kling (video) */
+/** @deprecated This model is retired (deprecated). */
 export const KlingV26 = 'kling-v2-6' as const;
 /** Kling V2A — kling (audio) */
 export const KlingV2a = 'kling-v2a' as const;
@@ -276,18 +280,10 @@ export const KlingV4Omni = 'kling-v4-omni' as const;
 /** Kling Video Effects — kling (video) */
 export const KlingVideoEffects = 'kling-video-effects' as const;
 /** Kling Video O1 — kling (video) */
+/** @deprecated This model is retired (deprecated). */
 export const KlingVideoO1 = 'kling-video-o1' as const;
 /** LTX 2.3 Audio-to-Video — ltx (video) */
 export const Ltx23A2v = 'ltx-2.3-a2v' as const;
-/** LTX Pro — ltx (video) */
-/** @deprecated This model is retired (deprecated). */
-export const LtxProT2v = 'ltx-pro-t2v' as const;
-/** LTX Fast — ltx (video) */
-/** @deprecated This model is retired (deprecated). */
-export const LtxV2Fast = 'ltx-v2-fast' as const;
-/** LTX Retake — ltx (video) */
-/** @deprecated This model is retired (deprecated). */
-export const LtxV2Retake = 'ltx-v2-retake' as const;
 /** LTX 2.3 Extend — ltx (video) */
 export const LtxV23Extend = 'ltx-v2.3-extend' as const;
 /** LTX 2.3 Fast — ltx (video) */
@@ -374,15 +370,6 @@ export const PicsartSanaSprintV1 = 'picsart-sana-sprint-v1' as const;
 export const PicsartSodV82 = 'picsart-sod-v8-2' as const;
 /** Videography — videography (video) */
 export const PicsartVideography = 'picsart-videography' as const;
-/** Pika — pika (video) */
-/** @deprecated This model is retired (deprecated). */
-export const Pika22 = 'pika-2.2' as const;
-/** Pika Frames — pika (video) */
-/** @deprecated This model is retired (deprecated). */
-export const Pika22Frames = 'pika-2.2-frames' as const;
-/** Pika Scenes — pika (video) */
-/** @deprecated This model is retired (deprecated). */
-export const Pika22Scenes = 'pika-2.2-scenes' as const;
 /** PixVerse C1 — pixverse (video) */
 export const PixverseC1 = 'pixverse-c1' as const;
 /** PixVerse C1 Fusion — pixverse (video) */
@@ -395,9 +382,6 @@ export const PixverseV6 = 'pixverse-v6' as const;
 export const PixverseV6Fusion = 'pixverse-v6-fusion' as const;
 /** PixVerse V6 Image — pixverse (video) */
 export const PixverseV6Image = 'pixverse-v6-image' as const;
-/** Qwen — qwen (image) */
-/** @deprecated This model is retired (deprecated). */
-export const Qwen = 'qwen' as const;
 /** Qwen 2 — qwen (image) */
 /** @deprecated This model is retired (deprecated). */
 export const QwenImage2 = 'qwen-image-2' as const;
@@ -417,12 +401,6 @@ export const RecraftExplore = 'recraft-explore' as const;
 export const RecraftExploreSimilar = 'recraft-explore-similar' as const;
 /** Recraft Vectorize — recraft (image) */
 export const RecraftVectorize = 'recraft-vectorize' as const;
-/** Recraft 20B — recraft (image) */
-/** @deprecated This model is retired (deprecated). */
-export const Recraftv2 = 'recraftv2' as const;
-/** Recraft 20B Vector — recraft (image) */
-/** @deprecated This model is retired (deprecated). */
-export const Recraftv2Vector = 'recraftv2_vector' as const;
 /** Recraft V3 — recraft (image) */
 export const Recraftv3 = 'recraftv3' as const;
 /** Recraft V3 Vector — recraft (image) */
@@ -559,12 +537,6 @@ export const Veo31Lite = 'veo-3.1-lite' as const;
 /** Wan 2.6 Image — wan (image) */
 /** @deprecated This model is retired (deprecated). */
 export const Wan26Image = 'wan-2.6-image' as const;
-/** Wan 2.6 Ref-to-Video — wan (video) */
-/** @deprecated This model is retired (deprecated). */
-export const Wan26R2v = 'wan-2.6-r2v' as const;
-/** Wan 2.6 — wan (video) */
-/** @deprecated This model is retired (deprecated). */
-export const Wan26T2v = 'wan-2.6-t2v' as const;
 /** Wan 2.7 Image-to-Video — wan (video) */
 export const Wan27I2v = 'wan-2.7-i2v' as const;
 /** Wan 2.7 Ref-to-Video — wan (video) */
@@ -715,9 +687,6 @@ export const Models = {
   KlingVideoEffects,
   KlingVideoO1,
   Ltx23A2v,
-  LtxProT2v,
-  LtxV2Fast,
-  LtxV2Retake,
   LtxV23Extend,
   LtxV23Fast,
   LtxV23Outpaint,
@@ -761,16 +730,12 @@ export const Models = {
   PicsartSanaSprintV1,
   PicsartSodV82,
   PicsartVideography,
-  Pika22,
-  Pika22Frames,
-  Pika22Scenes,
   PixverseC1,
   PixverseC1Fusion,
   PixverseC1Image,
   PixverseV6,
   PixverseV6Fusion,
   PixverseV6Image,
-  Qwen,
   QwenImage2,
   QwenImage2Pro,
   QwenImage30,
@@ -780,8 +745,6 @@ export const Models = {
   RecraftExplore,
   RecraftExploreSimilar,
   RecraftVectorize,
-  Recraftv2,
-  Recraftv2Vector,
   Recraftv3,
   Recraftv3Vector,
   Recraftv3ReplaceBg,
@@ -847,8 +810,6 @@ export const Models = {
   Veo31Fast,
   Veo31Lite,
   Wan26Image,
-  Wan26R2v,
-  Wan26T2v,
   Wan27I2v,
   Wan27R2v,
   Wan27T2v,

@@ -232,6 +232,7 @@ export const { MODELS } = defineModels('kling', [
     ...klingV26VideoBase,
     id: 'kling-v2-6', name: 'Kling V2.6', modelId: 'kling-v2-6',
     addedAt: '2026-02-11',
+    deprecated: true, // 2 generations behind: superseded by kling-v3 / kling-v4
     estimatedTime: 60,
     description: 'Mature pipeline with audio and pro-tier rendering.',
   },
@@ -315,6 +316,7 @@ export const { MODELS } = defineModels('kling', [
   {
     id: 'kling-video-o1', name: 'Kling Video O1', modelId: 'kling-video-o1',
     addedAt: '2026-03-11',
+    deprecated: true, // 2 generations behind: superseded by kling-v3-omni / kling-v4-omni
     workflow: 'kling-omni-video',
     estimatedTime: 55,
     mode: 'video', inputType: 't2v',

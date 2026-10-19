@@ -139,9 +139,6 @@ export type ModelInputById = {
   "kling-video-effects": { templateId?: string; imageUrls: [string, ...string[]]; };
   "kling-video-o1": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1"; duration?: 5 | 10; renderingSpeed?: "std" | "pro"; generateAudio?: boolean; };
   "ltx-2.3-a2v": { prompt?: string; audioUrl: string; imageUrls?: string[]; aspectRatio?: "auto" | "16:9" | "9:16"; cfgScale?: number; };
-  "ltx-pro-t2v": { prompt: string; duration?: 6 | 8 | 10; resolution?: "1080p" | "1440p" | "2160p"; generateAudio?: boolean; imageUrls?: string[]; };
-  "ltx-v2-fast": { prompt: string; duration?: 6 | 8 | 10 | 12 | 14 | 16 | 18 | 20; resolution?: "1080p" | "1440p" | "2160p"; generateAudio?: boolean; imageUrls?: string[]; };
-  "ltx-v2-retake": { prompt: string; duration?: 5 | 10 | 15 | 20; videoUrl: string; };
   "ltx-v2.3-extend": { prompt?: string; duration?: number; mode?: "end" | "start"; videoUrl: string; };
   "ltx-v2.3-fast": { prompt: string; duration?: 6 | 8 | 10 | 12 | 14 | 16 | 18 | 20; resolution?: "1080p" | "1440p" | "2160p"; aspectRatio?: "16:9" | "9:16"; fps?: 24 | 25 | 48 | 50; generateAudio?: boolean; imageUrls?: string[]; endFrame?: string; };
   "ltx-v2.3-outpaint": { prompt: string; videoUrl: string; negativePrompt?: string; aspectRatio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "9:21"; resolution?: "480p" | "720p" | "1080p"; duration?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20; fps?: number; sourceScale?: number; videoStrength?: number; cfgScale?: number; numInferenceSteps?: number; videoQuality?: "low" | "medium" | "high" | "maximum"; videoWriteMode?: "fast" | "balanced" | "small"; enhancePrompt?: boolean; generateAudio?: boolean; enableSafetyChecker?: boolean; seed?: number; };
@@ -185,16 +182,12 @@ export type ModelInputById = {
   "picsart-sana-sprint-v1": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; };
   "picsart-sod-v8-2": { imageUrls: [string, ...string[]]; };
   "picsart-videography": { imageUrls: [string, ...string[]]; };
-  "pika-2.2": { prompt: string; duration?: 5 | 10; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:5" | "5:4" | "3:2" | "2:3"; resolution?: "720p" | "1080p"; imageUrls?: string[]; };
-  "pika-2.2-frames": { prompt: string; duration?: 5 | 10; resolution?: "720p" | "1080p"; imageUrls: [string, ...string[]]; };
-  "pika-2.2-scenes": { prompt: string; duration?: 5 | 10; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:5" | "5:4" | "3:2" | "2:3"; resolution?: "720p" | "1080p"; imageUrls: [string, ...string[]]; };
   "pixverse-c1": { prompt: string; quality?: "360p" | "540p" | "720p" | "1080p"; duration?: number; generateAudio?: boolean; aspectRatio?: "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "2:3" | "3:2" | "21:9"; };
   "pixverse-c1-fusion": { prompt: string; quality?: "360p" | "540p" | "720p" | "1080p"; duration?: number; generateAudio?: boolean; aspectRatio?: "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "2:3" | "3:2" | "21:9"; imageUrls: [string, ...string[]]; };
   "pixverse-c1-image": { prompt: string; quality?: "360p" | "540p" | "720p" | "1080p"; duration?: number; generateAudio?: boolean; imageUrls: [string, ...string[]]; };
   "pixverse-v6": { prompt: string; quality?: "360p" | "540p" | "720p" | "1080p"; duration?: number; generateAudio?: boolean; aspectRatio?: "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "2:3" | "3:2" | "21:9"; };
   "pixverse-v6-fusion": { prompt: string; quality?: "360p" | "540p" | "720p" | "1080p"; duration?: number; generateAudio?: boolean; aspectRatio?: "16:9" | "4:3" | "1:1" | "3:4" | "9:16" | "2:3" | "3:2" | "21:9"; imageUrls: [string, ...string[]]; };
   "pixverse-v6-image": { prompt: string; quality?: "360p" | "540p" | "720p" | "1080p"; duration?: number; generateAudio?: boolean; imageUrls: [string, ...string[]]; };
-  "qwen": { prompt: string; imageUrls?: string[]; };
   "qwen-image-2": { prompt: string; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "qwen-image-2-pro": { prompt: string; negativePrompt?: string; resolution?: "2048x2048" | "2688x1536" | "1536x2688" | "2368x1728" | "1728x2368"; count?: 1 | 2 | 4 | 6; enhancePrompt?: boolean; imageUrls?: string[]; seed?: number; };
   "qwen-image-3.0": { prompt: string; negativePrompt?: string; resolution?: "2048x2048" | "2688x1536" | "1536x2688" | "2368x1728" | "1728x2368"; count?: 1 | 2 | 4 | 6; enhancePrompt?: boolean; imageUrls?: string[]; seed?: number; promptExtendMode?: "direct" | "agent"; enableThinking?: boolean; };
@@ -204,8 +197,6 @@ export type ModelInputById = {
   "recraft-explore": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; };
   "recraft-explore-similar": { aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; sourceImageId: string; similarity?: number; };
   "recraft-vectorize": { prompt?: string; imageUrls: [string, ...string[]]; };
-  "recraftv2": { prompt: string; style?: "realistic_image" | "digital_illustration" | "vector_illustration" | "icon"; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; negativePrompt?: string; };
-  "recraftv2_vector": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; negativePrompt?: string; };
   "recraftv3": { prompt: string; style?: "realistic_image" | "digital_illustration" | "vector_illustration" | "any"; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; negativePrompt?: string; imageUrls?: string[]; imageWeight?: number; };
   "recraftv3_vector": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; negativePrompt?: string; };
   "recraftv3-replace-bg": { prompt?: string; imageUrls: [string, ...string[]]; };
@@ -271,8 +262,6 @@ export type ModelInputById = {
   "veo-3.1-fast": { prompt: string; aspectRatio?: "16:9" | "9:16"; duration?: 4 | 6 | 8; resolution?: "720p" | "1080p" | "4k"; imageUrls?: string[]; generateAudio?: boolean; negativePrompt?: string; startFrame?: string; endFrame?: string; };
   "veo-3.1-lite": { prompt: string; aspectRatio?: "16:9" | "9:16"; duration?: 4 | 6 | 8; resolution?: "720p" | "1080p"; startFrame?: string; };
   "wan-2.6-image": { prompt: string; count?: 1 | 2 | 4 | 6 | 8 | 10; negativePrompt?: string; };
-  "wan-2.6-r2v": { prompt: string; duration?: 5 | 10; resolution?: "720p" | "1080p"; videoUrl: string; };
-  "wan-2.6-t2v": { prompt: string; duration?: 5 | 10 | 15; resolution?: "480p" | "720p" | "1080p"; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; negativePrompt?: string; startFrame?: string; };
   "wan-2.7-i2v": { prompt?: string; duration?: 5 | 10 | 15; resolution?: "720P" | "1080P"; negativePrompt?: string; enhancePrompt?: boolean; startFrame: string; endFrame?: string; audioUrl?: string; seed?: number; };
   "wan-2.7-r2v": { prompt: string; duration?: 5 | 10; resolution?: "720P" | "1080P"; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; negativePrompt?: string; imageUrls: [string, ...string[]]; videoUrl: string; seed?: number; };
   "wan-2.7-t2v": { prompt: string; duration?: 5 | 10 | 15; resolution?: "720P" | "1080P"; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; negativePrompt?: string; enhancePrompt?: boolean; audioUrl?: string; startFrame?: string; seed?: number; };

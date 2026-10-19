@@ -1086,25 +1086,6 @@ type ModelInputById = {
         aspectRatio?: "auto" | "16:9" | "9:16";
         cfgScale?: number;
     };
-    "ltx-pro-t2v": {
-        prompt: string;
-        duration?: 6 | 8 | 10;
-        resolution?: "1080p" | "1440p" | "2160p";
-        generateAudio?: boolean;
-        imageUrls?: string[];
-    };
-    "ltx-v2-fast": {
-        prompt: string;
-        duration?: 6 | 8 | 10 | 12 | 14 | 16 | 18 | 20;
-        resolution?: "1080p" | "1440p" | "2160p";
-        generateAudio?: boolean;
-        imageUrls?: string[];
-    };
-    "ltx-v2-retake": {
-        prompt: string;
-        duration?: 5 | 10 | 15 | 20;
-        videoUrl: string;
-    };
     "ltx-v2.3-extend": {
         prompt?: string;
         duration?: number;
@@ -1442,26 +1423,6 @@ type ModelInputById = {
     "picsart-videography": {
         imageUrls: [string, ...string[]];
     };
-    "pika-2.2": {
-        prompt: string;
-        duration?: 5 | 10;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:5" | "5:4" | "3:2" | "2:3";
-        resolution?: "720p" | "1080p";
-        imageUrls?: string[];
-    };
-    "pika-2.2-frames": {
-        prompt: string;
-        duration?: 5 | 10;
-        resolution?: "720p" | "1080p";
-        imageUrls: [string, ...string[]];
-    };
-    "pika-2.2-scenes": {
-        prompt: string;
-        duration?: 5 | 10;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:5" | "5:4" | "3:2" | "2:3";
-        resolution?: "720p" | "1080p";
-        imageUrls: [string, ...string[]];
-    };
     "pixverse-c1": {
         prompt: string;
         quality?: "360p" | "540p" | "720p" | "1080p";
@@ -1505,10 +1466,6 @@ type ModelInputById = {
         duration?: number;
         generateAudio?: boolean;
         imageUrls: [string, ...string[]];
-    };
-    "qwen": {
-        prompt: string;
-        imageUrls?: string[];
     };
     "qwen-image-2": {
         prompt: string;
@@ -1564,19 +1521,6 @@ type ModelInputById = {
     "recraft-vectorize": {
         prompt?: string;
         imageUrls: [string, ...string[]];
-    };
-    "recraftv2": {
-        prompt: string;
-        style?: "realistic_image" | "digital_illustration" | "vector_illustration" | "icon";
-        aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
-        count?: 1 | 2 | 4 | 6;
-        negativePrompt?: string;
-    };
-    "recraftv2_vector": {
-        prompt: string;
-        aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2";
-        count?: 1 | 2 | 4 | 6;
-        negativePrompt?: string;
     };
     "recraftv3": {
         prompt: string;
@@ -2119,20 +2063,6 @@ type ModelInputById = {
         prompt: string;
         count?: 1 | 2 | 4 | 6 | 8 | 10;
         negativePrompt?: string;
-    };
-    "wan-2.6-r2v": {
-        prompt: string;
-        duration?: 5 | 10;
-        resolution?: "720p" | "1080p";
-        videoUrl: string;
-    };
-    "wan-2.6-t2v": {
-        prompt: string;
-        duration?: 5 | 10 | 15;
-        resolution?: "480p" | "720p" | "1080p";
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
-        negativePrompt?: string;
-        startFrame?: string;
     };
     "wan-2.7-i2v": {
         prompt?: string;
@@ -3713,9 +3643,6 @@ declare const Models: {
     readonly KlingVideoEffects: "kling-video-effects";
     readonly KlingVideoO1: "kling-video-o1";
     readonly Ltx23A2v: "ltx-2.3-a2v";
-    readonly LtxProT2v: "ltx-pro-t2v";
-    readonly LtxV2Fast: "ltx-v2-fast";
-    readonly LtxV2Retake: "ltx-v2-retake";
     readonly LtxV23Extend: "ltx-v2.3-extend";
     readonly LtxV23Fast: "ltx-v2.3-fast";
     readonly LtxV23Outpaint: "ltx-v2.3-outpaint";
@@ -3759,16 +3686,12 @@ declare const Models: {
     readonly PicsartSanaSprintV1: "picsart-sana-sprint-v1";
     readonly PicsartSodV82: "picsart-sod-v8-2";
     readonly PicsartVideography: "picsart-videography";
-    readonly Pika22: "pika-2.2";
-    readonly Pika22Frames: "pika-2.2-frames";
-    readonly Pika22Scenes: "pika-2.2-scenes";
     readonly PixverseC1: "pixverse-c1";
     readonly PixverseC1Fusion: "pixverse-c1-fusion";
     readonly PixverseC1Image: "pixverse-c1-image";
     readonly PixverseV6: "pixverse-v6";
     readonly PixverseV6Fusion: "pixverse-v6-fusion";
     readonly PixverseV6Image: "pixverse-v6-image";
-    readonly Qwen: "qwen";
     readonly QwenImage2: "qwen-image-2";
     readonly QwenImage2Pro: "qwen-image-2-pro";
     readonly QwenImage30: "qwen-image-3.0";
@@ -3778,8 +3701,6 @@ declare const Models: {
     readonly RecraftExplore: "recraft-explore";
     readonly RecraftExploreSimilar: "recraft-explore-similar";
     readonly RecraftVectorize: "recraft-vectorize";
-    readonly Recraftv2: "recraftv2";
-    readonly Recraftv2Vector: "recraftv2_vector";
     readonly Recraftv3: "recraftv3";
     readonly Recraftv3Vector: "recraftv3_vector";
     readonly Recraftv3ReplaceBg: "recraftv3-replace-bg";
@@ -3845,8 +3766,6 @@ declare const Models: {
     readonly Veo31Fast: "veo-3.1-fast";
     readonly Veo31Lite: "veo-3.1-lite";
     readonly Wan26Image: "wan-2.6-image";
-    readonly Wan26R2v: "wan-2.6-r2v";
-    readonly Wan26T2v: "wan-2.6-t2v";
     readonly Wan27I2v: "wan-2.7-i2v";
     readonly Wan27R2v: "wan-2.7-r2v";
     readonly Wan27T2v: "wan-2.7-t2v";

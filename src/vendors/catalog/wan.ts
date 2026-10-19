@@ -6,33 +6,6 @@ import { defineModels, feat, params } from '../define.ts';
 import { p } from '../../core/descriptors/presets.ts';
 import { ApiError } from '../../core/errors.ts';
 
-export const buildWanT2VPayload: PayloadBuilder = (ctx) => ({
-  prompt: ctx.prompt,
-  resolution: ctx.resolution ?? '720p',
-  duration: ctx.duration ?? 5,
-  ...(ctx.startFrame ? { image_url: ctx.startFrame } : {}),
-  ...(ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {}),
-  ...(ctx.aspectRatio ? { aspect_ratio: ctx.aspectRatio } : {}),
-});
-
-// fal V26ImageToVideoInput: duration is a STRING enum, resolution 720p/1080p
-// (default 1080p), NO aspect_ratio (output follows the input image), and
-// negative_prompt is supported. '480p' exists only on the t2v schema — clamp.
-export const buildWanI2VPayload: PayloadBuilder = (ctx) => ({
-  prompt: ctx.prompt,
-  image_url: ctx.startFrame,
-  resolution: ctx.resolution === '1080p' ? '1080p' : '720p',
-  duration: String(ctx.duration ?? 5),
-  ...(ctx.negativePrompt ? { negative_prompt: ctx.negativePrompt } : {}),
-});
-
-export const buildWanR2VPayload: PayloadBuilder = (ctx) => ({
-  prompt: ctx.prompt,
-  video_urls: [ctx.videoUrl],
-  resolution: ctx.resolution === '1080p' ? '1080p' : '720p',
-  duration: String(ctx.duration ?? 5),
-});
-
 const buildWanImagePayload: PayloadBuilder = (ctx) => ({
   prompt: ctx.prompt,
   model: 'wan-2.6',
@@ -191,42 +164,6 @@ const wanV3ParamConfig = {
 };
 
 export const { MODELS } = defineModels('wan', [
-  // ── Video ─────────────────────────────────────────
-  {
-    id: 'wan-2.6-t2v', name: 'Wan 2.6', modelId: 'wan2.6-t2v',
-    addedAt: '2026-02-06',
-    deprecated: true, // superseded by wan-2.7-t2v
-    workflow: 'wan/v2.6/text-to-video', editWorkflow: 'wan/v2.6/image-to-video',
-    buildPayload: buildWanT2VPayload, buildEditPayload: buildWanI2VPayload,
-    estimatedTime: { '480p': 40, '720p': 50, '1080p': 50 }, editEstimatedTime: 14,
-    mode: 'video', inputType: 't2v',
-    description: 'Painterly artistic look with audio — up to 15s at 1080p.',
-    features: [feat('Image Input', 'input'), feat('Start Frame', 'frame'), feat('Audio', 'audio'), feat('1080p', 'resolution'), feat('5/10/15 sec', 'duration')],
-    paramConfig: {
-      ...params.prompt({ maxLength: 5000 }),
-      ...params.duration([5, 10, 15], 5),
-      ...params.resolution(['480p', '720p', '1080p'], '720p'),
-      ...params.aspectRatio(['16:9', '9:16', '1:1', '4:3', '3:4']),
-      ...params.negativePrompt(),
-      ...params.startFrame(),
-    },
-  },
-  {
-    id: 'wan-2.6-r2v', name: 'Wan 2.6 Ref-to-Video', modelId: 'wan2.6-r2v',
-    addedAt: '2026-02-06',
-    deprecated: true, // superseded by wan-2.7-r2v
-    workflow: 'wan/v2.6/reference-to-video', buildPayload: buildWanR2VPayload,
-    estimatedTime: 26,
-    mode: 'video', inputType: 'v2v',
-    description: 'Regenerate video from a reference clip with new stylistic direction.',
-    features: [feat('Video Input', 'input'), feat('1080p', 'resolution'), feat('5/10 sec', 'duration')],
-    paramConfig: {
-      ...params.prompt({ maxLength: 5000 }),
-      ...params.duration([5, 10], 5),
-      ...params.resolution(['720p', '1080p'], '720p'),
-      ...params.videoInput('Reference Video'),
-    },
-  },
   // ── Image ─────────────────────────────────────────
   {
     id: 'wan-2.6-image', name: 'Wan 2.6 Image', modelId: 'wan2.6-t2i',

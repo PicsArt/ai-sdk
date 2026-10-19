@@ -10,15 +10,6 @@ const QWEN_V1_SIZES: string[] = [
   '2048x2048', '2688x1536', '1536x2688', '2368x1728', '1728x2368',
 ];
 
-/** Qwen T2I/I2I — prompt + optional single image_url. */
-export const buildQwenPayload: PayloadBuilder = (ctx) => {
-  const hasImages = Array.isArray(ctx.imageUrls) && ctx.imageUrls.length > 0;
-  return {
-    prompt: ctx.prompt,
-    ...(hasImages ? { image_url: ctx.imageUrls![0] } : {}),
-  };
-};
-
 /** Qwen 2 T2I/I2I — prompt + image_urls array (edit expects array, not singular). */
 export const buildQwen2Payload: PayloadBuilder = (ctx) => {
   const hasImages = Array.isArray(ctx.imageUrls) && ctx.imageUrls.length > 0;
@@ -77,21 +68,6 @@ const qwenV1Params3 = {
 };
 
 export const { MODELS } = defineModels('qwen', [
-  {
-    id: 'qwen', name: 'Qwen',
-    addedAt: '2026-02-06',
-    deprecated: true, // superseded by qwen-2 / qwen-2-pro / qwen-edit-plus
-    workflow: 'qwen-image', editWorkflow: 'qwen-image/image-to-image',
-    buildPayload: buildQwenPayload,
-    estimatedTime: 12,
-    mode: 'image', inputType: 't2i',
-    description: 'Clean 1K images from text or an image reference.',
-    features: [feat('Image Input', 'input'), feat('1K', 'resolution')],
-    paramConfig: {
-      ...params.prompt(),
-      ...params.imageInput(1, 'Source Image'),
-    },
-  },
   {
     id: 'qwen-image-2', name: 'Qwen 2',
     addedAt: '2026-03-27',

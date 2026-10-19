@@ -10,7 +10,6 @@
  *   recraftv4 / recraftv4_vector / recraftv4_pro / recraftv4_pro_vector
  *   recraftv4_styles / recraftv4_styles_vector / recraftv4_styles_pro / recraftv4_styles_pro_vector
  *   recraftv3 / recraftv3_vector
- *   recraftv2 / recraftv2_vector
  *
  * Size accepts both pixel sizes (1024x1024) and aspect ratios (1:1, 4:3, etc.).
  * V4 models support style via model variant selection (not a `style` field).
@@ -23,7 +22,7 @@
  * Because references are t2i-only and mandatory, these entries take no
  * separate source image.
  * V4.1 catalog entries are raster-only (no vector style toggle).
- * V3/V2 models support style, substyle, negative_prompt.
+ * V3 models support style, substyle, negative_prompt.
  *
  * Image-to-image: the V3 and V4/V4.1 families accept an optional source image
  * (image_url + strength). Providing an image routes the generations workflow to
@@ -77,7 +76,7 @@ const buildRecraftV4ProPayload: PayloadBuilder = (ctx) => ({
 });
 
 /**
- * V3/V2 payload — supports style, substyle, negative_prompt.
+ * V3 payload — supports style, substyle, negative_prompt.
  */
 const buildRecraftLegacyPayload =
   (apiModel: string): PayloadBuilder =>
@@ -363,29 +362,6 @@ export const { MODELS } = defineModels('recraft', [
       ...params.imageWeight(0, 100, 80, 5),
     },
   },
-  {
-    id: 'recraftv2', name: 'Recraft 20B',
-    addedAt: '2026-02-15',
-    deprecated: true, // superseded by recraftv3 / recraftv4 / recraftv4_pro
-    workflow: 'recraft/v1/images/generations',
-    buildPayload: buildRecraftLegacyPayload('recraftv2'),
-    estimatedTime: 7,
-    mode: 'image', inputType: 't2i',
-    description: '20B parameter model with icon, illustration, and vector modes.',
-    features: [feat('Styles', 'style')],
-    paramConfig: {
-      ...params.prompt({ maxLength: 1000 }),
-      ...params.style([
-        { id: 'realistic_image', label: 'Realistic' },
-        { id: 'digital_illustration', label: 'Illustration' },
-        { id: 'vector_illustration', label: 'Vector (SVG)' },
-        { id: 'icon', label: 'Icon' },
-      ], 'realistic_image'),
-      ...params.aspectRatio(recraftAspectRatios, '1:1'),
-      ...params.count([1, 2, 4, 6]),
-      ...params.negativePrompt(),
-    },
-  },
   // ── V4 Pro / Vector / V3 Vector variants ────────────────────────
   {
     id: 'recraftv4_pro', name: 'Recraft V4 Pro',
@@ -517,24 +493,6 @@ export const { MODELS } = defineModels('recraft', [
     mode: 'image', inputType: 't2i',
     description: 'Dedicated SVG vector output with substyle options and negative prompts.',
     features: [feat('Vector/SVG', 'characteristic'), feat('Text in Image', 'characteristic')],
-    paramConfig: {
-      ...params.prompt({ maxLength: 1000 }),
-      ...params.aspectRatio(recraftAspectRatios, '1:1'),
-      ...params.count([1, 2, 4, 6]),
-      ...params.negativePrompt(),
-    },
-  },
-  // ── V2 Vector variant ──────────────────────────────────────────────
-  {
-    id: 'recraftv2_vector', name: 'Recraft 20B Vector',
-    addedAt: '2026-03-13',
-    deprecated: true, // superseded by recraftv3_vector / recraftv4_vector
-    workflow: 'recraft/v1/images/generations',
-    buildPayload: buildRecraftLegacyPayload('recraftv2_vector'),
-    estimatedTime: 7,
-    mode: 'image', inputType: 't2i',
-    description: 'Dedicated SVG vector output using the 20B parameter model.',
-    features: [feat('Vector/SVG', 'characteristic')],
     paramConfig: {
       ...params.prompt({ maxLength: 1000 }),
       ...params.aspectRatio(recraftAspectRatios, '1:1'),

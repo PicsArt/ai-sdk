@@ -24,7 +24,6 @@ import './seedaudio.payloads.ts'; // registers the Seed Audio payload builder af
 import { MODELS as reveMODELS } from './reve.ts';
 import { MODELS as grokMODELS } from './grok.ts';
 import './grok.payloads.ts'; // registers the Grok Imagine 2.0 payload builders after model definitions
-import { MODELS as pikaMODELS } from './pika.ts';
 import { MODELS as veoMODELS } from './veo.ts';
 import { MODELS as runwayMODELS } from './runway.ts';
 import { MODELS as fluxMODELS } from './flux.ts';
@@ -89,7 +88,6 @@ export const ALL_MODELS: ModelDefinition[] = [
   ...seedaudioMODELS,
   ...reveMODELS,
   ...grokMODELS,
-  ...pikaMODELS,
   ...veoMODELS,
   ...runwayMODELS,
   ...fluxMODELS,

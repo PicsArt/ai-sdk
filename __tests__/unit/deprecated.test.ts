@@ -14,19 +14,22 @@ import { getModelsByMode, ALL_MODELS } from '../../src/vendors/catalog/index.ts'
 // lists — which is wrong: each was retired deliberately. To re-enable a
 // retired model, flip the flag deliberately and update this list, not the
 // other way around.
+//
+// A model can also be removed outright: its row leaves the catalog and its id
+// no longer resolves. That is reserved for models whose provider is gone or
+// whose fal route is 2+ generations behind — see REMOVED_IDS below.
 const DEPRECATED_IDS = [
   'seedance-1.5-pro', 'seedance-i2v',
   'seedream-4.0',
-  'qwen',
   'qwen-image-2',
-  'recraftv2', 'recraftv2_vector',
-  'wan-2.6-t2v', 'wan-2.6-r2v', 'wan-2.6-image',
+  'wan-2.6-image',
   'gpt-image-1',
   'kling-v2-1-image', 'kling-multi-image-v2-1',
-  'ltx-pro-t2v', 'ltx-v2-fast', 'ltx-v2-retake',
+  'kling-v2-6', 'kling-video-o1',
   'runway-gen3a-turbo', 'runway-gen4-aleph',
-  'pika-2.2', 'pika-2.2-scenes', 'pika-2.2-frames',
   'bytedance-video-upscaler',
+  'flux-kontext-max', 'flux-kontext-pro',
+  'eleven-multilingual-v2',
 ];
 
 // ── Deprecated IDs are marked correctly ───────────────────────────
@@ -66,6 +69,23 @@ for (const id of DEPRECATED_IDS) {
 const allIds = new Set(ALL_MODELS.map((m) => m.id));
 for (const id of DEPRECATED_IDS) {
   assert(allIds.has(id), `${id}: ALL_MODELS should still expose this (unfiltered by design)`);
+}
+
+// ── Removed models are gone ────────────────────────────────────────
+//
+// Deleted from the catalog in 6.50.0 (not deprecated): the provider was
+// dropped (Pika), or the model is 2+ generations behind (Recraft V2, LTX 2.0,
+// and the fal-routed Wan 2.6 video / Qwen v1).
+
+const REMOVED_IDS = [
+  'pika-2.2', 'pika-2.2-scenes', 'pika-2.2-frames',
+  'recraftv2', 'recraftv2_vector',
+  'ltx-pro-t2v', 'ltx-v2-fast', 'ltx-v2-retake',
+  'wan-2.6-t2v', 'wan-2.6-r2v',
+  'qwen',
+];
+for (const id of REMOVED_IDS) {
+  assert(!allIds.has(id), `${id}: removed from the catalog — must not come back as a row`);
 }
 
 console.log(`deprecated.test.ts: OK (${DEPRECATED_IDS.length} deprecated)`);

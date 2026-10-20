@@ -105,7 +105,7 @@ export const buildHH11R2VPayload: PayloadBuilder = (ctx) => {
   };
 };
 
-const HH_AR = ['16:9', '9:16', '1:1', '4:3', '3:4'];
+const HH_AR = ['16:9', '9:16', '1:1', '4:3', '3:4', '4:5', '5:4'];
 const HH_RES = ['720P', '1080P'];
 
 export const { MODELS } = defineModels('happyhorse', [

@@ -9945,7 +9945,7 @@ var buildHH11R2VPayload = (ctx) => {
     ...ctx.seed != null ? { seed: ctx.seed } : {}
   };
 };
-var HH_AR = ["16:9", "9:16", "1:1", "4:3", "3:4"];
+var HH_AR = ["16:9", "9:16", "1:1", "4:3", "3:4", "4:5", "5:4"];
 var HH_RES = ["720P", "1080P"];
 var { MODELS: MODELS31 } = defineModels("happyhorse", [
   {

@@ -786,7 +786,7 @@ type ModelInputById = {
     "happyhorse-1.0-r2v": {
         prompt: string;
         seed?: number;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "4:5" | "5:4";
         resolution?: "720P" | "1080P";
         duration?: number;
         imageUrls: [string, ...string[]];
@@ -794,7 +794,7 @@ type ModelInputById = {
     "happyhorse-1.0-t2v": {
         prompt: string;
         seed?: number;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "4:5" | "5:4";
         resolution?: "720P" | "1080P";
         duration?: number;
         startFrame?: string;
@@ -810,7 +810,7 @@ type ModelInputById = {
     "happyhorse-1.1-r2v": {
         prompt: string;
         seed?: number;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "4:5" | "5:4";
         resolution?: "720P" | "1080P";
         duration?: number;
         imageUrls: [string, ...string[]];
@@ -818,7 +818,7 @@ type ModelInputById = {
     "happyhorse-1.1-t2v": {
         prompt: string;
         seed?: number;
-        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+        aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "4:5" | "5:4";
         resolution?: "720P" | "1080P";
         duration?: number;
         startFrame?: string;

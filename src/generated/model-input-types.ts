@@ -104,11 +104,11 @@ export type ModelInputById = {
   "hailuo-2.3-fast": { prompt: string; enhancePrompt?: boolean; duration?: 6 | 10; imageUrls: [string, ...string[]]; };
   "hailuo-2.3-fast-pro": { prompt: string; enhancePrompt?: boolean; imageUrls: [string, ...string[]]; };
   "hailuo-2.3-pro": { prompt: string; enhancePrompt?: boolean; imageUrls?: string[]; };
-  "happyhorse-1.0-r2v": { prompt: string; seed?: number; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; resolution?: "720P" | "1080P"; duration?: number; imageUrls: [string, ...string[]]; };
-  "happyhorse-1.0-t2v": { prompt: string; seed?: number; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; resolution?: "720P" | "1080P"; duration?: number; startFrame?: string; };
+  "happyhorse-1.0-r2v": { prompt: string; seed?: number; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "4:5" | "5:4"; resolution?: "720P" | "1080P"; duration?: number; imageUrls: [string, ...string[]]; };
+  "happyhorse-1.0-t2v": { prompt: string; seed?: number; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "4:5" | "5:4"; resolution?: "720P" | "1080P"; duration?: number; startFrame?: string; };
   "happyhorse-1.0-video-edit": { prompt: string; seed?: number; resolution?: "720P" | "1080P"; audioSetting?: "auto" | "origin"; videoUrl: string; imageUrls?: string[]; };
-  "happyhorse-1.1-r2v": { prompt: string; seed?: number; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; resolution?: "720P" | "1080P"; duration?: number; imageUrls: [string, ...string[]]; };
-  "happyhorse-1.1-t2v": { prompt: string; seed?: number; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4"; resolution?: "720P" | "1080P"; duration?: number; startFrame?: string; };
+  "happyhorse-1.1-r2v": { prompt: string; seed?: number; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "4:5" | "5:4"; resolution?: "720P" | "1080P"; duration?: number; imageUrls: [string, ...string[]]; };
+  "happyhorse-1.1-t2v": { prompt: string; seed?: number; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "4:5" | "5:4"; resolution?: "720P" | "1080P"; duration?: number; startFrame?: string; };
   "heygen-talking-photo": { imageUrls: [string, ...string[]]; resolution?: "4k" | "1080p" | "720p"; aspectRatio?: "16:9" | "9:16" | "4:5" | "5:4" | "1:1" | "auto"; voiceId: string; prompt: string; };
   "heygen-video-1": { prompt: string; startFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; resolution?: "480p" | "768p"; duration?: number; aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; promptEnhancement?: "turbo" | "quality" | "disabled"; seed?: number; };
   "heygen-video-avatar": { videoId: string; engine?: "avatar_iv" | "avatar_v"; resolution?: "4k" | "1080p" | "720p"; aspectRatio?: "16:9" | "9:16" | "4:5" | "5:4" | "1:1" | "auto"; voiceId: string; prompt: string; };

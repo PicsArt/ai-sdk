@@ -1669,7 +1669,7 @@ var { MODELS } = defineModels("kling", [
   // ── Video: Kling 4.0 Omni (dedicated /omni-video/kling-4.0 tasks API) ──
   {
     id: "kling-v4-omni",
-    name: "Kling 4.0 Omni",
+    name: "Kling 4.0 Flash",
     modelId: "kling-v4-omni",
     addedAt: "2026-10-16",
     workflow: "kling-omni-video",

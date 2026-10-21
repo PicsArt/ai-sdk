@@ -384,7 +384,7 @@ function parseDraftInfo(attrs: Record<string, string>): DriveDraftInfo {
   const draftTask = parseJsonAttr(attrs[DRAFT_TASK_ATTR]);
   if (!isSeedanceDraftTask(draftTask)) return {};
   return {
-    draftTask: { id: draftTask.id, video_input: draftTask.video_input, signature: draftTask.signature },
+    draftTask: { id: draftTask.id },
     ...(attrs[DRAFT_EXPIRES_AT_ATTR] ? { draftExpiresAt: attrs[DRAFT_EXPIRES_AT_ATTR] } : {}),
   };
 }

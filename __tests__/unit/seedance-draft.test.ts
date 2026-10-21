@@ -1,6 +1,6 @@
 /**
  * Seedance 2.5 Draft mode — `draft` (every 2.5 entry) renders a 480p preview
- * whose result carries a signed `draftTask`, and `draftTask` (the base 2.5
+ * whose result carries a `draftTask`, and `draftTask` (the base 2.5
  * entries) renders the final 1080p video from it. These checks pin the wire
  * shape of both steps, that the draft reference round-trips unchanged, and
  * that nothing a caller sends is silently dropped: what a step cannot take
@@ -14,7 +14,7 @@ import { resolveModel } from '../../src/core/resolve.ts';
 import { Model } from '../../src/core/descriptors/model-accessor.ts';
 import type { WorkflowStatusResult } from '../../src/core/workflow.ts';
 
-const DRAFT_TASK = { id: 'cgt-20260923200602-t2ift', video_input: true, signature: 'sig-abc' };
+const DRAFT_TASK = { id: 'cgt-20260923200602-t2ift' };
 
 const SEEDANCE_25_ENTRIES = [
   { id: 'seedance-2.5', alias: 'seedance_2_5' },
@@ -177,7 +177,7 @@ const BASE_ENTRIES = SEEDANCE_25_ENTRIES.slice(0, 2);
   // A malformed reference is not promoted — passing it on would only be rejected.
   const malformed = parseResult(completed({
     video_url: 'https://cdn/draft.mp4',
-    draft_task: { id: 'cgt-1', video_input: 'yes' },
+    draft_task: { id: 123 },
   }), def, undefined);
   assert.strictEqual(malformed.items[0].metadata?.draftTask, undefined);
 
@@ -217,7 +217,7 @@ const BASE_ENTRIES = SEEDANCE_25_ENTRIES.slice(0, 2);
 
   // Not a draft, or a broken reference: nothing to finalize from.
   assert.strictEqual(parseGeneration(driveFile({ model: 'seedance-2.5' })).draftTask, undefined);
-  for (const broken of ['not json', JSON.stringify({ id: 'cgt-1' }), '[object Object]']) {
+  for (const broken of ['not json', JSON.stringify({ id: 123 }), JSON.stringify({ noId: true }), '[object Object]']) {
     const file = parseGeneration(driveFile({ model: 'seedance-2.5', 'seedance~draftTask': broken, 'seedance~draftExpiresAt': EXPIRES }));
     assert.strictEqual(file.draftTask, undefined, `broken reference ${broken}`);
     assert.strictEqual(file.draftExpiresAt, undefined);

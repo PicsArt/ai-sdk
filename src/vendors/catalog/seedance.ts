@@ -645,9 +645,9 @@ const SEEDANCE_10_DURATIONS = seedanceDurations(2, 12, false);
 /** Draft mode step 1, on every 2.5 entry (see withSeedance25DraftMode). */
 const seedance25DraftParam = p.boolean('draft', false, 'Draft');
 
-/** Draft mode step 2, on the base 2.5 entries. Wire field names on purpose:
- *  it is the object the draft's result returned (`metadata.draftTask`),
- *  signed by the worker, and must travel back unchanged. */
+/** Draft mode step 2, on the base 2.5 entries. It is the object the draft's
+ *  result returned (`metadata.draftTask`) — just the draft `id`, passed back
+ *  to render the final from it. */
 const seedance25DraftTaskParam = {
   draftTask: {
     label: 'Draft',
@@ -656,8 +656,6 @@ const seedance25DraftTaskParam = {
       kind: 'object' as const,
       fields: {
         id: { kind: 'text' as const },
-        video_input: { kind: 'boolean' as const, default: false },
-        signature: { kind: 'text' as const },
       },
     },
   },

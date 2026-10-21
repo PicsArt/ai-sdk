@@ -103,7 +103,7 @@ const CASES: Case[] = [
     alternatives: [
       { prompt: 'a dancer' }, { imageUrls: [IMAGE] }, { videoUrls: [VIDEO] },
       { startFrame: IMAGE },
-      { draftTask: { id: 'cgt-1', video_input: false, signature: 'sig' } },
+      { draftTask: { id: 'cgt-1' } },
     ],
     reason: /image, video, or audio/,
   })),

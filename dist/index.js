@@ -4754,9 +4754,7 @@ var seedance25DraftTaskParam = {
     descriptor: {
       kind: "object",
       fields: {
-        id: { kind: "text" },
-        video_input: { kind: "boolean", default: false },
-        signature: { kind: "text" }
+        id: { kind: "text" }
       }
     }
   }
@@ -11764,7 +11762,7 @@ var extractAllResults = (result) => {
 };
 var isSeedanceDraftTask = (value) => {
   const v = value;
-  return !!v && typeof v === "object" && typeof v.id === "string" && typeof v.video_input === "boolean" && typeof v.signature === "string";
+  return !!v && typeof v === "object" && typeof v.id === "string";
 };
 function buildItemMetadata(parsed, item, _index, provider) {
   const meta = {};
@@ -11776,7 +11774,7 @@ function buildItemMetadata(parsed, item, _index, provider) {
   if (typeof lastFrame === "string") meta.lastFrameUrl = lastFrame;
   const draftTask = top?.draft_task;
   if (provider === "bytedance" && isSeedanceDraftTask(draftTask)) {
-    meta.draftTask = { id: draftTask.id, video_input: draftTask.video_input, signature: draftTask.signature };
+    meta.draftTask = { id: draftTask.id };
   }
   return Object.keys(meta).length > 0 ? meta : void 0;
 }
@@ -13849,7 +13847,7 @@ function parseDraftInfo(attrs) {
   const draftTask = parseJsonAttr(attrs[DRAFT_TASK_ATTR]);
   if (!isSeedanceDraftTask(draftTask)) return {};
   return {
-    draftTask: { id: draftTask.id, video_input: draftTask.video_input, signature: draftTask.signature },
+    draftTask: { id: draftTask.id },
     ...attrs[DRAFT_EXPIRES_AT_ATTR] ? { draftExpiresAt: attrs[DRAFT_EXPIRES_AT_ATTR] } : {}
   };
 }

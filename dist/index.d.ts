@@ -1872,8 +1872,6 @@ type ModelInputById = {
         draft?: boolean;
         draftTask?: {
             id: string;
-            video_input: boolean;
-            signature: string;
         };
         omniReferenceTaskType?: "auto" | "reference" | "edit" | "extend";
         imageUrls?: string[];
@@ -1917,8 +1915,6 @@ type ModelInputById = {
         draft?: boolean;
         draftTask?: {
             id: string;
-            video_input: boolean;
-            signature: string;
         };
         omniReferenceTaskType?: "auto" | "reference" | "edit" | "extend";
         imageUrls?: string[];
@@ -2805,15 +2801,13 @@ interface GenerateResultItemMetadata {
     lastFrameUrl?: string;
     /** The draft a Seedance 2.5 Draft generation produced — pass it back
      *  unchanged as `draftTask` to the matching `-draft-final` model to render
-     *  the final 1080p video (valid 7 days). Wire field names on purpose: the
-     *  worker signs it, so any change is rejected. */
+     *  the final 1080p video (valid 7 days). */
     draftTask?: SeedanceDraftTask;
 }
-/** A Seedance 2.5 draft reference, as the worker issues it. */
+/** A Seedance 2.5 draft reference, as the worker issues it. The final step
+ *  needs only the draft `id`; the worker resolves the rest from it. */
 interface SeedanceDraftTask {
     id: string;
-    video_input: boolean;
-    signature: string;
 }
 
 /**

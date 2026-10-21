@@ -379,6 +379,27 @@ type ModelInputById = {
         steps?: number;
         safetyTolerance?: number;
     };
+    "flux-3-max": {
+        prompt: string;
+        startFrame?: string;
+        endFrame?: string;
+        aspectRatio?: "auto" | "21:9" | "2:1" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
+        resolution?: "720p" | "1080p";
+        duration?: number;
+        generateAudio?: boolean;
+        reasoningLevel?: "low" | "high";
+        seed?: number;
+    };
+    "flux-3-max-keyframes": {
+        prompt: string;
+        imageUrls: [string, ...string[]];
+        aspectRatio?: "auto" | "21:9" | "2:1" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
+        resolution?: "720p" | "1080p";
+        duration?: number;
+        generateAudio?: boolean;
+        reasoningLevel?: "low" | "high";
+        seed?: number;
+    };
     "flux-3-video": {
         prompt: string;
         aspectRatio?: "auto" | "21:9" | "2:1" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16";
@@ -3544,6 +3565,8 @@ declare const Models: {
     readonly Flux2Pro: "flux-2-pro";
     readonly Flux3Image: "flux-3-image";
     readonly Flux3ImageKlein: "flux-3-image-klein";
+    readonly Flux3Max: "flux-3-max";
+    readonly Flux3MaxKeyframes: "flux-3-max-keyframes";
     readonly Flux3Video: "flux-3-video";
     readonly FluxKontextMax: "flux-kontext-max";
     readonly FluxKontextPro: "flux-kontext-pro";

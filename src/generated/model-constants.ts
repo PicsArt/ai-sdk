@@ -91,6 +91,10 @@ export const Flux2Pro = 'flux-2-pro' as const;
 export const Flux3Image = 'flux-3-image' as const;
 /** Flux 3 Image Klein — flux (image) */
 export const Flux3ImageKlein = 'flux-3-image-klein' as const;
+/** Flux 3 Max — flux (video) */
+export const Flux3Max = 'flux-3-max' as const;
+/** Flux 3 Max Keyframes — flux (video) */
+export const Flux3MaxKeyframes = 'flux-3-max-keyframes' as const;
 /** Flux 3 Video — flux (video) */
 export const Flux3Video = 'flux-3-video' as const;
 /** Flux Kontext Max — flux (image) */
@@ -594,6 +598,8 @@ export const Models = {
   Flux2Pro,
   Flux3Image,
   Flux3ImageKlein,
+  Flux3Max,
+  Flux3MaxKeyframes,
   Flux3Video,
   FluxKontextMax,
   FluxKontextPro,

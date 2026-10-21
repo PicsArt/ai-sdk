@@ -31,6 +31,10 @@ const flux3ImageAspectRatios = [
   '1:1', '4:5', '3:4', '5:7', '2:3', '9:16', '9:21', '1:2',
 ];
 
+// Flux3Max video aspect ratios (fal `aspect_ratio`). 'auto' follows the input
+// image; '16:9' is the vendor default for text-to-video.
+const flux3MaxAspectRatios = ['auto', '21:9', '2:1', '16:9', '4:3', '1:1', '3:4', '9:16'];
+
 // Flux3ImageResolution enum values. Lowercase — the FLUX 3 image endpoint takes
 // a named tier (not `width`/`height` like FLUX.2) and its casing differs from
 // the `1K`/`2K`/`4K` of `fluxResolutions` above. Copy it exactly.
@@ -377,6 +381,78 @@ export const { MODELS } = defineModels('flux', [
       ...params.prompt({ maxLength: 4096 }),
       // Moderation level: 0 (strict) … 4 (permissive).
       ...p.range('safetyTolerance', 0, 4, 2, { label: 'Safety Tolerance' }),
+    },
+  },
+  {
+    // FLUX 3 Max video — text-to-video, or image-to-video from a start (and
+    // optional end) frame: a frame routes to the `flux-3-max/image-to-video`
+    // endpoint via editWorkflow. Keyframe interpolation is its own entry
+    // (flux-3-max-keyframes) because routing has only two slots. The worker
+    // forwards the command straight to fal, so the builders emit fal snake_case.
+    id: 'flux-3-max', name: 'Flux 3 Max', modelId: 'fal-ai-flux-3-max',
+    workflow: 'flux-3-max/text-to-video',
+    editWorkflow: 'flux-3-max/image-to-video',
+    mode: 'video', inputType: 't2v',
+    addedAt: '2026-10-21',
+    estimatedTime: 60,
+    description: 'Text-to-video with synchronized audio, or image-to-video from a start (and optional end) frame. Up to 20s at 1080p.',
+    features: [
+      feat('Start/End Frame', 'frame'),
+      feat('Audio', 'audio'),
+      feat('Up to 20s', 'duration'),
+      feat('1080p', 'resolution'),
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      // A start frame routes to image-to-video (image_url); end frame is the
+      // optional end_image_url.
+      ...params.startFrame('Start Frame', false),
+      ...params.endFrame('End Frame'),
+      ...params.aspectRatio(flux3MaxAspectRatios, '16:9'),
+      ...params.resolution(['720p', '1080p'], '720p'),
+      ...params.durationRange(5, 20, 5),
+      ...params.generateAudio(true),
+      // Vendor reasoning tier for the planner; vendor default high.
+      ...p.enum('reasoningLevel', ['low', 'high'], 'high', { label: 'Reasoning' }),
+      // -1 (sentinel) means "pick a random seed"; the builder drops it.
+      ...p.range('seed', -1, 2147483647, -1),
+    },
+    constraints: [
+      // image-to-video requires image_url; end_image_url alone is invalid. An
+      // end frame is only ever a second keyframe, so require a start frame
+      // whenever one is supplied rather than let the request reach fal and 400.
+      { when: { endFrame: { exists: true } }, then: {
+        startFrame: { required: true, reason: 'An end frame needs a start frame — image-to-video animates from the start image.' },
+      } },
+    ],
+  },
+  {
+    // Keyframe-interpolation sibling: 1–10 positioned images animate into a
+    // video via `flux-3-max/keyframes-to-video`. Shares the image-to-video
+    // pricing tier (same modelId). The images are spaced evenly across the
+    // 24 fps timeline in flux.payloads.ts.
+    id: 'flux-3-max-keyframes', name: 'Flux 3 Max Keyframes', modelId: 'fal-ai-flux-3-max',
+    workflow: 'flux-3-max/keyframes-to-video',
+    mode: 'video', inputType: 'i2v',
+    addedAt: '2026-10-21',
+    estimatedTime: 60,
+    description: 'Animate a video between up to 10 positioned keyframe images, with synchronized audio. Up to 20s at 1080p.',
+    features: [
+      feat('Multi-Image Input', 'input'),
+      feat('Audio', 'audio'),
+      feat('Up to 20s', 'duration'),
+      feat('1080p', 'resolution'),
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      // imageUrls → keyframes[]; combined ≤10 is backend-enforced.
+      ...params.imageInput(10, 'Keyframes', true, 'asset'),
+      ...params.aspectRatio(flux3MaxAspectRatios, '16:9'),
+      ...params.resolution(['720p', '1080p'], '720p'),
+      ...params.durationRange(5, 20, 5),
+      ...params.generateAudio(true),
+      ...p.enum('reasoningLevel', ['low', 'high'], 'high', { label: 'Reasoning' }),
+      ...p.range('seed', -1, 2147483647, -1),
     },
   },
 ]);

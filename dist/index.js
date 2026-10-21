@@ -6283,6 +6283,7 @@ var flux3ImageAspectRatios = [
   "9:21",
   "1:2"
 ];
+var flux3MaxAspectRatios = ["auto", "21:9", "2:1", "16:9", "4:3", "1:1", "3:4", "9:16"];
 var flux3ImageResolutions = ["768sq", "1k", "1.5k", "2k", "4k"];
 var buildFluxV2Payload = (modelId) => (ctx) => ({
   prompt: ctx.prompt,
@@ -6610,6 +6611,84 @@ var { MODELS: MODELS20 } = defineModels("flux", [
       // Moderation level: 0 (strict) … 4 (permissive).
       ...p.range("safetyTolerance", 0, 4, 2, { label: "Safety Tolerance" })
     }
+  },
+  {
+    // FLUX 3 Max video — text-to-video, or image-to-video from a start (and
+    // optional end) frame: a frame routes to the `flux-3-max/image-to-video`
+    // endpoint via editWorkflow. Keyframe interpolation is its own entry
+    // (flux-3-max-keyframes) because routing has only two slots. The worker
+    // forwards the command straight to fal, so the builders emit fal snake_case.
+    id: "flux-3-max",
+    name: "Flux 3 Max",
+    modelId: "fal-ai-flux-3-max",
+    workflow: "flux-3-max/text-to-video",
+    editWorkflow: "flux-3-max/image-to-video",
+    mode: "video",
+    inputType: "t2v",
+    addedAt: "2026-10-21",
+    estimatedTime: 60,
+    description: "Text-to-video with synchronized audio, or image-to-video from a start (and optional end) frame. Up to 20s at 1080p.",
+    features: [
+      feat("Start/End Frame", "frame"),
+      feat("Audio", "audio"),
+      feat("Up to 20s", "duration"),
+      feat("1080p", "resolution")
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      // A start frame routes to image-to-video (image_url); end frame is the
+      // optional end_image_url.
+      ...params.startFrame("Start Frame", false),
+      ...params.endFrame("End Frame"),
+      ...params.aspectRatio(flux3MaxAspectRatios, "16:9"),
+      ...params.resolution(["720p", "1080p"], "720p"),
+      ...params.durationRange(5, 20, 5),
+      ...params.generateAudio(true),
+      // Vendor reasoning tier for the planner; vendor default high.
+      ...p.enum("reasoningLevel", ["low", "high"], "high", { label: "Reasoning" }),
+      // -1 (sentinel) means "pick a random seed"; the builder drops it.
+      ...p.range("seed", -1, 2147483647, -1)
+    },
+    constraints: [
+      // image-to-video requires image_url; end_image_url alone is invalid. An
+      // end frame is only ever a second keyframe, so require a start frame
+      // whenever one is supplied rather than let the request reach fal and 400.
+      { when: { endFrame: { exists: true } }, then: {
+        startFrame: { required: true, reason: "An end frame needs a start frame \u2014 image-to-video animates from the start image." }
+      } }
+    ]
+  },
+  {
+    // Keyframe-interpolation sibling: 1–10 positioned images animate into a
+    // video via `flux-3-max/keyframes-to-video`. Shares the image-to-video
+    // pricing tier (same modelId). The images are spaced evenly across the
+    // 24 fps timeline in flux.payloads.ts.
+    id: "flux-3-max-keyframes",
+    name: "Flux 3 Max Keyframes",
+    modelId: "fal-ai-flux-3-max",
+    workflow: "flux-3-max/keyframes-to-video",
+    mode: "video",
+    inputType: "i2v",
+    addedAt: "2026-10-21",
+    estimatedTime: 60,
+    description: "Animate a video between up to 10 positioned keyframe images, with synchronized audio. Up to 20s at 1080p.",
+    features: [
+      feat("Multi-Image Input", "input"),
+      feat("Audio", "audio"),
+      feat("Up to 20s", "duration"),
+      feat("1080p", "resolution")
+    ],
+    paramConfig: {
+      ...params.prompt(),
+      // imageUrls → keyframes[]; combined ≤10 is backend-enforced.
+      ...params.imageInput(10, "Keyframes", true, "asset"),
+      ...params.aspectRatio(flux3MaxAspectRatios, "16:9"),
+      ...params.resolution(["720p", "1080p"], "720p"),
+      ...params.durationRange(5, 20, 5),
+      ...params.generateAudio(true),
+      ...p.enum("reasoningLevel", ["low", "high"], "high", { label: "Reasoning" }),
+      ...p.range("seed", -1, 2147483647, -1)
+    }
   }
 ]);
 
@@ -6633,6 +6712,45 @@ var buildFlux3VideoPayload = (input) => {
 };
 registerPayloads(MODELS20, {
   "flux-3-video": buildFlux3VideoPayload
+});
+var flux3MaxShared = (i) => ({
+  aspect_ratio: i.aspectRatio ?? "16:9",
+  resolution: i.resolution ?? "720p",
+  duration: Number(i.duration ?? 5),
+  generate_audio: i.generateAudio ?? true,
+  reasoning_level: i.reasoningLevel ?? "high",
+  // -1 is the "random seed" sentinel — omit so fal picks one.
+  ...i.seed != null && i.seed !== -1 ? { seed: i.seed } : {}
+});
+var buildFlux3MaxPayload = (i) => ({
+  prompt: i.prompt,
+  ...flux3MaxShared(i)
+});
+var buildFlux3MaxEditPayload = (i) => ({
+  prompt: i.prompt,
+  image_url: i.startFrame,
+  ...i.endFrame ? { end_image_url: i.endFrame } : {},
+  ...flux3MaxShared(i)
+});
+var buildFlux3MaxKeyframesPayload = (i) => {
+  const imgs = i.imageUrls ?? [];
+  const last = Number(i.duration ?? 5) * 24;
+  const keyframes = imgs.map((url, idx) => ({
+    image_url: url,
+    frame_index: imgs.length <= 1 ? 0 : Math.round(last * idx / (imgs.length - 1))
+  }));
+  return {
+    prompt: i.prompt,
+    keyframes,
+    ...flux3MaxShared(i)
+  };
+};
+registerPayloads(MODELS20, {
+  "flux-3-max": buildFlux3MaxPayload,
+  "flux-3-max-keyframes": buildFlux3MaxKeyframesPayload
+});
+registerEditPayloads(MODELS20, {
+  "flux-3-max": buildFlux3MaxEditPayload
 });
 
 // src/vendors/catalog/gemini.ts
@@ -15059,6 +15177,8 @@ var Flux2Max = "flux-2-max";
 var Flux2Pro = "flux-2-pro";
 var Flux3Image = "flux-3-image";
 var Flux3ImageKlein = "flux-3-image-klein";
+var Flux3Max = "flux-3-max";
+var Flux3MaxKeyframes = "flux-3-max-keyframes";
 var Flux3Video = "flux-3-video";
 var FluxKontextMax = "flux-kontext-max";
 var FluxKontextPro = "flux-kontext-pro";
@@ -15323,6 +15443,8 @@ var Models = {
   Flux2Pro,
   Flux3Image,
   Flux3ImageKlein,
+  Flux3Max,
+  Flux3MaxKeyframes,
   Flux3Video,
   FluxKontextMax,
   FluxKontextPro,

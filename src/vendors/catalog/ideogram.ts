@@ -148,7 +148,62 @@ const ideogram45Constraints: Constraint[] = [
   } },
 ];
 
+// ── Ideogram Vector ──────────────────────────────────────────────────
+// Payload builders live in ideogram.payloads.ts.
+
+/** Vendor upload limit for every vector image slot: 50 MB. */
+const IDEOGRAM_VECTOR_IMAGE_BOUNDS = {
+  maxBytes: 50 * 1024 * 1024,
+};
+
+/** Output aspect ratios. The worker converts them to the vendor's `WxH` spelling; `auto` lets the vendor pick. */
+const IDEOGRAM_VECTOR_ASPECT_RATIOS = [
+  'auto', '1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '5:4', '4:5',
+  '16:10', '10:16', '2:1', '1:2', '3:1', '1:3', '4:1', '1:4',
+];
+
+const IDEOGRAM_VECTOR_QUALITIES = ['low', 'medium', 'high'];
+
 export const { MODELS } = defineModels('ideogram', [
+  {
+    id: 'ideogram-vector-1', name: 'Ideogram Vector',
+    addedAt: '2026-10-21',
+    workflow: 'ideogram/vector/generate',
+    // The worker returns SVG and exposes no format param.
+    outputExtension: 'svg',
+    estimatedTime: 30,
+    mode: 'image', inputType: 't2i',
+    description: 'Ideogram Vector — SVG logos, icons and illustrations from a prompt, optionally guided by up to 5 reference images.',
+    features: [feat('Vector/SVG', 'characteristic'), feat('Reference Images', 'input')],
+    paramConfig: {
+      ...params.prompt({ maxLength: 9_500 }),
+      // imageUrls[0] is the primary source; the rest are additional references.
+      ...params.imageInput(5, 'Reference Images', false, 'reference', IDEOGRAM_VECTOR_IMAGE_BOUNDS),
+      ...params.aspectRatio(IDEOGRAM_VECTOR_ASPECT_RATIOS, 'auto'),
+      ...p.quality(IDEOGRAM_VECTOR_QUALITIES, 'medium'),
+      ...params.count(IDEOGRAM_45_COUNTS, 1),
+      ...params.seed(),
+    },
+  },
+  {
+    id: 'ideogram-vector-1-vectorize', name: 'Ideogram Vectorize',
+    addedAt: '2026-10-21',
+    workflow: 'ideogram/vector/vectorize', syncExecute: true,
+    // The worker returns SVG and exposes no format param.
+    outputExtension: 'svg',
+    estimatedTime: 8,
+    mode: 'image', inputType: 'i2i',
+    description: 'Ideogram Vectorize — convert a raster image (JPEG, PNG or WebP) into an SVG.',
+    features: [feat('Vector/SVG', 'characteristic'), feat('Image to SVG', 'input')],
+    paramConfig: {
+      ...params.startFrame('Source Image', true, IDEOGRAM_VECTOR_IMAGE_BOUNDS),
+      // `simple` traces fewer, simpler shapes; `default` preserves finer details.
+      ...p.enum('mode', [
+        { id: 'default', label: 'Detailed' },
+        { id: 'simple', label: 'Simple' },
+      ], 'default', { label: 'Detail' }),
+    },
+  },
   {
     id: 'ideogram-4-5', name: 'Ideogram 4.5',
     addedAt: '2026-09-28',

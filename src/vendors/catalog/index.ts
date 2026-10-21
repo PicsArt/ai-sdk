@@ -39,7 +39,7 @@ import './heygen.payloads.ts'; // registers the HeyGen Video 1 payload builder a
 import { MODELS as minimaxMODELS } from './minimax.ts';
 import './minimax.payloads.ts'; // registers the Music v3 payload builder after model definitions
 import { MODELS as ideogramMODELS } from './ideogram.ts';
-import './ideogram.payloads.ts'; // registers the Ideogram 4.5 payload builders after model definitions
+import './ideogram.payloads.ts'; // registers the Ideogram 4.5 and Vector payload builders after model definitions
 import { MODELS as qwenMODELS } from './qwen.ts';
 import { MODELS as recraftMODELS } from './recraft.ts';
 import { MODELS as topazMODELS } from './topaz.ts';

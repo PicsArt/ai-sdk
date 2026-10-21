@@ -1,5 +1,5 @@
 /**
- * Ideogram 4.5 payload builders.
+ * Ideogram 4.5 and Ideogram Vector payload builders.
  *
  * `ideogram/v4.5/generate` serves both text-to-image and editing: without
  * images it generates from the prompt, with images it edits `images[0]` using
@@ -9,6 +9,11 @@
  * TODO: annotate the returns with WorkflowTypes['ideogram/v4.5/generate'] /
  * ['ideogram/v4.5/precise-edit']['params'] once @picsart/workflows-types
  * publishes the v4.5 tasks (absent as of 1.1.152). Until then they are inferred.
+ *
+ * `ideogram/vector/generate` makes SVGs from a prompt, with `images[0]` as the
+ * primary source and the rest as references; `ideogram/vector/vectorize` turns a
+ * single raster `image` into an SVG. The vector tasks aren't in
+ * @picsart/workflows-types (1.1.170) yet either, so those returns are inferred too.
  */
 import type { ModelInput } from '../../generated/model-input-types.ts';
 import { ApiError } from '../../core/errors.ts';
@@ -17,6 +22,8 @@ import { MODELS } from './ideogram.ts';
 
 type Ideogram45Input = ModelInput<'ideogram-4-5'>;
 type Ideogram45PreciseEditInput = ModelInput<'ideogram-4-5-precise-edit'>;
+type IdeogramVectorInput = ModelInput<'ideogram-vector-1'>;
+type IdeogramVectorizeInput = ModelInput<'ideogram-vector-1-vectorize'>;
 
 /** With a mask the vendor allows 4 images on generate (source + 3 references). */
 const GENERATE_MAX_IMAGES_WITH_MASK = 4;
@@ -93,7 +100,25 @@ const buildIdeogram45PreciseEditPayload = (input: Ideogram45PreciseEditInput) =>
   };
 };
 
+/** `imageUrls[0]` is the primary source, the rest are references; the worker converts `W:H` to the vendor `WxH`. */
+const buildIdeogramVectorPayload = (input: IdeogramVectorInput) => ({
+  prompt: input.prompt,
+  ...(input.imageUrls?.length ? { images: input.imageUrls } : {}),
+  ...(input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {}),
+  quality: input.quality ?? 'medium',
+  num_images: input.count ?? 1,
+  ...(input.seed != null ? { seed: input.seed } : {}),
+});
+
+/** `startFrame` is the (required) raster image to trace. */
+const buildIdeogramVectorizePayload = (input: IdeogramVectorizeInput) => ({
+  image: input.startFrame,
+  mode: input.mode ?? 'default',
+});
+
 registerPayloads(MODELS, {
   'ideogram-4-5': buildIdeogram45Payload,
   'ideogram-4-5-precise-edit': buildIdeogram45PreciseEditPayload,
+  'ideogram-vector-1': buildIdeogramVectorPayload,
+  'ideogram-vector-1-vectorize': buildIdeogramVectorizePayload,
 });

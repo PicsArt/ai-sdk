@@ -8579,7 +8579,75 @@ var ideogram45Constraints = [
     resolution: { disabled: true, reason: "The output keeps the source image size." }
   } }
 ];
+var IDEOGRAM_VECTOR_IMAGE_BOUNDS = {
+  maxBytes: 50 * 1024 * 1024
+};
+var IDEOGRAM_VECTOR_ASPECT_RATIOS = [
+  "auto",
+  "1:1",
+  "16:9",
+  "9:16",
+  "4:3",
+  "3:4",
+  "3:2",
+  "2:3",
+  "5:4",
+  "4:5",
+  "16:10",
+  "10:16",
+  "2:1",
+  "1:2",
+  "3:1",
+  "1:3",
+  "4:1",
+  "1:4"
+];
+var IDEOGRAM_VECTOR_QUALITIES = ["low", "medium", "high"];
 var { MODELS: MODELS25 } = defineModels("ideogram", [
+  {
+    id: "ideogram-vector-1",
+    name: "Ideogram Vector",
+    addedAt: "2026-10-21",
+    workflow: "ideogram/vector/generate",
+    // The worker returns SVG and exposes no format param.
+    outputExtension: "svg",
+    estimatedTime: 30,
+    mode: "image",
+    inputType: "t2i",
+    description: "Ideogram Vector \u2014 SVG logos, icons and illustrations from a prompt, optionally guided by up to 5 reference images.",
+    features: [feat("Vector/SVG", "characteristic"), feat("Reference Images", "input")],
+    paramConfig: {
+      ...params.prompt({ maxLength: 9500 }),
+      // imageUrls[0] is the primary source; the rest are additional references.
+      ...params.imageInput(5, "Reference Images", false, "reference", IDEOGRAM_VECTOR_IMAGE_BOUNDS),
+      ...params.aspectRatio(IDEOGRAM_VECTOR_ASPECT_RATIOS, "auto"),
+      ...p.quality(IDEOGRAM_VECTOR_QUALITIES, "medium"),
+      ...params.count(IDEOGRAM_45_COUNTS, 1),
+      ...params.seed()
+    }
+  },
+  {
+    id: "ideogram-vector-1-vectorize",
+    name: "Ideogram Vectorize",
+    addedAt: "2026-10-21",
+    workflow: "ideogram/vector/vectorize",
+    syncExecute: true,
+    // The worker returns SVG and exposes no format param.
+    outputExtension: "svg",
+    estimatedTime: 8,
+    mode: "image",
+    inputType: "i2i",
+    description: "Ideogram Vectorize \u2014 convert a raster image (JPEG, PNG or WebP) into an SVG.",
+    features: [feat("Vector/SVG", "characteristic"), feat("Image to SVG", "input")],
+    paramConfig: {
+      ...params.startFrame("Source Image", true, IDEOGRAM_VECTOR_IMAGE_BOUNDS),
+      // `simple` traces fewer, simpler shapes; `default` preserves finer details.
+      ...p.enum("mode", [
+        { id: "default", label: "Detailed" },
+        { id: "simple", label: "Simple" }
+      ], "default", { label: "Detail" })
+    }
+  },
   {
     id: "ideogram-4-5",
     name: "Ideogram 4.5",
@@ -8878,9 +8946,23 @@ var buildIdeogram45PreciseEditPayload = (input) => {
     ...input.enableCopyrightDetection ? { enable_copyright_detection: true } : {}
   };
 };
+var buildIdeogramVectorPayload = (input) => ({
+  prompt: input.prompt,
+  ...input.imageUrls?.length ? { images: input.imageUrls } : {},
+  ...input.aspectRatio ? { aspect_ratio: input.aspectRatio } : {},
+  quality: input.quality ?? "medium",
+  num_images: input.count ?? 1,
+  ...input.seed != null ? { seed: input.seed } : {}
+});
+var buildIdeogramVectorizePayload = (input) => ({
+  image: input.startFrame,
+  mode: input.mode ?? "default"
+});
 registerPayloads(MODELS25, {
   "ideogram-4-5": buildIdeogram45Payload,
-  "ideogram-4-5-precise-edit": buildIdeogram45PreciseEditPayload
+  "ideogram-4-5-precise-edit": buildIdeogram45PreciseEditPayload,
+  "ideogram-vector-1": buildIdeogramVectorPayload,
+  "ideogram-vector-1-vectorize": buildIdeogramVectorizePayload
 });
 
 // src/vendors/catalog/qwen.ts
@@ -15252,6 +15334,8 @@ var IdeogramCharacter = "ideogram-character";
 var IdeogramPImage = "ideogram-p-image";
 var IdeogramV3 = "ideogram-v3";
 var IdeogramV4 = "ideogram-v4";
+var IdeogramVector1 = "ideogram-vector-1";
+var IdeogramVector1Vectorize = "ideogram-vector-1-vectorize";
 var KimiK3 = "kimi-k3";
 var Kling30Image = "kling-3.0-image";
 var KlingAvatar = "kling-avatar";
@@ -15518,6 +15602,8 @@ var Models = {
   IdeogramPImage,
   IdeogramV3,
   IdeogramV4,
+  IdeogramVector1,
+  IdeogramVector1Vectorize,
   KimiK3,
   Kling30Image,
   KlingAvatar,

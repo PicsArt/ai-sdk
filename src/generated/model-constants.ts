@@ -244,6 +244,10 @@ export const IdeogramPImage = 'ideogram-p-image' as const;
 export const IdeogramV3 = 'ideogram-v3' as const;
 /** Ideogram 4.0 — ideogram (image) */
 export const IdeogramV4 = 'ideogram-v4' as const;
+/** Ideogram Vector — ideogram (image) */
+export const IdeogramVector1 = 'ideogram-vector-1' as const;
+/** Ideogram Vectorize — ideogram (image) */
+export const IdeogramVector1Vectorize = 'ideogram-vector-1-vectorize' as const;
 /** Kimi K3 — kimi (text) */
 export const KimiK3 = 'kimi-k3' as const;
 /** Kling 3.0 Image — kling (image) */
@@ -673,6 +677,8 @@ export const Models = {
   IdeogramPImage,
   IdeogramV3,
   IdeogramV4,
+  IdeogramVector1,
+  IdeogramVector1Vectorize,
   KimiK3,
   Kling30Image,
   KlingAvatar,

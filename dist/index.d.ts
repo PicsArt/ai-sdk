@@ -931,6 +931,18 @@ type ModelInputById = {
         imageUrls?: string[];
         imageWeight?: number;
     };
+    "ideogram-vector-1": {
+        prompt: string;
+        imageUrls?: string[];
+        aspectRatio?: "auto" | "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "3:2" | "2:3" | "5:4" | "4:5" | "16:10" | "10:16" | "2:1" | "1:2" | "3:1" | "1:3" | "4:1" | "1:4";
+        quality?: "low" | "medium" | "high";
+        count?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+        seed?: number;
+    };
+    "ideogram-vector-1-vectorize": {
+        startFrame: string;
+        mode?: "default" | "simple";
+    };
     "kimi-k3": {
         prompt: string;
         imageUrls?: string[];
@@ -3640,6 +3652,8 @@ declare const Models: {
     readonly IdeogramPImage: "ideogram-p-image";
     readonly IdeogramV3: "ideogram-v3";
     readonly IdeogramV4: "ideogram-v4";
+    readonly IdeogramVector1: "ideogram-vector-1";
+    readonly IdeogramVector1Vectorize: "ideogram-vector-1-vectorize";
     readonly KimiK3: "kimi-k3";
     readonly Kling30Image: "kling-3.0-image";
     readonly KlingAvatar: "kling-avatar";

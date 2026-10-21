@@ -364,6 +364,10 @@ const seedance25ColorDepthConstraints: Constraint[] = [
  *  with endFrame above, so endFrame is only valid alongside a startFrame. */
 const SEEDANCE_25_FRAME_ADAPTIVE_REASON =
   'First/Last Frame mode requires an adaptive aspect ratio — the vendor rejects any fixed ratio.';
+const SEEDANCE_25_EDIT_REASON =
+  'An edit follows its source video — the vendor requires an adaptive aspect ratio and Auto duration.';
+const SEEDANCE_25_EXTEND_REASON =
+  'An extension follows its source video — the vendor requires an adaptive aspect ratio.';
 const seedance25Constraints: Constraint[] = [
   ...seedance20Constraints.slice(1),
   {
@@ -384,6 +388,20 @@ const seedance25Constraints: Constraint[] = [
   {
     when: { endFrame: { exists: true } },
     then: { aspectRatio: { allowed: ['adaptive'], reason: SEEDANCE_25_FRAME_ADAPTIVE_REASON } },
+  },
+  // An explicit edit / extend task type carries the same vendor rules as the
+  // -video-edit / -video-extend entries, which hardcode them. Mirrors the
+  // lock in buildSeedance25PayloadFor.
+  {
+    when: { omniReferenceTaskType: { is: 'edit' } },
+    then: {
+      aspectRatio: { allowed: ['adaptive'], reason: SEEDANCE_25_EDIT_REASON },
+      duration: { allowed: [-1], reason: SEEDANCE_25_EDIT_REASON },
+    },
+  },
+  {
+    when: { omniReferenceTaskType: { is: 'extend' } },
+    then: { aspectRatio: { allowed: ['adaptive'], reason: SEEDANCE_25_EXTEND_REASON } },
   },
   ...seedance25ColorDepthConstraints,
 ];
@@ -525,6 +543,13 @@ export const buildSeedance25PayloadFor =
     // keep the user-selected ratio). Mirrors the seedance25Constraints lock.
     const usesFrame = Boolean(ctx.startFrame || ctx.endFrame);
     const { omniReferenceTaskType } = ctx as Seedance25TaskTypeContext;
+    // An explicit edit / extend is the same vendor mode the -video-edit /
+    // -video-extend entries build: both require 'adaptive', and an edit's
+    // length follows its source (-1). The vendor rejects anything else only
+    // after the task was created, so the lock is applied here rather than
+    // left to the caller. Mirrors the seedance25Constraints lock.
+    const isEdit = omniReferenceTaskType === 'edit';
+    const followsSource = isEdit || omniReferenceTaskType === 'extend';
 
     return {
       model: modelAlias,
@@ -554,8 +579,8 @@ export const buildSeedance25PayloadFor =
         // text item is not sent.
         ...(ctx.prompt?.trim() ? [{ type: 'text', text: ctx.prompt }] : []),
       ],
-      ratio: usesFrame ? 'adaptive' : (ctx.aspectRatio ?? '16:9'),
-      duration: ctx.duration ?? 5,
+      ratio: usesFrame || followsSource ? 'adaptive' : (ctx.aspectRatio ?? '16:9'),
+      duration: isEdit ? -1 : (ctx.duration ?? 5),
       resolution: ctx.resolution ?? '1080p',
       generate_audio: ctx.generateAudio ?? true,
       output_format: seedance25OutputFormat(ctx),

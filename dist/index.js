@@ -4565,6 +4565,8 @@ var seedance25ColorDepthConstraints = [
   }
 ];
 var SEEDANCE_25_FRAME_ADAPTIVE_REASON = "First/Last Frame mode requires an adaptive aspect ratio \u2014 the vendor rejects any fixed ratio.";
+var SEEDANCE_25_EDIT_REASON = "An edit follows its source video \u2014 the vendor requires an adaptive aspect ratio and Auto duration.";
+var SEEDANCE_25_EXTEND_REASON = "An extension follows its source video \u2014 the vendor requires an adaptive aspect ratio.";
 var seedance25Constraints = [
   ...seedance20Constraints.slice(1),
   {
@@ -4585,6 +4587,20 @@ var seedance25Constraints = [
   {
     when: { endFrame: { exists: true } },
     then: { aspectRatio: { allowed: ["adaptive"], reason: SEEDANCE_25_FRAME_ADAPTIVE_REASON } }
+  },
+  // An explicit edit / extend task type carries the same vendor rules as the
+  // -video-edit / -video-extend entries, which hardcode them. Mirrors the
+  // lock in buildSeedance25PayloadFor.
+  {
+    when: { omniReferenceTaskType: { is: "edit" } },
+    then: {
+      aspectRatio: { allowed: ["adaptive"], reason: SEEDANCE_25_EDIT_REASON },
+      duration: { allowed: [-1], reason: SEEDANCE_25_EDIT_REASON }
+    }
+  },
+  {
+    when: { omniReferenceTaskType: { is: "extend" } },
+    then: { aspectRatio: { allowed: ["adaptive"], reason: SEEDANCE_25_EXTEND_REASON } }
   },
   ...seedance25ColorDepthConstraints
 ];
@@ -4666,6 +4682,8 @@ var buildSeedance25PayloadFor = (modelAlias) => withSeedance25DraftMode(modelAli
   const refAudios = ctx.audioUrls ?? [];
   const usesFrame = Boolean(ctx.startFrame || ctx.endFrame);
   const { omniReferenceTaskType } = ctx;
+  const isEdit = omniReferenceTaskType === "edit";
+  const followsSource = isEdit || omniReferenceTaskType === "extend";
   return {
     model: modelAlias,
     content: [
@@ -4690,8 +4708,8 @@ var buildSeedance25PayloadFor = (modelAlias) => withSeedance25DraftMode(modelAli
       // text item is not sent.
       ...ctx.prompt?.trim() ? [{ type: "text", text: ctx.prompt }] : []
     ],
-    ratio: usesFrame ? "adaptive" : ctx.aspectRatio ?? "16:9",
-    duration: ctx.duration ?? 5,
+    ratio: usesFrame || followsSource ? "adaptive" : ctx.aspectRatio ?? "16:9",
+    duration: isEdit ? -1 : ctx.duration ?? 5,
     resolution: ctx.resolution ?? "1080p",
     generate_audio: ctx.generateAudio ?? true,
     output_format: seedance25OutputFormat(ctx),

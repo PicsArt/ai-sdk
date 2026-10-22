@@ -287,7 +287,7 @@ export const { MODELS } = defineModels('kling', [
   },
   // ── Video: Kling 4.0 Omni (dedicated /omni-video/kling-4.0 tasks API) ──
   {
-    id: 'kling-v4-omni', name: 'Kling 4.0 Flash', modelId: 'kling-v4-omni',
+    id: 'kling-v4-omni', name: 'Kling 4.0 Omni', modelId: 'kling-v4-omni',
     addedAt: '2026-10-16',
     workflow: 'kling-omni-video',
     // Observed on the vendor (2026-10-16): ~2.5-5.5 min for 5s.

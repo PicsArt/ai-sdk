@@ -283,7 +283,7 @@ export const KlingV3Omni = 'kling-v3-omni' as const;
 export const KlingV3Turbo = 'kling-v3-turbo' as const;
 /** Kling 4.0 — kling (video) */
 export const KlingV4 = 'kling-v4' as const;
-/** Kling 4.0 Flash — kling (video) */
+/** Kling 4.0 Omni — kling (video) */
 export const KlingV4Omni = 'kling-v4-omni' as const;
 /** Kling Video Effects — kling (video) */
 export const KlingVideoEffects = 'kling-video-effects' as const;

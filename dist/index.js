@@ -7445,6 +7445,7 @@ var buildGptImage2EditPayload = (ctx) => ({
 });
 var GPT_IMAGE_PROMPT_MAX = 32e3;
 var GPT_IMAGE_25_QUALITIES = ["max", "xhigh", "high", "medium", "low"];
+var IMAGEGEN_26_ALPHA_EFFORTS = ["max", "xhigh", "high", "medium", "low"];
 var GPT_IMAGE_25_ASPECT_RATIOS = ["1:1", "3:2", "2:3", "16:9", "9:16", "4:3", "3:4", "auto"];
 var GPT_IMAGE_25_RESOLUTIONS = Object.keys(GPT_IMAGE_25_SIZES);
 var GPT_IMAGE_25_MAX_INPUT_IMAGES = 16;
@@ -7485,6 +7486,64 @@ var validateGptImage25Input = (input) => {
 };
 var { MODELS: MODELS22 } = defineModels("openai", [
   // ── Image ─────────────────────────────────────────
+  // ImageGen 2.6 alpha (preview) — same two OpenAI image workflows as the
+  // gpt-image tiers, but driven by reasoning.effort + temperature instead of
+  // quality (quality is withheld for these models). aurora is the base tier,
+  // star-swirl the smaller one; both token-priced like gpt-image-2.5.
+  {
+    id: "aurora-img-alpha",
+    name: "Aurora (ImageGen 2.6 Alpha)",
+    addedAt: "2026-10-23",
+    release: "preview",
+    workflow: "openai-images-generate",
+    editWorkflow: "openai-image-editing",
+    estimatedTime: 60,
+    mode: "image",
+    inputType: "t2i",
+    description: "ImageGen 2.6 alpha (preview) \u2014 base tier tuned by reasoning effort and temperature rather than quality. Strong text rendering and complex layouts.",
+    features: [feat("Multi-Image Input", "input"), feat("High Quality", "quality")],
+    paramConfig: {
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
+      ...params.aspectRatio(GPT_IMAGE_25_ASPECT_RATIOS, "1:1"),
+      ...params.resolution(GPT_IMAGE_25_RESOLUTIONS, "1K"),
+      ...p.text("size", { label: "Custom Size", placeholder: "WIDTHxHEIGHT, e.g. 2048x1152" }),
+      ...p.enum("reasoningEffort", IMAGEGEN_26_ALPHA_EFFORTS, "high", { label: "Reasoning Effort" }),
+      ...p.range("temperature", 0, 2, 1, { step: 0.1, label: "Temperature" }),
+      ...p.enum("background", ["opaque", "transparent"], "opaque", { label: "Background" }),
+      ...p.enum("outputFormat", ["png", "jpeg", "webp"], "png", { label: "Format" }),
+      ...params.count(),
+      ...params.imageInput(GPT_IMAGE_25_MAX_INPUT_IMAGES, "Source Images")
+    },
+    constraints: [...gptImageBgConstraints, ...gptImage25SizeConstraints],
+    validateInput: validateGptImage25Input
+  },
+  {
+    id: "star-swirl-alpha",
+    name: "Star Swirl (ImageGen 2.6 Alpha)",
+    addedAt: "2026-10-23",
+    release: "preview",
+    workflow: "openai-images-generate",
+    editWorkflow: "openai-image-editing",
+    estimatedTime: 40,
+    mode: "image",
+    inputType: "t2i",
+    description: "ImageGen 2.6 alpha (preview) \u2014 smaller, faster tier tuned by reasoning effort and temperature rather than quality. Quick, precise edits and generation.",
+    features: [feat("Multi-Image Input", "input"), feat("Fast", "characteristic")],
+    paramConfig: {
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
+      ...params.aspectRatio(GPT_IMAGE_25_ASPECT_RATIOS, "1:1"),
+      ...params.resolution(GPT_IMAGE_25_RESOLUTIONS, "1K"),
+      ...p.text("size", { label: "Custom Size", placeholder: "WIDTHxHEIGHT, e.g. 2048x1152" }),
+      ...p.enum("reasoningEffort", IMAGEGEN_26_ALPHA_EFFORTS, "high", { label: "Reasoning Effort" }),
+      ...p.range("temperature", 0, 2, 1, { step: 0.1, label: "Temperature" }),
+      ...p.enum("background", ["opaque", "transparent"], "opaque", { label: "Background" }),
+      ...p.enum("outputFormat", ["png", "jpeg", "webp"], "png", { label: "Format" }),
+      ...params.count(),
+      ...params.imageInput(GPT_IMAGE_25_MAX_INPUT_IMAGES, "Source Images")
+    },
+    constraints: [...gptImageBgConstraints, ...gptImage25SizeConstraints],
+    validateInput: validateGptImage25Input
+  },
   {
     id: "gpt-image-2.5-sunburst",
     name: "GPT Image 2.5 Sunburst",
@@ -7648,6 +7707,37 @@ registerPayloads(MODELS22, {
 registerEditPayloads(MODELS22, {
   "gpt-image-2.5-flare": editFor("gpt-image-2.5-flare"),
   "gpt-image-2.5-sunburst": editFor("gpt-image-2.5-sunburst")
+});
+var alphaPlanningControls = (input) => ({
+  ...input.reasoningEffort ? { reasoning: { effort: input.reasoningEffort } } : {},
+  ...input.temperature !== void 0 ? { temperature: input.temperature } : {}
+});
+var generateAlphaFor = (model) => (input) => ({
+  prompt: input.prompt,
+  model,
+  n: input.count ?? 1,
+  size: resolveSize(input, "1:1"),
+  ...alphaPlanningControls(input),
+  ...input.background ? { background: input.background } : {},
+  ...input.outputFormat ? { output_format: input.outputFormat } : {}
+});
+var editAlphaFor = (model) => (input) => ({
+  prompt: input.prompt,
+  model,
+  images: input.imageUrls ?? [],
+  n: input.count ?? 1,
+  size: resolveSize(input, "auto"),
+  ...alphaPlanningControls(input),
+  ...input.background ? { background: input.background } : {},
+  ...input.outputFormat ? { output_format: input.outputFormat } : {}
+});
+registerPayloads(MODELS22, {
+  "aurora-img-alpha": generateAlphaFor("aurora-img-alpha"),
+  "star-swirl-alpha": generateAlphaFor("star-swirl-alpha")
+});
+registerEditPayloads(MODELS22, {
+  "aurora-img-alpha": editAlphaFor("aurora-img-alpha"),
+  "star-swirl-alpha": editAlphaFor("star-swirl-alpha")
 });
 
 // src/vendors/catalog/elevenlabs.ts
@@ -15237,6 +15327,7 @@ function createClient(config) {
 
 // src/generated/model-constants.ts
 var AsyncFlashV1 = "async-flash-v1";
+var AuroraImgAlpha = "aurora-img-alpha";
 var BytedanceOmnihumanV15 = "bytedance-omnihuman-v1.5";
 var BytedanceOmnihumanV20 = "bytedance-omnihuman-v2.0";
 var BytedanceVideoEnhance = "bytedance-video-enhance";
@@ -15488,6 +15579,7 @@ var Seedream47 = "seedream-4.7";
 var Seedream50Flash = "seedream-5.0-flash";
 var Seedream50Lite = "seedream-5.0-lite";
 var Seedream50Pro = "seedream-5.0-pro";
+var StarSwirlAlpha = "star-swirl-alpha";
 var TopazUpscaleImage = "topaz-upscale-image";
 var TopazUpscaleVideo = "topaz-upscale-video";
 var TypesafeEvaluate = "typesafe-evaluate";
@@ -15505,6 +15597,7 @@ var Wan30Video = "wan-3.0-video";
 var Wan30VideoPrime = "wan-3.0-video-prime";
 var Models = {
   AsyncFlashV1,
+  AuroraImgAlpha,
   BytedanceOmnihumanV15,
   BytedanceOmnihumanV20,
   BytedanceVideoEnhance,
@@ -15756,6 +15849,7 @@ var Models = {
   Seedream50Flash,
   Seedream50Lite,
   Seedream50Pro,
+  StarSwirlAlpha,
   TopazUpscaleImage,
   TopazUpscaleVideo,
   TypesafeEvaluate,

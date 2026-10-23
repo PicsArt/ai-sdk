@@ -138,6 +138,18 @@ type ModelInputById = {
         encoding?: "pcm_s16le" | "pcm_f32le";
         bitRate?: number;
     };
+    "aurora-img-alpha": {
+        prompt: string;
+        aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto";
+        resolution?: "1K" | "2K" | "4K";
+        size?: string;
+        reasoningEffort?: "max" | "xhigh" | "high" | "medium" | "low";
+        temperature?: number;
+        background?: "opaque" | "transparent";
+        outputFormat?: "png" | "jpeg" | "webp";
+        count?: 1 | 2 | 4 | 6 | 8 | 10;
+        imageUrls?: string[];
+    };
     "bytedance-omnihuman-v1.5": {
         prompt?: string;
         imageUrls: [string, ...string[]];
@@ -2032,6 +2044,18 @@ type ModelInputById = {
         imageUrls?: string[];
         negativePrompt?: string;
     };
+    "star-swirl-alpha": {
+        prompt: string;
+        aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto";
+        resolution?: "1K" | "2K" | "4K";
+        size?: string;
+        reasoningEffort?: "max" | "xhigh" | "high" | "medium" | "low";
+        temperature?: number;
+        background?: "opaque" | "transparent";
+        outputFormat?: "png" | "jpeg" | "webp";
+        count?: 1 | 2 | 4 | 6 | 8 | 10;
+        imageUrls?: string[];
+    };
     "topaz-upscale-image": {
         imageUrls: [string, ...string[]];
         model?: "Standard V2" | "Standard MAX" | "Low Resolution V2" | "High Fidelity V2" | "CGI" | "Text Refine" | "Redefine" | "Recovery" | "Recovery V2" | "Wonder" | "Wonder 3";
@@ -3537,6 +3561,7 @@ declare function createClient(config: ClientConfig): AiClient;
 
 declare const Models: {
     readonly AsyncFlashV1: "async-flash-v1";
+    readonly AuroraImgAlpha: "aurora-img-alpha";
     readonly BytedanceOmnihumanV15: "bytedance-omnihuman-v1.5";
     readonly BytedanceOmnihumanV20: "bytedance-omnihuman-v2.0";
     readonly BytedanceVideoEnhance: "bytedance-video-enhance";
@@ -3788,6 +3813,7 @@ declare const Models: {
     readonly Seedream50Flash: "seedream-5.0-flash";
     readonly Seedream50Lite: "seedream-5.0-lite";
     readonly Seedream50Pro: "seedream-5.0-pro";
+    readonly StarSwirlAlpha: "star-swirl-alpha";
     readonly TopazUpscaleImage: "topaz-upscale-image";
     readonly TopazUpscaleVideo: "topaz-upscale-video";
     readonly TypesafeEvaluate: "typesafe-evaluate";

@@ -6,6 +6,7 @@
  */
 export type ModelInputById = {
   "async-flash-v1": { prompt: string; voiceId?: string; container?: "mp3" | "wav" | "raw"; sampleRate?: number; encoding?: "pcm_s16le" | "pcm_f32le"; bitRate?: number; };
+  "aurora-img-alpha": { prompt: string; aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto"; resolution?: "1K" | "2K" | "4K"; size?: string; reasoningEffort?: "max" | "xhigh" | "high" | "medium" | "low"; temperature?: number; background?: "opaque" | "transparent"; outputFormat?: "png" | "jpeg" | "webp"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "bytedance-omnihuman-v1.5": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; resolution?: "720p" | "1080p"; turboMode?: boolean; seed?: number; };
   "bytedance-omnihuman-v2.0": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; enableWatermark?: boolean; };
   "bytedance-video-enhance": { videoUrl: string; quality?: "standard" | "professional"; resolution?: "source" | "720p" | "1080p" | "2k" | "4k" | "8k"; fps?: 30 | 60 | 120; scene?: "common" | "ugc" | "short_series" | "aigc" | "old_film"; bitrateLevel?: "low" | "medium" | "high"; };
@@ -257,6 +258,7 @@ export type ModelInputById = {
   "seedream-5.0-flash": { resolution?: "1K" | "2K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; imageUrls?: string[]; negativePrompt?: string; };
   "seedream-5.0-lite": { resolution?: "2K" | "3K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; negativePrompt?: string; };
   "seedream-5.0-pro": { resolution?: "1K" | "2K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; imageUrls?: string[]; negativePrompt?: string; };
+  "star-swirl-alpha": { prompt: string; aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto"; resolution?: "1K" | "2K" | "4K"; size?: string; reasoningEffort?: "max" | "xhigh" | "high" | "medium" | "low"; temperature?: number; background?: "opaque" | "transparent"; outputFormat?: "png" | "jpeg" | "webp"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "topaz-upscale-image": { imageUrls: [string, ...string[]]; model?: "Standard V2" | "Standard MAX" | "Low Resolution V2" | "High Fidelity V2" | "CGI" | "Text Refine" | "Redefine" | "Recovery" | "Recovery V2" | "Wonder" | "Wonder 3"; };
   "topaz-upscale-video": { videoUrl: string; model?: "Proteus" | "Artemis HQ" | "Artemis MQ" | "Artemis LQ" | "Nyx" | "Nyx Fast" | "Nyx XL" | "Nyx HF" | "Gaia HQ" | "Gaia CG" | "Gaia 2" | "Starlight Precise 2.5" | "Starlight HQ" | "Starlight Mini" | "Starlight Sharp" | "Starlight Fast 2"; };
   "typesafe-evaluate": { state: string; questions: Record<string, { type: "noul" | "choice" | "score"; instructions: unknown } & Record<string, unknown>>; };

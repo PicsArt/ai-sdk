@@ -186,6 +186,11 @@ const GPT_IMAGE_PROMPT_MAX = 32_000;
  *  gpt-image models cap at. Ordered strongest-first for the picker. */
 const GPT_IMAGE_25_QUALITIES = ['max', 'xhigh', 'high', 'medium', 'low'];
 
+/** The ImageGen 2.6 alpha models replace `quality` with a `reasoning.effort`
+ *  planning tier (same five names). Strongest-first for the picker; `high` is
+ *  the vendor's suggested starting point. */
+const IMAGEGEN_26_ALPHA_EFFORTS = ['max', 'xhigh', 'high', 'medium', 'low'];
+
 /** Both 2.5 routes accept every ratio in the 16px map plus 'auto' — unlike
  *  gpt-image-2, whose edit endpoint rejects the wide ones (boundary-verified),
  *  so these entries need no aspect-ratio constraint. */
@@ -251,6 +256,58 @@ const validateGptImage25Input: InputValidator = (input) => {
 
 export const { MODELS } = defineModels('openai', [
   // ── Image ─────────────────────────────────────────
+  // ImageGen 2.6 alpha (preview) — same two OpenAI image workflows as the
+  // gpt-image tiers, but driven by reasoning.effort + temperature instead of
+  // quality (quality is withheld for these models). aurora is the base tier,
+  // star-swirl the smaller one; both token-priced like gpt-image-2.5.
+  {
+    id: 'aurora-img-alpha', name: 'Aurora (ImageGen 2.6 Alpha)',
+    addedAt: '2026-10-23',
+    release: 'preview',
+    workflow: 'openai-images-generate', editWorkflow: 'openai-image-editing',
+    estimatedTime: 60,
+    mode: 'image', inputType: 't2i',
+    description: 'ImageGen 2.6 alpha (preview) — base tier tuned by reasoning effort and temperature rather than quality. Strong text rendering and complex layouts.',
+    features: [feat('Multi-Image Input', 'input'), feat('High Quality', 'quality')],
+    paramConfig: {
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
+      ...params.aspectRatio(GPT_IMAGE_25_ASPECT_RATIOS, '1:1'),
+      ...params.resolution(GPT_IMAGE_25_RESOLUTIONS, '1K'),
+      ...p.text('size', { label: 'Custom Size', placeholder: 'WIDTHxHEIGHT, e.g. 2048x1152' }),
+      ...p.enum('reasoningEffort', IMAGEGEN_26_ALPHA_EFFORTS, 'high', { label: 'Reasoning Effort' }),
+      ...p.range('temperature', 0, 2, 1, { step: 0.1, label: 'Temperature' }),
+      ...p.enum('background', ['opaque', 'transparent'], 'opaque', { label: 'Background' }),
+      ...p.enum('outputFormat', ['png', 'jpeg', 'webp'], 'png', { label: 'Format' }),
+      ...params.count(),
+      ...params.imageInput(GPT_IMAGE_25_MAX_INPUT_IMAGES, 'Source Images'),
+    },
+    constraints: [...gptImageBgConstraints, ...gptImage25SizeConstraints],
+    validateInput: validateGptImage25Input,
+  },
+  {
+    id: 'star-swirl-alpha', name: 'Star Swirl (ImageGen 2.6 Alpha)',
+    addedAt: '2026-10-23',
+    release: 'preview',
+    workflow: 'openai-images-generate', editWorkflow: 'openai-image-editing',
+    estimatedTime: 40,
+    mode: 'image', inputType: 't2i',
+    description: 'ImageGen 2.6 alpha (preview) — smaller, faster tier tuned by reasoning effort and temperature rather than quality. Quick, precise edits and generation.',
+    features: [feat('Multi-Image Input', 'input'), feat('Fast', 'characteristic')],
+    paramConfig: {
+      ...params.prompt({ maxLength: GPT_IMAGE_PROMPT_MAX }),
+      ...params.aspectRatio(GPT_IMAGE_25_ASPECT_RATIOS, '1:1'),
+      ...params.resolution(GPT_IMAGE_25_RESOLUTIONS, '1K'),
+      ...p.text('size', { label: 'Custom Size', placeholder: 'WIDTHxHEIGHT, e.g. 2048x1152' }),
+      ...p.enum('reasoningEffort', IMAGEGEN_26_ALPHA_EFFORTS, 'high', { label: 'Reasoning Effort' }),
+      ...p.range('temperature', 0, 2, 1, { step: 0.1, label: 'Temperature' }),
+      ...p.enum('background', ['opaque', 'transparent'], 'opaque', { label: 'Background' }),
+      ...p.enum('outputFormat', ['png', 'jpeg', 'webp'], 'png', { label: 'Format' }),
+      ...params.count(),
+      ...params.imageInput(GPT_IMAGE_25_MAX_INPUT_IMAGES, 'Source Images'),
+    },
+    constraints: [...gptImageBgConstraints, ...gptImage25SizeConstraints],
+    validateInput: validateGptImage25Input,
+  },
   {
     id: 'gpt-image-2.5-sunburst', name: 'GPT Image 2.5 Sunburst',
     addedAt: '2026-09-09',

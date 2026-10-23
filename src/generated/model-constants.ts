@@ -9,6 +9,8 @@
 
 /** Async Flash v1.0 — async (audio) */
 export const AsyncFlashV1 = 'async-flash-v1' as const;
+/** Aurora (ImageGen 2.6 Alpha) — openai (image) */
+export const AuroraImgAlpha = 'aurora-img-alpha' as const;
 /** ByteDance OmniHuman — bytedance (video) */
 export const BytedanceOmnihumanV15 = 'bytedance-omnihuman-v1.5' as const;
 /** ByteDance OmniHuman 2.0 — bytedance (video) */
@@ -526,6 +528,8 @@ export const Seedream50Flash = 'seedream-5.0-flash' as const;
 export const Seedream50Lite = 'seedream-5.0-lite' as const;
 /** Seedream 5.0 Pro — bytedance (image) */
 export const Seedream50Pro = 'seedream-5.0-pro' as const;
+/** Star Swirl (ImageGen 2.6 Alpha) — openai (image) */
+export const StarSwirlAlpha = 'star-swirl-alpha' as const;
 /** Topaz Image Upscale — topaz (image) */
 export const TopazUpscaleImage = 'topaz-upscale-image' as const;
 /** Topaz Video Upscale — topaz (video) */
@@ -562,6 +566,7 @@ export const Wan30VideoPrime = 'wan-3.0-video-prime' as const;
 
 export const Models = {
   AsyncFlashV1,
+  AuroraImgAlpha,
   BytedanceOmnihumanV15,
   BytedanceOmnihumanV20,
   BytedanceVideoEnhance,
@@ -813,6 +818,7 @@ export const Models = {
   Seedream50Flash,
   Seedream50Lite,
   Seedream50Pro,
+  StarSwirlAlpha,
   TopazUpscaleImage,
   TopazUpscaleVideo,
   TypesafeEvaluate,

@@ -344,6 +344,10 @@ export const MinimaxH3MaxLipSync = 'minimax-h3-max-lip-sync' as const;
 export const MinimaxH3MaxRelight = 'minimax-h3-max-relight' as const;
 /** MiniMax H3 Max Turbo — minimax (video) */
 export const MinimaxH3MaxTurbo = 'minimax-h3-max-turbo' as const;
+/** MiniMax M3 — minimax (text) */
+export const MinimaxM3 = 'minimax-m3' as const;
+/** MiniMax M3.1 Flash — minimax (text) */
+export const MinimaxM31Flash = 'minimax-m3.1-flash' as const;
 /** MiniMax Music v2 — minimax (audio) */
 export const MinimaxMusicV2 = 'minimax-music-v2' as const;
 /** MiniMax Music v3 — minimax (audio) */
@@ -729,6 +733,8 @@ export const Models = {
   MinimaxH3MaxLipSync,
   MinimaxH3MaxRelight,
   MinimaxH3MaxTurbo,
+  MinimaxM3,
+  MinimaxM31Flash,
   MinimaxMusicV2,
   MinimaxMusicV3,
   MireloSfx20TextToAudio,

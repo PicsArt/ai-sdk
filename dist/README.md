@@ -194,7 +194,7 @@ names or catalog model IDs from an arbitrary vendor request.
 
 ## Text Generation (LLMs)
 
-Claude, GPT, Gemini, Kimi and Grok text models are called with `generateText()`. Single-shot:
+Claude, GPT, Gemini, Kimi, Grok and MiniMax text models are called with `generateText()`. Single-shot:
 pass a prompt and optional image(s)/video, get text back. They surface in the catalog
 as `mode: 'text'`. Each vendor uses its own native workflow, so capabilities aren't lost
 — Gemini accepts video input, Claude uses the Anthropic-native messages API.
@@ -227,9 +227,10 @@ await ai.generateText(Models.Gemini3Pro, {
 catalog.find({ output: 'text' })
 ```
 
-> Thinking level maps per vendor: OpenAI, Kimi and Grok → `reasoning_effort`, Gemini →
-> `thinkingConfig.thinkingLevel` (LOW/HIGH). Kimi K3 and Grok 4.7 always reason, so
-> they have no `off`. Claude’s `claude/v1/messages`
+> Thinking level maps per vendor: OpenAI, Kimi, Grok and MiniMax M3.1 Flash → `reasoning_effort`, Gemini →
+> `thinkingConfig.thinkingLevel` (LOW/HIGH). Kimi K3, Grok 4.7 and MiniMax M3.1 Flash
+> always reason, so they have no `off`. MiniMax M3 reasons adaptively and has no
+> thinking knob. Claude’s `claude/v1/messages`
 > workflow exposes no thinking knob, so Claude models omit `thinking`.
 
 `generateText()` is type-narrowed to text models (`TextModelId`); calling it with an

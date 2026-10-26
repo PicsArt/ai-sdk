@@ -434,7 +434,38 @@ const h3ContextIrConstraints: Constraint[] = [
   { when: { audioUrls: { exists: true } }, then: H3_REFERENCE_EXCLUDES_FRAMES },
 ];
 
+// MiniMax M3 and M3.1 Flash go through chat-completions (MiniMax's
+// OpenAI-compatible API). M3.1 Flash always reasons, so its thinking param has
+// no `off` and sets the reasoning effort; MiniMax documents reasoning_effort
+// for Flash only, so M3 (adaptive thinking) has no thinking param. Both read
+// image URLs directly.
+const minimaxFlashThinkingParam = () =>
+  p.enum('thinking', ['low', 'medium', 'high'], 'high', { label: 'Thinking' });
+
 const { MODELS: MINIMAX_LLM } = defineModels('minimax', [
+  {
+    id: 'minimax-m3', name: 'MiniMax M3',
+    workflow: 'chat-completions', addedAt: '2026-10-26', estimatedTime: 10,
+    mode: 'text', inputType: 'i2t', badge: ['new'],
+    description: 'MiniMax’s flagship model — adaptive reasoning with a 1M-token context.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+    },
+  },
+  {
+    id: 'minimax-m3.1-flash', name: 'MiniMax M3.1 Flash',
+    workflow: 'chat-completions', addedAt: '2026-10-26', estimatedTime: 8,
+    mode: 'text', inputType: 'i2t', badge: ['new'],
+    description: 'Fast, low-cost MiniMax model — always-on reasoning with a 1M-token context.',
+    features: [feat('Vision', 'input'), feat('Thinking', 'characteristic')],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, 'Images'),
+      ...minimaxFlashThinkingParam(),
+    },
+  },
   {
     id: 'minimax-h3-context-ir', name: 'MiniMax H3 Context IR',
     workflow: 'minimax/v2/h3-context-ir', addedAt: '2026-10-14', estimatedTime: 8,

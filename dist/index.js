@@ -11119,7 +11119,41 @@ var h3ContextIrConstraints = [
   { when: { videoUrls: { exists: true } }, then: H3_REFERENCE_EXCLUDES_FRAMES },
   { when: { audioUrls: { exists: true } }, then: H3_REFERENCE_EXCLUDES_FRAMES }
 ];
+var minimaxFlashThinkingParam = () => p.enum("thinking", ["low", "medium", "high"], "high", { label: "Thinking" });
 var { MODELS: MINIMAX_LLM } = defineModels("minimax", [
+  {
+    id: "minimax-m3",
+    name: "MiniMax M3",
+    workflow: "chat-completions",
+    addedAt: "2026-10-26",
+    estimatedTime: 10,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["new"],
+    description: "MiniMax\u2019s flagship model \u2014 adaptive reasoning with a 1M-token context.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images")
+    }
+  },
+  {
+    id: "minimax-m3.1-flash",
+    name: "MiniMax M3.1 Flash",
+    workflow: "chat-completions",
+    addedAt: "2026-10-26",
+    estimatedTime: 8,
+    mode: "text",
+    inputType: "i2t",
+    badge: ["new"],
+    description: "Fast, low-cost MiniMax model \u2014 always-on reasoning with a 1M-token context.",
+    features: [feat("Vision", "input"), feat("Thinking", "characteristic")],
+    paramConfig: {
+      ...params.prompt(),
+      ...params.imageInput(8, "Images"),
+      ...minimaxFlashThinkingParam()
+    }
+  },
   {
     id: "minimax-h3-context-ir",
     name: "MiniMax H3 Context IR",
@@ -11252,7 +11286,9 @@ registerPayloads(MODELS34, {
   "gemini-3.5-flash-lite": buildOpenAiPayload("gemini-3.5-flash-lite"),
   "gemini-2.5-flash": buildOpenAiPayload("gemini-2.5-flash"),
   "kimi-k3": buildOpenAiPayload("kimi-k3"),
-  "grok-4.7": buildOpenAiPayload("grok-4.7")
+  "grok-4.7": buildOpenAiPayload("grok-4.7"),
+  "minimax-m3": buildOpenAiPayload("minimax-m3"),
+  "minimax-m3.1-flash": buildOpenAiPayload("minimax-m3.1-flash")
 });
 
 // src/vendors/catalog/captionsai.ts
@@ -15490,6 +15526,8 @@ var MinimaxH3MaxExtend = "minimax-h3-max-extend";
 var MinimaxH3MaxLipSync = "minimax-h3-max-lip-sync";
 var MinimaxH3MaxRelight = "minimax-h3-max-relight";
 var MinimaxH3MaxTurbo = "minimax-h3-max-turbo";
+var MinimaxM3 = "minimax-m3";
+var MinimaxM31Flash = "minimax-m3.1-flash";
 var MinimaxMusicV2 = "minimax-music-v2";
 var MinimaxMusicV3 = "minimax-music-v3";
 var MireloSfx20TextToAudio = "mirelo-sfx-2.0-text-to-audio";
@@ -15760,6 +15798,8 @@ var Models = {
   MinimaxH3MaxLipSync,
   MinimaxH3MaxRelight,
   MinimaxH3MaxTurbo,
+  MinimaxM3,
+  MinimaxM31Flash,
   MinimaxMusicV2,
   MinimaxMusicV3,
   MireloSfx20TextToAudio,

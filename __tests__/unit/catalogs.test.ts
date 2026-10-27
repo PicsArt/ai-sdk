@@ -7,7 +7,56 @@ import { Model } from '../../src/core/descriptors/model-accessor.ts';
 import { p } from '../../src/core/descriptors/presets.ts';
 import { validateAll, transferValues } from '../../src/core/descriptors/utils.ts';
 import { getVoiceById } from '../../src/core/voices.ts';
+import { installCatalog } from '../../src/core/active-catalog.ts';
+import { makeModel, FLUX } from './helpers/fixture-catalog.ts';
 import type { VoiceOption, AvatarOption } from '../../src/core/types.ts';
+
+// Dynamic-only: install fixture models carrying the catalog-bound params this
+// suite exercises, with the exact source workflows/modelIds it asserts. Catalog
+// entries seed an empty `catalogOptions` (matching how the bundled catalog did),
+// so an unhydrated param reads `[]`, not undefined.
+const prompt = { label: 'Prompt', descriptor: { kind: 'text' as const } };
+const catParam = (label: string, workflow: string, def = '', modelId?: string) => ({
+  label,
+  descriptor: { kind: 'catalog' as const, source: modelId ? { workflow, modelId } : { workflow }, default: def },
+  catalogOptions: [] as unknown[],
+});
+installCatalog([
+  makeModel({
+    id: 'heygen-video-avatar', name: 'HeyGen Video Avatar', mode: 'video',
+    provider: 'heygen' as ReturnType<typeof makeModel>['provider'],
+    paramConfig: {
+      prompt,
+      voiceId: catParam('Voice', 'heygen/v1/catalog/voices'),
+      videoId: catParam('Avatar', 'heygen/v1/catalog/avatars'),
+    },
+  }),
+  makeModel({
+    id: 'heygen-talking-photo', name: 'HeyGen Talking Photo', mode: 'video',
+    paramConfig: { prompt, voiceId: catParam('Voice', 'heygen/v1/catalog/voices') },
+  }),
+  makeModel({
+    id: 'seed-audio-1.0', name: 'Seed Audio', mode: 'audio',
+    paramConfig: { prompt, voiceId: catParam('Voice', 'bytedance/v1/catalog/voices', '', 'seed-audio-1.0') },
+  }),
+  makeModel({
+    id: 'seed-audio-1.0-multilingual', name: 'Seed Audio ML', mode: 'audio',
+    paramConfig: { prompt, voiceId: catParam('Voice', 'bytedance/v1/catalog/voices', '', 'seed-audio-1.0-multilingual') },
+  }),
+  makeModel({
+    id: 'kling-video-effects', name: 'Kling Video Effects', mode: 'video',
+    paramConfig: { prompt, templateId: catParam('Template', 'kling/v1/catalog/templates', 'korean_baseball') },
+  }),
+  makeModel({
+    id: 'picsart-flow', name: 'Picsart Flow', mode: 'image',
+    paramConfig: { prompt, templateId: catParam('Template', 'picsart-flow/v1/catalog/templates', '', 'picsart-flow') },
+  }),
+  makeModel({
+    id: 'picsart-flow-video', name: 'Picsart Flow Video', mode: 'video',
+    paramConfig: { prompt, templateId: catParam('Template', 'picsart-flow/v1/catalog/templates', '', 'picsart-flow-video') },
+  }),
+  FLUX,
+]);
 
 // ── Fake transport serving paginated catalog envelopes ──────────────
 

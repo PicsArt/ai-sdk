@@ -1,27 +1,35 @@
+/**
+ * Model() / catalog accessor machinery — dynamic-only, against an installed
+ * fixture catalog. Exercises the accessor surface (params/meta/api,
+ * enum/file/range shorthands, catalog.all/find/search, validate); the bundled
+ * catalog's model-specific data is no longer shipped, so this tests mechanics,
+ * not vendor rows.
+ */
 import assert from 'node:assert';
 import { Model, catalog } from '../../src/core/descriptors/model-accessor.ts';
 import { p as presets } from '../../src/core/descriptors/presets.ts';
+import { installCatalog } from '../../src/core/active-catalog.ts';
 import type { FileDescriptor } from '../../src/core/descriptors/types.ts';
+import { FLUX, CLAUDE, KLING, RICH } from './helpers/fixture-catalog.ts';
+
+installCatalog([FLUX, CLAUDE, KLING, RICH]);
 
 // ── Top-level: id and name ──────────────────────────────────────────
 
-const m = Model('flux-2-pro');
-assert.strictEqual(m.id, 'flux-2-pro');
-assert.strictEqual(m.name, 'Flux 2 Pro');
+const m = Model('rich-fixture');
+assert.strictEqual(m.id, 'rich-fixture');
+assert.strictEqual(m.name, 'Rich Fixture');
 
 // ── params() — parameter accessor ──────────────────────────────────
 
 const p = m.params();
 
-// hasParam
 assert.strictEqual(p.hasParam('aspectRatio'), true);
 assert.strictEqual(p.hasParam('nonexistent'), false);
 
-// all() returns flat param array
 const all = p.all();
-assert(Array.isArray(all));
-assert(all.length > 0);
-assert(all.some(e => e.key === 'aspectRatio'));
+assert(Array.isArray(all) && all.length > 0);
+assert(all.some((e) => e.key === 'aspectRatio'));
 
 // enum accessor
 const ar = p.enum('aspectRatio');
@@ -31,41 +39,32 @@ assert(ar!.options.length > 0);
 
 // well-known shorthands
 assert(p.aspectRatio(), 'aspectRatio() shorthand should work');
-// prompt() may be undefined for models where prompt is implicit (not in paramConfig)
 const promptEntry = p.prompt();
-// just verify it doesn't throw
 assert(promptEntry === undefined || promptEntry.kind === 'text');
 
 // hasFileInput
-assert.strictEqual(p.hasFileInput(), true, 'flux-2-pro accepts image input');
+assert.strictEqual(p.hasFileInput(), true, 'rich fixture accepts image input');
 
-// getDefault
-const defAr = p.getDefault('aspectRatio');
-assert(defAr != null, 'aspectRatio should have a default');
-
-// getDefaults
+// getDefault / getDefaults
+assert(p.getDefault('aspectRatio') != null, 'aspectRatio should have a default');
 const defaults = p.getDefaults();
-assert(typeof defaults === 'object');
-assert('aspectRatio' in defaults);
+assert(typeof defaults === 'object' && 'aspectRatio' in defaults);
 
-// enum(key) carries the option list
-const arEntry = p.enum('aspectRatio');
-assert(arEntry, 'aspectRatio should be an enum param');
-assert(arEntry!.options.length > 0);
+// range accessor
+const steps = p.range('steps');
+assert(steps && steps.kind === 'range', 'steps should be a range');
 
-// file
-const imgParam = p.file('imageUrls');
-assert(imgParam, 'flux-2-pro should have imageUrls');
-assert(typeof imgParam!.array?.max === 'number');
+// file accessor + bounds threaded through
+const imgParam = p.file('image');
+assert(imgParam, 'rich fixture should have an image file param');
+assert.strictEqual(imgParam!.maxShortSidePixels, 4096, 'file bounds must survive onto the accessor');
 
 // toSchema
 const schema = p.toSchema();
-assert(schema && typeof schema === 'object');
-assert('aspectRatio' in schema);
+assert(schema && typeof schema === 'object' && 'aspectRatio' in schema);
 
 // transferValues
-const transferred = p.transferValues({ aspectRatio: '1:1', unknownKey: 'x' });
-assert(typeof transferred === 'object');
+assert(typeof p.transferValues({ aspectRatio: '1:1', unknownKey: 'x' }) === 'object');
 
 // ── meta() — model metadata ────────────────────────────────────────
 
@@ -79,14 +78,12 @@ assert(Array.isArray(meta.badges));
 // provider sub-object
 assert(meta.provider);
 assert.strictEqual(meta.provider.id, 'flux');
-assert.strictEqual(typeof meta.provider.name, 'string');
-assert(meta.provider.name.length > 0);
+assert(typeof meta.provider.name === 'string' && meta.provider.name.length > 0);
 assert(typeof meta.provider.color === 'string');
 assert(typeof meta.provider.label === 'string');
 
 // badges normalized to array (even if undefined on definition)
-const klingMeta = Model('kling-v3').meta();
-assert(Array.isArray(klingMeta.badges));
+assert(Array.isArray(Model('kling-v3').meta().badges));
 
 // ── Lazy instantiation — same reference ─────────────────────────────
 
@@ -95,55 +92,38 @@ assert.strictEqual(m.meta(), m.meta(), 'meta() should return same instance');
 
 // ── api — workflow identifiers ─────────────────────────────────────
 
-assert(typeof m.api.workflow === 'string' && m.api.workflow.length > 0, 'workflow should be a non-empty string');
-assert(m.api.editWorkflow === undefined || typeof m.api.editWorkflow === 'string',
-  'editWorkflow should be string or undefined');
+assert(typeof m.api.workflow === 'string' && m.api.workflow.length > 0);
+assert.strictEqual(m.api.editWorkflow, 'fixture/v1/rich-edit');
 
 // ── catalog.all() ────────────────────────────────────────────────────
 
 const allModels = catalog.all();
-assert(Array.isArray(allModels), 'catalog.all() should return an array');
-assert(allModels.length > 0, 'catalog.all() should return at least one model');
-assert(allModels.every(d => d.id && d.name), 'every descriptor should have id and name');
-assert(allModels.every(d => typeof d.params === 'function' && typeof d.meta === 'function'),
-  'every descriptor should have params() and meta()');
+assert(Array.isArray(allModels) && allModels.length === 4);
+assert(allModels.every((d) => d.id && d.name));
+assert(allModels.every((d) => typeof d.params === 'function' && typeof d.meta === 'function'));
 
-// ── catalog.find() — by output ──────────────────────────────────────
+// ── catalog.find() — by output / provider / combined ────────────────
 
 const videoModels = catalog.find({ output: 'video' });
-assert(videoModels.length > 0, 'should find video models');
-assert(videoModels.every(d => d.meta().mode === 'video'), 'all should be video mode');
-
-// ── catalog.find() — by provider ────────────────────────────────────
+assert(videoModels.length > 0 && videoModels.every((d) => d.meta().mode === 'video'));
 
 const klingModels = catalog.find({ provider: 'kling' });
-assert(klingModels.length > 0, 'should find kling models');
-assert(klingModels.every(d => d.meta().provider.id === 'kling'), 'all should be kling provider');
-
-// ── catalog.find() — combined filters ───────────────────────────────
+assert(klingModels.length > 0 && klingModels.every((d) => d.meta().provider.id === 'kling'));
 
 const klingVideo = catalog.find({ provider: 'kling', output: 'video' });
-assert(klingVideo.every(d => d.meta().provider.id === 'kling' && d.meta().mode === 'video'),
-  'combined filter should match both criteria');
+assert(klingVideo.every((d) => d.meta().provider.id === 'kling' && d.meta().mode === 'video'));
 
-// ── catalog.search() ─────────────────────────────────────────────────
+// ── catalog.search() — case insensitive ─────────────────────────────
 
 const searchResults = catalog.search('flux');
-assert(searchResults.length > 0, 'should find flux models');
-assert(searchResults.every(d => typeof d.params === 'function'), 'search results should be descriptors');
-assert(searchResults.every(d => {
-  const q = 'flux';
-  return d.id.toLowerCase().includes(q) ||
-    d.name.toLowerCase().includes(q) ||
-    d.meta().provider.id.toLowerCase().includes(q);
-}), 'search results should match query');
+assert(searchResults.length > 0);
+assert(searchResults.every((d) =>
+  d.id.toLowerCase().includes('flux')
+  || d.name.toLowerCase().includes('flux')
+  || d.meta().provider.id.toLowerCase().includes('flux')));
+assert.strictEqual(catalog.search('FLUX').length, searchResults.length, 'search is case-insensitive');
 
-// ── catalog.search() — case insensitive ──────────────────────────────
-
-const upperSearch = catalog.search('FLUX');
-assert(upperSearch.length === searchResults.length, 'search should be case-insensitive');
-
-// \u2500\u2500 Model(id).validate() \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ── Model(id).validate() ────────────────────────────────────────────
 
 const okValidate = Model('flux-2-pro').validate({ prompt: 'a cat' });
 assert.strictEqual(okValidate.valid, true, 'valid input should pass');
@@ -151,37 +131,12 @@ assert.strictEqual(okValidate.errors, undefined, 'valid input should have no err
 
 const missingPrompt = Model('flux-2-pro').validate({});
 assert.strictEqual(missingPrompt.valid, false, 'missing required prompt should fail');
-assert(Array.isArray(missingPrompt.errors) && missingPrompt.errors.length > 0, 'should report errors');
+assert(Array.isArray(missingPrompt.errors) && missingPrompt.errors.length > 0);
 
 const notAnObject = Model('flux-2-pro').validate('nope');
 assert.strictEqual(notAnObject.valid, false, 'non-object input should fail without throwing');
 
-// \u2500\u2500 FileDescriptor.maxShortSidePixels \u2014 upscaler source ceiling \u2500\u2500\u2500\u2500\u2500
-// The ByteDance 1080p upscaler rejects sources whose shorter side is \u2265 1080
-// ("must have one side of length less than 1080 pixels"), so the catalog caps
-// the short side at 1079 for client-side enforcement at upload.
-
-const upscalerVideo = Model('bytedance-video-upscaler').params().file('videoUrl');
-assert(upscalerVideo, 'bytedance-video-upscaler should have a videoUrl file param');
-assert.strictEqual(upscalerVideo!.maxShortSidePixels, 1079, 'upscaler source short side must be capped below 1080');
-
-// \u2500\u2500 FileDescriptor.maxBytes: vendor file-size cap \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-// Seedance 2.5 rejects any video file over 200 MiB ("video size (bytes) ... must
-// be less than or equal to 209715200"), on every mode that posts a
-// reference_video: t2v references, video edit and video extend.
-
-for (const [modelId, key] of [
-  ['seedance-2.5', 'videoUrls'],
-  ['seedance-2.5-video-edit', 'videoUrl'],
-  ['seedance-2.5-video-extend', 'videoUrls'],
-] as const) {
-  const videoSlot = Model(modelId).params().file(key);
-  assert(videoSlot, `${modelId} should have a ${key} file param`);
-  assert.strictEqual(videoSlot!.maxBytes, 209_715_200, `${modelId} video slot must cap files at 200 MiB`);
-}
-
-// ── FileDescriptor.minSidePixels: per-side vendor floor ─────────────
-// p.file() threads the bound through, and leaves it off when unset.
+// ── p.file() threads/omits bounds ───────────────────────────────────
 
 const sideBound = presets.file('imageUrls', 'image', { minSidePixels: 300 }).imageUrls
   .descriptor as FileDescriptor;
@@ -191,70 +146,4 @@ assert.strictEqual(sideBound.minPixels, undefined, 'p.file should not invent a t
 const noBound = presets.file('imageUrls', 'image').imageUrls.descriptor as FileDescriptor;
 assert.strictEqual(noBound.minSidePixels, undefined, 'p.file should omit minSidePixels when unset');
 
-// Seedance reference images: the vendor rule is per side (width and height each
-// in [300, 6000]) with no total-pixel floor. A 600×600 reference is 360,000 px,
-// so the old 409,600 total-pixel floor rejected an image the vendor accepts.
-
-for (const modelId of ['seedance-2.5', 'seedance-2.0', 'seedance-2.0-fast', 'seedance-2.0-mini'] as const) {
-  const imageSlot = Model(modelId).params().file('imageUrls');
-  assert(imageSlot, `${modelId} should have an imageUrls file param`);
-  assert.strictEqual(imageSlot!.minSidePixels, 300, `${modelId} reference images must floor each side at 300px`);
-  assert.strictEqual(imageSlot!.minPixels, undefined, `${modelId} reference images must not carry a total-pixel floor`);
-
-  // Reference videos keep the total-pixel floor, corrected to the vendor's
-  // 614×664, and pick up the same per-side floor.
-  const videoRefs = Model(modelId).params().file('videoUrls');
-  if (videoRefs) {
-    assert.strictEqual(videoRefs.minPixels, 407_696, `${modelId} reference videos must floor total pixels at 407,696`);
-    assert.strictEqual(videoRefs.minSidePixels, 300, `${modelId} reference videos must floor each side at 300px`);
-  }
-}
-
-// \u2500\u2500 duration() shorthand spans both descriptor kinds \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-// Duration is an enum where the vendor takes a fixed option list and a range
-// where it takes every value in a span. The shorthand must surface both, or
-// consumers silently lose the duration control on the range models.
-
-// Every Seedance family exposes duration as an option list. -1 ("auto":
-// output matches the source clip) leads the list for all but 1.0.
-for (const [modelId, wantsAuto] of [
-  ['seedance-2.5', true],
-  ['seedance-2.5-video-extend', true],
-  ['seedance-2.0', true],
-  ['seedance-1.5-pro', true],
-  ['seedance-i2v', false],
-] as const) {
-  const enumDuration = Model(modelId).params().duration();
-  assert(enumDuration, `${modelId} duration should resolve via the shorthand`);
-  assert.strictEqual(enumDuration!.kind, 'enum', `${modelId} duration is an option list`);
-  if (enumDuration!.kind !== 'enum') throw new Error('unreachable');
-  const ids = enumDuration.options.map((o) => o.id);
-  assert.strictEqual(ids.includes(-1), wantsAuto, `${modelId} duration -1 support`);
-}
-
-for (const [modelId, expected] of [
-  ['kling-t2a', { min: 3, max: 10, step: 0.5 }],
-  ['kling-v3', { min: 3, max: 15, step: 1 }],
-  ['kling-v3-omni', { min: 3, max: 15, step: 1 }],
-  ['kling-v3-turbo', { min: 3, max: 15, step: 1 }],
-  ['kling-v4', { min: 3, max: 30, step: 1 }],
-  ['kling-v4-omni', { min: 3, max: 30, step: 1 }],
-  ['pixverse-v6', { min: 5, max: 15, step: 1 }],
-  ['pixverse-c1', { min: 5, max: 15, step: 1 }],
-] as const) {
-  const rangeDuration = Model(modelId).params().duration();
-  assert(rangeDuration, `${modelId} duration should resolve via the shorthand, not just param('duration')`);
-  assert.strictEqual(rangeDuration!.kind, 'range', `${modelId} duration is a continuous range`);
-  if (rangeDuration!.kind !== 'range') throw new Error('unreachable');
-  assert.strictEqual(rangeDuration.min, expected.min, `${modelId} duration min`);
-  assert.strictEqual(rangeDuration.max, expected.max, `${modelId} duration max`);
-  assert.strictEqual(rangeDuration.step, expected.step, `${modelId} duration step`);
-}
-
-// The constrained accessor (constraint effects pre-applied) must not drop it
-// either \u2014 seedance-2.5 carries constraints, so this is the live path.
-const constrainedDuration = Model('seedance-2.5').paramsFor({ startFrame: 'https://x/a.png' }).duration();
-assert(constrainedDuration, 'constrained accessor should still surface the enum duration');
-assert.strictEqual(constrainedDuration!.kind, 'enum', 'constrained duration stays an enum');
-
-console.log('\u2713 model-accessor.test.ts \u2014 all passed');
+console.log('✓ model-accessor.test.ts — all passed');

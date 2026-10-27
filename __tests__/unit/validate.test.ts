@@ -1,51 +1,26 @@
 /**
- * ai.validate() — async validation in both modes.
+ * ai.validate() — dynamic-only.
  *
- * Static: resolves immediately off the bundled catalog. Dynamic: waits for
- * the catalog load started by initModelCatalog(), rejects 409
- * catalog_not_loaded when it was never called, and validates against the
- * FETCHED descriptors once installed.
- *
- * Ordering note: the active catalog is process-global, so all static-mode
- * assertions run before the first dynamic client flips it to pending.
+ * Rejects 409 catalog_not_loaded before initModelCatalog(), waits for an
+ * in-flight load, then validates against the FETCHED descriptors. Unknown
+ * models reject 400 unknown_model once the catalog is loaded.
  */
 import assert from 'node:assert';
 import { createClient } from '../../src/client/index.ts';
 import { ApiError } from '../../src/core/errors.ts';
 import { serializeCatalog, type CatalogModelsResponse } from '../../src/core/catalog-wire.ts';
-import { ALL_MODELS } from '../../src/vendors/catalog/index.ts';
 import { isModelCatalogLoaded } from '../../src/core/catalog-store.ts';
+import { __resetActiveCatalogForTests } from '../../src/core/active-catalog.ts';
+import { __resetModelCatalogStoreForTests } from '../../src/core/catalog-store.ts';
 import { mockPlatform } from './helpers/mock-platform.ts';
+import { FLUX } from './helpers/fixture-catalog.ts';
 
-// ── 1. static mode — bundled catalog, immediate ─────────────────────
-{
-  const platform = mockPlatform();
-  const ai = createClient({ apiUrl: 'https://api.test', fetch: platform.fetch });
+__resetModelCatalogStoreForTests();
+__resetActiveCatalogForTests();
 
-  const ok = await ai.validate('flux-2-pro', { prompt: 'a cat' });
-  assert.strictEqual(ok.valid, true);
-
-  const bad = await ai.validate('flux-2-pro', { prompt: 'a cat', aspectRatio: 'nope' });
-  assert.strictEqual(bad.valid, false);
-  assert.ok(bad.errors && bad.errors.length > 0, 'invalid params should carry errors');
-
-  await assert.rejects(
-    ai.validate('no-such-model', { prompt: 'x' }),
-    (err: unknown) => err instanceof ApiError && err.code === 'unknown_model',
-  );
-
-  // No network: validation is local in static mode.
-  assert.strictEqual(platform.calls.submits.length, 0);
-  assert.strictEqual(platform.calls.catalogFetches.length, 0);
-}
-
-// ── 2. dynamic mode — rejects before initModelCatalog ───────────────
-
-// A fixture catalog whose flux-2-pro gained a backend-only param, so a pass
-// proves validation ran against the FETCHED descriptors, not bundled ones.
-const fixture: CatalogModelsResponse = serializeCatalog(
-  ALL_MODELS.filter((m) => m.id === 'flux-2-pro'),
-);
+// A fixture catalog whose flux-2-pro has a required backend-only param, so a
+// pass proves validation ran against the FETCHED descriptors.
+const fixture: CatalogModelsResponse = serializeCatalog([FLUX]);
 fixture.response.models[0].params!.backendOnlyParam = {
   kind: 'enum',
   valueType: 'string',
@@ -62,8 +37,9 @@ const gatedFetch: typeof platform.fetch = async (url, init) => {
   return platform.fetch(url, init);
 };
 
-const ai = createClient({ mode: 'dynamic', apiUrl: 'https://api.test', fetch: gatedFetch });
+const ai = createClient({ apiUrl: 'https://api.test', fetch: gatedFetch });
 
+// ── 1. rejects before initModelCatalog ──────────────────────────────
 {
   await assert.rejects(
     ai.validate('flux-2-pro', { prompt: 'x' }),
@@ -71,7 +47,7 @@ const ai = createClient({ mode: 'dynamic', apiUrl: 'https://api.test', fetch: ga
   );
 }
 
-// ── 3. validate waits for the in-flight load, then uses fetched data ─
+// ── 2. validate waits for the in-flight load, then uses fetched data ─
 {
   const loading = ai.initModelCatalog();
   const validating = ai.validate('flux-2-pro', { prompt: 'x' }); // missing backendOnlyParam

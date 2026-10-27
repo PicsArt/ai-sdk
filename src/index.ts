@@ -1,8 +1,6 @@
 export { createClient, GenerationEventType } from './client/index.ts';
 export { inferResourceType, buildFilename, resolveExtension, expectedOutputFormat, parseGeneration, buildGenerationAttributes } from './client/index.ts';
 export { ApiRunMode } from './client/index.ts';
-/** Typed model-id constants (`Models.Flux2Pro`, …) plus per-id meta. */
-export { Models } from './generated/model-constants.ts';
 export { getVoiceById } from './core/voices.ts';
 
 // ── Errors ──────────────────────────────────────────────────────────
@@ -14,11 +12,10 @@ export { ApiError } from './core/errors.ts';
 export type { ApiErrorCode, ApiErrorInit } from './core/errors.ts';
 export type { SeedanceDraftTask } from './core/response.ts';
 
-// ── Dynamic mode ────────────────────────────────────────────────────
-// `createClient({ mode: 'dynamic' })` + `ai.initModelCatalog()`: the model
-// catalog loads from models-hub and generation rides the `v1/models`
-// workflow. See docs/DYNAMIC-CATALOG-MIGRATION.md.
-export type { SdkMode, InitModelCatalogOptions } from './client/types.ts';
+// ── Catalog loading ─────────────────────────────────────────────────
+// The SDK is dynamic-only: `ai.initModelCatalog()` loads the model catalog
+// from models-hub and every generation rides the `v1/models` workflow.
+export type { InitModelCatalogOptions } from './client/types.ts';
 export type { ModelCatalogFilters } from './core/catalog-store.ts';
 export type { CatalogModel, CatalogParam, CatalogProvider, CatalogModelsResponse } from './core/catalog-wire.ts';
 export type { ModelsCommand, ModelsGenAIOptions } from './client/prepare.ts';
@@ -90,8 +87,20 @@ export type {
 } from './core/catalogs.ts';
 export { toVoiceOption, toAvatarOption } from './core/catalogs.ts';
 export type { CatalogsClient, CatalogPage, CatalogPageOptions, CatalogsOptions } from './client/index.ts';
-export type { TypedModelId, ModelInput, ModelInputById, TextModelId, TextModelInputById, JsonModelId } from './generated/model-input-types.ts';
 export type { MediaModelId } from './client/index.ts';
+
+// Typed per-model input contracts. The SDK no longer generates these — they are
+// owned by models-hub (the catalog's source of truth) and re-exported here so
+// SDK users keep the typed-input surface (`ModelInput<'flux-2-pro'>`, …) they
+// had before, with no duplicated/bundled copy.
+export type {
+  ModelInputById,
+  ModelInput,
+  TypedModelId,
+  TextModelId,
+  TextModelInputById,
+  JsonModelId,
+} from '@picsart/model-types';
 
 
 // ── Param Descriptor Types (surfaced via the Model()/catalog accessors) ─
@@ -138,6 +147,5 @@ export { Model, catalog } from './core/descriptors/index.ts';
 export type { DeepLinkResult } from './core/deeplink/index.ts';
 export { encodeDeepLinkPayload, decodeDeepLinkPayload } from './core/deeplink/index.ts';
 
-export { ALL_MODELS, getModelsByMode } from './vendors/catalog/index.ts';
 export { isVisibleForReleases, releaseOf, DEFAULT_VISIBLE_RELEASES } from './core/visibility.ts';
 export { getModel, findModel } from './core/model-registry.ts';

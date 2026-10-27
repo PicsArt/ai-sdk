@@ -16,7 +16,6 @@ import type { ModelDefinition, GenerationContext, ReleaseTag } from '../types.ts
 import { evaluateConstraints, evaluateRequirements } from '../constraints.ts';
 import { isVisibleForReleases, DEFAULT_VISIBLE_RELEASES } from '../visibility.ts';
 import type { ConditionalRequirement, NormalizedRestriction } from '../constraints.ts';
-import type { TypedModelId } from '../../generated/model-input-types.ts';
 import type {
   ParamDescriptor,
   ParamEntry,
@@ -302,7 +301,7 @@ class ModelMetaImpl implements ModelMeta {
 // ── ModelDescriptor implementation ─────────────────────────────────
 
 class ModelDescriptorImpl implements ModelDescriptor {
-  readonly id: TypedModelId;
+  readonly id: string;
   readonly name: string;
   readonly api: ModelDescriptor['api'];
   private readonly def: ModelDefinition;
@@ -310,7 +309,7 @@ class ModelDescriptorImpl implements ModelDescriptor {
   private _meta: ModelMetaImpl | undefined;
 
   constructor(def: ModelDefinition) {
-    this.id = def.id as TypedModelId;
+    this.id = def.id;
     this.name = def.name;
     this.api = { workflow: def.workflow, editWorkflow: def.editWorkflow };
     this.def = def;

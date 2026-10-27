@@ -25,8 +25,10 @@ const MODEL_ID = process.env.TEST_MODEL_ID ?? 'picsart-sod-v8-2';
 let client: ReturnType<typeof createTestClient>;
 
 // Fails the run if PICSART_TOKEN is missing (createTestClient throws).
-before(() => {
+// Dynamic-only SDK: load the catalog so loadCatalog()/activeModels() resolve.
+before(async () => {
   client = createTestClient();
+  await client.initModelCatalog();
 });
 
 // generate() is typed generically (`<M extends TypedModelId>`); a runtime string

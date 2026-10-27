@@ -9,6 +9,7 @@ const nodeBuiltins = [
 
 // The private @picsart/* deps to inline when producing the PUBLIC build.
 const privateDeps = [
+  '@picsart/model-types',
   '@picsart/pa-model-pricing-sdk',
   '@picsart/workflows-client',
   '@picsart/workflows-types',

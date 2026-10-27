@@ -17,7 +17,26 @@ import {
 } from '../../src/client/drive.ts';
 import { createClient } from '../../src/client/index.ts';
 import { getModel } from '../../src/core/model-registry.ts';
+import { installCatalog } from '../../src/core/active-catalog.ts';
+import { makeModel, FLUX } from './helpers/fixture-catalog.ts';
 import type { SdkTransport, WorkflowSubmitRequest } from '../../src/core/workflow.ts';
+
+// Dynamic-only: install the models these naming assertions resolve against.
+// `sana` declares a JPEG output; `gpt` carries an outputFormat param (default png).
+installCatalog([
+  makeModel({ id: 'sana-fixture', name: 'Sana', mode: 'image', outputExtension: 'jpg' }),
+  makeModel({
+    id: 'gpt-fixture', name: 'GPT Image', mode: 'image',
+    paramConfig: {
+      prompt: { label: 'Prompt', required: true, descriptor: { kind: 'text' } },
+      outputFormat: {
+        label: 'Format',
+        descriptor: { kind: 'enum', valueType: 'string', options: [{ id: 'png' }, { id: 'jpeg' }, { id: 'webp' }], default: 'png' },
+      },
+    },
+  }),
+  FLUX,
+]);
 
 const ext = (name: string): string => name.slice(name.lastIndexOf('.') + 1);
 
@@ -87,7 +106,7 @@ for (const [mode, format, expected] of FORMAT_CASES) {
 assert.strictEqual(resolveExtension('image', { format: '../etc' }), 'png', 'junk format ignored');
 
 // ── expectedOutputFormat: explicit param → param default → model declaration ─
-const gptImage = getModel('gpt-image-2');
+const gptImage = getModel('gpt-fixture');
 assert(gptImage, 'gpt-image-2 is in the catalog');
 assert.strictEqual(expectedOutputFormat(gptImage, { prompt: 'x', outputFormat: 'jpeg' }), 'jpeg');
 assert.strictEqual(expectedOutputFormat(gptImage, { prompt: 'x' }), 'png', 'catalog default used when unset');
@@ -99,7 +118,7 @@ assert.strictEqual(
 assert.strictEqual(expectedOutputFormat({ paramConfig: {} }, { prompt: 'x' }), undefined);
 assert.strictEqual(expectedOutputFormat({ paramConfig: {}, outputExtension: 'jpg' }, { prompt: 'x' }), 'jpg');
 
-const sana = getModel('picsart-sana-sprint-v1');
+const sana = getModel('sana-fixture');
 assert(sana, 'picsart-sana-sprint-v1 is in the catalog');
 assert.strictEqual(sana.outputExtension, 'jpg', 'SANA-Sprint declares its JPEG output');
 
@@ -133,13 +152,13 @@ const perCallDrive = { drive: { folder: { path: 'AI' } } as unknown as PayloadDr
 {
   const { transport, payloads } = capturingTransport();
   const ai = createClient({ transport });
-  await ai.generate('picsart-sana-sprint-v1', { prompt: 'a red paper boat' }, perCallDrive);
+  await ai.generate('sana-fixture', { prompt: 'a red paper boat' }, perCallDrive);
   assert.strictEqual(ext(driveName(payloads[0])), 'jpg', 'SANA-Sprint saves as .jpg');
 }
 {
   const { transport, payloads } = capturingTransport();
   const ai = createClient({ transport });
-  await ai.generate('gpt-image-2', { prompt: 'a cat', outputFormat: 'webp' }, perCallDrive);
+  await ai.generate('gpt-fixture', { prompt: 'a cat', outputFormat: 'webp' }, perCallDrive);
   assert.strictEqual(ext(driveName(payloads[0])), 'webp', 'requested outputFormat names the file');
 }
 {

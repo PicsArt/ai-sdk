@@ -295,8 +295,6 @@ export interface ModelParamsAccessor {
   transferValues(prev: Record<string, unknown>): Record<string, unknown>;
 }
 
-import type { TypedModelId } from '../../generated/model-input-types.ts';
-
 /** Credit range for a model — min/max credits across all pricing variants. */
 export interface CreditRange {
   min: number;
@@ -337,7 +335,7 @@ export interface ValidationResult {
 }
 
 export interface ModelDescriptor {
-  readonly id: TypedModelId;
+  readonly id: string;
   readonly name: string;
   params(): ModelParamsAccessor;
   /** Params with constraint effects pre-applied (disabled options, hidden params). */

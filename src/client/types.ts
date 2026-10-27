@@ -9,7 +9,6 @@ import type {
   OptionsResult,
   ToolUsage,
 } from '../core/workflow.ts';
-import type { TypedModelId, ModelInputById, TextModelId, TextModelInputById, JsonModelId } from '../generated/model-input-types.ts';
 import type { DriveFolder, DriveSaveResult, PayloadDriveOptions, DriveClient } from './drive.ts';
 import type { ApisClient } from './apis.ts';
 import type { CatalogsClient, CatalogsOptions } from './catalogs.ts';
@@ -59,35 +58,8 @@ export interface AppIdentity {
   type: AppType;
 }
 
-/**
- * How the client sources its model catalog and builds generation requests.
- * - `'static'` (default) — the bundled catalog: per-model workflows and local
- *   payload builders, exactly as before.
- * - `'dynamic'` — generation routes through the models-hub `v1/models`
- *   workflow (the server builds the vendor payload), and the model catalog is
- *   loaded from the backend via {@link AiClient.initModelCatalog}. Until that
- *   load completes, the sync accessors (`Model()`, `catalog.*`) throw
- *   `ApiError` 409 `catalog_not_loaded`; `generate()`/`submit()` never wait.
- *
- * The loaded catalog is process-global (`Model()` and `catalog.*` are
- * module-level): one catalog source per process, last install wins.
- *
- * **One catalog MODE per process, too — do not mix static and dynamic
- * clients.** Creating a dynamic client flips the process-global catalog:
- * a static client in the same process then throws `catalog_not_loaded` from
- * its sync accessors until the load lands, and once the loaded catalog is
- * installed its generation pipeline would resolve definitions that carry no
- * payload builders (builders are code and never ride the wire) — producing
- * invalid vendor payloads. Run static clients in a separate process. Static
- * mode is the compatibility path and is slated for removal once all
- * consumers run dynamic.
- */
-export type SdkMode = 'static' | 'dynamic';
-
 /** Settings that apply whichever transport serves the client. */
 interface ClientConfigBase {
-  /** Catalog/generation mode — see {@link SdkMode}. Default: `'static'`. */
-  mode?: SdkMode;
   /** Enable Drive integration — auto-save generations to a Drive folder. */
   drive?: DriveConfig;
   /**
@@ -308,41 +280,44 @@ export interface InitModelCatalogOptions {
   filtersOptions?: ModelCatalogFilters;
 }
 
-// ── Type-safe client interface ──────────────────────────────────────
+// ── Client interface ────────────────────────────────────────────────
 
-/** Non-text (image/video/audio) model IDs — the media generation surface. */
-export type MediaModelId = Exclude<TypedModelId, TextModelId | JsonModelId>;
+/**
+ * Non-text (image/video/audio) model id. Dynamic-only: ids are plain strings
+ * resolved against the loaded catalog, so there is no compile-time narrowing.
+ */
+export type MediaModelId = string;
 
-/** AI SDK client with type-safe, model-aware method signatures. */
+/** AI SDK client. Model ids are strings resolved against the loaded catalog. */
 export interface AiClient {
   /**
    * Run any model by id and get the task result back, generically — the
    * model-id counterpart of {@link ApisClient.run}. Works on every model:
-   * builds and validates the payload from paramConfig, executes the workflow,
+   * models-hub builds and validates the payload, executes the workflow,
    * applies the model's `outputSchema` when declared, and answers the task
    * result as-is (no media-URL/text extraction, no Drive save). The only
    * generation surface for json-mode (structured-output) models. Type the
    * result via `R` (mirrors `ai.apis.run()`): `ai.run<MyResult>(id, params)`.
    */
-  run<R = unknown, M extends TypedModelId = TypedModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<RunResponse<R>>;
+  run<R = unknown>(model: string, params: Record<string, unknown>, options?: GenerateOptions): Promise<RunResponse<R>>;
 
   /** Generate content using a media model. Text/LLM models use generateText(). */
-  generate<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<GenerateResult>;
+  generate(model: string, params: Record<string, unknown> & { prompt: string }, options?: GenerateOptions): Promise<GenerateResult>;
 
   /** Generate text using an LLM model. Returns the generated text plus the raw response. */
-  generateText<M extends TextModelId>(model: M, params: TextModelInputById[M], options?: GenerateOptions): Promise<GenerateTextResult>;
+  generateText(model: string, params: Record<string, unknown> & { prompt: string }, options?: GenerateOptions): Promise<GenerateTextResult>;
 
   /** Get exact credit cost for a model with specific parameters. */
-  getCredits<M extends TypedModelId>(model: M, params: ModelInputById[M]): Promise<number | null>;
+  getCredits(model: string, params: Record<string, unknown> & { prompt: string }): Promise<number | null>;
 
   /** What the model's /options endpoint answers for these params — credits, how they were derived, and anything else it reports. */
-  options<M extends TypedModelId>(model: M, params: ModelInputById[M]): Promise<OptionsResult | null>;
+  options(model: string, params: Record<string, unknown> & { prompt: string }): Promise<OptionsResult | null>;
 
   /** Submit a generation job and get its generation id back. Media models only. */
-  submit<M extends MediaModelId>(model: M, params: ModelInputById[M], options?: GenerateOptions): Promise<string>;
+  submit(model: string, params: Record<string, unknown> & { prompt: string }, options?: GenerateOptions): Promise<string>;
 
   /** Poll a submitted job until it completes and return the parsed result. Media models only. */
-  result(model: MediaModelId, generationId: string, options?: GenerationOptions): Promise<GenerateResult>;
+  result(model: string, generationId: string, options?: GenerationOptions): Promise<GenerateResult>;
 
   /**
    * Subscribe to live updates for a submitted job. Yields one
@@ -353,27 +328,21 @@ export interface AiClient {
    */
   subscribe(model: MediaModelId, generationId: string, options?: GenerationOptions): AsyncGenerator<GenerationEvent, void, void>;
 
-  /** Build the vendor-specific payload for a model without submitting. Static mode only. */
-  buildPayload<M extends TypedModelId>(model: M, params: ModelInputById[M]): Record<string, unknown>;
-
   /**
-   * Dynamic mode only: fetch the model catalog from models-hub and install it
-   * as the active catalog — afterwards `Model()`, `catalog.*` and
-   * `ai.validate()` serve the loaded data. The ONLY trigger for the load
-   * (`createClient` never starts it). Idempotent: concurrent/repeat calls
-   * share one in-flight load; a failed load may be retried. Rejects with
-   * `ApiError` 400 `invalid_mode` on a static client, and 409
-   * `catalog_conflict` when a different url/filters catalog is already loaded
-   * in this process.
+   * Fetch the model catalog from models-hub and install it as the active
+   * catalog — afterwards `Model()`, `catalog.*` and `ai.validate()` serve the
+   * loaded data. The ONLY trigger for the load (`createClient` never starts
+   * it). Idempotent: concurrent/repeat calls share one in-flight load; a
+   * failed load may be retried. Rejects with `ApiError` 409 `catalog_conflict`
+   * when a different url/filters catalog is already loaded in this process.
    */
   initModelCatalog(options?: InitModelCatalogOptions): Promise<void>;
 
   /**
    * Validate params against the model's descriptors without generating.
-   * Static mode: resolves immediately off the bundled catalog. Dynamic mode:
-   * awaits the catalog load started by {@link initModelCatalog} — rejects
-   * with `ApiError` 409 `catalog_not_loaded` when it was never called.
-   * Unknown models reject with `ApiError` 400 `unknown_model`.
+   * Awaits the catalog load started by {@link initModelCatalog} — rejects with
+   * `ApiError` 409 `catalog_not_loaded` when it was never called. Unknown
+   * models reject with `ApiError` 400 `unknown_model`.
    */
   validate(model: string, params: Record<string, unknown>): Promise<ValidationResult>;
 

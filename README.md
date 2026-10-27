@@ -22,7 +22,7 @@ npm install @picsart/ai-sdk
 ```
 
 ```typescript
-import { createClient, Models, Model, catalog } from '@picsart/ai-sdk'
+import { createClient, Model, catalog } from '@picsart/ai-sdk'
 
 // Create a client — pass your Picsart API key
 const ai = createClient({
@@ -30,9 +30,14 @@ const ai = createClient({
   apiUrl: 'https://api.picsart.com',
 })
 
-// Generate (Models.* are typed model-id constants)
-const result = await ai.generate(Models.Flux2Pro, { prompt: 'a cat on mars' })
+// Generate — model ids are plain strings, resolved server-side.
+// Generation works immediately; no catalog load required.
+const result = await ai.generate('flux-2-pro', { prompt: 'a cat on mars' })
 console.log(result.url)
+
+// The local catalog accessors (Model / catalog / ai.validate) read a catalog
+// loaded from models-hub. Load it once, then use them:
+await ai.initModelCatalog()
 
 // Browse models — the `catalog` accessor
 catalog.all()                              // every model
@@ -40,14 +45,22 @@ catalog.find({ output: 'video' })          // video models only
 catalog.search('kling')                    // search by name/id/provider
 
 // Model metadata & params — the `Model` accessor
-Model(Models.Flux2Pro).name                // 'Flux 2 Pro'
-Model(Models.Flux2Pro).meta()              // mode, provider, badges, …
-Model(Models.Flux2Pro).params()            // accepted parameters
-Model(Models.Flux2Pro).params().toSchema() // param schema
+Model('flux-2-pro').name                    // 'Flux 2 Pro'
+Model('flux-2-pro').meta()                  // mode, provider, badges, …
+Model('flux-2-pro').params()                // accepted parameters
+Model('flux-2-pro').params().toSchema()     // param schema
 
 // Validate input (never throws) → { valid, errors? }
-Model(Models.Flux2Pro).validate({ prompt: 'a cat' })
+Model('flux-2-pro').validate({ prompt: 'a cat' })
 ```
+
+> **Dynamic-only (v7).** The SDK no longer bundles a model catalog or builds
+> vendor payloads locally. Every generation rides the models-hub `v1/models`
+> workflow (the server resolves the model, builds the payload, and normalizes
+> the result). Model ids are plain strings. The catalog accessors
+> (`Model()`, `catalog.*`, `ai.validate()`) require `await ai.initModelCatalog()`
+> first — until then they throw `ApiError` 409 `catalog_not_loaded`.
+> `generate()`/`generateText()`/`run()`/`submit()` never wait on it.
 
 ## Authentication
 
@@ -141,12 +154,12 @@ const ai = createClient({
 })
 
 // Generates and auto-saves to the root folder
-const result = await ai.generate(Models.Flux2Pro, { prompt: 'a cat' })
+const result = await ai.generate('flux-2-pro', { prompt: 'a cat' })
 // result.drive = { uid: '...', folder: { name: 'AI Playground', uid: '...' } }
 
 // Save to a subfolder
 const board = await ai.drive.ensureFolder('Cats')
-const result = await ai.generate(Models.Flux2Pro, { prompt: 'a cat' }, { folder: board })
+const result = await ai.generate('flux-2-pro', { prompt: 'a cat' }, { folder: board })
 
 // Browse Drive
 const folders = await ai.drive.folders()
@@ -200,16 +213,16 @@ as `mode: 'text'`. Each vendor uses its own native workflow, so capabilities are
 — Gemini accepts video input, Claude uses the Anthropic-native messages API.
 
 ```typescript
-import { createClient, Models } from '@picsart/ai-sdk'
+import { createClient } from '@picsart/ai-sdk'
 
 const ai = createClient({ apiKey: process.env.PICSART_API_KEY, apiUrl: 'https://api.picsart.com' })
 
 // Text in, text out
-const { text } = await ai.generateText(Models.ClaudeOpus48, { prompt: 'Explain RAG in one line.' })
+const { text } = await ai.generateText('claude-opus-5', { prompt: 'Explain RAG in one line.' })
 console.log(text)
 
 // Optional vision input + reasoning level (OpenAI / Gemini)
-const res = await ai.generateText(Models.Gpt55, {
+const res = await ai.generateText('gpt-5-5', {
   prompt: 'What is in this image?',
   imageUrls: ['https://cdn.example.com/photo.jpg'],
   thinking: 'high',            // 'off' | 'low' | 'medium' | 'high'
@@ -218,7 +231,7 @@ console.log(res.text)
 console.log(res.raw)            // full backend response — usage, finish_reason, etc.
 
 // Gemini accepts video input
-await ai.generateText(Models.Gemini3Pro, {
+await ai.generateText('gemini-3-pro', {
   prompt: 'Summarize this clip',
   videoUrl: 'https://cdn.example.com/clip.mp4',
 })
@@ -233,9 +246,10 @@ catalog.find({ output: 'text' })
 > thinking knob. Claude’s `claude/v1/messages`
 > workflow exposes no thinking knob, so Claude models omit `thinking`.
 
-`generateText()` is type-narrowed to text models (`TextModelId`); calling it with an
-image/video model throws, and `generate()` throws on a text model — use the matching
-method for each.
+Use `generateText()` for text models and `generate()` for media models. In
+dynamic mode ids are plain strings with no compile-time narrowing — the server
+validates the model/mode and answers a 400 `wrong_model_mode` if you call the
+wrong method for a model.
 
 ## Generic Execution — ai.run()
 
@@ -250,14 +264,14 @@ task result — and for `mode: 'json'` models, `run()` is the only surface:
 structured-output models (judges, evaluators, classifiers) are rejected by
 `generate()`, `generateText()`, and the async lifecycle.
 
-The first json model is `typesafe-evaluate` (`Models.TypesafeEvaluate`) — LLM-judge
-evaluation of any content against named questions. Type the result via the `R`
-generic, same as `ai.apis.run()`:
+The first json model is `typesafe-evaluate` — LLM-judge evaluation of any
+content against named questions. Type the result via the `R` generic, same as
+`ai.apis.run()`:
 
 ```typescript
 interface EvaluateResult { model: string; answers: Record<string, unknown>; usage: unknown }
 
-const { result } = await ai.run<EvaluateResult>(Models.TypesafeEvaluate, {
+const { result } = await ai.run<EvaluateResult>('typesafe-evaluate', {
   state: 'The weather is lovely and everyone is having a great time.',
   questions: {
     is_safe: { type: 'noul', instructions: 'Is this content safe for all audiences?' },
@@ -304,21 +318,21 @@ For progress tracking and job recovery:
 
 ```typescript
 // Submit without waiting — returns the generation id (a string)
-const generationId = await ai.submit(Models.KlingV3, { prompt: 'a sunset' })
+const generationId = await ai.submit('kling-v3', { prompt: 'a sunset' })
 
 // Subscribe to updates — the terminal generation.completed event carries the
 // parsed result, so no follow-up result() call is needed
-for await (const e of ai.subscribe(Models.KlingV3, generationId)) {
+for await (const e of ai.subscribe('kling-v3', generationId)) {
   if (e.type === 'generation.progress') console.log(e.progress?.percent)
   if (e.type === 'generation.completed') console.log(e.result.url)
   if (e.type === 'generation.failed') console.error(e.error.message)
 }
 
 // Or just wait for the parsed result (throws on failure/cancel)
-const result = await ai.result(Models.KlingV3, generationId, { intervalMs: 2000 })
+const result = await ai.result('kling-v3', generationId, { intervalMs: 2000 })
 
 // One-shot snapshot of a stored id (e.g. after a page reload)
-const { value: snapshot } = await ai.subscribe(Models.KlingV3, generationId).next()
+const { value: snapshot } = await ai.subscribe('kling-v3', generationId).next()
 ```
 
 Generation ids are plain strings — store them and recover jobs later with
@@ -331,10 +345,10 @@ is an `ApiError` with the same four fields, so you can branch on the error
 instead of pattern-matching its message:
 
 ```typescript
-import { createClient, Models, ApiError } from '@picsart/ai-sdk'
+import { createClient, ApiError } from '@picsart/ai-sdk'
 
 try {
-  const result = await ai.generate(Models.Flux2Pro, { prompt: 'a cat on mars' })
+  const result = await ai.generate('flux-2-pro', { prompt: 'a cat on mars' })
 } catch (err) {
   if (err instanceof ApiError) {
     err.status   // 402            — HTTP status, or its synthesized equivalent
@@ -387,8 +401,7 @@ Key exports (see `src/index.ts` for the full list):
 | Export | Type | Description |
 |--------|------|-------------|
 | `createClient` | function | Create an AI client from an API key (or a custom authenticated fetch) |
-| `Models` | object | Typed model-id constants (`Models.Flux2Pro` → `'flux-2-pro'`) |
-| `Model`, `catalog` | function / object | Model metadata, params, validation, discovery |
+| `Model`, `catalog` | function / object | Model metadata, params, validation, discovery (after `initModelCatalog()`) |
 | `GenerateResult` | type | `{ url, items: [{ url, metadata? }], generationId, usage?, drive? }` |
 | `GenerationEvent` | type | One `ai.subscribe()` update — `generation.progress` / `.completed` / `.failed` |
 | `GenerationEventType` | const | Named event-type constants (`GenerationEventType.Completed` === `'generation.completed'`) |
@@ -410,66 +423,37 @@ packages/ai-sdk/
     client/
       types.ts                  # ClientConfig, GenerateResult, DriveConfig
       transport.ts              # Default SdkTransport, over @picsart/workflows-client
-      prepare.ts                # Validate input, build payload, parse result
+      prepare.ts                # Build the v1/models command + parse its result
       drive.ts                  # Drive folder management + file saving
-      index.ts                  # createClient() factory
+      index.ts                  # createClient() factory (dynamic-only)
     core/
       types.ts                  # ModelDefinition, ParamConfig, GenerationContext
       workflow.ts               # Task envelope types + the SdkTransport contract
-      contracts.ts              # Runtime input validation
+      active-catalog.ts         # The process-global catalog installed by initModelCatalog()
+      catalog-store.ts          # Loads the catalog from models-hub (/v1/models-catalog)
+      catalog-wire.ts           # Wire ⇄ ModelDefinition (de)serialization
       schema.ts                 # ParamConfig → JSON Schema
       response.ts               # Vendor-agnostic result extraction
-      pricing.ts                # ToolId resolution
-      model-registry.ts         # Model lookup indexes
+      model-registry.ts         # Model lookup indexes over the active catalog
       providers.ts              # Provider colors, labels, names
       voices.ts                 # Voice catalogs (ElevenLabs, OpenAI, Gemini)
-      helpers.ts                # Vendor utilities
-    generated/
-      model-constants.ts        # AUTO-GENERATED: Models object + id constants
-      model-input-types.ts      # AUTO-GENERATED: per-model TypeScript input types
-    vendors/
-      define.ts                 # defineModels() framework + params.* helpers
-      presets.ts                # Reusable paramConfig factories
-      catalog/
-        index.ts                # Aggregation: ALL_MODELS, VENDOR_CATALOGS
-        kling.ts                # One file per vendor (31 total)
-        flux.ts
-        ...
+      descriptors/              # Model()/catalog accessors, param descriptors, pricing
   __tests__/                    # SDK tests
   scripts/                      # Build scripts
 ```
 
-## Adding a New Model
+## The Model Catalog
 
-### Standard flow (pass-through payload)
+The SDK is **dynamic-only**: it ships with no bundled catalog and builds no
+vendor payloads locally. Model definitions (parameter schemas, payload shapes,
+and which workflow serves each model) live in **models-hub**, and every
+generation rides its `v1/models` workflow — the server resolves the model,
+builds the vendor payload, and normalizes the result.
 
-When the backend accepts param values as-is (no field renaming needed):
-
-1. Add config in `src/vendors/catalog/{vendor}.ts` via `defineModels()`:
-   - `buildPayload` is **optional** — omit it and param values pass through as-is
-2. Run `npm run build:model-constants` to regenerate constants
-3. Run `npm run build:model-input-types` to regenerate TypeScript types
-4. Model automatically appears in `catalog.all()` and as the `Models.NewModel` id constant
-
-### With payload transforms
-
-When the vendor API uses different field names or value formats:
-
-1. Define the model config as above (no `buildPayload`)
-2. Run `npm run build:model-input-types` — generates typed input for your model
-3. Create `src/vendors/catalog/{vendor}.payloads.ts`:
-   ```ts
-   import type { ModelInput } from '../../generated/model-input-types.ts';
-   import { registerPayloads } from '../define.ts';
-   import { SPECS, MODELS } from './{vendor}.ts';
-
-   registerPayloads({ SPECS, MODELS }, {
-     'model-id': (input: ModelInput<'model-id'>) => ({
-       prompt: input.prompt,
-       aspect_ratio: input.aspectRatio,  // rename for vendor API
-     }),
-   });
-   ```
-4. Import the `.payloads.ts` file in `src/vendors/catalog/index.ts` (after the vendor import)
-
-See `src/vendors/catalog/luma.ts` + `src/vendors/catalog/luma.payloads.ts` for a working example.
+- **Add or change a model** in the models-hub service
+  ([`pa-models-hub-pluggable-worker`](https://gitlab.com/picsart/backend/Editor/external-ai-integrations/pa-models-hub-pluggable-worker));
+  it takes effect without an SDK release.
+- **Load the catalog** into the SDK with `await ai.initModelCatalog()` — it
+  fetches `/v1/models-catalog` from models-hub and installs it as the active
+  catalog, so `Model()`, `catalog.*` and `ai.validate()` serve the loaded data.
+  Generation (`generate`/`generateText`/`run`/`submit`) does **not** require it.

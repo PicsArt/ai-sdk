@@ -6,7 +6,11 @@
  * Ported from an earlier in-house harness; its playground-app filter
  * (`playgroundFilteredModels`) was dropped — it doesn't exist in this repo.
  */
-import { ALL_MODELS, getModelsByMode, isVisibleForReleases } from '../../../src';
+import { isVisibleForReleases } from '../../../src';
+// Dynamic-only SDK: there is no bundled catalog. Read the raw definitions from
+// the active catalog, which the caller must have loaded via ai.initModelCatalog()
+// (activeModels() throws 409 catalog_not_loaded otherwise).
+import { activeModels } from '../../../src/core/active-catalog.ts';
 import type { ModelDefinition, GenerationMode, ObjectDescriptor } from '../../../src';
 
 export interface CatalogFilter {
@@ -65,7 +69,8 @@ export interface CatalogEntry {
 
 /** Load catalog entries matching the filter. No filter → all enabled models. */
 export function loadCatalog(filter: CatalogFilter = {}): CatalogEntry[] {
-  const models: ModelDefinition[] = filter.mode ? getModelsByMode(filter.mode) : [...ALL_MODELS];
+  const all = activeModels();
+  const models: ModelDefinition[] = filter.mode ? all.filter((m) => m.mode === filter.mode) : [...all];
 
   return models
     .filter((m) => {

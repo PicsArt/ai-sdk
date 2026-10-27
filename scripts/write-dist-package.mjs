@@ -35,6 +35,7 @@ delete pkg.scripts;
 // build keeps them as normal deps (resolved from the GitLab registry).
 if (process.env.SDK_BUNDLE && pkg.dependencies) {
   const BUNDLED_DEPS = [
+    '@picsart/model-types',
     '@picsart/pa-model-pricing-sdk',
     '@picsart/workflows-client',
     '@picsart/workflows-types',

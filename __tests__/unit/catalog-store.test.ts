@@ -14,17 +14,15 @@ import {
   isModelCatalogLoaded,
   __resetModelCatalogStoreForTests,
 } from '../../src/core/catalog-store.ts';
-import { __resetActiveCatalogForTests, markCatalogPending } from '../../src/core/active-catalog.ts';
+import { __resetActiveCatalogForTests } from '../../src/core/active-catalog.ts';
 import { serializeCatalog } from '../../src/core/catalog-wire.ts';
 import { catalog } from '../../src/core/descriptors/model-accessor.ts';
-import { ALL_MODELS } from '../../src/vendors/catalog/index.ts';
 import { ApiError } from '../../src/core/errors.ts';
 import { mockPlatform } from './helpers/mock-platform.ts';
+import { FIXTURE_CATALOG } from './helpers/fixture-catalog.ts';
 
 const API_URL = 'https://x.test';
-const FIXTURE = serializeCatalog(
-  ALL_MODELS.filter((m) => m.mode === 'image' && !m.deprecated && m.release !== 'preview').slice(0, 3),
-);
+const FIXTURE = serializeCatalog(FIXTURE_CATALOG);
 
 function reset(): void {
   __resetModelCatalogStoreForTests();
@@ -56,7 +54,6 @@ function reset(): void {
 // ── 2. success installs the fetched catalog ─────────────────────────
 {
   reset();
-  markCatalogPending();
   const mock = mockPlatform({ modelsCatalog: () => FIXTURE });
   await loadModelCatalog(mock.fetch, API_URL);
   assert.deepStrictEqual(
@@ -96,7 +93,6 @@ function reset(): void {
 // ── 5. failure rejects with the platform error, stays retryable ─────
 {
   reset();
-  markCatalogPending();
   let failures = 0;
   const failingOnce: typeof fetch = async (url, init) => {
     if (failures++ === 0) {

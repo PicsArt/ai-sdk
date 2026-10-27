@@ -1,16 +1,19 @@
 /**
  * Catalog wire round-trip tests — offline, no API calls.
  *
- * `serializeCatalog` → `deserializeCatalog` over every bundled model must
- * lose nothing except the fields that cannot ride the wire (functions,
- * output schemas, test/poll tuning). This conversion is where a silent
- * information loss would hide, so it is asserted field-for-field.
+ * `serializeCatalog` → `deserializeCatalog` must lose nothing except the fields
+ * that cannot ride the wire (functions, output schemas, test/poll tuning). This
+ * conversion is where a silent information loss would hide, so it is asserted
+ * field-for-field over a fixture exercising every descriptor kind, badges,
+ * constraints, an object param, and the full set of file bounds.
  */
 import assert from 'node:assert';
-import { ALL_MODELS } from '../../src/vendors/catalog/index.ts';
 import { deserializeCatalog, serializeCatalog } from '../../src/core/catalog-wire.ts';
 import type { ModelDefinition } from '../../src/core/types.ts';
 import { ApiError } from '../../src/core/errors.ts';
+import { FIXTURE_CATALOG, RICH } from './helpers/fixture-catalog.ts';
+
+const MODELS: ModelDefinition[] = [...FIXTURE_CATALOG, RICH];
 
 /** Fields that legitimately do not survive serialization. */
 const UNSERIALIZABLE: readonly (keyof ModelDefinition)[] = [
@@ -33,109 +36,86 @@ function serializableView(def: ModelDefinition): Record<string, unknown> {
       return [key, rest];
     }),
   );
-  // JSON-normalize: some bundled entries carry explicitly-undefined props
-  // (e.g. `required: undefined`), indistinguishable from absent on the wire.
+  // JSON-normalize: entries may carry explicitly-undefined props,
+  // indistinguishable from absent on the wire.
   return JSON.parse(JSON.stringify(view));
 }
 
-// ── 1. round-trip every bundled model ────────────────────────────────
+// ── 1. round-trip every fixture model ────────────────────────────────
 {
-  const roundTripped = deserializeCatalog(serializeCatalog(ALL_MODELS));
-  assert.strictEqual(roundTripped.length, ALL_MODELS.length);
-  for (let i = 0; i < ALL_MODELS.length; i++) {
+  const roundTripped = deserializeCatalog(serializeCatalog(MODELS));
+  assert.strictEqual(roundTripped.length, MODELS.length);
+  for (let i = 0; i < MODELS.length; i++) {
     assert.deepStrictEqual(
       serializableView(roundTripped[i]),
-      serializableView(ALL_MODELS[i]),
-      `round-trip mismatch for ${ALL_MODELS[i].id}`,
+      serializableView(MODELS[i]),
+      `round-trip mismatch for ${MODELS[i].id}`,
     );
   }
 }
 
 // ── 2. provider block flattens back onto provider* fields ───────────
 {
-  const wire = serializeCatalog([ALL_MODELS[0]]);
+  const wire = serializeCatalog([RICH]);
   const model = wire.response.models[0];
-  assert.strictEqual(model.provider.id, ALL_MODELS[0].provider);
-  assert.strictEqual(model.provider.name, ALL_MODELS[0].providerName);
-  assert.strictEqual(model.provider.color, ALL_MODELS[0].providerColor);
-  assert.strictEqual(model.provider.label, ALL_MODELS[0].providerLabel);
+  assert.strictEqual(model.provider.id, RICH.provider);
+  assert.strictEqual(model.provider.name, RICH.providerName);
+  assert.strictEqual(model.provider.color, RICH.providerColor);
+  assert.strictEqual(model.provider.label, RICH.providerLabel);
   const [back] = deserializeCatalog(wire);
-  assert.strictEqual(back.provider, ALL_MODELS[0].provider);
-  assert.strictEqual(back.providerName, ALL_MODELS[0].providerName);
+  assert.strictEqual(back.provider, RICH.provider);
+  assert.strictEqual(back.providerName, RICH.providerName);
 }
 
 // ── 3. badges ⇄ badge ────────────────────────────────────────────────
 {
-  const badged = ALL_MODELS.find((m) => m.badge?.length);
-  assert.ok(badged, 'expected at least one badged model in the bundled catalog');
-  const wire = serializeCatalog([badged]);
-  assert.deepStrictEqual(wire.response.models[0].badges, badged.badge);
+  const wire = serializeCatalog([RICH]);
+  assert.deepStrictEqual(wire.response.models[0].badges, RICH.badge);
   const [back] = deserializeCatalog(wire);
-  assert.deepStrictEqual(back.badge, badged.badge);
+  assert.deepStrictEqual(back.badge, RICH.badge);
 }
 
 // ── 4. every descriptor kind is represented and survives ────────────
 {
   const kinds = new Set<string>();
-  for (const model of ALL_MODELS) {
-    for (const entry of Object.values(model.paramConfig)) kinds.add(entry.descriptor.kind);
-  }
+  for (const entry of Object.values(RICH.paramConfig)) kinds.add(entry.descriptor.kind);
   for (const kind of ['enum', 'catalog', 'range', 'boolean', 'text', 'file', 'object']) {
-    assert.ok(kinds.has(kind), `bundled catalog lost coverage of descriptor kind "${kind}"`);
+    assert.ok(kinds.has(kind), `fixture lost coverage of descriptor kind "${kind}"`);
   }
 }
 
 // ── 5. object params keep flat fields + additionalProperties ────────
 {
-  const withObject = ALL_MODELS.find((m) =>
-    Object.values(m.paramConfig).some((e) => e.descriptor.kind === 'object'),
+  const [back] = deserializeCatalog(serializeCatalog([RICH]));
+  const { catalogOptions: _dropped, ...expected } = RICH.paramConfig.turns;
+  assert.deepStrictEqual(
+    JSON.parse(JSON.stringify(back.paramConfig.turns)),
+    JSON.parse(JSON.stringify(expected)),
   );
-  assert.ok(withObject, 'expected a model with an object param');
-  const [back] = deserializeCatalog(serializeCatalog([withObject]));
-  const key = Object.entries(withObject.paramConfig).find(
-    ([, e]) => e.descriptor.kind === 'object',
-  )![0];
-  assert.deepStrictEqual(back.paramConfig[key], stripCatalogOptions(withObject.paramConfig[key]));
-}
-
-function stripCatalogOptions(entry: (typeof ALL_MODELS)[number]['paramConfig'][string]) {
-  const { catalogOptions: _dropped, ...rest } = entry;
-  return rest;
 }
 
 // ── 6. file bounds all round-trip ────────────────────────────────────
 {
-  const BOUNDS = ['minPixels', 'minSidePixels', 'maxShortSidePixels', 'maxDurationSec', 'maxBytes'] as const;
-  for (const bound of BOUNDS) {
-    const model = ALL_MODELS.find((m) =>
-      Object.values(m.paramConfig).some(
-        (e) => e.descriptor.kind === 'file' && bound in e.descriptor,
-      ),
-    );
-    assert.ok(model, `no bundled model exercises file bound "${bound}"`);
-    const [back] = deserializeCatalog(serializeCatalog([model]));
-    const [key, entry] = Object.entries(model.paramConfig).find(
-      ([, e]) => e.descriptor.kind === 'file' && bound in e.descriptor,
-    )!;
+  const [back] = deserializeCatalog(serializeCatalog([RICH]));
+  const d = back.paramConfig.image.descriptor as unknown as Record<string, unknown>;
+  for (const bound of ['minPixels', 'minSidePixels', 'maxShortSidePixels', 'maxDurationSec', 'maxBytes'] as const) {
     assert.deepStrictEqual(
-      (back.paramConfig[key].descriptor as unknown as Record<string, unknown>)[bound],
-      (entry.descriptor as unknown as Record<string, unknown>)[bound],
-      `file bound ${bound} lost on ${model.id}.${key}`,
+      d[bound],
+      (RICH.paramConfig.image.descriptor as unknown as Record<string, unknown>)[bound],
+      `file bound ${bound} lost`,
     );
   }
 }
 
 // ── 7. constraints pass through verbatim ─────────────────────────────
 {
-  const constrained = ALL_MODELS.find((m) => m.constraints?.length);
-  assert.ok(constrained, 'expected a model with constraints');
-  const [back] = deserializeCatalog(serializeCatalog([constrained]));
-  assert.deepStrictEqual(back.constraints, constrained.constraints);
+  const [back] = deserializeCatalog(serializeCatalog([RICH]));
+  assert.deepStrictEqual(back.constraints, RICH.constraints);
 }
 
 // ── 8. routing-less wire model gets workflow '' ──────────────────────
 {
-  const wire = serializeCatalog([ALL_MODELS[0]]);
+  const wire = serializeCatalog([RICH]);
   delete wire.response.models[0].workflow;
   delete wire.response.models[0].editWorkflow;
   delete wire.response.models[0].modelId;

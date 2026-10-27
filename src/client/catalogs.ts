@@ -15,16 +15,15 @@
 
 import type { SdkTransport, TransportResult } from '../core/workflow.ts';
 import type { ModelDefinition } from '../core/types.ts';
-import type { TypedModelId } from '../generated/model-input-types.ts';
 import type { CatalogItem, CatalogQuery, CatalogResult, CatalogSource } from '../core/catalogs.ts';
 import { installHydratedCatalog } from '../core/catalogs.ts';
 import { ApiError } from '../core/errors.ts';
 import { throwIfErrorResult } from '../core/response.ts';
 import { resolveModel } from '../core/resolve.ts';
-import { ALL_MODELS } from '../vendors/catalog/index.ts';
+import { peekActiveModels } from '../core/active-catalog.ts';
 
-/** Model id with autocomplete that still accepts arbitrary strings. */
-type ModelId = TypedModelId | (string & {});
+/** Model id — any string; concrete ids come from the loaded catalog. */
+type ModelId = string;
 
 /** One fetched page. Pass `nextCursor` back to load the next one. */
 export interface CatalogPage {
@@ -245,8 +244,11 @@ export function createCatalogs(transport: SdkTransport, options?: CatalogsOption
   if (options?.preload) {
     // First page of every bound catalog, in the background. Failures are
     // silent by design: a picker opened later just triggers a normal load.
+    // Dynamic-only: with no catalog loaded yet (createClient runs before
+    // ai.initModelCatalog()), there is nothing to preload — peek is null and
+    // this is a no-op until a catalog is installed.
     const seen = new Set<string>();
-    for (const def of ALL_MODELS) {
+    for (const def of peekActiveModels() ?? []) {
       for (const [key, entry] of Object.entries(def.paramConfig)) {
         const d = entry.descriptor;
         const source = d.kind === 'catalog' ? d.source : undefined;

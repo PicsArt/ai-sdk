@@ -2,7 +2,23 @@ import assert from 'node:assert/strict';
 import { transferValues } from '../../src/core/descriptors/utils.ts';
 import { p } from '../../src/core/descriptors/presets.ts';
 import { Model } from '../../src/core/descriptors/model-accessor.ts';
+import { installCatalog } from '../../src/core/active-catalog.ts';
+import { makeModel } from './helpers/fixture-catalog.ts';
 import type { ModelParams } from '../../src/core/descriptors/types.ts';
+
+// Dynamic-only: install the one model the real-catalog block below resolves.
+installCatalog([
+  makeModel({
+    id: 'flux-2-max',
+    name: 'Flux 2 Max',
+    mode: 'image',
+    paramConfig: {
+      ...p.text('prompt'),
+      ...p.file('imageUrls', 'image', { array: { max: 1 }, label: 'img' }),
+      ...p.aspectRatio(['4:3', '1:1'], '4:3'),
+    },
+  }),
+]);
 
 // ── Helpers — build paramConfigs with known constraints ────────────────
 

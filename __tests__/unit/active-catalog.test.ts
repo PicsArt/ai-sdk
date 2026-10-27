@@ -1,123 +1,67 @@
 /**
  * Active-catalog tests — offline, no API calls.
  *
- * Installing a catalog must be reflected by every read surface (registry,
- * Model() accessor, catalog.*, contracts), pending state must fail loudly,
- * and the bundled catalog must be restorable.
+ * The SDK is dynamic-only: the active catalog starts pending (no bundled
+ * fallback), every sync read surface throws until a catalog is installed, and
+ * installing one is reflected by the registry and the Model()/catalog.*
+ * accessors. Reset returns to pending.
  */
 import assert from 'node:assert';
 import {
   installCatalog,
-  markCatalogPending,
   peekActiveModels,
   activeModels,
   isCatalogInstalled,
   __resetActiveCatalogForTests,
 } from '../../src/core/active-catalog.ts';
-import { ALL_MODELS } from '../../src/vendors/catalog/index.ts';
 import { Model, catalog } from '../../src/core/descriptors/model-accessor.ts';
 import { resolveModel } from '../../src/core/resolve.ts';
-import { getModelContract } from '../../src/core/contracts.ts';
 import { findModel } from '../../src/core/model-registry.ts';
 import { ApiError } from '../../src/core/errors.ts';
-import type { ModelDefinition } from '../../src/core/types.ts';
-
-const FIXTURE: ModelDefinition[] = [
-  {
-    id: 'fixture-image',
-    name: 'Fixture Image',
-    provider: 'flux' as ModelDefinition['provider'],
-    workflow: 'fixture/v1/image',
-    providerName: 'Fixture',
-    providerColor: '#123456',
-    providerLabel: 'X',
-    description: 'test-only image model',
-    features: [],
-    mode: 'image',
-    inputType: 't2i',
-    release: 'production',
-    paramConfig: {
-      prompt: { label: 'Prompt', required: true, descriptor: { kind: 'text', maxLength: 10 } },
-      fixtureOnly: { descriptor: { kind: 'boolean', default: false } },
-    },
-  },
-  {
-    id: 'fixture-video',
-    name: 'Fixture Video',
-    provider: 'kling' as ModelDefinition['provider'],
-    workflow: 'fixture/v1/video',
-    providerName: 'Fixture',
-    providerColor: '#123456',
-    providerLabel: 'X',
-    description: 'test-only video model',
-    features: [],
-    mode: 'video',
-    inputType: 't2v',
-    release: 'production',
-    paramConfig: {
-      prompt: { label: 'Prompt', required: true, descriptor: { kind: 'text' } },
-    },
-  },
-];
+import { FIXTURE_CATALOG } from './helpers/fixture-catalog.ts';
 
 const isNotLoaded = (err: unknown): boolean =>
   err instanceof ApiError && err.status === 409 && err.code === 'catalog_not_loaded';
 
-// ── 1. bundled catalog is active by default ─────────────────────────
+// ── 1. pending by default: every sync surface throws catalog_not_loaded ─
 {
-  assert.strictEqual(isCatalogInstalled(), true);
-  assert.strictEqual(activeModels(), ALL_MODELS);
-  assert.strictEqual(peekActiveModels(), ALL_MODELS);
-}
-
-// ── 2. pending: every sync surface throws catalog_not_loaded ────────
-{
-  markCatalogPending();
+  __resetActiveCatalogForTests();
   assert.strictEqual(isCatalogInstalled(), false);
   assert.strictEqual(peekActiveModels(), null);
   assert.throws(() => activeModels(), isNotLoaded);
   assert.throws(() => catalog.all(), isNotLoaded);
   assert.throws(() => Model('flux-2-pro'), isNotLoaded);
   assert.throws(() => resolveModel('flux-2-pro'), isNotLoaded);
-  assert.throws(() => getModelContract('flux-2-pro'), isNotLoaded);
 }
 
-// ── 3. install reflects everywhere, including the contract cache ────
+// ── 2. install reflects everywhere ──────────────────────────────────
 {
-  installCatalog(FIXTURE);
+  installCatalog(FIXTURE_CATALOG);
   assert.strictEqual(isCatalogInstalled(), true);
+  assert.strictEqual(activeModels(), FIXTURE_CATALOG);
+  assert.strictEqual(peekActiveModels(), FIXTURE_CATALOG);
 
   const all = catalog.all();
-  assert.deepStrictEqual(all.map((m) => m.id).sort(), ['fixture-image', 'fixture-video']);
+  assert.deepStrictEqual(all.map((m) => m.id).sort(), ['claude-opus-5', 'flux-2-pro', 'kling-v3']);
 
-  assert.strictEqual(resolveModel('fixture-image').name, 'Fixture Image');
-  assert.strictEqual(findModel('fixture/v1/video')?.id, 'fixture-video');
-  assert.strictEqual(findModel('Fixture Image')?.id, 'fixture-image');
+  assert.strictEqual(resolveModel('flux-2-pro').name, 'Flux 2 Pro');
+  assert.strictEqual(findModel('kling/v1/video')?.id, 'kling-v3');
+  assert.strictEqual(findModel('Flux 2 Pro')?.id, 'flux-2-pro');
 
-  const params = Model('fixture-image').params();
-  assert.ok(params.hasParam('fixtureOnly'), 'loaded param missing from accessor');
-
-  // Contract cache rebuilt: fixture contract exists, enforces the fixture's
-  // own descriptor; bundled contracts are gone.
-  const contract = getModelContract('fixture-image');
-  assert.ok(contract, 'contract for installed model missing');
-  assert.throws(
-    () => contract.input.parse({ prompt: 'longer than ten characters' }),
-    (err: unknown) => err instanceof ApiError && err.code === 'validation_error',
-  );
-  assert.deepStrictEqual(contract.input.parse({ prompt: 'short' }), { prompt: 'short' });
-  assert.strictEqual(getModelContract('flux-2-pro'), undefined);
-
-  // markCatalogPending is a no-op once a catalog is installed.
-  markCatalogPending();
-  assert.strictEqual(isCatalogInstalled(), true);
+  assert.ok(Model('flux-2-pro').params().hasParam('prompt'), 'loaded param missing from accessor');
 }
 
-// ── 4. reset restores the bundled catalog ───────────────────────────
+// ── 3. reinstalling swaps the active set ────────────────────────────
+{
+  installCatalog([FIXTURE_CATALOG[0]]);
+  assert.deepStrictEqual(catalog.all().map((m) => m.id), ['flux-2-pro']);
+  assert.strictEqual(findModel('kling-v3'), undefined);
+}
+
+// ── 4. reset returns to pending ─────────────────────────────────────
 {
   __resetActiveCatalogForTests();
-  assert.strictEqual(activeModels(), ALL_MODELS);
-  assert.ok(resolveModel('flux-2-pro'));
-  assert.ok(getModelContract('flux-2-pro'));
-  assert.strictEqual(getModelContract('fixture-image'), undefined);
+  assert.strictEqual(isCatalogInstalled(), false);
+  assert.throws(() => activeModels(), isNotLoaded);
+  assert.throws(() => resolveModel('flux-2-pro'), isNotLoaded);
 }

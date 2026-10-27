@@ -8,21 +8,18 @@ import {
   type WorkflowStatusResult,
   type WorkflowPollOptions,
 } from '../core/workflow.ts';
-import { getModelContract } from '../core/contracts.ts';
-import { extractSyncResult, toCompletedStatus } from '../core/response.ts';
-import { resolveModel } from '../core/resolve.ts';
+import { toCompletedStatus } from '../core/response.ts';
 import { ApiError } from '../core/errors.ts';
-import { markCatalogPending, peekActiveModels } from '../core/active-catalog.ts';
+import { peekActiveModels } from '../core/active-catalog.ts';
 import { findModel } from '../core/model-registry.ts';
 import { loadModelCatalog, whenModelCatalogLoaded } from '../core/catalog-store.ts';
 import { Model } from '../core/descriptors/model-accessor.ts';
 import type { ValidationResult } from '../core/descriptors/types.ts';
 
-import type { ClientConfig, SdkMode, InitModelCatalogOptions, GenerateResult, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, PayloadInputsTransformationOptions, AiClient, GenerationEvent } from './types.ts';
+import type { ClientConfig, InitModelCatalogOptions, GenerateResult, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, AiClient, GenerationEvent } from './types.ts';
 import type { PayloadDriveOptions } from './drive.ts';
 import { buildTransport, createWorkflowsClient, maybeFetch } from './transport.ts';
 import {
-  prepareRequest, parseResult, parseTextResult, parseRunResult,
   MODELS_WORKFLOW, buildModelsCommand, parseDynamicResult, parseDynamicTextResult, parseDynamicRunResult,
   type ModelsCommand,
 } from './prepare.ts';
@@ -31,7 +28,7 @@ import { createApis } from './apis.ts';
 import { createCatalogs } from './catalogs.ts';
 
 // ── Re-export types for the public API ──
-export type { ClientConfig, SdkMode, InitModelCatalogOptions, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, CreditUsage, OptionsResult, ToolUsage, AiClient, MediaModelId } from './types.ts';
+export type { ClientConfig, InitModelCatalogOptions, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, CreditUsage, OptionsResult, ToolUsage, AiClient, MediaModelId } from './types.ts';
 export type { ModelsCommand, ModelsGenAIOptions } from './prepare.ts';
 export { MODELS_WORKFLOW } from './prepare.ts';
 export type { ApiResponse, ApiRunOptions, ApiSchemas, ApisClient } from './apis.ts';
@@ -47,14 +44,9 @@ export { inferResourceType, buildFilename, resolveExtension, expectedOutputForma
 /**
  * Mode-aware defaults for the async status loop. Video generations run long,
  * so they poll every 2s for up to an hour; image, audio and text land fast, so
- * they poll twice as often on a 20-minute deadline.
- *
- * Precedence, widest to narrowest: mode default → model `pollOptions` →
- * per-call `intervalMs` / `maxAttempts`.
+ * they poll twice as often on a 20-minute deadline. Dynamic generation never
+ * resolves a model locally, so it always uses the widest (video) window.
  */
-/** Modes served by the media lifecycle (generate/submit/result/subscribe). */
-const MEDIA_MODES: ReadonlySet<GenerationMode> = new Set(['video', 'image', 'audio']);
-
 const MODE_POLL_DEFAULTS: Record<GenerationMode, { intervalMs: number; maxAttempts: number }> = {
   video: { intervalMs: 2000, maxAttempts: 1800 }, // 2s × 1800 = 1 hour
   image: { intervalMs: 1000, maxAttempts: 1200 }, // 1s × 1200 = 20 min
@@ -64,35 +56,17 @@ const MODE_POLL_DEFAULTS: Record<GenerationMode, { intervalMs: number; maxAttemp
 };
 
 /**
- * Merge mode default → model `pollOptions` → caller overrides. Spread alone
- * won't do: an override object carrying an explicit `undefined` would clobber
- * the layer beneath it, so each field is copied only when actually set.
- */
-function resolvePollOptions(
-  model: ModelDefinition,
-  overrides?: WorkflowPollOptions,
-): WorkflowPollOptions {
-  const resolved: WorkflowPollOptions = { ...MODE_POLL_DEFAULTS[model.mode], ...model.pollOptions };
-  if (overrides?.intervalMs !== undefined) resolved.intervalMs = overrides.intervalMs;
-  if (overrides?.maxAttempts !== undefined) resolved.maxAttempts = overrides.maxAttempts;
-  if (overrides?.signal !== undefined) resolved.signal = overrides.signal;
-  return resolved;
-}
-
-/**
  * Create an AI SDK client.
+ *
+ * The SDK is dynamic-only: the model catalog is loaded from models-hub via
+ * {@link AiClient.initModelCatalog}, and every generation rides the one
+ * `v1/models` workflow (the server resolves the model, builds the vendor
+ * payload, and normalizes the result).
  *
  * @example Simple — pass an authenticated fetch:
  * ```ts
- * const ai = createClient({ fetch: myAuthenticatedFetch });
- * ```
- *
- * @example With Drive — auto-save generations:
- * ```ts
- * const ai = createClient({
- *   fetch: myAuthenticatedFetch,
- *   drive: { folder: 'AI Playground' },
- * });
+ * const ai = createClient({ fetch: myAuthenticatedFetch, apiUrl });
+ * await ai.initModelCatalog();
  * ```
  *
  * @example With your own transport — the SDK stops talking to the workflows
@@ -102,14 +76,6 @@ function resolvePollOptions(
  * ```
  */
 export function createClient(config: ClientConfig) {
-  // Catalog/generation mode. Dynamic flips the process-global catalog to
-  // pending — sync accessors fail loudly until ai.initModelCatalog() installs
-  // the loaded catalog — and routes every generation through the `v1/models`
-  // workflow instead of per-model workflows with local payload builders.
-  const mode: SdkMode = config.mode ?? 'static';
-  const isDynamic = mode === 'dynamic';
-  if (isDynamic) markCatalogPending();
-
   // One seam carries every generation request: the built-in transport over
   // @picsart/workflows-client, or the caller's own via `config.transport`.
   // `ai.apis` and `ai.drive` are the two exceptions — both speak the workflows
@@ -212,21 +178,6 @@ export function createClient(config: ClientConfig) {
     if (!transport.poll) throw unsupportedTransport('polling');
   }
 
-  /** Whether the model is served by the media lifecycle (generate/submit/result/subscribe). */
-  function isMediaModel(model: ModelDefinition): boolean {
-    return MEDIA_MODES.has(model.mode);
-  }
-
-  /** Reject non-media models on the media lifecycle with the standard ApiError. */
-  function assertMediaModel(model: ModelDefinition): void {
-    if (isMediaModel(model)) return;
-    const alternative = model.mode === 'text' ? 'generateText()' : 'run()';
-    throw new ApiError(`${model.name} is a ${model.mode} model — use ${alternative} instead.`, {
-      status: 400,
-      code: 'wrong_model_mode',
-    });
-  }
-
   /**
    * Submit a job and return its id. Refuses to create a billable generation
    * when the caller already canceled; the signal is also forwarded so a
@@ -242,36 +193,6 @@ export function createClient(config: ClientConfig) {
       throw new ApiError('No task id in response', { status: 502, code: 'invalid_response' });
     }
     return id;
-  }
-
-  /** Run a model's workflow (sync or async) and return the completed status. */
-  async function executeModel(
-    model: ModelDefinition,
-    workflow: string,
-    payload: unknown,
-    options?: GenerateOptions,
-  ): Promise<WorkflowStatusResult<unknown>> {
-    const signal = options?.signal;
-    try {
-      // Sync models — and any transport without the submit+poll pair — run the
-      // whole generation in a single execute() call.
-      if (model.syncExecute || !supportsAsync) {
-        // A transport that unwraps the platform envelope hands back the task
-        // result directly; extractSyncResult stays for the raw shapes.
-        const res = await transport.execute({ workflow, payload: payload as Record<string, unknown>, signal });
-        return toCompletedStatus(
-          { workflow, id: '' },
-          extractSyncResult(res.result) ?? res.result,
-          res.raw ?? res.result,
-          res.usage,
-        );
-      }
-      const id = await submitJob(workflow, payload, signal);
-      const res = await pollJob({ workflow, id }, resolvePollOptions(model, options));
-      return asCompleted({ workflow, id }, res);
-    } catch (err) {
-      throw toApiError(err, signal);
-    }
   }
 
   /**
@@ -302,34 +223,6 @@ export function createClient(config: ClientConfig) {
     };
   }
 
-  /** Merge the SDK-level options (drive, inputs transformation) into the
-   *  workflow payload's `options` object (GenAIOptions on the backend).
-   *  Oversized-image downscaling is opt-in: per-call options win, then the
-   *  client-level `inputsTransformation`, then disabled. Workers without input
-   *  transformation ignore the field. Preserves any `options` already emitted
-   *  by the model's payload builder. */
-  function injectPayloadOptions(
-    payload: unknown,
-    drive: PayloadDriveOptions | undefined,
-    inputsTransformation: PayloadInputsTransformationOptions | undefined,
-  ): unknown {
-    const record = payload as Record<string, unknown>;
-    const existing = (record.options ?? {}) as Record<string, unknown>;
-    return {
-      ...record,
-      options: {
-        ...existing,
-        inputs_transformation: {
-          downscale_oversized_images:
-            inputsTransformation?.downscaleOversizedImages
-            ?? inputsTransformationConfig?.downscaleOversizedImages
-            ?? false,
-        },
-        ...(drive ? { drive } : {}),
-      },
-    };
-  }
-
   // A transport may answer /options with a bare number or the full response.
   async function askOptionsRoute(workflow: string, payload: Record<string, unknown>): Promise<OptionsResult | null> {
     const res = await transport.options!(workflow, payload);
@@ -337,50 +230,15 @@ export function createClient(config: ClientConfig) {
     return res && typeof res.credits === 'number' ? res : null;
   }
 
-  async function fetchOptionsStatic(model: string, params: Record<string, unknown> & { prompt: string }): Promise<OptionsResult | null> {
+  /** Price over v1/models — no command options, matching the generate path's
+   *  pre-injection payload. */
+  async function fetchOptions(model: string, params: Record<string, unknown> & { prompt: string }): Promise<OptionsResult | null> {
     if (!transport.options) return null;
-    const resolved = resolveModel(model);
-    const { workflow, payload } = prepareRequest(resolved, params);
-    return askOptionsRoute(workflow, payload);
-  }
-
-  async function fetchOptionsDynamic(model: string, params: Record<string, unknown> & { prompt: string }): Promise<OptionsResult | null> {
-    if (!transport.options) return null;
-    // Price over v1/models — no command options, matching the static path,
-    // which sends the pre-injection payload to /options.
     const command = buildModelsCommand(model, params) as unknown as Record<string, unknown>;
     return askOptionsRoute(MODELS_WORKFLOW, command);
   }
 
-  function fetchOptions(model: string, params: Record<string, unknown> & { prompt: string }): Promise<OptionsResult | null> {
-    return isDynamic ? fetchOptionsDynamic(model, params) : fetchOptionsStatic(model, params);
-  }
-
-  /**
-   * Reconstruct the job handle for a bare generation id. The status route is
-   * workflow-scoped and a model may run on either its primary or its edit
-   * workflow, so when both exist one status probe on the primary route decides:
-   * a 404 there means the job was submitted on the edit route.
-   */
-  async function resolveJobHandle(
-    model: ModelDefinition,
-    generationId: string,
-    signal?: AbortSignal,
-  ): Promise<WorkflowJobHandle> {
-    const primary: WorkflowJobHandle = { workflow: model.workflow, id: generationId };
-    if (!model.editWorkflow || !transport.status) return primary;
-    try {
-      await transport.status(primary, signal);
-      return primary;
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 404) {
-        return { workflow: model.editWorkflow, id: generationId };
-      }
-      throw err;
-    }
-  }
-
-  // ── Dynamic mode helpers ──────────────────────────────────────────
+  // ── Generation flow ───────────────────────────────────────────────
   // The dynamic generation flow never resolves a model locally: the caller's
   // ref goes into the command verbatim and models-hub resolves, validates
   // and routes it server-side. The local catalog is only for the accessor
@@ -391,7 +249,7 @@ export function createClient(config: ClientConfig) {
    * widest window, because over-polling a fast job costs seconds while
    * under-provisioning a long one times it out. Per-call overrides still win.
    */
-  function dynamicPollOptions(overrides?: WorkflowPollOptions): WorkflowPollOptions {
+  function pollOptionsFor(overrides?: WorkflowPollOptions): WorkflowPollOptions {
     const resolved: WorkflowPollOptions = { ...MODE_POLL_DEFAULTS.video };
     if (overrides?.intervalMs !== undefined) resolved.intervalMs = overrides.intervalMs;
     if (overrides?.maxAttempts !== undefined) resolved.maxAttempts = overrides.maxAttempts;
@@ -399,9 +257,9 @@ export function createClient(config: ClientConfig) {
     return resolved;
   }
 
-  /** Mirror of `executeModel` on the constant `v1/models` workflow — always
-   *  submit+poll (execute only for a transport without the async pair). The
-   *  result arrives pre-normalized, so the sync path skips extractSyncResult. */
+  /** Run the constant `v1/models` workflow — always submit+poll (execute only
+   *  for a transport without the async pair). The result arrives
+   *  pre-normalized, so the sync path skips extractSyncResult. */
   async function executeDynamic(
     command: ModelsCommand,
     options?: GenerateOptions,
@@ -414,7 +272,7 @@ export function createClient(config: ClientConfig) {
         return toCompletedStatus({ workflow: MODELS_WORKFLOW, id: '' }, res.result, res.raw ?? res.result, res.usage);
       }
       const id = await submitJob(MODELS_WORKFLOW, payload, signal);
-      const res = await pollJob({ workflow: MODELS_WORKFLOW, id }, dynamicPollOptions(options));
+      const res = await pollJob({ workflow: MODELS_WORKFLOW, id }, pollOptionsFor(options));
       return asCompleted({ workflow: MODELS_WORKFLOW, id }, res);
     } catch (err) {
       throw toApiError(err, signal);
@@ -422,15 +280,15 @@ export function createClient(config: ClientConfig) {
   }
 
   /**
-   * Drive options for the dynamic path — they ride the command's own
-   * `options.drive`, never the vendor payload. The catalog is peeked for
-   * NAMING ONLY: once initModelCatalog() has installed the loaded catalog, a
-   * findable model restores the full static naming chain — mode default,
-   * format param, outputExtension. The peek never throws, never waits and
-   * never gates; generation sends the caller's ref verbatim either way.
-   * While the catalog is pending (or for a model it doesn't list) the name
-   * falls back to the caller's own format param, else stays extension-less —
-   * never a wrong extension.
+   * Drive options — they ride the command's own `options.drive`, never the
+   * vendor payload. The catalog is peeked for NAMING ONLY: once
+   * initModelCatalog() has installed the loaded catalog, a findable model
+   * restores the full naming chain — mode default, format param,
+   * outputExtension. The peek never throws, never waits and never gates;
+   * generation sends the caller's ref verbatim either way. While the catalog is
+   * pending (or for a model it doesn't list) the name falls back to the
+   * caller's own format param, else stays extension-less — never a wrong
+   * extension.
    */
   function buildDynamicDriveOptions(
     modelRef: string,
@@ -464,9 +322,9 @@ export function createClient(config: ClientConfig) {
   }
 
   /**
-   * The subscribe() poll loop, shared by both modes: bridge the transport's
-   * onProgress callback into the generator, race it against the terminal
-   * outcome, and surface failures as events.
+   * The subscribe() poll loop: bridge the transport's onProgress callback into
+   * the generator, race it against the terminal outcome, and surface failures
+   * as events.
    */
   function subscribeGenerator(
     resolveHandle: () => Promise<WorkflowJobHandle>,
@@ -476,7 +334,7 @@ export function createClient(config: ClientConfig) {
   ): AsyncGenerator<GenerationEvent, void, void> {
     return (async function* (): AsyncGenerator<GenerationEvent, void, void> {
       // The contract says failures arrive as events — that includes a
-      // failing edit-route probe, not just poll failures.
+      // failing handle resolve, not just poll failures.
       let handle: WorkflowJobHandle;
       try {
         handle = await resolveHandle();
@@ -550,251 +408,65 @@ export function createClient(config: ClientConfig) {
     })();
   }
 
-  // ── Per-mode generation flows ─────────────────────────────────────
-  // Each public method dispatches to one of these pairs. Static: resolve
-  // locally, validate, build the vendor payload, run the model's own
-  // workflow. Dynamic: pass the caller's ref and params verbatim to the
-  // constant `v1/models` workflow — the server resolves, validates, builds
-  // and normalizes.
-
-  async function runStatic(
-    model: string,
-    params: Record<string, unknown>,
-    options?: GenerateOptions,
-  ): Promise<RunResponse> {
-    const resolved = resolveModel(model);
-    const { workflow, payload, contract } = prepareRequest(resolved, params);
-    const completed = await executeModel(resolved, workflow, payload, options);
-    return parseRunResult(completed, resolved, contract);
-  }
-
-  async function runDynamic(
-    model: string,
-    params: Record<string, unknown>,
-    options?: GenerateOptions,
-  ): Promise<RunResponse> {
-    const completed = await executeDynamic(buildModelsCommand(model, params), options);
-    return parseDynamicRunResult(completed, model);
-  }
-
-  async function generateStatic(
-    model: string,
-    params: Record<string, unknown> & { prompt: string },
-    options?: GenerateOptions,
-  ): Promise<GenerateResult> {
-    const resolved = resolveModel(model);
-    assertMediaModel(resolved);
-    const { workflow, payload, contract } = prepareRequest(resolved, params);
-    const drive = buildDrivePayloadOptions(resolved, params, options);
-    const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
-    const completed = await executeModel(resolved, workflow, finalPayload, options);
-    return parseResult(completed, resolved, contract);
-  }
-
-  async function generateDynamic(
-    model: string,
-    params: Record<string, unknown> & { prompt: string },
-    options?: GenerateOptions,
-  ): Promise<GenerateResult> {
-    // Never waits for the catalog, never resolves the model and never
-    // validates locally — the server answers the same 400s the static path
-    // would.
-    const drive = buildDynamicDriveOptions(model, params, options);
-    const command = buildModelsCommand(model, params, {
-      drive,
-      downscaleOversizedImages: resolveDownscale(options),
-    });
-    const completed = await executeDynamic(command, options);
-    return parseDynamicResult(completed, model);
-  }
-
-  async function generateTextStatic(
-    model: string,
-    params: Record<string, unknown> & { prompt: string },
-    options?: GenerateOptions,
-  ): Promise<GenerateTextResult> {
-    const resolved = resolveModel(model);
-    if (resolved.mode !== 'text') {
-      throw new ApiError(`${resolved.name} is not a text model — use generate() instead.`, {
-        status: 400,
-        code: 'wrong_model_mode',
-      });
-    }
-    const { workflow, payload } = prepareRequest(resolved, params);
-    const completed = await executeModel(resolved, workflow, payload, options);
-    return parseTextResult(completed, resolved);
-  }
-
-  async function generateTextDynamic(
-    model: string,
-    params: Record<string, unknown> & { prompt: string },
-    options?: GenerateOptions,
-  ): Promise<GenerateTextResult> {
-    // No local resolution or mode assertion — the server validates. No
-    // command options: the static path never injects them on text.
-    const completed = await executeDynamic(buildModelsCommand(model, params), options);
-    return parseDynamicTextResult(completed, model);
-  }
-
-  async function submitStatic(
-    model: string,
-    params: Record<string, unknown> & { prompt: string },
-    options?: GenerateOptions,
-  ): Promise<string> {
-    const resolved = resolveModel(model);
-    assertMediaModel(resolved);
-    assertAsyncLifecycle();
-    const { workflow, payload } = prepareRequest(resolved, params);
-    const drive = buildDrivePayloadOptions(resolved, params, options);
-    const finalPayload = injectPayloadOptions(payload, drive, options?.inputsTransformation);
-    try {
-      return await submitJob(workflow, finalPayload, options?.signal);
-    } catch (err) {
-      throw toApiError(err, options?.signal);
-    }
-  }
-
-  async function submitDynamic(
-    model: string,
-    params: Record<string, unknown> & { prompt: string },
-    options?: GenerateOptions,
-  ): Promise<string> {
-    assertAsyncLifecycle();
-    const drive = buildDynamicDriveOptions(model, params, options);
-    const command = buildModelsCommand(model, params, {
-      drive,
-      downscaleOversizedImages: resolveDownscale(options),
-    });
-    try {
-      return await submitJob(MODELS_WORKFLOW, command, options?.signal);
-    } catch (err) {
-      throw toApiError(err, options?.signal);
-    }
-  }
-
-  async function resultStatic(
-    model: string,
-    generationId: string,
-    options?: GenerationOptions,
-  ): Promise<GenerateResult> {
-    const resolved = resolveModel(model);
-    assertMediaModel(resolved);
-    const contract = getModelContract(resolved.id);
-    assertAsyncLifecycle();
-    const handle = await resolveJobHandle(resolved, generationId, options?.signal);
-    let completed: WorkflowStatusResult<unknown>;
-    try {
-      completed = asCompleted(handle, await pollJob(handle, resolvePollOptions(resolved, options)));
-    } catch (err) {
-      throw toApiError(err, options?.signal);
-    }
-    return parseResult(completed, resolved, contract);
-  }
-
-  async function resultDynamic(
-    model: string,
-    generationId: string,
-    options?: GenerationOptions,
-  ): Promise<GenerateResult> {
-    // The workflow is always v1/models — no edit-route probe needed.
-    assertAsyncLifecycle();
-    const handle: WorkflowJobHandle = { workflow: MODELS_WORKFLOW, id: generationId };
-    let completed: WorkflowStatusResult<unknown>;
-    try {
-      completed = asCompleted(handle, await pollJob(handle, dynamicPollOptions(options)));
-    } catch (err) {
-      throw toApiError(err, options?.signal);
-    }
-    return parseDynamicResult(completed, model);
-  }
-
-  function subscribeStatic(
-    model: string,
-    generationId: string,
-    options?: GenerationOptions,
-  ): AsyncGenerator<GenerationEvent, void, void> {
-    const resolved = resolveModel(model);
-    assertMediaModel(resolved);
-    // A transport that cannot poll is a configuration error, not a failed
-    // generation, so it throws here rather than arriving as an event.
-    assertAsyncLifecycle();
-    const contract = getModelContract(resolved.id);
-    return subscribeGenerator(
-      () => resolveJobHandle(resolved, generationId, options?.signal),
-      resolvePollOptions(resolved, options),
-      (completed) => parseResult(completed, resolved, contract),
-      options,
-    );
-  }
-
-  function subscribeDynamic(
-    model: string,
-    generationId: string,
-    options?: GenerationOptions,
-  ): AsyncGenerator<GenerationEvent, void, void> {
-    // A transport that cannot poll is a configuration error, not a failed
-    // generation, so it throws here rather than arriving as an event.
-    assertAsyncLifecycle();
-    return subscribeGenerator(
-      // The workflow is always v1/models — no edit-route probe needed.
-      async () => ({ workflow: MODELS_WORKFLOW, id: generationId }),
-      dynamicPollOptions(options),
-      (completed) => parseDynamicResult(completed, model),
-      options,
-    );
-  }
-
   return {
     // ── Simple path ──────────────────────────────────────────────────
 
     /**
      * Run any model by id and get the task result back, generically — the
-     * model-id counterpart of `ai.apis.run()`. Works on every model: builds
-     * and validates the payload from paramConfig, executes the workflow
-     * (sync or async), applies the model's `outputSchema` when declared, and
-     * returns the task result as-is — no media-URL or text extraction, no
-     * Drive save, no options injection. The only generation surface for
-     * json-mode (structured-output) models.
+     * model-id counterpart of `ai.apis.run()`. models-hub builds and validates
+     * the payload, executes the workflow (sync or async), applies the model's
+     * `outputSchema` when declared, and returns the task result as-is — no
+     * media-URL or text extraction, no Drive save, no options injection. The
+     * only generation surface for json-mode (structured-output) models.
      */
-    run(
+    async run(
       model: string,
       params: Record<string, unknown>,
       options?: GenerateOptions,
     ): Promise<RunResponse> {
-      return isDynamic ? runDynamic(model, params, options) : runStatic(model, params, options);
+      const completed = await executeDynamic(buildModelsCommand(model, params), options);
+      return parseDynamicRunResult(completed, model);
     },
 
     /**
      * Generate content using a model.
      *
-     * Validates input, builds the vendor payload, picks the right workflow,
-     * submits the job, polls to completion, and returns the parsed result
-     * (`items[]` with per-item URLs and promoted vendor metadata).
-     * If drive options are provided (or DriveConfig is set), the backend
-     * saves the result to Picsart Drive.
+     * Sends the model ref and params to the `v1/models` workflow, polls to
+     * completion, and returns the parsed result (`items[]` with per-item URLs
+     * and vendor metadata). If drive options are provided (or DriveConfig is
+     * set), the backend saves the result to Picsart Drive.
      */
-    generate(
+    async generate(
       model: string,
       params: Record<string, unknown> & { prompt: string },
       options?: GenerateOptions,
     ): Promise<GenerateResult> {
-      return isDynamic ? generateDynamic(model, params, options) : generateStatic(model, params, options);
+      // Never waits for the catalog, never resolves the model and never
+      // validates locally — the server answers the same 400s the catalog
+      // would.
+      const drive = buildDynamicDriveOptions(model, params, options);
+      const command = buildModelsCommand(model, params, {
+        drive,
+        downscaleOversizedImages: resolveDownscale(options),
+      });
+      const completed = await executeDynamic(command, options);
+      return parseDynamicResult(completed, model);
     },
 
     /**
      * Generate text using an LLM model (Claude, Gemini, OpenAI).
      *
-     * Validates input, builds the vendor payload, runs the workflow, and
-     * returns the generated text plus the raw response. Single-shot only —
-     * pass text and optional image/video, get text back. Text results are not
-     * saved to Drive.
+     * Single-shot only — pass text and optional image/video, get text back.
+     * Text results are not saved to Drive.
      */
-    generateText(
+    async generateText(
       model: string,
       params: Record<string, unknown> & { prompt: string },
       options?: GenerateOptions,
     ): Promise<GenerateTextResult> {
-      return isDynamic ? generateTextDynamic(model, params, options) : generateTextStatic(model, params, options);
+      // No command options: text routes never inject them.
+      const completed = await executeDynamic(buildModelsCommand(model, params), options);
+      return parseDynamicTextResult(completed, model);
     },
 
     /**
@@ -821,42 +493,45 @@ export function createClient(config: ClientConfig) {
       return fetchOptions(model, params);
     },
 
-    /** Build the vendor-specific payload for a model without submitting. Static mode only. */
-    buildPayload(
-      model: string,
-      params: Record<string, unknown> & { prompt: string },
-    ): Record<string, unknown> {
-      if (isDynamic) {
-        throw new ApiError('buildPayload() builds vendor payloads locally — static mode only. In dynamic mode models-hub builds the payload server-side.', {
-          status: 400,
-          code: 'unsupported_in_dynamic_mode',
-        });
-      }
-      const resolved = resolveModel(model);
-      const { payload } = prepareRequest(resolved, params);
-      return payload;
-    },
-
     // ── Advanced lifecycle ────────────────────────────────────────────
 
     /** Submit a generation job and get its generation id back. Media models
      *  only — text models have no async lifecycle (`result()`/`subscribe()`
      *  reject them). Pass the id to `result(model, id)` / `subscribe(model, id)`. */
-    submit(
+    async submit(
       model: string,
       params: Record<string, unknown> & { prompt: string },
       options?: GenerateOptions,
     ): Promise<string> {
-      return isDynamic ? submitDynamic(model, params, options) : submitStatic(model, params, options);
+      assertAsyncLifecycle();
+      const drive = buildDynamicDriveOptions(model, params, options);
+      const command = buildModelsCommand(model, params, {
+        drive,
+        downscaleOversizedImages: resolveDownscale(options),
+      });
+      try {
+        return await submitJob(MODELS_WORKFLOW, command, options?.signal);
+      } catch (err) {
+        throw toApiError(err, options?.signal);
+      }
     },
 
     /** Poll a submitted job until it completes and return the parsed result. */
-    result(
+    async result(
       model: string,
       generationId: string,
       options?: GenerationOptions,
     ): Promise<GenerateResult> {
-      return isDynamic ? resultDynamic(model, generationId, options) : resultStatic(model, generationId, options);
+      // The workflow is always v1/models — no edit-route probe needed.
+      assertAsyncLifecycle();
+      const handle: WorkflowJobHandle = { workflow: MODELS_WORKFLOW, id: generationId };
+      let completed: WorkflowStatusResult<unknown>;
+      try {
+        completed = asCompleted(handle, await pollJob(handle, pollOptionsFor(options)));
+      } catch (err) {
+        throw toApiError(err, options?.signal);
+      }
+      return parseDynamicResult(completed, model);
     },
 
     /**
@@ -867,8 +542,8 @@ export function createClient(config: ClientConfig) {
      * thrown). Failures arrive as events, not exceptions.
      *
      * ```ts
-     * const id = await ai.submit(Models.Flux2Pro, { prompt: 'a cat' });
-     * for await (const e of ai.subscribe(Models.Flux2Pro, id)) {
+     * const id = await ai.submit('flux-2-pro', { prompt: 'a cat' });
+     * for await (const e of ai.subscribe('flux-2-pro', id)) {
      *   if (e.type === 'generation.progress') console.log(e.progress?.percent);
      *   if (e.type === 'generation.completed') console.log(e.result.url);
      *   if (e.type === 'generation.failed') console.error(e.error.message);
@@ -880,23 +555,26 @@ export function createClient(config: ClientConfig) {
       generationId: string,
       options?: GenerationOptions,
     ): AsyncGenerator<GenerationEvent, void, void> {
-      return isDynamic ? subscribeDynamic(model, generationId, options) : subscribeStatic(model, generationId, options);
+      // A transport that cannot poll is a configuration error, not a failed
+      // generation, so it throws here rather than arriving as an event.
+      assertAsyncLifecycle();
+      return subscribeGenerator(
+        // The workflow is always v1/models — no edit-route probe needed.
+        async () => ({ workflow: MODELS_WORKFLOW, id: generationId }),
+        pollOptionsFor(options),
+        (completed) => parseDynamicResult(completed, model),
+        options,
+      );
     },
 
     // ── Dynamic catalog ──────────────────────────────────────────────
 
     /**
      * Fetch the model catalog from models-hub and install it as the active
-     * catalog. Dynamic mode only, and the only trigger for the load —
-     * createClient never starts it. Idempotent; a failed load may be retried.
+     * catalog. The only trigger for the load — createClient never starts it.
+     * Idempotent; a failed load may be retried.
      */
     async initModelCatalog(initOptions?: InitModelCatalogOptions): Promise<void> {
-      if (!isDynamic) {
-        throw new ApiError("initModelCatalog() is only available in dynamic mode — create the client with createClient({ mode: 'dynamic' }).", {
-          status: 400,
-          code: 'invalid_mode',
-        });
-      }
       if (!config.apiUrl || !authedFetch) {
         throw new ApiError('initModelCatalog() requires `apiUrl` plus `fetch` or `apiKey` — the catalog is a REST surface, not served by a custom transport.', {
           status: 400,
@@ -908,20 +586,17 @@ export function createClient(config: ClientConfig) {
 
     /**
      * Validate params against the model's descriptors without generating.
-     * Static mode resolves off the bundled catalog immediately; dynamic mode
-     * waits for the catalog load started by initModelCatalog().
+     * Awaits the catalog load started by initModelCatalog().
      */
     async validate(model: string, params: Record<string, unknown>): Promise<ValidationResult> {
-      if (isDynamic) {
-        const loading = whenModelCatalogLoaded();
-        if (!loading) {
-          throw new ApiError('Model catalog not loaded — call ai.initModelCatalog() before ai.validate().', {
-            status: 409,
-            code: 'catalog_not_loaded',
-          });
-        }
-        await loading;
+      const loading = whenModelCatalogLoaded();
+      if (!loading) {
+        throw new ApiError('Model catalog not loaded — call ai.initModelCatalog() before ai.validate().', {
+          status: 409,
+          code: 'catalog_not_loaded',
+        });
       }
+      await loading;
       return Model(model).validate(params);
     },
 

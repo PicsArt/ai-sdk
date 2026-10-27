@@ -1,6 +1,6 @@
 {
   "name": "@picsart/ai-sdk",
-  "version": "6.55.0",
+  "version": "6.99.0",
   "type": "module",
   "description": "Type-safe SDK for 100+ AI models — image, video, audio, and text generation with Picsart",
   "license": "MIT",
@@ -33,13 +33,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test:unit": "node --import tsx --test \"__tests__/unit/*.test.ts\"",
     "test:e2e": "node --env-file-if-exists=../../.env.local --import tsx --test \"__tests__/e2e/*.e2e.ts\"",
-    "build:sdk": "npm run build:model-constants && npx tsup && node scripts/inline-dist-types.mjs && node scripts/write-dist-package.mjs",
-    "build:model-constants": "node scripts/build-model-constants.mjs",
-    "build:model-input-types": "tsx scripts/build-model-input-types.ts",
+    "build:sdk": "npx tsup && node scripts/inline-dist-types.mjs && node scripts/write-dist-package.mjs",
     "bundle": "npm run build:sdk"
   },
   "dependencies": {
     "@picsart/pa-model-pricing-sdk": "^1.4.0",
+    "@picsart/model-types": "^2.0.1",
     "@picsart/workflows-client": "^2.2.1",
     "@picsart/workflows-types": "^1.1.156",
     "fflate": "^0.8.3"

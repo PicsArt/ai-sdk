@@ -1,8 +1,33 @@
 import assert from 'node:assert';
 import { encodeDeepLinkPayload, decodeDeepLinkPayload } from '../../src/core/deeplink/index.ts';
 import { sanitizePrompt, isAllowedUrl } from '../../src/core/deeplink/sanitize.ts';
+import { installCatalog } from '../../src/core/active-catalog.ts';
+import { makeModel } from './helpers/fixture-catalog.ts';
 
 const CDN = 'https://cdn-cms-uploads.picsart.com/cms-uploads';
+
+// Dynamic-only: install the models these deep links resolve against. URL params
+// (imageUrls/videoUrl/audioUrl) ride dedicated fields; non-URL params
+// (negativePrompt/aspectRatio/duration) survive only if the model declares them.
+const textParam = { label: 'Prompt', descriptor: { kind: 'text' as const } };
+installCatalog([
+  makeModel({
+    id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image', mode: 'image',
+    paramConfig: { prompt: textParam, negativePrompt: { label: 'Negative', descriptor: { kind: 'text' } } },
+  }),
+  makeModel({
+    id: 'veo-3.1', name: 'Veo 3.1', mode: 'video',
+    paramConfig: {
+      prompt: textParam,
+      aspectRatio: { label: 'AR', descriptor: { kind: 'enum', valueType: 'string', options: [{ id: '16:9' }, { id: '9:16' }], default: '16:9' } },
+    },
+  }),
+  makeModel({
+    id: 'kling-v3-pro', name: 'Kling v3 Pro', mode: 'video',
+    paramConfig: { prompt: textParam, duration: { label: 'Duration', descriptor: { kind: 'range', min: 3, max: 15, default: 5 } } },
+  }),
+  makeModel({ id: 'kling-avatar', name: 'Kling Avatar', mode: 'video', paramConfig: { prompt: textParam } }),
+]);
 
 // ── 1. sanitizePrompt ───────────────────────────────────────────────
 

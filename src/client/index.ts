@@ -581,7 +581,12 @@ export function createClient(config: ClientConfig) {
           code: 'validation_error',
         });
       }
-      return loadModelCatalog(authedFetch, config.apiUrl, initOptions?.filtersOptions);
+      return loadModelCatalog(
+        authedFetch,
+        config.apiUrl,
+        initOptions?.filtersOptions,
+        initOptions?.refreshIntervalSeconds,
+      );
     },
 
     /**

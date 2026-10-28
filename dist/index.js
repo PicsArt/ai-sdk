@@ -625,7 +625,23 @@ var CATALOG_PATH = "/gw-v2/v1/models-catalog";
 var _loadPromise = null;
 var _loaded = false;
 var _key = null;
+var _refreshTimer = null;
 var keyOf = (apiUrl, filters) => `${apiUrl}::${JSON.stringify(filters ?? {})}`;
+function clearRefreshSchedule() {
+  if (_refreshTimer) {
+    clearInterval(_refreshTimer);
+    _refreshTimer = null;
+  }
+}
+function scheduleRefresh(f, apiUrl, filters, seconds) {
+  clearRefreshSchedule();
+  if (!(seconds > 0)) return;
+  _refreshTimer = setInterval(() => {
+    void refreshModelCatalog(f, apiUrl, filters).catch(() => {
+    });
+  }, seconds * 1e3);
+  _refreshTimer.unref?.();
+}
 function buildQuery(filters) {
   const query = new URLSearchParams();
   query.set("include", "schema,constraints,routing");
@@ -654,7 +670,7 @@ async function fetchAndInstall(f, apiUrl, filters) {
   const models = deserializeCatalog(await res.json());
   installCatalog(models);
 }
-function loadModelCatalog(f, apiUrl, filters) {
+function loadModelCatalog(f, apiUrl, filters, refreshIntervalSeconds = -1) {
   const key = keyOf(apiUrl, filters);
   if (_loadPromise) {
     if (_key !== key) {
@@ -663,17 +679,39 @@ function loadModelCatalog(f, apiUrl, filters) {
         { status: 409, code: "catalog_conflict" }
       ));
     }
+    if (_loaded) scheduleRefresh(f, apiUrl, filters, refreshIntervalSeconds);
     return _loadPromise;
   }
   _key = key;
   _loadPromise = fetchAndInstall(f, apiUrl, filters).then(() => {
     _loaded = true;
+    scheduleRefresh(f, apiUrl, filters, refreshIntervalSeconds);
   }).catch((err) => {
     _loadPromise = null;
     _key = null;
     throw err;
   });
   return _loadPromise;
+}
+function refreshModelCatalog(f, apiUrl, filters) {
+  const key = keyOf(apiUrl, filters);
+  const prevPromise = _loadPromise;
+  const prevLoaded = _loaded;
+  const prevKey = _key;
+  const p2 = fetchAndInstall(f, apiUrl, filters).then(() => {
+    _loaded = true;
+  }).catch((err) => {
+    if (_loadPromise === p2) {
+      _loadPromise = prevPromise;
+      _loaded = prevLoaded;
+      _key = prevKey;
+    }
+    throw err;
+  });
+  _loadPromise = p2;
+  _loaded = false;
+  _key = key;
+  return p2;
 }
 function whenModelCatalogLoaded() {
   return _loadPromise;
@@ -3784,7 +3822,12 @@ function createClient(config) {
           code: "validation_error"
         });
       }
-      return loadModelCatalog(authedFetch, config.apiUrl, initOptions?.filtersOptions);
+      return loadModelCatalog(
+        authedFetch,
+        config.apiUrl,
+        initOptions?.filtersOptions,
+        initOptions?.refreshIntervalSeconds
+      );
     },
     /**
      * Validate params against the model's descriptors without generating.

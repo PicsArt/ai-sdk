@@ -1348,6 +1348,16 @@ interface GenerateOptions {
 interface InitModelCatalogOptions {
     /** Restrict what the catalog load requests — mode, provider, release, deprecated, search. */
     filtersOptions?: ModelCatalogFilters;
+    /**
+     * How often, in seconds, to re-pull the catalog in the background after the
+     * first load so a long-lived process picks up new/changed models without
+     * restarting. The timer arms only after the initial load succeeds and
+     * re-fetches with the same `filtersOptions`. A refresh that fails leaves the
+     * previously loaded catalog in place (the next tick retries).
+     *
+     * Default `-1` — no scheduled refresh (any value `<= 0` disables it).
+     */
+    refreshIntervalSeconds?: number;
 }
 /**
  * Non-text (image/video/audio) model id. Dynamic-only: ids are plain strings

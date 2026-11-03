@@ -175,6 +175,7 @@ export type ModelInputById = {
   "minimax-h3-max-extend": { prompt: string; videoUrl: string; duration?: number; output?: "extended" | "continuation"; aspectRatio?: "auto" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; resolution?: "480p" | "768p" | "1080p" | "2k"; enhancePrompt?: boolean; enableSafetyChecker?: boolean; seed?: number; };
   "minimax-h3-max-lip-sync": { startFrame: string; audioUrl: string; resolution?: "480p" | "768p" | "1080p" | "2k"; enableTranscription?: boolean; seed?: number; enableSafetyChecker?: boolean; };
   "minimax-h3-max-relight": { videoUrl: string; imageUrls: [string, ...string[]]; resolution?: "480p" | "768p" | "1080p" | "2k"; aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; seed?: number; enableSafetyChecker?: boolean; };
+  "minimax-h3-max-recast": { videoUrl: string; imageUrls: [string, ...string[]]; prompt?: string; resolution?: "768p" | "1080p"; enhanceRealism?: boolean; seed?: number; enableSafetyChecker?: boolean; };
   "minimax-h3-max-turbo": { prompt: string; startFrame?: string; endFrame?: string; resolution?: "480p" | "768p" | "1080p"; duration?: number; aspectRatio?: "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; promptExpansionMode?: "disabled" | "balanced" | "quality"; seed?: number; enableSafetyChecker?: boolean; };
   "minimax-m3": { prompt: string; imageUrls?: string[]; };
   "minimax-m3.1-flash": { prompt: string; imageUrls?: string[]; thinking?: "low" | "medium" | "high"; };

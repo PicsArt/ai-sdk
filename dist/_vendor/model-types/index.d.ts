@@ -147,6 +147,8 @@ export type ModelInputById = {
   "kling-v3-turbo": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1"; duration?: number; negativePrompt?: string; resolution?: "720p" | "1080p"; startFrame?: string; };
   "kling-v4": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9"; duration?: number; resolution?: "720p" | "1080p"; startFrame?: string; imageUrls?: string[]; endFrame?: string; };
   "kling-v4-omni": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "adaptive"; duration?: number; resolution?: "720p" | "1080p"; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrl?: string; referType?: "feature" | "base"; elementList?: Array<{ element_id: string }>; };
+  "kling-v4-flash": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9"; duration?: number; startFrame?: string; };
+  "kling-v4-flash-omni": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "adaptive"; duration?: number; startFrame?: string; imageUrls?: string[]; videoUrl?: string; referType?: "feature" | "base"; elementList?: Array<{ element_id: string }>; };
   "kling-video-effects": { templateId?: string; imageUrls: [string, ...string[]]; };
   "kling-video-o1": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1"; duration?: 5 | 10; renderingSpeed?: "std" | "pro"; generateAudio?: boolean; };
   "ltx-2.3-a2v": { prompt?: string; audioUrl: string; imageUrls?: string[]; aspectRatio?: "auto" | "16:9" | "9:16"; cfgScale?: number; };

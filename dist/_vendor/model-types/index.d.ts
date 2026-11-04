@@ -72,6 +72,7 @@ export type ModelInputById = {
   "gemini-4-argon": { prompt: string; imageUrls?: string[]; videoUrl?: string; thinking?: "off" | "low" | "high"; };
   "gemini-nano-banana-2.1": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto"; resolution?: "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; seed?: number; thinkingLevel?: "minimal" | "medium" | "high"; imageUrls?: string[]; };
   "gemini-omni-1.1-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; resolution?: "360p" | "720p" | "1080p" | "4k"; duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrl?: string; videoUrls?: string[]; };
+  "gemini-omni-1.2-flash": { prompt: string; aspectRatio?: "16:9" | "9:16"; resolution?: "360p" | "720p" | "1080p" | "4k"; duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrl?: string; videoUrls?: string[]; task?: "edit" | "extend"; };
   "gemini-omni-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; duration?: 3 | 5 | 6 | 8 | 10; imageUrls?: string[]; videoUrl?: string; };
   "gpt-4.1-mini": { prompt: string; imageUrls?: string[]; };
   "gpt-4.1-nano": { prompt: string; imageUrls?: string[]; };

@@ -168,7 +168,6 @@ export type ModelInputById = {
   "lyria-3-clip": { prompt: string; imageUrls?: string[]; };
   "lyria-3-pro": { prompt: string; imageUrls?: string[]; };
   "lyria-3.5": { prompt: string; imageUrls?: string[]; };
-  "macaron-cookie": { prompt: string; aspectRatio?: "16:9" | "9:16"; resolution?: "360p" | "720p" | "1080p" | "4k"; duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrl?: string; videoUrls?: string[]; task?: "edit" | "extend"; };
   "minimax-h3": { prompt: string; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; resolution?: "768P" | "2K"; duration?: number; aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; };
   "minimax-h3-context-ir": { prompt: string; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; duration?: number; aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; };
   "minimax-h3-highspeed": { prompt: string; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; resolution?: "480P" | "768P"; duration?: number; aspectRatio?: "adaptive" | "21:9" | "16:9" | "4:3" | "1:1" | "3:4" | "9:16"; };

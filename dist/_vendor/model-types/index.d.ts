@@ -14,6 +14,7 @@ export type ModelInputById = {
   "captionsai-video-captions": { videoUrl: string; templateId?: string; };
   "claude-fable-5": { prompt: string; imageUrls?: string[]; };
   "claude-fable-5-1": { prompt: string; imageUrls?: string[]; };
+  "claude-fable-5-2": { prompt: string; imageUrls?: string[]; };
   "claude-haiku-4-5": { prompt: string; imageUrls?: string[]; };
   "claude-haiku-5-5": { prompt: string; imageUrls?: string[]; };
   "claude-opus-4-8": { prompt: string; imageUrls?: string[]; };
@@ -292,7 +293,7 @@ export type TypedModelId = keyof ModelInputById;
 export type ModelInput<M extends TypedModelId> = ModelInputById[M];
 
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-opus-5-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gemini-4-argon" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol" | "gpt-6.1-sol" | "gpt-6.1-terra" | "grok-4.7" | "kimi-k3" | "kimi-k3.1-pro" | "kimi-k3.1-pro-highspeed" | "minimax-h3-context-ir" | "minimax-m3" | "minimax-m3.1-flash";
+export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-fable-5-2" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-opus-5-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gemini-4-argon" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol" | "gpt-6.1-sol" | "gpt-6.1-terra" | "grok-4.7" | "kimi-k3" | "kimi-k3.1-pro" | "kimi-k3.1-pro-highspeed" | "minimax-h3-context-ir" | "minimax-m3" | "minimax-m3.1-flash";
 export type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /** IDs of structured-output (json-mode) models — narrows run()'s result type. */

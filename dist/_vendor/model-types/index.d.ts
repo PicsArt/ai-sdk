@@ -53,7 +53,6 @@ export type ModelInputById = {
   "flux-kontext-max": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-kontext-pro": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-video-edit": { videoUrl: string; prompt: string; safetyTolerance?: number; };
-  "flux-video-outpaint": { videoUrl: string; prompt?: string; width: number; height: number; referenceOffsetX?: number; referenceOffsetY?: number; autoCrop?: boolean; duration?: "auto" | "5" | "10" | "15" | "20"; seed?: number; safetyTolerance?: number; };
   "flux-video-upscale": { videoUrl: string; upscaleFactor?: number; creativity?: 0 | 1; prompt?: string; safetyTolerance?: number; };
   "gemini-2.5-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-2.5-flash-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto"; count?: 1 | 2 | 4 | 6 | 8 | 10; seed?: number; imageUrls?: string[]; };

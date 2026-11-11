@@ -3,6 +3,7 @@ export declare class ModelPricingClient {
     private readonly options;
     private readonly modelPricingApiBaseUrl;
     private pricing;
+    /** Per userId, the user's discounts keyed by the tool (operationId) they cover. */
     private userDiscounts;
     private refreshTimer;
     private userDiscountsRefreshTimer;
@@ -27,6 +28,7 @@ export declare class ModelPricingClient {
     private loadUserDiscounts;
     private indexUserDiscounts;
     private applyUserDiscounts;
+    private applyUsdPrice;
     private applyFilters;
     private applyCreditOverrides;
     private toSuccessResponse;

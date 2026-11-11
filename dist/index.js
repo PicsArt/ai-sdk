@@ -49,6 +49,30 @@ var require_ModelPricingUnknownError = __commonJS({
   }
 });
 
+// ../../node_modules/@picsart/pa-model-pricing-sdk/build/lib/user-discount.util.js
+var require_user_discount_util = __commonJS({
+  "../../node_modules/@picsart/pa-model-pricing-sdk/build/lib/user-discount.util.js"(exports) {
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.matchesApplicableIn = matchesApplicableIn;
+    exports.matchesConditions = matchesConditions;
+    var equalsIgnoreCase = (a, b) => a.toLowerCase() === b.toLowerCase();
+    function matchesApplicableIn({ applicableIn }, { appId, touchpoint }) {
+      if (!(applicableIn === null || applicableIn === void 0 ? void 0 : applicableIn.length))
+        return true;
+      return applicableIn.some((entry) => {
+        var _a;
+        return (!entry.appId || !!appId && equalsIgnoreCase(entry.appId, appId)) && (!((_a = entry.touchpoints) === null || _a === void 0 ? void 0 : _a.length) || touchpoint != null && entry.touchpoints.some((item) => equalsIgnoreCase(item, touchpoint)));
+      });
+    }
+    function matchesConditions({ conditions }, { duration }) {
+      const maxDurationSeconds = conditions === null || conditions === void 0 ? void 0 : conditions.maxDurationSeconds;
+      if (maxDurationSeconds == null)
+        return true;
+      return duration != null && duration <= maxDurationSeconds;
+    }
+  }
+});
+
 // ../../node_modules/@picsart/pa-model-pricing-sdk/build/lib/ModelPricingClient.js
 var require_ModelPricingClient = __commonJS({
   "../../node_modules/@picsart/pa-model-pricing-sdk/build/lib/ModelPricingClient.js"(exports) {
@@ -84,6 +108,7 @@ var require_ModelPricingClient = __commonJS({
     var ModelPricingClientError_1 = require_ModelPricingClientError();
     var ModelPricingServerError_1 = require_ModelPricingServerError();
     var ModelPricingUnknownError_1 = require_ModelPricingUnknownError();
+    var user_discount_util_1 = require_user_discount_util();
     var DEFAULT_REFRESH_INTERVAL_MS = 6e5;
     var USER_DISCOUNTS_REFRESH_INTERVAL_MS = 3e4;
     var DEFAULT_TIMEOUT_MS = 5e3;
@@ -148,17 +173,23 @@ var require_ModelPricingClient = __commonJS({
        * Throws if pricing has not been loaded yet — call and await init() first.
        */
       getModelPricing(filters = {}) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         if (this.pricing == null) {
           throw new Error("ModelPricingClient: pricing not loaded. Call and await init() before getModelPricing().");
         }
         const filtered = this.applyFilters(this.pricing, filters);
+        if (filters.useUsdPrice)
+          return this.applyUsdPrice(filtered);
         const countryCode = ((_a = filters.countryCode) === null || _a === void 0 ? void 0 : _a.trim()) || void 0;
         const touchpoint = ((_b = filters.touchpoint) === null || _b === void 0 ? void 0 : _b.trim()) || void 0;
         const platform = ((_c = filters.platform) === null || _c === void 0 ? void 0 : _c.trim()) || void 0;
         const packageId = ((_d = filters.packageId) === null || _d === void 0 ? void 0 : _d.trim()) || void 0;
         const withOverrides = this.applyCreditOverrides(filtered, countryCode, touchpoint, platform, packageId);
-        return this.applyUserDiscounts(withOverrides, ((_e = filters.userId) === null || _e === void 0 ? void 0 : _e.trim()) || void 0);
+        return this.applyUserDiscounts(withOverrides, ((_e = filters.userId) === null || _e === void 0 ? void 0 : _e.trim()) || void 0, {
+          appId: ((_f = filters.appId) === null || _f === void 0 ? void 0 : _f.trim()) || void 0,
+          touchpoint,
+          duration: filters.duration
+        });
       }
       loadAll() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -168,7 +199,12 @@ var require_ModelPricingClient = __commonJS({
       loadPricing() {
         return __awaiter(this, void 0, void 0, function* () {
           try {
-            const url = `${this.modelPricingApiBaseUrl}/pricing-management/model-pricing`;
+            const url = new URL(`${this.modelPricingApiBaseUrl}/pricing-management/model-pricing`);
+            if (this.options.scope != null) {
+              url.searchParams.set("scope", this.options.scope);
+            } else if (this.options.includePostCharging) {
+              url.searchParams.set("includePostCharging", "true");
+            }
             const response = yield this._fetch(url, {
               method: "GET",
               signal: AbortSignal.timeout(this.options.timeoutMs)
@@ -201,48 +237,65 @@ var require_ModelPricingClient = __commonJS({
       indexUserDiscounts(discounts) {
         const index = /* @__PURE__ */ new Map();
         for (const discount of discounts) {
-          let byModel = index.get(discount.userId);
-          if (byModel == null) {
-            byModel = /* @__PURE__ */ new Map();
-            index.set(discount.userId, byModel);
+          if (!discount.toolId)
+            continue;
+          let byTool = index.get(discount.userId);
+          if (byTool == null) {
+            byTool = /* @__PURE__ */ new Map();
+            index.set(discount.userId, byTool);
           }
-          const list = byModel.get(discount.modelId);
+          const list = byTool.get(discount.toolId);
           if (list == null)
-            byModel.set(discount.modelId, [discount]);
+            byTool.set(discount.toolId, [discount]);
           else
             list.push(discount);
         }
         return index;
       }
-      applyUserDiscounts(items, userId) {
+      applyUserDiscounts(items, userId, context) {
         var _a;
         if (userId == null)
           return items;
-        const byModel = (_a = this.userDiscounts) === null || _a === void 0 ? void 0 : _a.get(userId);
-        if (byModel == null || byModel.size === 0)
+        const byTool = (_a = this.userDiscounts) === null || _a === void 0 ? void 0 : _a.get(userId);
+        if (byTool == null || byTool.size === 0)
           return items;
         const now = Date.now();
         return items.map((item) => {
-          const discounts = byModel.get(item.metadata.modelId);
+          var _a2;
+          const discounts = byTool.get(item.operationId);
           if (discounts == null || discounts.length === 0)
             return item;
-          let bestPercent = 0;
+          let best;
           for (const discount of discounts) {
             const expiresAt = Date.parse(discount.expirationDate);
             const active = Number.isNaN(expiresAt) || expiresAt >= now;
-            if (active && discount.discountPercent > bestPercent) {
-              bestPercent = discount.discountPercent;
-            }
+            if (!active)
+              continue;
+            if (!(0, user_discount_util_1.matchesApplicableIn)(discount, context) || !(0, user_discount_util_1.matchesConditions)(discount, context))
+              continue;
+            if (discount.discountPercent > ((_a2 = best === null || best === void 0 ? void 0 : best.discountPercent) !== null && _a2 !== void 0 ? _a2 : 0))
+              best = discount;
           }
-          if (bestPercent <= 0)
+          if (best == null)
             return item;
-          const pct = Math.min(bestPercent, 100);
+          const pct = Math.min(best.discountPercent, 100);
           const discounted = Math.round(item.credits * (1 - pct / 100));
-          return Object.assign(Object.assign({}, item), { credits: discounted, originalCredits: item.credits });
+          const result = Object.assign(Object.assign({}, item), { credits: discounted, originalCredits: item.credits });
+          if (best.limits != null)
+            result.limits = best.limits;
+          return result;
+        });
+      }
+      applyUsdPrice(items) {
+        return items.map((item) => {
+          if (item.usdPrice == null)
+            return item;
+          return Object.assign(Object.assign({}, item), { credits: item.usdPrice });
         });
       }
       applyFilters(items, filters) {
         return items.filter((item) => {
+          var _a;
           if (filters.vendor != null && item.metadata.vendor !== filters.vendor)
             return false;
           if (filters.modelId != null && item.metadata.modelId !== filters.modelId)
@@ -254,6 +307,8 @@ var require_ModelPricingClient = __commonJS({
           if (filters.quality != null && item.metadata.quality !== filters.quality)
             return false;
           if (filters.audio != null && item.metadata.audio !== filters.audio)
+            return false;
+          if (filters.scope != null && !((_a = item.scopes) === null || _a === void 0 ? void 0 : _a.includes(filters.scope)))
             return false;
           return true;
         });
@@ -341,7 +396,7 @@ var require_ModelPricingClient = __commonJS({
 var require_types = __commonJS({
   "../../node_modules/@picsart/pa-model-pricing-sdk/build/lib/types.js"(exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.PricingUnit = exports.UseCase = void 0;
+    exports.PricingUnit = exports.PricingScope = exports.UseCase = void 0;
     var UseCase;
     (function(UseCase2) {
       UseCase2["TextToImage"] = "text-to-image";
@@ -359,7 +414,13 @@ var require_types = __commonJS({
       UseCase2["ChatCompletions"] = "chat-completions";
       UseCase2["AudioToVideo"] = "audio-to-video";
       UseCase2["VideoToAudio"] = "video-to-audio";
+      UseCase2["Request"] = "request";
     })(UseCase || (exports.UseCase = UseCase = {}));
+    var PricingScope;
+    (function(PricingScope2) {
+      PricingScope2["Api"] = "api";
+      PricingScope2["Apps"] = "apps";
+    })(PricingScope || (exports.PricingScope = PricingScope = {}));
     var PricingUnit;
     (function(PricingUnit2) {
       PricingUnit2["Generation"] = "generation";
@@ -374,6 +435,7 @@ var require_types = __commonJS({
       PricingUnit2["CacheWrite5mTokens"] = "cache_write_5m_tokens";
       PricingUnit2["CacheWrite1hTokens"] = "cache_write_1h_tokens";
       PricingUnit2["InputImageTokens"] = "input_image_tokens";
+      PricingUnit2["OutputTokens"] = "output_tokens";
       PricingUnit2["OutputImageTokens"] = "output_image_tokens";
       PricingUnit2["OutputAudioTokens"] = "output_audio_tokens";
       PricingUnit2["OutputTextTokens"] = "output_text_tokens";
@@ -389,7 +451,7 @@ var require_types = __commonJS({
 var require_build = __commonJS({
   "../../node_modules/@picsart/pa-model-pricing-sdk/build/index.js"(exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.PricingUnit = exports.UseCase = exports.ModelPricingUnknownError = exports.ModelPricingServerError = exports.ModelPricingClientError = exports.ModelPricingClient = void 0;
+    exports.PricingScope = exports.PricingUnit = exports.UseCase = exports.ModelPricingUnknownError = exports.ModelPricingServerError = exports.ModelPricingClientError = exports.ModelPricingClient = void 0;
     var ModelPricingClient_1 = require_ModelPricingClient();
     Object.defineProperty(exports, "ModelPricingClient", { enumerable: true, get: function() {
       return ModelPricingClient_1.ModelPricingClient;
@@ -412,6 +474,9 @@ var require_build = __commonJS({
     } });
     Object.defineProperty(exports, "PricingUnit", { enumerable: true, get: function() {
       return types_1.PricingUnit;
+    } });
+    Object.defineProperty(exports, "PricingScope", { enumerable: true, get: function() {
+      return types_1.PricingScope;
     } });
   }
 });

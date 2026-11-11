@@ -11,7 +11,6 @@ export type ModelInputById = {
   "bytedance-omnihuman-v2.0": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; enableWatermark?: boolean; };
   "bytedance-video-enhance": { videoUrl: string; quality?: "standard" | "professional"; resolution?: "source" | "720p" | "1080p" | "2k" | "4k" | "8k"; fps?: 30 | 60 | 120; scene?: "common" | "ugc" | "short_series" | "aigc" | "old_film"; bitrateLevel?: "low" | "medium" | "high"; };
   "bytedance-video-upscaler": { videoUrl: string; };
-  "captionsai-video-captions": { videoUrl: string; templateId?: string; };
   "claude-fable-5": { prompt: string; imageUrls?: string[]; };
   "claude-fable-5-1": { prompt: string; imageUrls?: string[]; };
   "claude-fable-5-2": { prompt: string; imageUrls?: string[]; };
@@ -41,7 +40,6 @@ export type ModelInputById = {
   "eleven-voice-create": { prompt: string; };
   "eleven-voice-design-v2": { prompt: string; };
   "eleven-voice-design-v3": { prompt: string; };
-  "eleven-voice-remix": { voiceId: string; prompt: string; };
   "elevenlabs-music-v2": { prompt: string; duration?: 10 | 20 | 30 | 60 | 120 | 180 | 300 | 600; isInstrumental?: boolean; };
   "elevenlabs-sfx": { prompt: string; duration?: number; };
   "flux-2-flex": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; resolution?: "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
@@ -55,6 +53,7 @@ export type ModelInputById = {
   "flux-kontext-max": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-kontext-pro": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "21:9" | "9:21"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "flux-video-edit": { videoUrl: string; prompt: string; safetyTolerance?: number; };
+  "flux-video-outpaint": { videoUrl: string; prompt?: string; width: number; height: number; referenceOffsetX?: number; referenceOffsetY?: number; autoCrop?: boolean; duration?: "auto" | "5" | "10" | "15" | "20"; seed?: number; safetyTolerance?: number; };
   "flux-video-upscale": { videoUrl: string; upscaleFactor?: number; creativity?: 0 | 1; prompt?: string; safetyTolerance?: number; };
   "gemini-2.5-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-2.5-flash-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto"; count?: 1 | 2 | 4 | 6 | 8 | 10; seed?: number; imageUrls?: string[]; };
@@ -107,7 +106,6 @@ export type ModelInputById = {
   "grok-imagine-video-1.5": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3"; resolution?: "480p" | "720p" | "1080p"; duration?: 3 | 5 | 6 | 8 | 10 | 12 | 15; imageUrls?: string[]; };
   "grok-imagine-video-1.5-lite": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3"; resolution?: "480p" | "720p" | "1080p"; duration?: 3 | 5 | 6 | 8 | 10 | 12 | 15; imageUrls?: string[]; };
   "grok-tts": { language?: string; accent?: string; prompt: string; voiceId?: string; };
-  "hailuo-02": { prompt: string; enhancePrompt?: boolean; resolution?: "512P" | "768P" | "1080P"; duration?: 6 | 10; startFrame?: string; endFrame?: string; imageUrls?: string[]; };
   "hailuo-2.3": { prompt: string; enhancePrompt?: boolean; duration?: 6 | 10; imageUrls?: string[]; };
   "hailuo-2.3-fast": { prompt: string; enhancePrompt?: boolean; duration?: 6 | 10; imageUrls: [string, ...string[]]; };
   "hailuo-2.3-fast-pro": { prompt: string; enhancePrompt?: boolean; imageUrls: [string, ...string[]]; };
@@ -134,7 +132,6 @@ export type ModelInputById = {
   "kimi-k3.1-pro-highspeed": { prompt: string; imageUrls?: string[]; thinking?: "low" | "high"; };
   "kling-3.0-image": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4"; resolution?: "1k" | "2k" | "4k"; count?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9; imageUrls?: string[]; };
   "kling-avatar": { prompt?: string; renderingSpeed?: "std" | "pro"; imageUrls: [string, ...string[]]; audioUrl: string; audioId?: string; };
-  "kling-elements": { elementName: string; elementDescription: string; referenceType: "image_refer" | "video_refer"; imageUrls?: string[]; videoUrl?: string; elementVoiceId?: string; };
   "kling-motion-control": { prompt?: string; renderingSpeed?: "std" | "pro"; characterOrientation?: "image" | "video"; keepOriginalSound?: "yes" | "no"; imageUrls: [string, ...string[]]; videoUrl: string; };
   "kling-motion-control-v3": { prompt?: string; renderingSpeed?: "std" | "pro"; characterOrientation?: "image" | "video"; keepOriginalSound?: "yes" | "no"; imageUrls: [string, ...string[]]; videoUrl: string; };
   "kling-multi-image-v2-1": { prompt?: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "21:9" | "4:3" | "3:2" | "2:3" | "3:4"; count?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9; imageUrls: [string, ...string[]]; sceneImage?: string; styleImage?: string; };
@@ -196,7 +193,6 @@ export type ModelInputById = {
   "picsart-flow": { templateId: string; imageUrls: [string, ...string[]]; };
   "picsart-flow-video": { templateId: string; imageUrls: [string, ...string[]]; };
   "picsart-flux-2-klein": { prompt: string; aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4"; imageUrls?: string[]; };
-  "picsart-hidream-t2i": { prompt: string; aspectRatio?: "1:1" | "5:3" | "3:5" | "4:3" | "3:4"; };
   "picsart-qwen-image-edit": { imageUrls: [string, ...string[]]; prompt: string; negativePrompt?: string; };
   "picsart-qwen-makeup": { imageUrls: [string, ...string[]]; prompt: string; negativePrompt?: string; };
   "picsart-sana-sprint-v1": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; };
@@ -210,7 +206,6 @@ export type ModelInputById = {
   "pixverse-v6-image": { prompt: string; quality?: "360p" | "540p" | "720p" | "1080p"; duration?: number; generateAudio?: boolean; imageUrls: [string, ...string[]]; };
   "qwen-image-2": { prompt: string; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; };
   "qwen-image-2-pro": { prompt: string; negativePrompt?: string; resolution?: "2048x2048" | "2688x1536" | "1536x2688" | "2368x1728" | "1728x2368"; count?: 1 | 2 | 4 | 6; enhancePrompt?: boolean; imageUrls?: string[]; seed?: number; };
-  "qwen-image-3.0": { prompt: string; negativePrompt?: string; resolution?: "2048x2048" | "2688x1536" | "1536x2688" | "2368x1728" | "1728x2368"; count?: 1 | 2 | 4 | 6; enhancePrompt?: boolean; imageUrls?: string[]; seed?: number; promptExtendMode?: "direct" | "agent"; enableThinking?: boolean; };
   "qwen-image-3.0-pro": { prompt: string; negativePrompt?: string; resolution?: "2048x2048" | "2688x1536" | "1536x2688" | "2368x1728" | "1728x2368"; count?: 1 | 2 | 4 | 6; enhancePrompt?: boolean; imageUrls?: string[]; seed?: number; promptExtendMode?: "direct" | "agent"; enableThinking?: boolean; };
   "recraft-creative-upscale": { imageUrls: [string, ...string[]]; };
   "recraft-crisp-upscale": { imageUrls: [string, ...string[]]; };
@@ -237,7 +232,6 @@ export type ModelInputById = {
   "recraftv4_styles_pro_vector": { prompt: string; imageUrls: [string, ...string[]]; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; };
   "recraftv4_styles_vector": { prompt: string; imageUrls: [string, ...string[]]; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; };
   "recraftv4_vector": { prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "3:2" | "2:3" | "16:9" | "9:16" | "2:1" | "1:2"; count?: 1 | 2 | 4 | 6; imageUrls?: string[]; imageWeight?: number; };
-  "reve": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "3:2" | "2:3"; count?: 1 | 2 | 4; imageUrls?: string[]; };
   "runway-aleph2": { prompt: string; videoUrl: string; startFrame?: string; endFrame?: string; };
   "runway-avatar-video": { style?: "game-character" | "music-superstar" | "game-character-man" | "cat-character" | "influencer" | "tennis-coach" | "human-resource" | "fashion-designer" | "cooking-teacher"; voiceId?: string; prompt?: string; audioUrl?: string; };
   "runway-gen3a-turbo": { prompt: string; duration?: 5 | 10; aspectRatio?: "16:9" | "9:16"; startFrame: string; endFrame?: string; };
@@ -257,15 +251,9 @@ export type ModelInputById = {
   "seedance-2.0-mini-video-extend": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive"; resolution?: "480p" | "720p"; duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15; generateAudio?: boolean; videoUrls: [string, ...string[]]; };
   "seedance-2.0-video-edit": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive"; resolution?: "480p" | "720p" | "1080p" | "4k"; duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15; generateAudio?: boolean; returnLastFrame?: boolean; videoUrl: string; imageUrls?: string[]; };
   "seedance-2.0-video-extend": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive"; resolution?: "480p" | "720p" | "1080p" | "4k"; duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15; generateAudio?: boolean; videoUrls: [string, ...string[]]; };
-  "seedance-2.0-without-moderation": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive"; resolution?: "480p" | "720p" | "1080p" | "4k"; duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15; generateAudio?: boolean; returnLastFrame?: boolean; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; startFrame?: string; endFrame?: string; };
-  "seedance-2.0-without-moderation-video-edit": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive"; resolution?: "480p" | "720p" | "1080p" | "4k"; duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15; generateAudio?: boolean; returnLastFrame?: boolean; videoUrl: string; imageUrls?: string[]; };
-  "seedance-2.0-without-moderation-video-extend": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive"; resolution?: "480p" | "720p" | "1080p" | "4k"; duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15; generateAudio?: boolean; videoUrls: [string, ...string[]]; };
   "seedance-2.5": { prompt?: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive"; resolution?: "480p" | "720p" | "1080p"; duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30; generateAudio?: boolean; returnLastFrame?: boolean; outputFormat?: "mp4" | "mov"; colorDepth?: "10bit" | "8bit"; draft?: boolean; draftTask?: { id: string }; omniReferenceTaskType?: "auto" | "reference" | "edit" | "extend"; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; startFrame?: string; endFrame?: string; };
   "seedance-2.5-video-edit": { prompt: string; aspectRatio?: "adaptive"; resolution?: "480p" | "720p" | "1080p"; generateAudio?: boolean; returnLastFrame?: boolean; outputFormat?: "mp4" | "mov"; colorDepth?: "10bit" | "8bit"; draft?: boolean; videoUrl: string; imageUrls?: string[]; };
   "seedance-2.5-video-extend": { prompt: string; aspectRatio?: "adaptive"; resolution?: "480p" | "720p" | "1080p"; duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30; generateAudio?: boolean; outputFormat?: "mp4" | "mov"; colorDepth?: "10bit" | "8bit"; draft?: boolean; videoUrls: [string, ...string[]]; };
-  "seedance-2.5-without-moderation": { prompt?: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive"; resolution?: "480p" | "720p" | "1080p"; duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30; generateAudio?: boolean; returnLastFrame?: boolean; outputFormat?: "mp4" | "mov"; colorDepth?: "10bit" | "8bit"; draft?: boolean; draftTask?: { id: string }; omniReferenceTaskType?: "auto" | "reference" | "edit" | "extend"; imageUrls?: string[]; videoUrls?: string[]; audioUrls?: string[]; startFrame?: string; endFrame?: string; };
-  "seedance-2.5-without-moderation-video-edit": { prompt: string; aspectRatio?: "adaptive"; resolution?: "480p" | "720p" | "1080p"; generateAudio?: boolean; returnLastFrame?: boolean; outputFormat?: "mp4" | "mov"; colorDepth?: "10bit" | "8bit"; draft?: boolean; videoUrl: string; imageUrls?: string[]; };
-  "seedance-2.5-without-moderation-video-extend": { prompt: string; aspectRatio?: "adaptive"; resolution?: "480p" | "720p" | "1080p"; duration?: -1 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30; generateAudio?: boolean; outputFormat?: "mp4" | "mov"; colorDepth?: "10bit" | "8bit"; draft?: boolean; videoUrls: [string, ...string[]]; };
   "seedance-i2v": { prompt: string; aspectRatio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | "adaptive"; resolution?: "480p" | "720p" | "1080p"; duration?: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12; startFrame: string; };
   "seedream-4.0": { resolution?: "1K" | "2K" | "4K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; negativePrompt?: string; };
   "seedream-4.5": { resolution?: "2K" | "4K"; prompt: string; aspectRatio?: "1:1" | "4:3" | "3:4" | "16:9" | "9:16" | "3:2" | "2:3" | "21:9"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; negativePrompt?: string; };

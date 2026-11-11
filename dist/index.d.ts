@@ -265,6 +265,15 @@ interface FileDescriptor {
      */
     minDurationSec?: number;
     /**
+     * Max COMBINED duration (seconds) of every video/audio file in an array slot:
+     * the sum of the clips' lengths, not any single one. Vendors cap the total
+     * apart from the per-file `maxDurationSec` (Seedance 2.5 takes ten reference
+     * clips of up to 30.2 s each, but refuses them when they add up to more than
+     * 30.2 s). Enforced client-side before submit; the backend worker stays the
+     * authoritative gate. Omit for no combined cap.
+     */
+    maxTotalDurationSec?: number;
+    /**
      * Max intrinsic frame rate (fps) accepted for a video file. Enforced
      * client-side at upload by measuring the media before it is sent; the backend
      * worker stays the authoritative gate. Omit for no client-side cap.

@@ -262,6 +262,8 @@ export const p = {
       maxDurationSec?: number;
       /** Client-side min duration (seconds) for a video/audio slot. */
       minDurationSec?: number;
+      /** Client-side max combined duration (seconds) of an array video/audio slot. */
+      maxTotalDurationSec?: number;
       /** Client-side max frame rate (fps) for a video slot. */
       maxFrameRate?: number;
       /** Client-side min pixel count (width × height) for an image/video slot. */
@@ -293,6 +295,7 @@ export const p = {
           ...(opts?.array ? { array: opts.array } : {}),
           ...(opts?.maxDurationSec != null ? { maxDurationSec: opts.maxDurationSec } : {}),
           ...(opts?.minDurationSec != null ? { minDurationSec: opts.minDurationSec } : {}),
+          ...(opts?.maxTotalDurationSec != null ? { maxTotalDurationSec: opts.maxTotalDurationSec } : {}),
           ...(opts?.maxFrameRate != null ? { maxFrameRate: opts.maxFrameRate } : {}),
           ...(opts?.minPixels != null ? { minPixels: opts.minPixels } : {}),
           ...(opts?.maxPixels != null ? { maxPixels: opts.maxPixels } : {}),

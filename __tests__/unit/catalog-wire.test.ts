@@ -98,7 +98,7 @@ function serializableView(def: ModelDefinition): Record<string, unknown> {
 {
   const [back] = deserializeCatalog(serializeCatalog([RICH]));
   const d = back.paramConfig.image.descriptor as unknown as Record<string, unknown>;
-  for (const bound of ['minPixels', 'minSidePixels', 'maxShortSidePixels', 'maxDurationSec', 'maxBytes'] as const) {
+  for (const bound of ['minPixels', 'minSidePixels', 'maxShortSidePixels', 'maxDurationSec', 'maxTotalDurationSec', 'maxBytes'] as const) {
     assert.deepStrictEqual(
       d[bound],
       (RICH.paramConfig.image.descriptor as unknown as Record<string, unknown>)[bound],

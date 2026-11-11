@@ -80,7 +80,7 @@ export const RICH = makeModel({
       label: 'Image',
       descriptor: {
         kind: 'file', accept: 'image',
-        minPixels: 1024, minSidePixels: 32, maxShortSidePixels: 4096, maxDurationSec: 60, maxBytes: 30_000_000,
+        minPixels: 1024, minSidePixels: 32, maxShortSidePixels: 4096, maxDurationSec: 60, maxTotalDurationSec: 90, maxBytes: 30_000_000,
       },
     },
     turns: {

@@ -16,7 +16,7 @@ import { loadModelCatalog, whenModelCatalogLoaded } from '../core/catalog-store.
 import { Model } from '../core/descriptors/model-accessor.ts';
 import type { ValidationResult } from '../core/descriptors/types.ts';
 
-import type { ClientConfig, InitModelCatalogOptions, GenerateResult, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, AiClient, GenerationEvent } from './types.ts';
+import type { ClientConfig, InitModelCatalogOptions, GenerateResult, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, AiClient, GenerationEvent, PriceOptions, ServiceTier } from './types.ts';
 import type { PayloadDriveOptions } from './drive.ts';
 import { buildTransport, createWorkflowsClient, maybeFetch } from './transport.ts';
 import {
@@ -28,7 +28,7 @@ import { createApis } from './apis.ts';
 import { createCatalogs } from './catalogs.ts';
 
 // ── Re-export types for the public API ──
-export type { ClientConfig, InitModelCatalogOptions, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, CreditUsage, OptionsResult, ToolUsage, AiClient, MediaModelId } from './types.ts';
+export type { ClientConfig, InitModelCatalogOptions, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, ServiceTier, PriceOptions, CreditUsage, OptionsResult, ToolUsage, AiClient, MediaModelId } from './types.ts';
 export type { ModelsCommand, ModelsGenAIOptions } from './prepare.ts';
 export { MODELS_WORKFLOW } from './prepare.ts';
 export type { ApiResponse, ApiRunOptions, ApiSchemas, ApisClient } from './apis.ts';
@@ -230,11 +230,16 @@ export function createClient(config: ClientConfig) {
     return res && typeof res.credits === 'number' ? res : null;
   }
 
-  /** Price over v1/models — no command options, matching the generate path's
-   *  pre-injection payload. */
-  async function fetchOptions(model: string, params: Record<string, unknown> & { prompt: string }): Promise<OptionsResult | null> {
+  /** Price over v1/models — no media options, matching the generate path's
+   *  pre-injection payload. The service tier does ride along: it decides
+   *  whether the user's discount is quoted. */
+  async function fetchOptions(
+    model: string,
+    params: Record<string, unknown> & { prompt: string },
+    options?: PriceOptions,
+  ): Promise<OptionsResult | null> {
     if (!transport.options) return null;
-    const command = buildModelsCommand(model, params) as unknown as Record<string, unknown>;
+    const command = buildModelsCommand(model, params, undefined, resolveServiceTier(options)) as unknown as Record<string, unknown>;
     return askOptionsRoute(MODELS_WORKFLOW, command);
   }
 
@@ -319,6 +324,11 @@ export function createClient(config: ClientConfig) {
     return options?.inputsTransformation?.downscaleOversizedImages
       ?? inputsTransformationConfig?.downscaleOversizedImages
       ?? false;
+  }
+
+  /** Service tier: per-call wins, then client config, then unset (platform default). */
+  function resolveServiceTier(options?: { serviceTier?: ServiceTier }): ServiceTier | undefined {
+    return options?.serviceTier ?? config.serviceTier;
   }
 
   /**
@@ -416,7 +426,7 @@ export function createClient(config: ClientConfig) {
      * model-id counterpart of `ai.apis.run()`. models-hub builds and validates
      * the payload, executes the workflow (sync or async), applies the model's
      * `outputSchema` when declared, and returns the task result as-is — no
-     * media-URL or text extraction, no Drive save, no options injection. The
+     * media-URL or text extraction, no Drive save, no media options. The
      * only generation surface for json-mode (structured-output) models.
      */
     async run(
@@ -424,7 +434,10 @@ export function createClient(config: ClientConfig) {
       params: Record<string, unknown>,
       options?: GenerateOptions,
     ): Promise<RunResponse> {
-      const completed = await executeDynamic(buildModelsCommand(model, params), options);
+      const completed = await executeDynamic(
+        buildModelsCommand(model, params, undefined, resolveServiceTier(options)),
+        options,
+      );
       return parseDynamicRunResult(completed, model);
     },
 
@@ -448,7 +461,7 @@ export function createClient(config: ClientConfig) {
       const command = buildModelsCommand(model, params, {
         drive,
         downscaleOversizedImages: resolveDownscale(options),
-      });
+      }, resolveServiceTier(options));
       const completed = await executeDynamic(command, options);
       return parseDynamicResult(completed, model);
     },
@@ -464,8 +477,11 @@ export function createClient(config: ClientConfig) {
       params: Record<string, unknown> & { prompt: string },
       options?: GenerateOptions,
     ): Promise<GenerateTextResult> {
-      // No command options: text routes never inject them.
-      const completed = await executeDynamic(buildModelsCommand(model, params), options);
+      // No media options: text routes never inject them. Only the service tier rides along.
+      const completed = await executeDynamic(
+        buildModelsCommand(model, params, undefined, resolveServiceTier(options)),
+        options,
+      );
       return parseDynamicTextResult(completed, model);
     },
 
@@ -477,8 +493,9 @@ export function createClient(config: ClientConfig) {
     async getCredits(
       model: string,
       params: Record<string, unknown> & { prompt: string },
+      options?: PriceOptions,
     ): Promise<number | null> {
-      return (await fetchOptions(model, params))?.credits ?? null;
+      return (await fetchOptions(model, params, options))?.credits ?? null;
     },
 
     /**
@@ -489,8 +506,9 @@ export function createClient(config: ClientConfig) {
     async options(
       model: string,
       params: Record<string, unknown> & { prompt: string },
+      options?: PriceOptions,
     ): Promise<OptionsResult | null> {
-      return fetchOptions(model, params);
+      return fetchOptions(model, params, options);
     },
 
     // ── Advanced lifecycle ────────────────────────────────────────────
@@ -508,7 +526,7 @@ export function createClient(config: ClientConfig) {
       const command = buildModelsCommand(model, params, {
         drive,
         downscaleOversizedImages: resolveDownscale(options),
-      });
+      }, resolveServiceTier(options));
       try {
         return await submitJob(MODELS_WORKFLOW, command, options?.signal);
       } catch (err) {

@@ -49,6 +49,8 @@ export type {
   PayloadDriveOptions,
   PayloadDriveFolderOptions,
   PayloadInputsTransformationOptions,
+  ServiceTier,
+  PriceOptions,
   DriveMediaItem,
   DriveFileDetails,
   DriveDraftInfo,

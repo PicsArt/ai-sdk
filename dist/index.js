@@ -2718,16 +2718,19 @@ function buildTransport(wc) {
 
 // src/client/prepare.ts
 var MODELS_WORKFLOW = "v1/models";
-function buildModelsCommand(model, params, options) {
-  if (!options) return { model, params };
+function buildModelsCommand(model, params, media, serviceTier) {
+  if (!media && !serviceTier) return { model, params };
   return {
     model,
     params,
     options: {
-      inputs_transformation: {
-        downscale_oversized_images: options.downscaleOversizedImages ?? false
-      },
-      ...options.drive ? { drive: options.drive } : {}
+      ...media ? {
+        inputs_transformation: {
+          downscale_oversized_images: media.downscaleOversizedImages ?? false
+        },
+        ...media.drive ? { drive: media.drive } : {}
+      } : {},
+      ...serviceTier ? { service_tier: serviceTier } : {}
     }
   };
 }
@@ -3658,9 +3661,9 @@ function createClient(config) {
     if (typeof res === "number") return { credits: res };
     return res && typeof res.credits === "number" ? res : null;
   }
-  async function fetchOptions(model, params) {
+  async function fetchOptions(model, params, options) {
     if (!transport.options) return null;
-    const command = buildModelsCommand(model, params);
+    const command = buildModelsCommand(model, params, void 0, resolveServiceTier(options));
     return askOptionsRoute(MODELS_WORKFLOW, command);
   }
   function pollOptionsFor(overrides) {
@@ -3703,6 +3706,9 @@ function createClient(config) {
   }
   function resolveDownscale(options) {
     return options?.inputsTransformation?.downscaleOversizedImages ?? inputsTransformationConfig?.downscaleOversizedImages ?? false;
+  }
+  function resolveServiceTier(options) {
+    return options?.serviceTier ?? config.serviceTier;
   }
   function subscribeGenerator(resolveHandle, pollOptions, parse, options) {
     return (async function* () {
@@ -3769,11 +3775,14 @@ function createClient(config) {
      * model-id counterpart of `ai.apis.run()`. models-hub builds and validates
      * the payload, executes the workflow (sync or async), applies the model's
      * `outputSchema` when declared, and returns the task result as-is — no
-     * media-URL or text extraction, no Drive save, no options injection. The
+     * media-URL or text extraction, no Drive save, no media options. The
      * only generation surface for json-mode (structured-output) models.
      */
     async run(model, params, options) {
-      const completed = await executeDynamic(buildModelsCommand(model, params), options);
+      const completed = await executeDynamic(
+        buildModelsCommand(model, params, void 0, resolveServiceTier(options)),
+        options
+      );
       return parseDynamicRunResult(completed, model);
     },
     /**
@@ -3789,7 +3798,7 @@ function createClient(config) {
       const command = buildModelsCommand(model, params, {
         drive,
         downscaleOversizedImages: resolveDownscale(options)
-      });
+      }, resolveServiceTier(options));
       const completed = await executeDynamic(command, options);
       return parseDynamicResult(completed, model);
     },
@@ -3800,7 +3809,10 @@ function createClient(config) {
      * Text results are not saved to Drive.
      */
     async generateText(model, params, options) {
-      const completed = await executeDynamic(buildModelsCommand(model, params), options);
+      const completed = await executeDynamic(
+        buildModelsCommand(model, params, void 0, resolveServiceTier(options)),
+        options
+      );
       return parseDynamicTextResult(completed, model);
     },
     /**
@@ -3808,16 +3820,16 @@ function createClient(config) {
      * Calls the backend /options endpoint for real-time pricing.
      * Returns null if pricing is unavailable.
      */
-    async getCredits(model, params) {
-      return (await fetchOptions(model, params))?.credits ?? null;
+    async getCredits(model, params, options) {
+      return (await fetchOptions(model, params, options))?.credits ?? null;
     },
     /**
      * Same /options call as getCredits(), returning the whole response:
      * credits plus billable amount, unit, rate, whether they are estimated, and
      * whether the caller has the permissions the request needs.
      */
-    async options(model, params) {
-      return fetchOptions(model, params);
+    async options(model, params, options) {
+      return fetchOptions(model, params, options);
     },
     // ── Advanced lifecycle ────────────────────────────────────────────
     /** Submit a generation job and get its generation id back. Media models
@@ -3829,7 +3841,7 @@ function createClient(config) {
       const command = buildModelsCommand(model, params, {
         drive,
         downscaleOversizedImages: resolveDownscale(options)
-      });
+      }, resolveServiceTier(options));
       try {
         return await submitJob(MODELS_WORKFLOW, command, options?.signal);
       } catch (err) {

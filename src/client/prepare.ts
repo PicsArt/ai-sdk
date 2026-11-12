@@ -2,7 +2,7 @@ import type { WorkflowStatusResult } from '../core/workflow.ts';
 import type { GenerateResultItemMetadata } from '../core/response.ts';
 import { throwIfErrorResult } from '../core/response.ts';
 import { ApiError } from '../core/errors.ts';
-import type { GenerateResult, GenerateResultItem, GenerateTextResult, RunResponse } from './types.ts';
+import type { GenerateResult, GenerateResultItem, GenerateTextResult, RunResponse, ServiceTier } from './types.ts';
 import type { PayloadDriveOptions } from './drive.ts';
 
 // ── Dynamic mode — the models-hub `v1/models` workflow ───────────────
@@ -15,11 +15,12 @@ import type { PayloadDriveOptions } from './drive.ts';
 /** The models-hub pluggable workflow every generation request rides. */
 export const MODELS_WORKFLOW = 'v1/models';
 
-/** Platform options carried on a {@link ModelsCommand} (ModelsGenAIOptions on the backend). */
+/** Platform options carried on a {@link ModelsCommand} (GenAIOptions on the backend). */
 export interface ModelsGenAIOptions {
   safety_checks?: { enabled?: boolean };
   drive?: PayloadDriveOptions;
   inputs_transformation?: { downscale_oversized_images?: boolean };
+  service_tier?: ServiceTier;
 }
 
 /** The `v1/models` request body: which model, the SDK-shaped params, platform options. */
@@ -30,24 +31,32 @@ export interface ModelsCommand {
 }
 
 /**
- * Build the `v1/models` command. Media generations pass `options` (drive +
- * inputs transformation); text and credits callers omit it, so those routes
- * send no platform options.
+ * Build the `v1/models` command. Media generations pass `media` (drive +
+ * inputs transformation); text, run and price callers omit it, so those
+ * routes send no media options. `serviceTier` rides every route when set —
+ * models-hub hands it to the model workflow, which decides the user's
+ * discount from it. A command with neither carries no `options` at all.
  */
 export function buildModelsCommand(
   model: string,
   params: Record<string, unknown>,
-  options?: { drive?: PayloadDriveOptions; downscaleOversizedImages?: boolean },
+  media?: { drive?: PayloadDriveOptions; downscaleOversizedImages?: boolean },
+  serviceTier?: ServiceTier,
 ): ModelsCommand {
-  if (!options) return { model, params };
+  if (!media && !serviceTier) return { model, params };
   return {
     model,
     params,
     options: {
-      inputs_transformation: {
-        downscale_oversized_images: options.downscaleOversizedImages ?? false,
-      },
-      ...(options.drive ? { drive: options.drive } : {}),
+      ...(media
+        ? {
+          inputs_transformation: {
+            downscale_oversized_images: media.downscaleOversizedImages ?? false,
+          },
+          ...(media.drive ? { drive: media.drive } : {}),
+        }
+        : {}),
+      ...(serviceTier ? { service_tier: serviceTier } : {}),
     },
   };
 }

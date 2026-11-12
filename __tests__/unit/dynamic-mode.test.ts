@@ -155,6 +155,60 @@ const ai = createClient({
   assert.strictEqual('options' in optionsCall.payload, false);
 }
 
+// ── 7b. serviceTier rides every route; per-call wins over the client's ─
+{
+  // Media: beside the media options.
+  await ai.generate('backend-only-model', { prompt: 'x' }, { ...FAST_POLL, serviceTier: 'priority' });
+  const media = platform.calls.submits.at(-1)!.payload.options as Record<string, unknown>;
+  assert.strictEqual(media.service_tier, 'priority');
+  assert.deepStrictEqual(media.inputs_transformation, { downscale_oversized_images: false });
+
+  await ai.submit('backend-only-model', { prompt: 'x' }, { serviceTier: 'priority' });
+  assert.strictEqual(
+    (platform.calls.submits.at(-1)!.payload.options as Record<string, unknown>).service_tier,
+    'priority',
+  );
+
+  // Unset: the option is not sent at all, so the platform default applies.
+  await ai.generate('backend-only-model', { prompt: 'x' }, FAST_POLL);
+  assert.strictEqual(
+    'service_tier' in (platform.calls.submits.at(-1)!.payload.options as Record<string, unknown>),
+    false,
+  );
+
+  // Text and run: the only option on the command — still no media options.
+  RESULTS.set('task-1', { status: 'COMPLETED', result: { text: 'hello' } });
+  await ai.generateText('backend-only-llm', { prompt: 'hi' }, { ...FAST_POLL, serviceTier: 'priority' });
+  assert.deepStrictEqual(platform.calls.submits.at(-1)!.payload.options, { service_tier: 'priority' });
+  await ai.run('backend-only-json', { state: 's' }, { ...FAST_POLL, serviceTier: 'priority' });
+  assert.deepStrictEqual(platform.calls.submits.at(-1)!.payload.options, { service_tier: 'priority' });
+  RESULTS.delete('task-1');
+
+  // Price quotes carry the tier they are asked for, and the client default otherwise.
+  const priced: Array<Record<string, unknown>> = [];
+  const aiPriority = createClient({
+    apiUrl: 'https://api.test',
+    serviceTier: 'priority',
+    fetch: async (url, init) => {
+      if (String(url).includes('/options')) priced.push(JSON.parse(String(init?.body)).params);
+      return basePlatformFetch(url, init);
+    },
+  });
+  await aiPriority.getCredits('backend-only-model', { prompt: 'x' });
+  assert.deepStrictEqual(priced.at(-1)!.options, { service_tier: 'priority' });
+  await aiPriority.options('backend-only-model', { prompt: 'x' }, { serviceTier: 'auto' });
+  assert.deepStrictEqual(priced.at(-1)!.options, { service_tier: 'auto' });
+
+  // The client default reaches generations too; a per-call tier overrides it.
+  await aiPriority.generateText('backend-only-llm', { prompt: 'hi' }, FAST_POLL).catch(() => undefined);
+  assert.deepStrictEqual(platform.calls.submits.at(-1)!.payload.options, { service_tier: 'priority' });
+  await aiPriority.submit('backend-only-model', { prompt: 'x' }, { serviceTier: 'auto' });
+  assert.strictEqual(
+    (platform.calls.submits.at(-1)!.payload.options as Record<string, unknown>).service_tier,
+    'auto',
+  );
+}
+
 // ── 8. after initModelCatalog: generation flow is untouched by it ───
 {
   await ai.initModelCatalog();

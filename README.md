@@ -205,6 +205,33 @@ uploads remain ordinary uploads: without generation context the SDK cannot infer
 model, prompt or settings. Existing Drive files are not backfilled. The backend preserves SDK-supplied metadata; it cannot reconstruct SDK input
 names or catalog model IDs from an arbitrary vendor request.
 
+## Service Tier
+
+`serviceTier` chooses how a generation is served. It is sent to the platform as
+`options.service_tier` on every generation route — `generate()`, `generateText()`,
+`run()` and `submit()` — and on the price calls.
+
+| Tier | Price | Limits |
+|------|-------|--------|
+| `auto` (default) | The user's discount, when one applies | The discount's: a number of generations at a time (a `429` when all are in use) and a wait before a generation starts after heavy use |
+| `priority` | The regular price — the discount is not used | None |
+
+```typescript
+// Per call
+await ai.generate(modelId, { prompt }, { serviceTier: 'priority' });
+
+// Or as the client default — a per-call `serviceTier` overrides it
+const ai = createClient({ apiKey, apiUrl, serviceTier: 'priority' });
+```
+
+Quote with the tier you will generate with, or the quote is not the price charged:
+
+```typescript
+const credits = await ai.getCredits(modelId, { prompt }, { serviceTier: 'priority' });
+```
+
+Left unset, the option is not sent and the platform applies `auto`.
+
 ## Text Generation (LLMs)
 
 Claude, GPT, Gemini, Kimi, Grok and MiniMax text models are called with `generateText()`. Single-shot:
@@ -408,6 +435,7 @@ Key exports (see `src/index.ts` for the full list):
 | `ClientConfig` | type | `{ apiKey?, fetch?, apiUrl, drive?, transport? }` — one of `apiKey` / `fetch` required unless `transport` is set |
 | `AuthenticatedFetch` | type | `(url, init?) => Promise<Response>` — for the custom-`fetch` path |
 | `SdkTransport` | type | The transport contract — see [Custom Transport](#custom-transport) |
+| `ServiceTier` | type | `'auto' \| 'priority'` — see [Service Tier](#service-tier) |
 | `GenerationOptions` | type | Poll controls for `result()`/`subscribe()` — `{ intervalMs?, maxAttempts?, signal? }` |
 | `ApiError` | class | Unified error: `{ status, code, reason, message }` — see [Error Handling](#error-handling) |
 

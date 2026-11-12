@@ -68,6 +68,12 @@ interface ClientConfigBase {
    */
   inputsTransformation?: PayloadInputsTransformationOptions;
   /**
+   * Service tier applied to every generation and price quote. A per-call
+   * `options.serviceTier` overrides it. Unset means the platform default
+   * (`auto`).
+   */
+  serviceTier?: ServiceTier;
+  /**
    * Voice/avatar catalog behavior. `{ preload: true }` loads the first page
    * of every catalog-bound param in the background at client creation.
    */
@@ -217,6 +223,28 @@ export type GenerationEvent =
   | { type: 'generation.completed'; result: GenerateResult }
   | { type: 'generation.failed'; error: ApiError };
 
+/**
+ * How a generation is served, sent as `options.service_tier`:
+ *
+ * - `auto` — the platform default. The user's discount is used when one
+ *   applies, along with the limits it carries: a number of generations at a
+ *   time (a 429 when they are all in use) and a wait before a generation
+ *   starts after heavy use.
+ * - `priority` — the regular price, with no concurrency limit and no wait.
+ *   The discount is not used.
+ */
+export type ServiceTier = 'auto' | 'priority';
+
+/** Options for the price calls — `getCredits()` / `options()`. */
+export interface PriceOptions {
+  /**
+   * Service tier to quote — overrides the client-level `serviceTier`. Pass the
+   * tier the generation will be sent with, so the quote is the price it is
+   * charged: `priority` quotes the regular price, not the discounted one.
+   */
+  serviceTier?: ServiceTier;
+}
+
 /** Input-transformation settings injected into the workflow payload as
  *  `options.inputs_transformation` (GenAIOptions, alongside `drive`). */
 export interface PayloadInputsTransformationOptions {
@@ -261,6 +289,13 @@ export interface GenerateOptions {
    *  `inputsTransformation`. When neither is set, oversized-image downscaling
    *  stays off (opt-in). */
   inputsTransformation?: PayloadInputsTransformationOptions;
+  /**
+   * Service tier for this call — overrides the client-level `serviceTier`.
+   * `priority` pays the regular price to skip the limits of the user's
+   * discount; see {@link ServiceTier}. Applies to `run()`, `generate()`,
+   * `generateText()` and `submit()`.
+   */
+  serviceTier?: ServiceTier;
   /**
    * App identity stamped onto the saved generation (appId/appType).
    * TODO(backend-autosave): temporary — remove once the backend stamps these.
@@ -318,10 +353,10 @@ export interface AiClient {
   generateText(model: string, params: Record<string, unknown> & { prompt: string }, options?: GenerateOptions): Promise<GenerateTextResult>;
 
   /** Get exact credit cost for a model with specific parameters. */
-  getCredits(model: string, params: Record<string, unknown> & { prompt: string }): Promise<number | null>;
+  getCredits(model: string, params: Record<string, unknown> & { prompt: string }, options?: PriceOptions): Promise<number | null>;
 
   /** What the model's /options endpoint answers for these params — credits, how they were derived, and anything else it reports. */
-  options(model: string, params: Record<string, unknown> & { prompt: string }): Promise<OptionsResult | null>;
+  options(model: string, params: Record<string, unknown> & { prompt: string }, options?: PriceOptions): Promise<OptionsResult | null>;
 
   /** Submit a generation job and get its generation id back. Media models only. */
   submit(model: string, params: Record<string, unknown> & { prompt: string }, options?: GenerateOptions): Promise<string>;

@@ -1166,6 +1166,12 @@ interface ClientConfigBase {
      */
     inputsTransformation?: PayloadInputsTransformationOptions;
     /**
+     * Service tier applied to every generation and price quote. A per-call
+     * `options.serviceTier` overrides it. Unset means the platform default
+     * (`auto`).
+     */
+    serviceTier?: ServiceTier;
+    /**
      * Voice/avatar catalog behavior. `{ preload: true }` loads the first page
      * of every catalog-bound param in the background at client creation.
      */
@@ -1303,6 +1309,26 @@ type GenerationEvent = {
     type: 'generation.failed';
     error: ApiError;
 };
+/**
+ * How a generation is served, sent as `options.service_tier`:
+ *
+ * - `auto` — the platform default. The user's discount is used when one
+ *   applies, along with the limits it carries: a number of generations at a
+ *   time (a 429 when they are all in use) and a wait before a generation
+ *   starts after heavy use.
+ * - `priority` — the regular price, with no concurrency limit and no wait.
+ *   The discount is not used.
+ */
+type ServiceTier = 'auto' | 'priority';
+/** Options for the price calls — `getCredits()` / `options()`. */
+interface PriceOptions {
+    /**
+     * Service tier to quote — overrides the client-level `serviceTier`. Pass the
+     * tier the generation will be sent with, so the quote is the price it is
+     * charged: `priority` quotes the regular price, not the discounted one.
+     */
+    serviceTier?: ServiceTier;
+}
 /** Input-transformation settings injected into the workflow payload as
  *  `options.inputs_transformation` (GenAIOptions, alongside `drive`). */
 interface PayloadInputsTransformationOptions {
@@ -1345,6 +1371,13 @@ interface GenerateOptions {
      *  `inputsTransformation`. When neither is set, oversized-image downscaling
      *  stays off (opt-in). */
     inputsTransformation?: PayloadInputsTransformationOptions;
+    /**
+     * Service tier for this call — overrides the client-level `serviceTier`.
+     * `priority` pays the regular price to skip the limits of the user's
+     * discount; see {@link ServiceTier}. Applies to `run()`, `generate()`,
+     * `generateText()` and `submit()`.
+     */
+    serviceTier?: ServiceTier;
     /**
      * App identity stamped onto the saved generation (appId/appType).
      * TODO(backend-autosave): temporary — remove once the backend stamps these.
@@ -1396,11 +1429,11 @@ interface AiClient {
     /** Get exact credit cost for a model with specific parameters. */
     getCredits(model: string, params: Record<string, unknown> & {
         prompt: string;
-    }): Promise<number | null>;
+    }, options?: PriceOptions): Promise<number | null>;
     /** What the model's /options endpoint answers for these params — credits, how they were derived, and anything else it reports. */
     options(model: string, params: Record<string, unknown> & {
         prompt: string;
-    }): Promise<OptionsResult | null>;
+    }, options?: PriceOptions): Promise<OptionsResult | null>;
     /** Submit a generation job and get its generation id back. Media models only. */
     submit(model: string, params: Record<string, unknown> & {
         prompt: string;
@@ -1445,7 +1478,7 @@ interface AiClient {
     drive: DriveClient | undefined;
 }
 
-/** Platform options carried on a {@link ModelsCommand} (ModelsGenAIOptions on the backend). */
+/** Platform options carried on a {@link ModelsCommand} (GenAIOptions on the backend). */
 interface ModelsGenAIOptions {
     safety_checks?: {
         enabled?: boolean;
@@ -1454,6 +1487,7 @@ interface ModelsGenAIOptions {
     inputs_transformation?: {
         downscale_oversized_images?: boolean;
     };
+    service_tier?: ServiceTier;
 }
 /** The `v1/models` request body: which model, the SDK-shaped params, platform options. */
 interface ModelsCommand {
@@ -1656,4 +1690,4 @@ declare const getModel: (id: string) => ModelDefinition | undefined;
  */
 declare const findModel: (ref: string) => ModelDefinition | undefined;
 
-export { type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogModel, type CatalogModelsResponse, type CatalogPage, type CatalogPageOptions, type CatalogParam, type CatalogPreview, type CatalogProvider, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type InitModelCatalogOptions, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelCatalogFilters, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelMeta, type ModelParams, type ModelParamsAccessor, type ModelsCommand, type ModelsGenAIOptions, type ObjectDescriptor, type ObjectEntry, type OptionsResult, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type RunResponse, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type TextDescriptor, type TextEntry, type ToolUsage, type TransportPollOptions, type TransportResult, type UnknownDescriptor, type UnknownEntry, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };
+export { type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogModel, type CatalogModelsResponse, type CatalogPage, type CatalogPageOptions, type CatalogParam, type CatalogPreview, type CatalogProvider, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type InitModelCatalogOptions, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelCatalogFilters, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelMeta, type ModelParams, type ModelParamsAccessor, type ModelsCommand, type ModelsGenAIOptions, type ObjectDescriptor, type ObjectEntry, type OptionsResult, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PriceOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type RunResponse, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type ServiceTier, type TextDescriptor, type TextEntry, type ToolUsage, type TransportPollOptions, type TransportResult, type UnknownDescriptor, type UnknownEntry, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };

@@ -124,7 +124,21 @@ function serializableView(def: ModelDefinition): Record<string, unknown> {
   assert.strictEqual(back.editWorkflow, undefined);
 }
 
-// ── 9. malformed envelope → ApiError 502 invalid_response ───────────
+// ── 9. addedAt / updatedAt ride the wire; a null updatedAt is "unknown" ─
+{
+  const wire = serializeCatalog([RICH]);
+  assert.strictEqual(wire.response.models[0].addedAt, '2026-05-01');
+  assert.strictEqual(wire.response.models[0].updatedAt, '2026-11-12');
+  const [back] = deserializeCatalog(wire);
+  assert.strictEqual(back.updatedAt, '2026-11-12');
+
+  // The server sends `updatedAt: null` for a model never changed since it was added.
+  wire.response.models[0].updatedAt = null;
+  const [unchanged] = deserializeCatalog(wire);
+  assert.strictEqual('updatedAt' in unchanged, false);
+}
+
+// ── 10. malformed envelope → ApiError 502 invalid_response ──────────
 {
   for (const bad of [null, {}, { status: 'error' }, { status: 'success', response: {} }]) {
     assert.throws(

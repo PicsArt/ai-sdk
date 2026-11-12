@@ -669,6 +669,7 @@ function toModelDefinition(wire) {
   if (wire.badges !== void 0) def.badge = wire.badges;
   if (wire.release !== void 0) def.release = wire.release;
   if (wire.addedAt !== void 0) def.addedAt = wire.addedAt;
+  if (wire.updatedAt != null) def.updatedAt = wire.updatedAt;
   if (wire.estimatedTime !== void 0) def.estimatedTime = wire.estimatedTime;
   if (wire.deprecated !== void 0) def.deprecated = wire.deprecated;
   if (wire.constraints !== void 0) def.constraints = wire.constraints;
@@ -1453,6 +1454,7 @@ var ModelMetaImpl = class {
   badges;
   provider;
   addedAt;
+  updatedAt;
   release;
   constructor(def) {
     this.mode = def.mode;
@@ -1468,6 +1470,7 @@ var ModelMetaImpl = class {
       label: def.providerLabel
     };
     this.addedAt = def.addedAt ?? null;
+    this.updatedAt = def.updatedAt ?? null;
   }
 };
 var ModelDescriptorImpl = class {

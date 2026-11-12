@@ -82,6 +82,11 @@ assert(typeof meta.provider.name === 'string' && meta.provider.name.length > 0);
 assert(typeof meta.provider.color === 'string');
 assert(typeof meta.provider.label === 'string');
 
+// addedAt / updatedAt — ISO dates, null when the definition has none
+assert.strictEqual(meta.addedAt, '2026-05-01');
+assert.strictEqual(meta.updatedAt, '2026-11-12');
+assert.strictEqual(Model('kling-v3').meta().updatedAt, null);
+
 // badges normalized to array (even if undefined on definition)
 assert(Array.isArray(Model('kling-v3').meta().badges));
 

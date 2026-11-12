@@ -430,6 +430,8 @@ interface ModelMeta {
     readonly provider: ProviderInfo;
     /** ISO YYYY-MM-DD date the model was added to the catalog, or null if unknown. */
     readonly addedAt: string | null;
+    /** ISO YYYY-MM-DD date the model definition was last changed, or null if unknown. */
+    readonly updatedAt: string | null;
     /** Release / availability tier. Absent on the definition ⇒ `'production'`. */
     readonly release: ReleaseTag;
 }
@@ -729,6 +731,8 @@ interface ModelDefinition {
     badge?: BadgeType[];
     /** ISO YYYY-MM-DD date the model was added. The 'new' badge is derived from this — see core/badges.ts. */
     addedAt?: string;
+    /** ISO YYYY-MM-DD date the model definition was last changed. Absent when unknown. */
+    updatedAt?: string;
     /**
      * Marks a model as retired — superseded by a newer model or otherwise no
      * longer offered. Will not come back. Catalog row stays so workflow IDs
@@ -1554,6 +1558,8 @@ interface CatalogModel {
     features?: ModelFeature[];
     release?: ReleaseTag;
     addedAt?: string;
+    /** The server sends `null` for a model that has never been changed since it was added. */
+    updatedAt?: string | null;
     estimatedTime?: number | Record<string, number>;
     deprecated?: boolean;
     /** `include=schema` */

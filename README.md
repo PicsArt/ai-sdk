@@ -46,7 +46,7 @@ catalog.search('kling')                    // search by name/id/provider
 
 // Model metadata & params — the `Model` accessor
 Model('flux-2-pro').name                    // 'Flux 2 Pro'
-Model('flux-2-pro').meta()                  // mode, provider, badges, …
+Model('flux-2-pro').meta()                  // mode, provider, badges, addedAt, updatedAt, …
 Model('flux-2-pro').params()                // accepted parameters
 Model('flux-2-pro').params().toSchema()     // param schema
 

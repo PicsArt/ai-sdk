@@ -274,6 +274,8 @@ export interface ModelDefinition {
   badge?: BadgeType[];
   /** ISO YYYY-MM-DD date the model was added. The 'new' badge is derived from this — see core/badges.ts. */
   addedAt?: string;
+  /** ISO YYYY-MM-DD date the model definition was last changed. Absent when unknown. */
+  updatedAt?: string;
   /**
    * Marks a model as retired — superseded by a newer model or otherwise no
    * longer offered. Will not come back. Catalog row stays so workflow IDs

@@ -61,6 +61,8 @@ export const RICH = makeModel({
   editWorkflow: 'fixture/v1/rich-edit',
   modelId: 'rich-vendor-id',
   badge: ['new', 'popular'] as ModelDefinition['badge'],
+  addedAt: '2026-05-01',
+  updatedAt: '2026-11-12',
   constraints: [
     { when: { resolution: '1080p' }, require: { duration: 8 } },
   ] as unknown as ModelDefinition['constraints'],

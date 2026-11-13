@@ -6,6 +6,7 @@
  */
 export type ModelInputById = {
   "async-flash-v1": { prompt: string; voiceId?: string; container?: "mp3" | "wav" | "raw"; sampleRate?: number; encoding?: "pcm_s16le" | "pcm_f32le"; bitRate?: number; };
+  "gpt-6-luna-decisions": { input: string; imageUrls?: string[]; questions: Array<{ type: "predicate" | "choice" | "score"; name?: string; instructions: string; choices?: unknown; levels?: unknown }>; };
   "gpt-image-2.6-sunburst": { prompt: string; aspectRatio?: "1:1" | "3:2" | "2:3" | "16:9" | "9:16" | "4:3" | "3:4" | "auto"; resolution?: "1K" | "2K" | "4K"; size?: string; quality?: "max" | "xhigh" | "high" | "medium" | "low"; complexity?: "high" | "medium" | "low"; background?: "opaque" | "transparent" | "auto"; outputFormat?: "png" | "jpeg" | "webp" | "gif" | "svg"; frameCount?: number; frameDurationMs?: number; svgAuthorModel?: "gpt-6.1-sol" | "gpt-6.1-terra" | "gpt-6-astra" | "gpt-6-sol" | "gpt-6-luna"; svgReasoningEffort?: "auto" | "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max"; count?: 1 | 2 | 4 | 6 | 8 | 10; imageUrls?: string[]; markupUrl?: string; maskUrl?: string; };
   "bytedance-omnihuman-v1.5": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; resolution?: "720p" | "1080p"; turboMode?: boolean; seed?: number; };
   "bytedance-omnihuman-v2.0": { prompt?: string; imageUrls: [string, ...string[]]; audioUrl: string; enableWatermark?: boolean; };
@@ -73,6 +74,7 @@ export type ModelInputById = {
   "gemini-nano-banana-2.1": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "2:3" | "21:9" | "auto"; resolution?: "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; seed?: number; thinkingLevel?: "minimal" | "medium" | "high"; imageUrls?: string[]; };
   "gemini-omni-1.1-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; resolution?: "360p" | "720p" | "1080p" | "4k"; duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrl?: string; videoUrls?: string[]; };
   "gemini-omni-1.2-flash": { prompt: string; aspectRatio?: "16:9" | "9:16"; resolution?: "360p" | "720p" | "1080p" | "4k"; duration?: 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15; startFrame?: string; endFrame?: string; imageUrls?: string[]; videoUrl?: string; videoUrls?: string[]; task?: "edit" | "extend"; };
+  "gemini-decision-1": { input: string; imageUrls?: string[]; questions: Record<string, { type: "noul" | "choice" | "score"; instructions: string; criteria?: unknown }>; };
   "gemini-omni-flash-preview": { prompt: string; aspectRatio?: "16:9" | "9:16"; duration?: 3 | 5 | 6 | 8 | 10; imageUrls?: string[]; videoUrl?: string; };
   "gpt-4.1-mini": { prompt: string; imageUrls?: string[]; };
   "gpt-4.1-nano": { prompt: string; imageUrls?: string[]; };
@@ -288,7 +290,7 @@ export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-fable-
 export type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /** IDs of structured-output (json-mode) models — narrows run()'s result type. */
-export type JsonModelId = "typesafe-evaluate";
+export type JsonModelId = "gemini-decision-1" | "gpt-6-luna-decisions" | "typesafe-evaluate";
 
 /** Ensure caller does not pass keys unsupported by the target model input shape. */
 export type NoExtraKeys<Shape, T extends Shape> = T & Record<Exclude<keyof T, keyof Shape>, never>;

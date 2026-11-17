@@ -64,7 +64,6 @@ export type ModelInputById = {
   "gemini-3.1-flash-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "3:2" | "2:3" | "4:5" | "5:4" | "4:1" | "1:4" | "8:1" | "1:8" | "21:9" | "auto"; resolution?: "0.5K" | "1K" | "2K" | "4K"; count?: 1 | 2 | 4 | 6 | 8 | 10; seed?: number; thinkingLevel?: "minimal" | "high"; imageUrls?: string[]; };
   "gemini-3.1-flash-lite-image": { prompt: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "3:4" | "4:3" | "3:2" | "2:3" | "4:5" | "5:4" | "4:1" | "1:4" | "8:1" | "1:8" | "21:9" | "auto"; count?: 1 | 2 | 4 | 6 | 8 | 10; seed?: number; thinkingLevel?: "minimal" | "high"; imageUrls?: string[]; };
   "gemini-3.5-flash-lite": { prompt: string; imageUrls?: string[]; };
-  "gemini-3.6-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-3.7-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-3.8-flash": { prompt: string; imageUrls?: string[]; thinking?: "off" | "low" | "medium" | "high"; };
   "gemini-3.8-flash-lite-tts": { language?: string; accent?: string; prompt?: string; voiceId?: string; style?: string; parts?: Array<{ text: string; speaker?: string; style?: string }>; multiSpeakerVoiceConfigs?: Array<{ speaker: string; voiceName: string }>; };
@@ -287,7 +286,7 @@ export type TypedModelId = keyof ModelInputById;
 export type ModelInput<M extends TypedModelId> = ModelInputById[M];
 
 /** IDs of text-generation (LLM) models — narrows generateText(). */
-export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-fable-5-2" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-opus-5-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.6-flash" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gemini-4-argon" | "gemini-4-carbon" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol" | "gpt-6.1-sol" | "gpt-6.1-terra" | "grok-4.7" | "kimi-k3" | "kimi-k3.1-pro" | "kimi-k3.1-pro-highspeed" | "minimax-h3-context-ir" | "minimax-m3" | "minimax-m3.1-flash";
+export type TextModelId = "claude-fable-5" | "claude-fable-5-1" | "claude-fable-5-2" | "claude-haiku-4-5" | "claude-haiku-5-5" | "claude-opus-4-8" | "claude-opus-5" | "claude-opus-5-5" | "claude-sonnet-4-5" | "claude-sonnet-4-6" | "claude-sonnet-5" | "eleven-speech-to-text" | "gemini-2.5-flash" | "gemini-3-pro" | "gemini-3.5-flash-lite" | "gemini-3.7-flash" | "gemini-3.8-flash" | "gemini-4-argon" | "gemini-4-carbon" | "gpt-4.1-mini" | "gpt-4.1-nano" | "gpt-4o" | "gpt-4o-mini" | "gpt-5" | "gpt-5-mini" | "gpt-5.1" | "gpt-5.2" | "gpt-5.5" | "gpt-5.6-luna" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-6-astra" | "gpt-6-luna" | "gpt-6-sol" | "gpt-6.1-sol" | "gpt-6.1-terra" | "grok-4.7" | "kimi-k3" | "kimi-k3.1-pro" | "kimi-k3.1-pro-highspeed" | "minimax-h3-context-ir" | "minimax-m3" | "minimax-m3.1-flash";
 export type TextModelInputById = Pick<ModelInputById, TextModelId>;
 
 /** IDs of structured-output (json-mode) models — narrows run()'s result type. */

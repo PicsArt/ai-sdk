@@ -97,6 +97,16 @@ export interface OptionsResult {
   hasPermission?: boolean;
   /** Permissions the caller is missing for this request, when `hasPermission` is false. */
   missingPermissions?: string[];
+  /** How loaded the model is right now, when it reports it. Advisory — a run is never refused because of it. */
+  availability?: OptionsAvailability;
+}
+
+/** A model's current load, as its `/options` endpoint reports it (mirrors `WorkflowAvailability` from `@picsart/workflows-client`). */
+export interface OptionsAvailability {
+  /** `available`: a run starts right away. `busy`: it runs, after a wait. `unavailable`: the model is not taking runs now. */
+  status: 'available' | 'busy' | 'unavailable';
+  /** Expected wait before the run starts, when the model can estimate it. */
+  estimatedWaitSeconds?: number;
 }
 
 export interface WorkflowPollOptions {

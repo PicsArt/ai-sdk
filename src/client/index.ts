@@ -28,7 +28,7 @@ import { createApis } from './apis.ts';
 import { createCatalogs } from './catalogs.ts';
 
 // ── Re-export types for the public API ──
-export type { ClientConfig, InitModelCatalogOptions, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, ServiceTier, PriceOptions, CreditUsage, OptionsResult, ToolUsage, AiClient, MediaModelId } from './types.ts';
+export type { ClientConfig, InitModelCatalogOptions, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, ServiceTier, PriceOptions, CreditUsage, OptionsResult, OptionsAvailability, ToolUsage, AiClient, MediaModelId } from './types.ts';
 export type { ModelsCommand, ModelsGenAIOptions } from './prepare.ts';
 export { MODELS_WORKFLOW } from './prepare.ts';
 export type { ApiResponse, ApiRunOptions, ApiSchemas, ApisClient } from './apis.ts';

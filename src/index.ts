@@ -39,6 +39,7 @@ export type {
   GenerationProgress,
   CreditUsage,
   OptionsResult,
+  OptionsAvailability,
   ToolUsage,
   DriveConfig,
   DriveClient,

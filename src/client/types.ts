@@ -7,6 +7,7 @@ import type {
   WorkflowSubmitRequest,
   CreditUsage,
   OptionsResult,
+  OptionsAvailability,
   ToolUsage,
 } from '../core/workflow.ts';
 import type { DriveFolder, DriveSaveResult, PayloadDriveOptions, DriveClient } from './drive.ts';
@@ -25,6 +26,7 @@ export type {
   WorkflowSubmitRequest,
   CreditUsage,
   OptionsResult,
+  OptionsAvailability,
   ToolUsage,
 };
 

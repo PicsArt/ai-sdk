@@ -50,6 +50,7 @@ export type {
   PayloadDriveOptions,
   PayloadDriveFolderOptions,
   PayloadInputsTransformationOptions,
+  PayloadInputsNormalizationOptions,
   ServiceTier,
   PriceOptions,
   DriveMediaItem,

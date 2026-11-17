@@ -209,6 +209,56 @@ const ai = createClient({
   );
 }
 
+// ── 7c. inputsNormalization: per call, only the fields set, never by default ─
+{
+  // Unset: nothing is sent, and downscaling stays off.
+  await ai.generate('backend-only-model', { prompt: 'x' }, FAST_POLL);
+  let payload = platform.calls.submits.at(-1)!.payload;
+  assert.strictEqual('inputs_normalization' in payload, false);
+
+  // Set: only the fields the caller set go out, snake_cased, at the command's top level.
+  await ai.generate('backend-only-model', { prompt: 'x' }, {
+    ...FAST_POLL,
+    inputsNormalization: { upscaleUndersizedImages: true, reduceVideoFrameRate: false },
+  });
+  payload = platform.calls.submits.at(-1)!.payload;
+  assert.deepStrictEqual(payload.inputs_normalization, {
+    upscale_undersized_images: true,
+    reduce_video_frame_rate: false,
+  });
+  assert.deepStrictEqual(
+    (payload.options as Record<string, unknown>).inputs_transformation,
+    { downscale_oversized_images: false },
+  );
+
+  // An empty object sends nothing.
+  await ai.generate('backend-only-model', { prompt: 'x' }, { ...FAST_POLL, inputsNormalization: {} });
+  assert.strictEqual('inputs_normalization' in platform.calls.submits.at(-1)!.payload, false);
+
+  // `all` turns downscaling on too, unless the caller set it explicitly.
+  await ai.submit('backend-only-model', { prompt: 'x' }, { inputsNormalization: { all: true } });
+  payload = platform.calls.submits.at(-1)!.payload;
+  assert.deepStrictEqual(payload.inputs_normalization, { all: true });
+  assert.deepStrictEqual(
+    (payload.options as Record<string, unknown>).inputs_transformation,
+    { downscale_oversized_images: true },
+  );
+  await ai.submit('backend-only-model', { prompt: 'x' }, {
+    inputsNormalization: { all: true },
+    inputsTransformation: { downscaleOversizedImages: false },
+  });
+  assert.deepStrictEqual(
+    (platform.calls.submits.at(-1)!.payload.options as Record<string, unknown>).inputs_transformation,
+    { downscale_oversized_images: false },
+  );
+
+  // Text and run never carry it.
+  RESULTS.set('task-1', { status: 'COMPLETED', result: { text: 'hello' } });
+  await ai.generateText('backend-only-llm', { prompt: 'hi' }, { ...FAST_POLL, inputsNormalization: { all: true } });
+  assert.strictEqual('inputs_normalization' in platform.calls.submits.at(-1)!.payload, false);
+  RESULTS.delete('task-1');
+}
+
 // ── 8. after initModelCatalog: generation flow is untouched by it ───
 {
   await ai.initModelCatalog();

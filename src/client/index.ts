@@ -28,7 +28,7 @@ import { createApis } from './apis.ts';
 import { createCatalogs } from './catalogs.ts';
 
 // ── Re-export types for the public API ──
-export type { ClientConfig, InitModelCatalogOptions, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, ServiceTier, PriceOptions, CreditUsage, OptionsResult, OptionsAvailability, ToolUsage, AiClient, MediaModelId } from './types.ts';
+export type { ClientConfig, InitModelCatalogOptions, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, PayloadInputsNormalizationOptions, ServiceTier, PriceOptions, CreditUsage, OptionsResult, OptionsAvailability, ToolUsage, AiClient, MediaModelId } from './types.ts';
 export type { ModelsCommand, ModelsGenAIOptions } from './prepare.ts';
 export { MODELS_WORKFLOW } from './prepare.ts';
 export type { ApiResponse, ApiRunOptions, ApiSchemas, ApisClient } from './apis.ts';
@@ -319,11 +319,12 @@ export function createClient(config: ClientConfig) {
     };
   }
 
-  /** Oversized-image downscaling: per-call wins, then client config, then off. */
+  /** Oversized-image downscaling: per-call wins, then client config, then the
+   *  call's `inputsNormalization.all` (every fix on), then off. */
   function resolveDownscale(options?: GenerateOptions): boolean {
     return options?.inputsTransformation?.downscaleOversizedImages
       ?? inputsTransformationConfig?.downscaleOversizedImages
-      ?? false;
+      ?? options?.inputsNormalization?.all === true;
   }
 
   /** Service tier: per-call wins, then client config, then unset (platform default). */
@@ -461,6 +462,7 @@ export function createClient(config: ClientConfig) {
       const command = buildModelsCommand(model, params, {
         drive,
         downscaleOversizedImages: resolveDownscale(options),
+        inputsNormalization: options?.inputsNormalization,
       }, resolveServiceTier(options));
       const completed = await executeDynamic(command, options);
       return parseDynamicResult(completed, model);
@@ -526,6 +528,7 @@ export function createClient(config: ClientConfig) {
       const command = buildModelsCommand(model, params, {
         drive,
         downscaleOversizedImages: resolveDownscale(options),
+        inputsNormalization: options?.inputsNormalization,
       }, resolveServiceTier(options));
       try {
         return await submitJob(MODELS_WORKFLOW, command, options?.signal);

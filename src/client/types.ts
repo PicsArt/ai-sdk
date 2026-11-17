@@ -260,6 +260,31 @@ export interface PayloadInputsTransformationOptions {
   downscaleOversizedImages?: boolean;
 }
 
+/**
+ * Opt-in fixes for inputs a vendor rejects as out of its limits, sent as the
+ * command's `inputs_normalization`: the model workflow brings the rejected
+ * input within the limits and retries. Every fix is off unless set here, and
+ * only the fields you set are sent. Served by the Seedance models; a model
+ * whose workflow has no such fixes answers per its own validation.
+ */
+export interface PayloadInputsNormalizationOptions {
+  /**
+   * Turn every fix on — `inputsTransformation.downscaleOversizedImages`
+   * included, unless that is set explicitly. A fix set to `false` here stays off.
+   */
+  all?: boolean;
+  /** Scale up an input image under 300 px per side or 90,000 pixels (reference
+   *  images and first / last frames) to the minimum, and retry. */
+  upscaleUndersizedImages?: boolean;
+  /** Scale a reference video outside 407,696..8,295,044 pixels or 300..6000 px
+   *  per side into the range, keeping its aspect ratio, and retry. */
+  resizeOutOfRangeVideos?: boolean;
+  /** Re-encode a reference video above 60 fps at 60 fps, and retry. */
+  reduceVideoFrameRate?: boolean;
+  /** Transcode reference audio that is not MP3 / WAV to MP3, and retry. */
+  transcodeUnsupportedAudio?: boolean;
+}
+
 /** Polling controls for result()/subscribe() on an already-submitted job. */
 export interface GenerationOptions {
   /** Poll interval in ms. Overrides the model's `pollOptions` and the mode default. */
@@ -291,6 +316,12 @@ export interface GenerateOptions {
    *  `inputsTransformation`. When neither is set, oversized-image downscaling
    *  stays off (opt-in). */
   inputsTransformation?: PayloadInputsTransformationOptions;
+  /**
+   * Fixes for inputs the vendor rejects as out of its limits, for this
+   * generation only — see {@link PayloadInputsNormalizationOptions}. Applies
+   * to `generate()` and `submit()`; unset, nothing is sent and every fix stays off.
+   */
+  inputsNormalization?: PayloadInputsNormalizationOptions;
   /**
    * Service tier for this call — overrides the client-level `serviceTier`.
    * `priority` pays the regular price to skip the limits of the user's

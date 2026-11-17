@@ -2721,11 +2721,28 @@ function buildTransport(wc) {
 
 // src/client/prepare.ts
 var MODELS_WORKFLOW = "v1/models";
+var INPUTS_NORMALIZATION_FIELDS = [
+  ["all", "all"],
+  ["upscaleUndersizedImages", "upscale_undersized_images"],
+  ["resizeOutOfRangeVideos", "resize_out_of_range_videos"],
+  ["reduceVideoFrameRate", "reduce_video_frame_rate"],
+  ["transcodeUnsupportedAudio", "transcode_unsupported_audio"]
+];
+function toInputsNormalization(options) {
+  if (!options) return void 0;
+  const out = {};
+  for (const [from, to] of INPUTS_NORMALIZATION_FIELDS) {
+    if (options[from] !== void 0) out[to] = options[from];
+  }
+  return Object.keys(out).length > 0 ? out : void 0;
+}
 function buildModelsCommand(model, params, media, serviceTier) {
   if (!media && !serviceTier) return { model, params };
+  const inputsNormalization = toInputsNormalization(media?.inputsNormalization);
   return {
     model,
     params,
+    ...inputsNormalization ? { inputs_normalization: inputsNormalization } : {},
     options: {
       ...media ? {
         inputs_transformation: {
@@ -3708,7 +3725,7 @@ function createClient(config) {
     };
   }
   function resolveDownscale(options) {
-    return options?.inputsTransformation?.downscaleOversizedImages ?? inputsTransformationConfig?.downscaleOversizedImages ?? false;
+    return options?.inputsTransformation?.downscaleOversizedImages ?? inputsTransformationConfig?.downscaleOversizedImages ?? options?.inputsNormalization?.all === true;
   }
   function resolveServiceTier(options) {
     return options?.serviceTier ?? config.serviceTier;
@@ -3800,7 +3817,8 @@ function createClient(config) {
       const drive = buildDynamicDriveOptions(model, params, options);
       const command = buildModelsCommand(model, params, {
         drive,
-        downscaleOversizedImages: resolveDownscale(options)
+        downscaleOversizedImages: resolveDownscale(options),
+        inputsNormalization: options?.inputsNormalization
       }, resolveServiceTier(options));
       const completed = await executeDynamic(command, options);
       return parseDynamicResult(completed, model);
@@ -3843,7 +3861,8 @@ function createClient(config) {
       const drive = buildDynamicDriveOptions(model, params, options);
       const command = buildModelsCommand(model, params, {
         drive,
-        downscaleOversizedImages: resolveDownscale(options)
+        downscaleOversizedImages: resolveDownscale(options),
+        inputsNormalization: options?.inputsNormalization
       }, resolveServiceTier(options));
       try {
         return await submitJob(MODELS_WORKFLOW, command, options?.signal);

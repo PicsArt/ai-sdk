@@ -1354,6 +1354,30 @@ interface PayloadInputsTransformationOptions {
      */
     downscaleOversizedImages?: boolean;
 }
+/**
+ * Opt-in fixes for inputs a vendor rejects as out of its limits, sent as the
+ * command's `inputs_normalization`: the model workflow brings the rejected
+ * input within the limits and retries. Every fix is off unless set here, and
+ * only the fields you set are sent. Served by the Seedance models; a model
+ * whose workflow has no such fixes answers per its own validation.
+ */
+interface PayloadInputsNormalizationOptions {
+    /**
+     * Turn every fix on — `inputsTransformation.downscaleOversizedImages`
+     * included, unless that is set explicitly. A fix set to `false` here stays off.
+     */
+    all?: boolean;
+    /** Scale up an input image under 300 px per side or 90,000 pixels (reference
+     *  images and first / last frames) to the minimum, and retry. */
+    upscaleUndersizedImages?: boolean;
+    /** Scale a reference video outside 407,696..8,295,044 pixels or 300..6000 px
+     *  per side into the range, keeping its aspect ratio, and retry. */
+    resizeOutOfRangeVideos?: boolean;
+    /** Re-encode a reference video above 60 fps at 60 fps, and retry. */
+    reduceVideoFrameRate?: boolean;
+    /** Transcode reference audio that is not MP3 / WAV to MP3, and retry. */
+    transcodeUnsupportedAudio?: boolean;
+}
 /** Polling controls for result()/subscribe() on an already-submitted job. */
 interface GenerationOptions {
     /** Poll interval in ms. Overrides the model's `pollOptions` and the mode default. */
@@ -1384,6 +1408,12 @@ interface GenerateOptions {
      *  `inputsTransformation`. When neither is set, oversized-image downscaling
      *  stays off (opt-in). */
     inputsTransformation?: PayloadInputsTransformationOptions;
+    /**
+     * Fixes for inputs the vendor rejects as out of its limits, for this
+     * generation only — see {@link PayloadInputsNormalizationOptions}. Applies
+     * to `generate()` and `submit()`; unset, nothing is sent and every fix stays off.
+     */
+    inputsNormalization?: PayloadInputsNormalizationOptions;
     /**
      * Service tier for this call — overrides the client-level `serviceTier`.
      * `priority` pays the regular price to skip the limits of the user's
@@ -1502,11 +1532,20 @@ interface ModelsGenAIOptions {
     };
     service_tier?: ServiceTier;
 }
+/** `inputs_normalization` on a {@link ModelsCommand} — the opt-in input fixes, snake_cased. */
+interface ModelsInputsNormalization {
+    all?: boolean;
+    upscale_undersized_images?: boolean;
+    resize_out_of_range_videos?: boolean;
+    reduce_video_frame_rate?: boolean;
+    transcode_unsupported_audio?: boolean;
+}
 /** The `v1/models` request body: which model, the SDK-shaped params, platform options. */
 interface ModelsCommand {
     model: string;
     params: Record<string, unknown>;
     options?: ModelsGenAIOptions;
+    inputs_normalization?: ModelsInputsNormalization;
 }
 
 /**
@@ -1705,4 +1744,4 @@ declare const getModel: (id: string) => ModelDefinition | undefined;
  */
 declare const findModel: (ref: string) => ModelDefinition | undefined;
 
-export { type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogModel, type CatalogModelsResponse, type CatalogPage, type CatalogPageOptions, type CatalogParam, type CatalogPreview, type CatalogProvider, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type InitModelCatalogOptions, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelCatalogFilters, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelMeta, type ModelParams, type ModelParamsAccessor, type ModelsCommand, type ModelsGenAIOptions, type ObjectDescriptor, type ObjectEntry, type OptionsAvailability, type OptionsResult, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsTransformationOptions, type PriceOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type RunResponse, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type ServiceTier, type TextDescriptor, type TextEntry, type ToolUsage, type TransportPollOptions, type TransportResult, type UnknownDescriptor, type UnknownEntry, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };
+export { type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogModel, type CatalogModelsResponse, type CatalogPage, type CatalogPageOptions, type CatalogParam, type CatalogPreview, type CatalogProvider, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type InitModelCatalogOptions, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelCatalogFilters, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelMeta, type ModelParams, type ModelParamsAccessor, type ModelsCommand, type ModelsGenAIOptions, type ObjectDescriptor, type ObjectEntry, type OptionsAvailability, type OptionsResult, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsNormalizationOptions, type PayloadInputsTransformationOptions, type PriceOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type RunResponse, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type ServiceTier, type TextDescriptor, type TextEntry, type ToolUsage, type TransportPollOptions, type TransportResult, type UnknownDescriptor, type UnknownEntry, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };

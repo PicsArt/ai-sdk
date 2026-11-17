@@ -2,7 +2,7 @@ import type { WorkflowStatusResult } from '../core/workflow.ts';
 import type { GenerateResultItemMetadata } from '../core/response.ts';
 import { throwIfErrorResult } from '../core/response.ts';
 import { ApiError } from '../core/errors.ts';
-import type { GenerateResult, GenerateResultItem, GenerateTextResult, RunResponse, ServiceTier } from './types.ts';
+import type { GenerateResult, GenerateResultItem, GenerateTextResult, PayloadInputsNormalizationOptions, RunResponse, ServiceTier } from './types.ts';
 import type { PayloadDriveOptions } from './drive.ts';
 
 // ── Dynamic mode — the models-hub `v1/models` workflow ───────────────
@@ -23,30 +23,67 @@ export interface ModelsGenAIOptions {
   service_tier?: ServiceTier;
 }
 
+/** `inputs_normalization` on a {@link ModelsCommand} — the opt-in input fixes, snake_cased. */
+export interface ModelsInputsNormalization {
+  all?: boolean;
+  upscale_undersized_images?: boolean;
+  resize_out_of_range_videos?: boolean;
+  reduce_video_frame_rate?: boolean;
+  transcode_unsupported_audio?: boolean;
+}
+
 /** The `v1/models` request body: which model, the SDK-shaped params, platform options. */
 export interface ModelsCommand {
   model: string;
   params: Record<string, unknown>;
   options?: ModelsGenAIOptions;
+  inputs_normalization?: ModelsInputsNormalization;
+}
+
+const INPUTS_NORMALIZATION_FIELDS: ReadonlyArray<[keyof PayloadInputsNormalizationOptions, keyof ModelsInputsNormalization]> = [
+  ['all', 'all'],
+  ['upscaleUndersizedImages', 'upscale_undersized_images'],
+  ['resizeOutOfRangeVideos', 'resize_out_of_range_videos'],
+  ['reduceVideoFrameRate', 'reduce_video_frame_rate'],
+  ['transcodeUnsupportedAudio', 'transcode_unsupported_audio'],
+];
+
+/** Only the fields the caller set, snake_cased; `undefined` when none is set. */
+function toInputsNormalization(
+  options?: PayloadInputsNormalizationOptions,
+): ModelsInputsNormalization | undefined {
+  if (!options) return undefined;
+  const out: ModelsInputsNormalization = {};
+  for (const [from, to] of INPUTS_NORMALIZATION_FIELDS) {
+    if (options[from] !== undefined) out[to] = options[from];
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 /**
- * Build the `v1/models` command. Media generations pass `media` (drive +
- * inputs transformation); text, run and price callers omit it, so those
- * routes send no media options. `serviceTier` rides every route when set —
+ * Build the `v1/models` command. Media generations pass `media` (drive,
+ * inputs transformation and, when the caller set any of it, inputs
+ * normalization, sent as the command's top-level `inputs_normalization`);
+ * text, run and price callers omit it, so those routes send no media options. `serviceTier` rides every route when set —
  * models-hub hands it to the model workflow, which decides the user's
  * discount from it. A command with neither carries no `options` at all.
  */
 export function buildModelsCommand(
   model: string,
   params: Record<string, unknown>,
-  media?: { drive?: PayloadDriveOptions; downscaleOversizedImages?: boolean },
+  media?: {
+    drive?: PayloadDriveOptions;
+    downscaleOversizedImages?: boolean;
+    inputsNormalization?: PayloadInputsNormalizationOptions;
+  },
   serviceTier?: ServiceTier,
 ): ModelsCommand {
   if (!media && !serviceTier) return { model, params };
+  const inputsNormalization = toInputsNormalization(media?.inputsNormalization);
   return {
     model,
     params,
+    ...(inputsNormalization ? { inputs_normalization: inputsNormalization } : {}),
     options: {
       ...(media
         ? {

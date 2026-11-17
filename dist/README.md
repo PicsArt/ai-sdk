@@ -205,6 +205,31 @@ uploads remain ordinary uploads: without generation context the SDK cannot infer
 model, prompt or settings. Existing Drive files are not backfilled. The backend preserves SDK-supplied metadata; it cannot reconstruct SDK input
 names or catalog model IDs from an arbitrary vendor request.
 
+## Input Normalization
+
+Some vendors reject an input that is out of their limits — an image too small,
+a reference video too large or above 60 fps, audio that is not MP3 / WAV.
+`inputsNormalization` asks the platform to bring such an input within the
+limits and retry, instead of failing. It is set per generation, on
+`generate()` and `submit()`; every fix is off unless you turn it on, and only
+the fields you set are sent. The Seedance models serve it.
+
+| Field | Fix |
+|-------|-----|
+| `upscaleUndersizedImages` | Scale up an image under 300 px per side or 90,000 pixels |
+| `resizeOutOfRangeVideos` | Scale a reference video into 407,696..8,295,044 pixels / 300..6000 px per side |
+| `reduceVideoFrameRate` | Re-encode a reference video above 60 fps at 60 fps |
+| `transcodeUnsupportedAudio` | Transcode reference audio that is not MP3 / WAV to MP3 |
+| `all` | Every fix above, plus `inputsTransformation.downscaleOversizedImages` unless that is set |
+
+```typescript
+await ai.generate(modelId, { prompt, videoUrls }, {
+  inputsNormalization: { resizeOutOfRangeVideos: true, reduceVideoFrameRate: true },
+});
+```
+
+A fix set to `false` stays off even with `all: true`.
+
 ## Service Tier
 
 `serviceTier` chooses how a generation is served. It is sent to the platform as

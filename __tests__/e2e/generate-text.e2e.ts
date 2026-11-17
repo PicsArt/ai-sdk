@@ -27,7 +27,9 @@ function generateText(id: string, input: Record<string, unknown>): Promise<Gener
   )(id, input);
 }
 
-const MODELS = ['claude-opus-4-8', 'gpt-5.5', 'gemini-3-pro', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.5-flash-lite', 'kimi-k3', 'grok-4.7', 'minimax-m3', 'minimax-m3.1-flash'];
+// TODO: re-enable 'claude-opus-4-8' once the backend stops returning
+// internal_server_error for it (disabled 2026-11-17).
+const MODELS = [/* 'claude-opus-4-8', */ 'gpt-5.5', 'gemini-3-pro', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.5-flash-lite', 'kimi-k3', 'grok-4.7', 'minimax-m3', 'minimax-m3.1-flash'];
 
 for (const id of MODELS) {
   test(`${id} — basic generateText`, { timeout: 120_000 }, async () => {

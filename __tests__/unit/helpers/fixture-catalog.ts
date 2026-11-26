@@ -62,6 +62,7 @@ export const RICH = makeModel({
   modelId: 'rich-vendor-id',
   badge: ['new', 'popular'] as ModelDefinition['badge'],
   addedAt: '2026-05-01',
+  releasedAt: '2026-05-20',
   updatedAt: '2026-11-12',
   constraints: [
     { when: { resolution: '1080p' }, require: { duration: 8 } },

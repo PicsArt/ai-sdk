@@ -669,6 +669,7 @@ function toModelDefinition(wire) {
   if (wire.badges !== void 0) def.badge = wire.badges;
   if (wire.release !== void 0) def.release = wire.release;
   if (wire.addedAt !== void 0) def.addedAt = wire.addedAt;
+  if (wire.releasedAt != null) def.releasedAt = wire.releasedAt;
   if (wire.updatedAt != null) def.updatedAt = wire.updatedAt;
   if (wire.estimatedTime !== void 0) def.estimatedTime = wire.estimatedTime;
   if (wire.deprecated !== void 0) def.deprecated = wire.deprecated;
@@ -1454,6 +1455,7 @@ var ModelMetaImpl = class {
   badges;
   provider;
   addedAt;
+  releasedAt;
   updatedAt;
   release;
   constructor(def) {
@@ -1470,6 +1472,7 @@ var ModelMetaImpl = class {
       label: def.providerLabel
     };
     this.addedAt = def.addedAt ?? null;
+    this.releasedAt = def.releasedAt ?? null;
     this.updatedAt = def.updatedAt ?? null;
   }
 };
@@ -2617,7 +2620,7 @@ function toApiError(err, workflow, id) {
 
 // package.json
 var package_default = {
-  version: "7.43.0"};
+  version: "7.45.0"};
 
 // src/client/transport.ts
 var GATEWAY_HEADERS = {

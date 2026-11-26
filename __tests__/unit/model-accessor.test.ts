@@ -86,6 +86,8 @@ assert(typeof meta.provider.label === 'string');
 assert.strictEqual(meta.addedAt, '2026-05-01');
 assert.strictEqual(meta.updatedAt, '2026-11-12');
 assert.strictEqual(Model('kling-v3').meta().updatedAt, null);
+assert.strictEqual(meta.releasedAt, '2026-05-20');
+assert.strictEqual(Model('kling-v3').meta().releasedAt, null);
 
 // badges normalized to array (even if undefined on definition)
 assert(Array.isArray(Model('kling-v3').meta().badges));

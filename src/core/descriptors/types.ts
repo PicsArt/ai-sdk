@@ -265,6 +265,8 @@ export interface ModelMeta {
   readonly provider: ProviderInfo;
   /** ISO YYYY-MM-DD date the model was added to the catalog, or null if unknown. */
   readonly addedAt: string | null;
+  /** ISO YYYY-MM-DD date the model went into full release at Picsart, or null while it is in preview. */
+  readonly releasedAt: string | null;
   /** ISO YYYY-MM-DD date the model definition was last changed, or null if unknown. */
   readonly updatedAt: string | null;
   /** Release / availability tier. Absent on the definition ⇒ `'production'`. */

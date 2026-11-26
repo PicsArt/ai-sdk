@@ -136,6 +136,12 @@ function serializableView(def: ModelDefinition): Record<string, unknown> {
   wire.response.models[0].updatedAt = null;
   const [unchanged] = deserializeCatalog(wire);
   assert.strictEqual('updatedAt' in unchanged, false);
+
+  // releasedAt rides the same way; `null` is a model still in preview.
+  assert.strictEqual(back.releasedAt, '2026-05-20');
+  wire.response.models[0].releasedAt = null;
+  const [unreleased] = deserializeCatalog(wire);
+  assert.strictEqual('releasedAt' in unreleased, false);
 }
 
 // ── 10. malformed envelope → ApiError 502 invalid_response ──────────

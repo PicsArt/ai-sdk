@@ -55,6 +55,8 @@ export interface CatalogModel {
   features?: ModelFeature[];
   release?: ReleaseTag;
   addedAt?: string;
+  /** The server sends `null` while the model is still in preview (not yet fully released). */
+  releasedAt?: string | null;
   /** The server sends `null` for a model that has never been changed since it was added. */
   updatedAt?: string | null;
   estimatedTime?: number | Record<string, number>;
@@ -131,6 +133,7 @@ function toModelDefinition(wire: CatalogModel): ModelDefinition {
   if (wire.badges !== undefined) def.badge = wire.badges;
   if (wire.release !== undefined) def.release = wire.release;
   if (wire.addedAt !== undefined) def.addedAt = wire.addedAt;
+  if (wire.releasedAt != null) def.releasedAt = wire.releasedAt;
   if (wire.updatedAt != null) def.updatedAt = wire.updatedAt;
   if (wire.estimatedTime !== undefined) def.estimatedTime = wire.estimatedTime;
   if (wire.deprecated !== undefined) def.deprecated = wire.deprecated;
@@ -175,6 +178,7 @@ export function serializeCatalog(models: ModelDefinition[]): CatalogModelsRespon
     if (def.badge !== undefined) wire.badges = def.badge;
     if (def.release !== undefined) wire.release = def.release;
     if (def.addedAt !== undefined) wire.addedAt = def.addedAt;
+    if (def.releasedAt !== undefined) wire.releasedAt = def.releasedAt;
     if (def.updatedAt !== undefined) wire.updatedAt = def.updatedAt;
     if (def.estimatedTime !== undefined) wire.estimatedTime = def.estimatedTime;
     if (def.deprecated !== undefined) wire.deprecated = def.deprecated;

@@ -439,6 +439,8 @@ interface ModelMeta {
     readonly provider: ProviderInfo;
     /** ISO YYYY-MM-DD date the model was added to the catalog, or null if unknown. */
     readonly addedAt: string | null;
+    /** ISO YYYY-MM-DD date the model went into full release at Picsart, or null while it is in preview. */
+    readonly releasedAt: string | null;
     /** ISO YYYY-MM-DD date the model definition was last changed, or null if unknown. */
     readonly updatedAt: string | null;
     /** Release / availability tier. Absent on the definition ⇒ `'production'`. */
@@ -740,6 +742,8 @@ interface ModelDefinition {
     badge?: BadgeType[];
     /** ISO YYYY-MM-DD date the model was added. The 'new' badge is derived from this — see core/badges.ts. */
     addedAt?: string;
+    /** ISO YYYY-MM-DD date the model went into full release at Picsart — tells how new it is. Absent while in preview. */
+    releasedAt?: string;
     /** ISO YYYY-MM-DD date the model definition was last changed. Absent when unknown. */
     updatedAt?: string;
     /**
@@ -1606,6 +1610,8 @@ interface CatalogModel {
     features?: ModelFeature[];
     release?: ReleaseTag;
     addedAt?: string;
+    /** The server sends `null` while the model is still in preview (not yet fully released). */
+    releasedAt?: string | null;
     /** The server sends `null` for a model that has never been changed since it was added. */
     updatedAt?: string | null;
     estimatedTime?: number | Record<string, number>;

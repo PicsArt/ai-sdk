@@ -274,6 +274,8 @@ export interface ModelDefinition {
   badge?: BadgeType[];
   /** ISO YYYY-MM-DD date the model was added. The 'new' badge is derived from this — see core/badges.ts. */
   addedAt?: string;
+  /** ISO YYYY-MM-DD date the model went into full release at Picsart — tells how new it is. Absent while in preview. */
+  releasedAt?: string;
   /** ISO YYYY-MM-DD date the model definition was last changed. Absent when unknown. */
   updatedAt?: string;
   /**

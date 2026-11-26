@@ -279,6 +279,7 @@ class ModelMetaImpl implements ModelMeta {
   readonly badges;
   readonly provider: ProviderInfo;
   readonly addedAt: string | null;
+  readonly releasedAt: string | null;
   readonly updatedAt: string | null;
   readonly release: ReleaseTag;
 
@@ -296,6 +297,7 @@ class ModelMetaImpl implements ModelMeta {
       label: def.providerLabel,
     };
     this.addedAt = def.addedAt ?? null;
+    this.releasedAt = def.releasedAt ?? null;
     this.updatedAt = def.updatedAt ?? null;
   }
 }

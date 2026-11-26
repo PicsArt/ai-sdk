@@ -15,18 +15,24 @@ import type {
 import type { AuthenticatedFetch, ClientConfig } from './types.ts';
 import { ApiError } from '../core/errors.ts';
 import { toApiError } from './workflows-error.ts';
+import pkg from '../../package.json' with { type: 'json' };
 
 /**
  * Attribution headers the gateway requires on every request. The `apiKey` fetch
  * sends these so a key alone is enough to reach the API; already-present values
  * are left alone, so a caller-supplied header still wins.
  *
- * Callers on the custom-`fetch` path own their headers entirely — they must set
- * these themselves (see `__tests__/e2e/helpers/ai-sdk-test-client.ts`).
+ * Callers on the custom-`fetch` path own these headers — they must set them
+ * themselves (see `__tests__/e2e/helpers/ai-sdk-test-client.ts`).
  */
 const GATEWAY_HEADERS: Record<string, string> = {
   'platform': 'api',
   'X-Touchpoint': 'sdk',
+};
+
+/** Marks every request the SDK makes, on the `apiKey` and the custom-`fetch` path alike. */
+const SDK_HEADERS: Record<string, string> = {
+  'X-Picsart-Sdk': `js/${pkg.version}`,
 };
 
 /**
@@ -37,7 +43,14 @@ const GATEWAY_HEADERS: Record<string, string> = {
  * carries neither — legal only when a custom `transport` owns the wire.
  */
 export function maybeFetch(config: ClientConfig): AuthenticatedFetch | null {
-  if (config.fetch) return config.fetch;
+  if (config.fetch) {
+    const callerFetch = config.fetch;
+    return (url, init) => {
+      const headers = new Headers(init?.headers);
+      for (const [name, value] of Object.entries(SDK_HEADERS)) headers.set(name, value);
+      return callerFetch(url, { ...init, headers });
+    };
+  }
   if (config.apiKey) {
     const token = config.apiKey.replace(/^Bearer\s+/i, '');
     return (url, init) => {
@@ -46,6 +59,7 @@ export function maybeFetch(config: ClientConfig): AuthenticatedFetch | null {
       for (const [name, value] of Object.entries(GATEWAY_HEADERS)) {
         if (!headers.has(name)) headers.set(name, value);
       }
+      for (const [name, value] of Object.entries(SDK_HEADERS)) headers.set(name, value);
       return globalThis.fetch(url, { ...init, headers });
     };
   }

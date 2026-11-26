@@ -2615,13 +2615,27 @@ function toApiError(err, workflow, id) {
   });
 }
 
+// package.json
+var package_default = {
+  version: "7.43.0"};
+
 // src/client/transport.ts
 var GATEWAY_HEADERS = {
   "platform": "api",
   "X-Touchpoint": "sdk"
 };
+var SDK_HEADERS = {
+  "X-Picsart-Sdk": `js/${package_default.version}`
+};
 function maybeFetch(config) {
-  if (config.fetch) return config.fetch;
+  if (config.fetch) {
+    const callerFetch = config.fetch;
+    return (url, init) => {
+      const headers = new Headers(init?.headers);
+      for (const [name, value] of Object.entries(SDK_HEADERS)) headers.set(name, value);
+      return callerFetch(url, { ...init, headers });
+    };
+  }
   if (config.apiKey) {
     const token = config.apiKey.replace(/^Bearer\s+/i, "");
     return (url, init) => {
@@ -2630,6 +2644,7 @@ function maybeFetch(config) {
       for (const [name, value] of Object.entries(GATEWAY_HEADERS)) {
         if (!headers.has(name)) headers.set(name, value);
       }
+      for (const [name, value] of Object.entries(SDK_HEADERS)) headers.set(name, value);
       return globalThis.fetch(url, { ...init, headers });
     };
   }

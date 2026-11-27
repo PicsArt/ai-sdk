@@ -257,6 +257,24 @@ const credits = await ai.getCredits(modelId, { prompt }, { serviceTier: 'priorit
 
 Left unset, the option is not sent and the platform applies `auto`.
 
+## Completion Notifications
+
+`notification` asks the platform to notify the user when a generation finishes,
+for example by email once they have left the page, for tools that have
+notifications set up. It is a `submit()` option only.
+
+```typescript
+await ai.submit(modelId, { prompt }, {
+  notification: {
+    enabled: true,
+    templateVariables: { prompt }, // values for the template's variables
+  },
+});
+```
+
+Where the notification leads is set up on the platform for each tool, not by the SDK.
+Left unset, nothing is sent and the task keeps the platform's default.
+
 ## Config ID
 
 `configId` runs a generation under a specific platform config. It is sent as the
@@ -478,6 +496,7 @@ Key exports (see `src/index.ts` for the full list):
 | `AuthenticatedFetch` | type | `(url, init?) => Promise<Response>` — for the custom-`fetch` path |
 | `SdkTransport` | type | The transport contract — see [Custom Transport](#custom-transport) |
 | `ServiceTier` | type | `'auto' \| 'priority'` — see [Service Tier](#service-tier) |
+| `GenerationNotification` | type | `{ enabled?, templateVariables? }` — see [Completion Notifications](#completion-notifications) |
 | `GenerationOptions` | type | Poll controls for `result()`/`subscribe()` — `{ intervalMs?, maxAttempts?, signal? }` |
 | `ApiError` | class | Unified error: `{ status, code, reason, message }` — see [Error Handling](#error-handling) |
 

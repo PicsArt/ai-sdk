@@ -5,6 +5,7 @@ import type {
   WorkflowJobHandle,
   WorkflowProgress,
   WorkflowSubmitRequest,
+  GenerationNotification,
   CreditUsage,
   OptionsResult,
   OptionsAvailability,
@@ -24,6 +25,7 @@ export type {
   TransportResult,
   WorkflowJobHandle,
   WorkflowSubmitRequest,
+  GenerationNotification,
   CreditUsage,
   OptionsResult,
   OptionsAvailability,
@@ -329,6 +331,11 @@ export interface GenerateOptions {
    * `generateText()` and `submit()`.
    */
   serviceTier?: ServiceTier;
+  /**
+   * Notify the user when the generation finishes — see
+   * {@link GenerationNotification}. Used by `submit()` only; unset, nothing is sent.
+   */
+  notification?: GenerationNotification;
   /**
    * Config id to run this generation under, sent as the `x-config-id` header.
    * The model's workflow loads the config with this id in place of its

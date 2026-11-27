@@ -2620,7 +2620,7 @@ function toApiError(err, workflow, id) {
 
 // package.json
 var package_default = {
-  version: "7.46.0"};
+  version: "7.47.0"};
 
 // src/client/transport.ts
 var GATEWAY_HEADERS = {
@@ -2700,6 +2700,7 @@ function buildTransport(wc) {
       try {
         const id = await wc.submit(request.workflow, request.payload, {
           abortSignal: request.signal,
+          notificationConfig: request.notification,
           headers: configIdHeaders(request.configId)
         });
         if (!id) {
@@ -3677,12 +3678,22 @@ function createClient(config) {
     if (!transport.submit) throw unsupportedTransport("submit");
     if (!transport.poll) throw unsupportedTransport("polling");
   }
-  async function submitJob(workflow, payload, signal, configId) {
+  async function submitJob(workflow, payload, signal, configId, notification) {
     if (signal?.aborted) {
       throw new ApiError("Operation aborted", { status: 499, code: "aborted" });
     }
     if (!transport.submit) throw unsupportedTransport("submit");
-    const id = await transport.submit({ workflow, payload, signal, configId });
+    const supportedNotification = notification && {
+      enabled: notification.enabled,
+      templateVariables: notification.templateVariables
+    };
+    const id = await transport.submit({
+      workflow,
+      payload,
+      signal,
+      configId,
+      notification: supportedNotification
+    });
     if (!id) {
       throw new ApiError("No task id in response", { status: 502, code: "invalid_response" });
     }
@@ -3892,7 +3903,7 @@ function createClient(config) {
         inputsNormalization: options?.inputsNormalization
       }, resolveServiceTier(options));
       try {
-        return await submitJob(MODELS_WORKFLOW, command, options?.signal, options?.configId);
+        return await submitJob(MODELS_WORKFLOW, command, options?.signal, options?.configId, options?.notification);
       } catch (err) {
         throw toApiError2(err, options?.signal);
       }

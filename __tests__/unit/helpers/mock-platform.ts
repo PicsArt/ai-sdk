@@ -34,7 +34,7 @@ export interface PlatformHooks {
 export interface PlatformMock {
   fetch: AuthenticatedFetch;
   calls: {
-    submits: Array<{ workflow: string; payload: Record<string, unknown> }>;
+    submits: Array<{ workflow: string; payload: Record<string, unknown>; notification?: unknown }>;
     polls: number;
     executes: Array<{ workflow: string; payload: Record<string, unknown> }>;
     catalogFetches: Array<{ search: string }>;
@@ -60,11 +60,12 @@ export function mockPlatform(hooks: PlatformHooks = {}): PlatformMock {
       return json(200, body);
     }
     const path = u.pathname.replace(/^.*\/workflows\//, '');
-    const params = init?.body ? (JSON.parse(String(init.body)).params ?? {}) : {};
+    const body = init?.body ? JSON.parse(String(init.body)) : {};
+    const params = body.params ?? {};
 
     if (path.endsWith('/submit')) {
       const workflow = path.slice(0, -'/submit'.length);
-      calls.submits.push({ workflow, payload: params });
+      calls.submits.push({ workflow, payload: params, notification: body.notification });
       const id = hooks.submit?.(workflow, params) ?? 'task-1';
       return json(200, { status: 'success', response: { id } });
     }

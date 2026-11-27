@@ -4,11 +4,15 @@
 // the built-in one (client/transport.ts) rides on @picsart/workflows-client,
 // and `createClient({ transport })` swaps in any other implementation.
 
+import type { ExecutionOptions } from '@picsart/workflows-client';
+
 export interface WorkflowSubmitRequest<TPayload = Record<string, unknown>> {
   /** Workflow endpoint, e.g. "veo-text-to-video". */
   workflow: string;
   payload: TPayload;
   signal?: AbortSignal;
+  /** submit() only: sent beside the payload as the submit body's `notification`. */
+  notification?: GenerationNotification;
   /**
    * Config id to run the workflow under — the caller's `configId` option. The
    * built-in transport sends it as the `x-config-id` header; unset, the
@@ -16,6 +20,16 @@ export interface WorkflowSubmitRequest<TPayload = Record<string, unknown>> {
    */
   configId?: string;
 }
+
+/**
+ * Asks the platform to notify the user when a generation finishes, e.g. by
+ * email once they have left the page, for tools that have notifications set up.
+ * The workflows client's notification type (not exported by name), limited to what the SDK supports.
+ */
+export type GenerationNotification = Pick<
+  NonNullable<ExecutionOptions['notificationConfig']>,
+  'enabled' | 'templateVariables'
+>;
 
 export interface WorkflowJobHandle {
   workflow: string;

@@ -1,4 +1,4 @@
-import { WorkflowTypes, ExecutionOptions, WorkflowResponse } from './_vendor/workflows-client/index';
+import { ExecutionOptions, WorkflowTypes, WorkflowResponse } from './_vendor/workflows-client/index';
 export { ExecutionMode as ApiRunMode } from './_vendor/workflows-client/index';
 export { JsonModelId, ModelInput, ModelInputById, TextModelId, TextModelInputById, TypedModelId } from './_vendor/model-types/index';
 import { ModelPricingClientOptions } from './_vendor/pa-model-pricing-sdk/index';
@@ -8,6 +8,8 @@ interface WorkflowSubmitRequest<TPayload = Record<string, unknown>> {
     workflow: string;
     payload: TPayload;
     signal?: AbortSignal;
+    /** submit() only: sent beside the payload as the submit body's `notification`. */
+    notification?: GenerationNotification;
     /**
      * Config id to run the workflow under — the caller's `configId` option. The
      * built-in transport sends it as the `x-config-id` header; unset, the
@@ -15,6 +17,12 @@ interface WorkflowSubmitRequest<TPayload = Record<string, unknown>> {
      */
     configId?: string;
 }
+/**
+ * Asks the platform to notify the user when a generation finishes, e.g. by
+ * email once they have left the page, for tools that have notifications set up.
+ * The workflows client's notification type (not exported by name), limited to what the SDK supports.
+ */
+type GenerationNotification = Pick<NonNullable<ExecutionOptions['notificationConfig']>, 'enabled' | 'templateVariables'>;
 interface WorkflowJobHandle {
     workflow: string;
     id: string;
@@ -1432,6 +1440,11 @@ interface GenerateOptions {
      */
     serviceTier?: ServiceTier;
     /**
+     * Notify the user when the generation finishes — see
+     * {@link GenerationNotification}. Used by `submit()` only; unset, nothing is sent.
+     */
+    notification?: GenerationNotification;
+    /**
      * Config id to run this generation under, sent as the `x-config-id` header.
      * The model's workflow loads the config with this id in place of its
      * default, so the id must exist for the model being called. Unset, no id is
@@ -1764,4 +1777,4 @@ declare const getModel: (id: string) => ModelDefinition | undefined;
  */
 declare const findModel: (ref: string) => ModelDefinition | undefined;
 
-export { type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogModel, type CatalogModelsResponse, type CatalogPage, type CatalogPageOptions, type CatalogParam, type CatalogPreview, type CatalogProvider, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type InitModelCatalogOptions, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelCatalogFilters, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelMeta, type ModelParams, type ModelParamsAccessor, type ModelsCommand, type ModelsGenAIOptions, type ObjectDescriptor, type ObjectEntry, type OptionsAvailability, type OptionsResult, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsNormalizationOptions, type PayloadInputsTransformationOptions, type PriceOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type RunResponse, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type ServiceTier, type TextDescriptor, type TextEntry, type ToolUsage, type TransportPollOptions, type TransportResult, type UnknownDescriptor, type UnknownEntry, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };
+export { type AiClient, ApiError, type ApiErrorCode, type ApiErrorInit, type ApiResponse, type ApiRunOptions, type ApiSchemas, type ApisClient, type AppIdentity, type AppType, type AuthenticatedFetch, type AvatarOption, type BooleanDescriptor, type BooleanEntry, type CatalogDescriptor, type CatalogEntry, type CatalogItem, type CatalogModel, type CatalogModelsResponse, type CatalogPage, type CatalogPageOptions, type CatalogParam, type CatalogPreview, type CatalogProvider, type CatalogQuery, type CatalogResult, type CatalogSource, type CatalogsClient, type CatalogsOptions, type ClientConfig, type CreditRange, type CreditRangeContext, type CreditTier, type CreditUsage, DEFAULT_VISIBLE_RELEASES, type DeepLinkResult, type DriveAttributes, type DriveClient, type DriveConfig, type DriveDraftInfo, type DriveFile, type DriveFileDetails, type DriveFolder, type DriveMediaItem, type DriveSaveResult, type EntryMeta, type EnumDescriptor, type EnumEntry, type EnumOption, type FileDescriptor, type FileEntry, type FlatParamEntry, type GenerateOptions, type GenerateResult, type GenerateResultItem, type GenerateResultItemMetadata, type GenerateTextResult, type GenerationContext, type GenerationEvent, GenerationEventType, type GenerationFile, type GenerationMode, type GenerationNotification, type GenerationOptions, type GenerationProgress, type GenerationProvenance, type InitModelCatalogOptions, type ListOptions, type MediaModelId, type MediaTypeFilter, Model, type ModelCatalogFilters, type ModelDefinition, type ModelDescriptor, type ModelFilter, type ModelMeta, type ModelParams, type ModelParamsAccessor, type ModelsCommand, type ModelsGenAIOptions, type ObjectDescriptor, type ObjectEntry, type OptionsAvailability, type OptionsResult, type ParamDescriptor, type ParamEntry, type ParamOption, type PayloadDriveFolderOptions, type PayloadDriveOptions, type PayloadInputsNormalizationOptions, type PayloadInputsTransformationOptions, type PriceOptions, type PricingOptions, type ProviderInfo, type RangeDescriptor, type RangeEntry, type ReleaseTag, type RunResponse, type SaveParams, type SdkPayload, type SdkTransport, type SeedanceDraftTask, type ServiceTier, type TextDescriptor, type TextEntry, type ToolUsage, type TransportPollOptions, type TransportResult, type UnknownDescriptor, type UnknownEntry, type UserReaction, type ValidationResult, type VoiceOption, type WorkflowJobHandle, type WorkflowSubmitRequest, buildFilename, buildGenerationAttributes, catalog, createClient, decodeDeepLinkPayload, encodeDeepLinkPayload, expectedOutputFormat, findModel, getModel, getVoiceById, inferResourceType, isVisibleForReleases, parseGeneration, releaseOf, resolveExtension, toAvatarOption, toVoiceOption };

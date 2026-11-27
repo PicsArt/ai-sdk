@@ -35,6 +35,7 @@ export type {
   TransportResult,
   TransportPollOptions,
   WorkflowSubmitRequest,
+  GenerationNotification,
   WorkflowJobHandle,
   GenerationProgress,
   CreditUsage,

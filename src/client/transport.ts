@@ -130,6 +130,7 @@ export function buildTransport(wc: WorkflowsClient): SdkTransport {
         // once it supports it (postTask ignores it today).
         const id = await wc.submit(request.workflow, request.payload, {
           abortSignal: request.signal,
+          notificationConfig: request.notification,
           headers: configIdHeaders(request.configId),
         });
         if (!id) {

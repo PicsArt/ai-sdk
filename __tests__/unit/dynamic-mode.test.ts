@@ -155,6 +155,23 @@ const ai = createClient({
   assert.strictEqual('options' in optionsCall.payload, false);
 }
 
+// ── 7a. submit() sends the notification in the submit body, beside the command ─
+{
+  const notification = { enabled: true, templateVariables: { prompt: 'a cat' } };
+  await ai.submit('backend-only-model', { prompt: 'a cat' }, { notification });
+  assert.deepStrictEqual(platform.calls.submits.at(-1)!.notification, notification);
+  assert.strictEqual('notification' in platform.calls.submits.at(-1)!.payload, false);
+
+  // Only enabled and templateVariables are sent, whatever else a caller passes at runtime.
+  const withExtras = { ...notification, actions: [{ deeplink: 'https://evil.example' }], data: { title: 'x' } };
+  await ai.submit('backend-only-model', { prompt: 'a cat' }, { notification: withExtras as typeof notification });
+  assert.deepStrictEqual(platform.calls.submits.at(-1)!.notification, notification);
+
+  // Unset: nothing is sent, so the task keeps the platform default.
+  await ai.submit('backend-only-model', { prompt: 'a cat' });
+  assert.strictEqual(platform.calls.submits.at(-1)!.notification, undefined);
+}
+
 // ── 7b. serviceTier rides every route; per-call wins over the client's ─
 {
   // Media: beside the media options.

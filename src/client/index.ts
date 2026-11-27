@@ -7,6 +7,7 @@ import {
   type WorkflowJobHandle,
   type WorkflowStatusResult,
   type WorkflowPollOptions,
+  type GenerationNotification,
 } from '../core/workflow.ts';
 import { toCompletedStatus } from '../core/response.ts';
 import { ApiError } from '../core/errors.ts';
@@ -28,7 +29,7 @@ import { createApis } from './apis.ts';
 import { createCatalogs } from './catalogs.ts';
 
 // ── Re-export types for the public API ──
-export type { ClientConfig, InitModelCatalogOptions, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, PayloadInputsNormalizationOptions, ServiceTier, PriceOptions, CreditUsage, OptionsResult, OptionsAvailability, ToolUsage, AiClient, MediaModelId } from './types.ts';
+export type { ClientConfig, InitModelCatalogOptions, AuthenticatedFetch, SdkTransport, TransportResult, TransportPollOptions, WorkflowSubmitRequest, GenerationNotification, WorkflowJobHandle, GenerateResult, GenerateResultItem, GenerateResultItemMetadata, GenerateTextResult, RunResponse, GenerateOptions, GenerationOptions, GenerationEvent, GenerationProgress, PayloadInputsTransformationOptions, PayloadInputsNormalizationOptions, ServiceTier, PriceOptions, CreditUsage, OptionsResult, OptionsAvailability, ToolUsage, AiClient, MediaModelId } from './types.ts';
 export type { ModelsCommand, ModelsGenAIOptions } from './prepare.ts';
 export { MODELS_WORKFLOW } from './prepare.ts';
 export type { ApiResponse, ApiRunOptions, ApiSchemas, ApisClient } from './apis.ts';
@@ -183,12 +184,23 @@ export function createClient(config: ClientConfig) {
    * when the caller already canceled; the signal is also forwarded so a
    * transport can abort the in-flight submit.
    */
-  async function submitJob(workflow: string, payload: unknown, signal?: AbortSignal, configId?: string): Promise<string> {
+  async function submitJob(
+    workflow: string,
+    payload: unknown,
+    signal?: AbortSignal,
+    configId?: string,
+    notification?: GenerationNotification,
+  ): Promise<string> {
     if (signal?.aborted) {
       throw new ApiError('Operation aborted', { status: 499, code: 'aborted' });
     }
     if (!transport.submit) throw unsupportedTransport('submit');
-    const id = await transport.submit({ workflow, payload: payload as Record<string, unknown>, signal, configId });
+    const supportedNotification = notification && {
+      enabled: notification.enabled, templateVariables: notification.templateVariables,
+    };
+    const id = await transport.submit({
+      workflow, payload: payload as Record<string, unknown>, signal, configId, notification: supportedNotification,
+    });
     if (!id) {
       throw new ApiError('No task id in response', { status: 502, code: 'invalid_response' });
     }
@@ -532,7 +544,7 @@ export function createClient(config: ClientConfig) {
         inputsNormalization: options?.inputsNormalization,
       }, resolveServiceTier(options));
       try {
-        return await submitJob(MODELS_WORKFLOW, command, options?.signal, options?.configId);
+        return await submitJob(MODELS_WORKFLOW, command, options?.signal, options?.configId, options?.notification);
       } catch (err) {
         throw toApiError(err, options?.signal);
       }

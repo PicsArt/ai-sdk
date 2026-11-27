@@ -50,6 +50,18 @@ interface WorkflowOptions {
     price?: number;
     hasPermission?: boolean;
     missingPermissions?: string[];
+    rateLimitVerdict?: RateLimitVerdict;
+    availability?: WorkflowAvailability;
+}
+interface WorkflowAvailability {
+    status: 'available' | 'busy' | 'unavailable';
+    estimatedWaitSeconds?: number;
+}
+interface RateLimitVerdict {
+    type?: 'rate' | 'concurrency';
+    overLimit: boolean;
+    retryAfterSeconds: number | null;
+    label?: string;
 }
 type HistoryResponse<R> = PicsartResponse & {
     response: {
@@ -112,6 +124,10 @@ interface WorkflowResponse<R> {
     events?: WorkflowEvent[];
 }
 interface INotificationContext {
+    /** Opts the task in to (true) or out of (false) a completion notification; omitted → the task's default. */
+    enabled?: boolean;
+    /** Values for the email template's variables, e.g. `{ prompt }`. Overrides the tool config's defaults. */
+    templateVariables?: Record<string, string>;
     projectId?: string;
     miniappPackageId?: string;
     actions?: INotificationContextAction[];
@@ -371,4 +387,4 @@ declare class WorkflowsError extends Error {
     static fromUnknown(error: unknown): WorkflowsError;
 }
 
-export { type ChannelOpAck, EventTypes, ExecutionMode, ExecutionOptions, STREAM_EVENT_NAME, type SocketConnectionOptions, type SocketLike, type StreamSocketMessage, type SubscribeOptions, type WorkflowEvent, type WorkflowOptions, type WorkflowProgress, type WorkflowResponse, WorkflowStatus, WorkflowsClient, WorkflowsError, type WorkflowsErrorInit, normalizeWorkflowName, taskChannel, workflowChannel };
+export { type ChannelOpAck, EventTypes, ExecutionMode, ExecutionOptions, type RateLimitVerdict, STREAM_EVENT_NAME, type SocketConnectionOptions, type SocketLike, type StreamSocketMessage, type SubscribeOptions, type WorkflowAvailability, type WorkflowEvent, type WorkflowOptions, type WorkflowProgress, type WorkflowResponse, WorkflowStatus, WorkflowsClient, WorkflowsError, type WorkflowsErrorInit, normalizeWorkflowName, taskChannel, workflowChannel };

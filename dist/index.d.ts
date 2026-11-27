@@ -8,6 +8,12 @@ interface WorkflowSubmitRequest<TPayload = Record<string, unknown>> {
     workflow: string;
     payload: TPayload;
     signal?: AbortSignal;
+    /**
+     * Config id to run the workflow under — the caller's `configId` option. The
+     * built-in transport sends it as the `x-config-id` header; unset, the
+     * workflow's default config applies.
+     */
+    configId?: string;
 }
 interface WorkflowJobHandle {
     workflow: string;
@@ -1425,6 +1431,14 @@ interface GenerateOptions {
      * `generateText()` and `submit()`.
      */
     serviceTier?: ServiceTier;
+    /**
+     * Config id to run this generation under, sent as the `x-config-id` header.
+     * The model's workflow loads the config with this id in place of its
+     * default, so the id must exist for the model being called. Unset, no id is
+     * sent and the default config applies. Applies to `run()`, `generate()`,
+     * `generateText()` and `submit()`.
+     */
+    configId?: string;
     /**
      * App identity stamped onto the saved generation (appId/appType).
      * TODO(backend-autosave): temporary — remove once the backend stamps these.

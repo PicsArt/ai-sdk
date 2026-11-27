@@ -9,6 +9,12 @@ export interface WorkflowSubmitRequest<TPayload = Record<string, unknown>> {
   workflow: string;
   payload: TPayload;
   signal?: AbortSignal;
+  /**
+   * Config id to run the workflow under — the caller's `configId` option. The
+   * built-in transport sends it as the `x-config-id` header; unset, the
+   * workflow's default config applies.
+   */
+  configId?: string;
 }
 
 export interface WorkflowJobHandle {

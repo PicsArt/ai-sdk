@@ -66,6 +66,13 @@ export function maybeFetch(config: ClientConfig): AuthenticatedFetch | null {
   return null;
 }
 
+const CONFIG_ID_HEADER = 'x-config-id';
+
+/** The per-call header that carries a `configId`; nothing when it is unset. */
+function configIdHeaders(configId?: string): Record<string, string> | undefined {
+  return configId ? { [CONFIG_ID_HEADER]: configId } : undefined;
+}
+
 /**
  * The workflows client the built-in transport (and `ai.apis`) runs on.
  * Shared, so both speak to the platform through the same authenticated fetch.
@@ -109,6 +116,7 @@ export function buildTransport(wc: WorkflowsClient): SdkTransport {
         const res = await wc.run(request.workflow, request.payload, {
           mode: ExecutionMode.SYNC,
           abortSignal: request.signal,
+          headers: configIdHeaders(request.configId),
         });
         return asResult(res);
       } catch (err) {
@@ -120,7 +128,10 @@ export function buildTransport(wc: WorkflowsClient): SdkTransport {
       try {
         // The signal is forwarded so the client can abort the in-flight submit
         // once it supports it (postTask ignores it today).
-        const id = await wc.submit(request.workflow, request.payload, { abortSignal: request.signal });
+        const id = await wc.submit(request.workflow, request.payload, {
+          abortSignal: request.signal,
+          headers: configIdHeaders(request.configId),
+        });
         if (!id) {
           throw new ApiError('No task id in response', { status: 502, code: 'invalid_response' });
         }

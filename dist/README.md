@@ -257,6 +257,23 @@ const credits = await ai.getCredits(modelId, { prompt }, { serviceTier: 'priorit
 
 Left unset, the option is not sent and the platform applies `auto`.
 
+## Config ID
+
+`configId` runs a generation under a specific platform config. It is sent as the
+`x-config-id` header on every generation route — `generate()`, `generateText()`,
+`run()` and `submit()` — and the model's workflow loads that config in place of
+its default.
+
+```typescript
+await ai.generate(modelId, { prompt }, { configId: 'my-config-id' });
+```
+
+The price calls (`getCredits()`, `options()`) do not take a `configId`: they quote under the default config.
+
+The id must exist for the model being called: a workflow that cannot find it
+fails the request with `config_not_found`. Left unset, no id is sent and the
+default config applies.
+
 ## Text Generation (LLMs)
 
 Claude, GPT, Gemini, Kimi, Grok and MiniMax text models are called with `generateText()`. Single-shot:

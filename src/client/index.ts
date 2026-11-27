@@ -183,12 +183,12 @@ export function createClient(config: ClientConfig) {
    * when the caller already canceled; the signal is also forwarded so a
    * transport can abort the in-flight submit.
    */
-  async function submitJob(workflow: string, payload: unknown, signal?: AbortSignal): Promise<string> {
+  async function submitJob(workflow: string, payload: unknown, signal?: AbortSignal, configId?: string): Promise<string> {
     if (signal?.aborted) {
       throw new ApiError('Operation aborted', { status: 499, code: 'aborted' });
     }
     if (!transport.submit) throw unsupportedTransport('submit');
-    const id = await transport.submit({ workflow, payload: payload as Record<string, unknown>, signal });
+    const id = await transport.submit({ workflow, payload: payload as Record<string, unknown>, signal, configId });
     if (!id) {
       throw new ApiError('No task id in response', { status: 502, code: 'invalid_response' });
     }
@@ -270,13 +270,14 @@ export function createClient(config: ClientConfig) {
     options?: GenerateOptions,
   ): Promise<WorkflowStatusResult<unknown>> {
     const signal = options?.signal;
+    const configId = options?.configId;
     const payload = command as unknown as Record<string, unknown>;
     try {
       if (!supportsAsync) {
-        const res = await transport.execute({ workflow: MODELS_WORKFLOW, payload, signal });
+        const res = await transport.execute({ workflow: MODELS_WORKFLOW, payload, signal, configId });
         return toCompletedStatus({ workflow: MODELS_WORKFLOW, id: '' }, res.result, res.raw ?? res.result, res.usage);
       }
-      const id = await submitJob(MODELS_WORKFLOW, payload, signal);
+      const id = await submitJob(MODELS_WORKFLOW, payload, signal, configId);
       const res = await pollJob({ workflow: MODELS_WORKFLOW, id }, pollOptionsFor(options));
       return asCompleted({ workflow: MODELS_WORKFLOW, id }, res);
     } catch (err) {
@@ -531,7 +532,7 @@ export function createClient(config: ClientConfig) {
         inputsNormalization: options?.inputsNormalization,
       }, resolveServiceTier(options));
       try {
-        return await submitJob(MODELS_WORKFLOW, command, options?.signal);
+        return await submitJob(MODELS_WORKFLOW, command, options?.signal, options?.configId);
       } catch (err) {
         throw toApiError(err, options?.signal);
       }

@@ -330,6 +330,14 @@ export interface GenerateOptions {
    */
   serviceTier?: ServiceTier;
   /**
+   * Config id to run this generation under, sent as the `x-config-id` header.
+   * The model's workflow loads the config with this id in place of its
+   * default, so the id must exist for the model being called. Unset, no id is
+   * sent and the default config applies. Applies to `run()`, `generate()`,
+   * `generateText()` and `submit()`.
+   */
+  configId?: string;
+  /**
    * App identity stamped onto the saved generation (appId/appType).
    * TODO(backend-autosave): temporary — remove once the backend stamps these.
    */
